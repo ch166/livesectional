@@ -586,9 +586,9 @@ def tzset():
 
     if request.method == "POST":
         timezone = request.form['tzselected']
-        flash('Timezone set to ' + timezone)
+        flash('DISABLED: Timezone set to ' + timezone)
         flash('NOTE: Select "Reboot RPI" from "Map Functions" Menu for changes to take affect')
-        os.system('sudo timedatectl set-timezone ' + timezone)
+        # os.system('sudo timedatectl set-timezone ' + timezone)
         return redirect('tzset')
 
     tzlist = subprocess.run(['timedatectl', 'list-timezones'],

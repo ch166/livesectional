@@ -8,13 +8,16 @@ import json
 import requests
 import wget
 import debugging
+from datetime import datetime
+import pytz
+import conf
 
 def is_connected():
     ''' Check to see if we can reach an endpoint on the Internet '''
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
-        sock = socket.create_connection(("www.google.com", 80))
+        sock = socket.create_connection(("ipv4.google.com", 80))
         if sock is not None:
             print('Closing socket')
             sock.close()
@@ -38,14 +41,15 @@ def wait_for_internet():
 
 def get_local_ip():
     ''' Create Socket to the Internet, Query Local IP '''
+    ipaddr = "UNKN"
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
         sock = socket.create_connection(("ipv4.google.com", 80))
         if sock is not None:
+            ipaddr = sock.getsockname()[0]
             print('Closing socket')
             sock.close()
-        ipaddr = sock.getsockname()[0]
         return ipaddr
     except OSError:
         pass
@@ -109,3 +113,30 @@ def download_file(url, filename):
     """ Download a file """
     wget.download(url, filename)
     debugging.info('Downloaded ' + filename + ' from neoupdate')
+
+  
+def current_time_utc(conf):
+    """ Generate standard string format for current itme """
+    UTC = pytz.utc
+    curr_time = datetime.now(UTC)
+    return curr_time.strftime("%H:%M:%S - %b %d, %Y")
+
+
+def current_time(conf):
+    """ Generate standard string format for current itme """
+    TMZONE = pytz.timezone(conf.get_string("default", "timezone"))
+    curr_time = datetime.now(TMZONE)
+    return curr_time.strftime("%H:%M:%S - %b %d, %Y")
+
+
+def set_timezone(conf, newtimezone):
+    """ Set timezone configuration string """
+    # Doo stuff to set the timezone 
+    conf.set_string("default", "timezone")
+    conf.save_config()
+
+
+def get_timezone(conf): 
+    """ Return timezone configuration """
+    return conf.get_string("default", "timezone")
+

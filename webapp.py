@@ -32,6 +32,7 @@
 #    $ export SSL_CERT_DIR=/etc/ssl/certs
 from datetime import datetime
 import time
+import pytz
 import os
 import sys
 import subprocess
@@ -39,7 +40,7 @@ import shutil
 import zipfile
 # import json
 import urllib
-from urllib import request, error, parse
+# from urllib import request, error, parse
 import socket
 import logging
 
@@ -66,13 +67,15 @@ from rpi_ws281x import * # works with python 3.7. sudo pip3 install rpi_ws281x
 
 import debugging
 
-import confsettings
+import conf
 import utils
 import appinfo
 
-import config
+# import config
 import admin
 import scan_network
+
+import sysinfo
 
 # Setup rotating logfile with 3 rotations, each with a maximum filesize of 1MB:
 version = admin.version          # Software version
@@ -80,7 +83,7 @@ version = admin.version          # Software version
 # loglevels = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR]
 # logzero.loglevel(loglevels[loglevel])  # Choices in order; DEBUG, INFO, WARNING, ERROR
 # logzero.logfile("/NeoSectional/logs/logfile.log", maxBytes=1e6, backupCount=3)
-debugging.info("\n\nStartup of metar-v4.py Script, Version " + version)
+# debugging.info("\n\nStartup of metar-v4.py Script, Version " + version)
 # debugging.info("Log Level Set To: " + str(loglevels[loglevel]))
 
 # setup variables
@@ -89,19 +92,18 @@ debugging.info("\n\nStartup of metar-v4.py Script, Version " + version)
 #  on local network admin.
 #
 # Moved to config statement
-# # airports_file = '/NeoSectional/data/airports'
+#
+# FIXME: Remove as many of these globals as possible
 #
 # airports_bkup = '/NeoSectional/airports-bkup'
 settings_file = '/NeoSectional/config.py'
-settings_bkup = '/NeoSectional/config-bkup.py'
 # heatmap_file = '/NeoSectional/data/hmdata'
 settings = {}
 airports = []
 hmdata = []
 datalist = []
 newlist = []
-ipaddresses = []
-current_timezone = ''
+# current_timezone = ''
 # loc = {}
 machines = []
 lat_list = []
@@ -149,15 +151,12 @@ strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, 
 strip.begin()
 
 # misc variables
-color = Color(255, 255, 255)      # Color to display when cycling through LED's. White is the default.
+# color = Color(255, 255, 255)      # Color to display when cycling through LED's. White is the default.
 black_color = Color(0, 0, 0)      # Color Black used to turn off the LED.
 num = 0
-now = datetime.now()
-loc_timestr = (now.strftime("%H:%M:%S - %b %d, %Y"))
-debugging.dprint(loc_timestr)
 delay_time = 5                  # Delay in seconds between checking for internet availablility.
 num = 0                         # initialize num for airports editor
-ipadd = ''
+# ipadd = ''
 
 # Initiate flash session
 app = Flask(__name__)
@@ -207,6 +206,9 @@ def map1():
 @app.route('/touchscr', methods=["GET", "POST"])
 def touchscr():
     """Flask Route: /touchscr - Touch Screen template"""
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     return render_template('touchscr.html',
                            title='Touch Screen',
                            num=5,
@@ -238,10 +240,15 @@ def touchscr():
 def open_console():
     """Flask Route: /open_console - Launching Console in discrete window"""
     console_ips = []
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
     with open("/NeoSectional/data/console_ip.txt", "r") as file:
         for line in file.readlines()[-1:]:
             line = line.rstrip()
             console_ips.append(line)
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     debugging.info("Opening open_console in separate window")
     return render_template('open_console.html',
                            urls=console_ips,
@@ -249,6 +256,7 @@ def open_console():
                            num=5,
                            machines=machines,
                            ipadd=ipadd,
+                           timestrutc=loc_timestr_utc,
                            timestr=loc_timestr)
 
 
@@ -256,15 +264,20 @@ def open_console():
 @app.route('/stream_log', methods=["GET", "POST"])
 def stream_log():
     """Flask Route: /stream_log - Watch logs live"""
-    global ipadd
-    global loc_timestr
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     debugging.info("Opening stream_log in separate window")
     return render_template('stream_log.html',
                            title='Display Logfile-'+version,
                            num=5,
                            machines=machines,
                            ipadd=ipadd,
+                           timestrutc=loc_timestr_utc,
                            timestr=loc_timestr)
+
 
 
 @app.route('/stream_log1', methods=["GET", "POST"])
@@ -285,6 +298,9 @@ def stream_log1():
 def test_for_update():
     """Flask Route: /test_for_update - Run new software update checks"""
     global update_available
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     url = request.referrer
     if url is None:
         # Use index if called from URL and not page.
@@ -310,9 +326,12 @@ def test_for_update():
 @app.route('/update_info', methods=["GET", "POST"])
 def update_info():
     """Flask Route: /update_info - Display Software Updates"""
-    global ipadd
-    global loc_timestr
-    with open("/NeoSectional/update_info.txt", "r") as file:
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
+    with open(conf.get_string("filenames", "release_notes"), "r") as file:
         content = file.readlines()
         debugging.dprint(content)
     return render_template("update_info.html",
@@ -321,6 +340,7 @@ def update_info():
                            num=5,
                            machines=machines,
                            ipadd=ipadd,
+                           timestrutc=loc_timestr_utc,
                            timestr=loc_timestr)
 
 
@@ -328,6 +348,9 @@ def update_info():
 def update():
     """Flask Route: /update - Execute Update for files"""
     url = request.referrer
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
         # Use index if called from URL and not page.
@@ -342,13 +365,17 @@ def update():
 @app.route('/update_page', methods=["GET", "POST"])
 def update_page():
     """Flask Route: /update_page"""
-    global ipadd
-    global loc_timestr
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
     return render_template("update_page.html",
                            title='Software Update Information-'+version,
                            num=5,
                            machines=machines,
                            ipadd=ipadd,
+                           timestrutc=loc_timestr_utc,
                            timestr=loc_timestr)
 
 
@@ -359,14 +386,17 @@ def led_map():
     global hmdata
     global airports
     global led_map_dict
-    global settings
+    # global settings
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
     global version
     global current_timezone
+
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
 
     templateData = {
         'title': 'LiveSectional Map-'+version,
@@ -375,8 +405,8 @@ def led_map():
         'settings': settings,
         'ipadd': ipadd,
         'strip': strip,
-        'ipaddresses': ipaddresses,
         'timestr': loc_timestr,
+        'timestrutc': loc_timestr_utc,
         'num': num,
         'apinfo_dict': apinfo_dict,
         'led_map_dict': led_map_dict,
@@ -530,7 +560,6 @@ def led_map():
 #     global strip
 #     global num
 #     global ipadd
-#     global ipaddresses
 #     global timestr
 #     global version
 #     global current_timezone
@@ -551,10 +580,10 @@ def led_map():
 #             'settings': settings,
 #             'ipadd': ipadd,
 #             'strip': strip,
-#             'ipaddresses': ipaddresses,
 #             'num': num,
 #             'apinfo_dict': apinfo_dict,
 #             'timestr': loc_timestr,
+#             'timestrutc': loc_timestr_utc,
 #             'version': version,
 #             'update_available': update_available,
 #             'update_vers': update_vers,
@@ -569,39 +598,36 @@ def led_map():
 @app.route('/tzset', methods=["GET", "POST"])
 def tzset():
     """Flask Route: /tzset - Display and Set Timezone Information"""
+    # Globals needed for base html template data
     global hmdata
     global airports
-    global settings
+    # global settings
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
     global version
     global current_timezone
 
-    loc_now = datetime.now()
-    loc_timestr = (loc_now.strftime("%H:%M:%S - %b %d, %Y"))
+    ipadd = sysdata.local_ip()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
     loc_currtzinfolist = []
 
     if request.method == "POST":
         timezone = request.form['tzselected']
-        flash('DISABLED: Timezone set to ' + timezone)
-        flash('NOTE: Select "Reboot RPI" from "Map Functions" Menu for changes to take affect')
+
+        flash('Timezone set to ' + timezone)
+        debugging.info("Request to update timezone to: " + timezone)
+        conf.set_string("default", "timezone", timezone)
+        conf.save_config()
+        # flash('DISABLED: Timezone set to ' + timezone)
+        # flash('NOTE: Select "Reboot RPI" from "Map Functions" Menu for changes to take affect')
         # os.system('sudo timedatectl set-timezone ' + timezone)
         return redirect('tzset')
 
-    tzlist = subprocess.run(['timedatectl', 'list-timezones'],
-                            stdout=subprocess.PIPE).stdout.decode('utf-8')
-    tzoptionlist = tzlist.split()
+    tzlist = pytz.common_timezones
 
-    loc_currtzinfo = subprocess.run(['timedatectl', 'status'],
-                                    stdout=subprocess.PIPE).stdout.decode('utf-8')
-    loc_tztemp = loc_currtzinfo.split('\n')
-    for j in enumerate(loc_tztemp):
-        if j in (0, 1, 3):
-            loc_currtzinfolist.append(loc_tztemp[j])
-    current_timezone = loc_tztemp[3]
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
 
     templateData = {
             'title': 'Timezone Set-'+version,
@@ -610,15 +636,14 @@ def tzset():
             'settings': settings,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'apinfo_dict': apinfo_dict,
             'version': version,
             'update_available': update_available,
             'update_vers': update_vers,
-            'tzoptionlist': tzoptionlist,
-            'currtzinfolist': loc_currtzinfolist,
+            'tzoptionlist': tzlist,
             'current_timezone': current_timezone,
             'machines': machines
             }
@@ -631,22 +656,32 @@ def tzset():
 @app.route('/yield')
 def yindex():
     """Flask Route: /yield - Display System Info"""
-    def inner():
-        proc = subprocess.Popen(
-            ['/NeoSectional/info-v4.py'],
-            # 'dmesg' call something with a lot of output so we can see it
-            shell=True,
-            stdout=subprocess.PIPE
-        )
+    system_information = sysdata.query_system_information()
 
-        for line in iter(proc.stdout.readline, b''):
-            time.sleep(.01)
-            # Don't need this just shows the text streaming
-            line = line.decode("utf-8")
-            yield line.strip() + '<br/>\n'
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
 
-    debugging.info("Opening yeild to display system info in separate window")
-    return Response(inner(), mimetype='text/html')
+    templateData = {
+            'title': 'SysInfo-'+version,
+            'hmdata': hmdata,
+            'airports': airports,
+            'settings': settings,
+            'ipadd': ipadd,
+            'strip': strip,
+            'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
+            'num': num,
+            'apinfo_dict': apinfo_dict,
+            'version': version,
+            'update_available': update_available,
+            'update_vers': update_vers,
+            'machines': machines,
+            'sysinfo' : system_information
+            }
+
+    debugging.info("Opening System Information page")
+    return render_template('sysinfo.html', **templateData)
     # text/html is required for most browsers to show this info.
 
 
@@ -655,7 +690,8 @@ def yindex():
 @app.route('/qrcode', methods=["GET", "POST"])
 def qrcode():
     """Flask Route: /qrcode - Generate QRcode for site URL"""
-    global ipadd
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
     qraddress = 'http://' + ipadd.strip() + ':5000/lsremote'
     debugging.info("Opening qrcode in separate window")
     return render_template('qrcode.html', qraddress=qraddress)
@@ -667,16 +703,16 @@ def index():
     """Flask Route: / and /index - Homepage"""
     global hmdata
     global airports
-    global settings
+    # global settings
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
     global version
 
-    loc_now = datetime.now()
-    loc_timestr = (loc_now.strftime("%H:%M:%S - %b %d, %Y"))
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     templateData = {
             'title': 'LiveSectional Home-'+version,
@@ -685,8 +721,8 @@ def index():
             'settings': settings,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'apinfo_dict': apinfo_dict,
             'current_timezone': current_timezone,
@@ -706,7 +742,7 @@ def index():
 def downloadairports():
     """Flask Route: /download_ap - Export airports file"""
     debugging.info("Downloaded Airport File")
-    path = "data/airports"
+    path = conf.get_string("filenames", "airports_file")
     return send_file(path, as_attachment=True)
 
 
@@ -741,13 +777,14 @@ def hmedit():
     debugging.info("Opening hmedit.html")
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
-    loc_now = datetime.now()
-    loc_timestr = (loc_now.strftime("%H:%M:%S - %b %d, %Y"))
 
-    readhmdata(confsettings.get_string("filenames", "heatmap_file"))
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
+
+    readhmdata(conf.get_string("filenames", "heatmap_file"))
 
     debugging.dprint(ipadd)  # debug to display ip address on console
 
@@ -756,8 +793,8 @@ def hmedit():
             'hmdata': hmdata,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'current_timezone': current_timezone,
             'update_available': update_available,
@@ -775,9 +812,10 @@ def handle_hmpost_request():
     global hmdata
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
+
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     loc_newlist = []
 
     if request.method == "POST":
@@ -795,7 +833,7 @@ def handle_hmpost_request():
             j += 1
 
         writehmdata(loc_newlist,
-                    confsettings.get_string("filenames", "heatmap_file"))
+                    conf.get_string("filenames", "heatmap_file"))
         get_apinfo()
 
     flash('Heat Map Data Successfully Saved')
@@ -807,11 +845,15 @@ def handle_hmpost_request():
 def importhm():
     """Flask Route: /importhm - Importing Heat Map"""
     debugging.info("Importing Heat Map File")
-    global ipaddresses
     global airports
-    global loc_timestr
     global hmdata
     hmdata = []
+
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     if 'file' not in request.files:
         flash('No File Selected')
@@ -835,8 +877,8 @@ def importhm():
             'hmdata': hmdata,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'current_timezone': current_timezone,
             'update_available': update_available,
@@ -856,13 +898,14 @@ def apedit():
     global airports
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
-    loc_now = datetime.now()
-    loc_timestr = (loc_now.strftime("%H:%M:%S - %b %d, %Y"))
 
-    readairports(confsettings.get_string("filenames",
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
+
+    readairports(conf.get_string("filenames",
                                          "airports_file"))
 
     debugging.dprint(ipadd)  # debug to display ip address on console
@@ -872,8 +915,8 @@ def apedit():
             'airports': airports,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'current_timezone': current_timezone,
             'update_available': update_available,
@@ -888,15 +931,19 @@ def apedit():
 def numap():
     """Flask Route: /numap"""
     debugging.info("Updating Number of Airports in airport file")
-    global ipaddresses
     global airports
-    global loc_timestr
+
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     if request.method == "POST":
         loc_numap = int(request.form["numofap"])
         debugging.dprint(loc_numap)
 
-    readairports(confsettings.get_string("filenames", "airports_file"))
+    readairports(conf.get_string("filenames", "airports_file"))
 
     newnum = loc_numap - int(len(airports))
     if newnum < 0:
@@ -910,8 +957,8 @@ def numap():
             'airports': airports,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'current_timezone': current_timezone,
             'update_available': update_available,
@@ -932,21 +979,22 @@ def handle_appost_request():
     global hmdata
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
+
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
 
     if request.method == "POST":
         data = request.form.to_dict()
         logging.debug(data)  # debug
-        writeairports(data, confsettings.get_string("filenames",
+        writeairports(data, conf.get_string("filenames",
                                                     "airports_file"))
 
-        readairports(confsettings.get_string("filenames", "airports_file"))
+        readairports(conf.get_string("filenames", "airports_file"))
         get_apinfo()  # decode airports to get city and state to display
 
         # update size and data of hmdata based on saved airports file.
-        readhmdata(confsettings.get_string("filenames", "heatmap_file"))
+        readhmdata(conf.get_string("filenames", "heatmap_file"))
         # get heat map data to update with newly edited airports file
         if len(hmdata) > len(airports):
             # adjust size of hmdata list if length is larger than airports
@@ -964,7 +1012,7 @@ def handle_appost_request():
             if ap != airport:
                 hmdata[loc_index] = (airport + ' 0')
                 # save changed airport and set zero landings to it in hmdata
-        writehmdata(hmdata, confsettings.get_string("filenames",
+        writehmdata(hmdata, conf.get_string("filenames",
                                                     "heatmap_file"))
 
     flash('Airports Successfully Saved')
@@ -978,13 +1026,14 @@ def ledonoff():
     global airports
     global strip
     global num
-    global ipadd
-    global ipaddresses
-    global loc_timestr
+
+    ipadd = sysdata.local_ip()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     if request.method == "POST":
 
-        readairports(confsettings.get_string("filenames", "airports_file"))
+        readairports(conf.get_string("filenames", "airports_file"))
 
         if "buton" in request.form:
             num = int(request.form['lednum'])
@@ -1056,8 +1105,8 @@ def ledonoff():
             'airports': airports,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'update_available': update_available,
             'update_vers': update_vers,
@@ -1073,9 +1122,13 @@ def ledonoff():
 def importap():
     """Flask Route: /importap - Import Airports File"""
     debugging.info("Importing Airports File")
-    global ipaddresses
     global airports
-    global loc_timestr
+    
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     if 'file' not in request.files:
         flash('No File Selected')
@@ -1099,8 +1152,8 @@ def importap():
             'airports': airports,
             'ipadd': ipadd,
             'strip': strip,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'current_timezone': current_timezone,
             'update_available': update_available,
@@ -1117,64 +1170,65 @@ def importap():
 def confedit():
     """Flask Route: /confedit - Configuration Editor"""
     debugging.info("Opening confedit.html")
-    global ipaddresses
-    global ipadd
-    global loc_timestr
-    global settings
+    # global settings
 
-    loc_now = datetime.now()
-    loc_timestr = (loc_now.strftime("%H:%M:%S - %b %d, %Y"))
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
-    debugging.dprint(ipadd)  # debug
+    # debugging.dprint(ipadd)  # debug
+    debugging.dprint(settings)
 
     # change rgb code to hex for html color picker
-    color_vfr_hex = utils.rgb2hex(settings["color_vfr"])
-    color_mvfr_hex = utils.rgb2hex(settings["color_mvfr"])
-    color_ifr_hex = utils.rgb2hex(settings["color_ifr"])
-    color_lifr_hex = utils.rgb2hex(settings["color_lifr"])
-    color_nowx_hex = utils.rgb2hex(settings["color_nowx"])
-    color_black_hex = utils.rgb2hex(settings["color_black"])
-    color_lghtn_hex = utils.rgb2hex(settings["color_lghtn"])
-    color_snow1_hex = utils.rgb2hex(settings["color_snow1"])
-    color_snow2_hex = utils.rgb2hex(settings["color_snow2"])
-    color_rain1_hex = utils.rgb2hex(settings["color_rain1"])
-    color_rain2_hex = utils.rgb2hex(settings["color_rain2"])
-    color_frrain1_hex = utils.rgb2hex(settings["color_frrain1"])
-    color_frrain2_hex = utils.rgb2hex(settings["color_frrain2"])
-    color_dustsandash1_hex = utils.rgb2hex(settings["color_dustsandash1"])
-    color_dustsandash2_hex = utils.rgb2hex(settings["color_dustsandash2"])
-    color_fog1_hex = utils.rgb2hex(settings["color_fog1"])
-    color_fog2_hex = utils.rgb2hex(settings["color_fog2"])
-    color_homeport_hex = utils.rgb2hex(settings["color_homeport"])
+    # color_vfr_hex = utils.rgb2hex(conf.get_color("colors","color_vfr"))
+    # color_mvfr_hex = utils.rgb2hex(conf.get_color("colors","color_mvfr"))
+    # color_ifr_hex = utils.rgb2hex(conf.get_color("colors","color_ifr"))
+    # color_lifr_hex = utils.rgb2hex(conf.get_color("colors","color_lifr"))
+    # color_nowx_hex = utils.rgb2hex(conf.get_color("colors","color_nowx"))
+    # color_black_hex = utils.rgb2hex(conf.get_color("colors","color_black"))
+    # color_lghtn_hex = utils.rgb2hex(conf.get_color("colors","color_lghtn"))
+    # color_snow1_hex = utils.rgb2hex(conf.get_color("colors","color_snow1"))
+    # color_snow2_hex = utils.rgb2hex(conf.get_color("colors","color_snow2"))
+    # color_rain1_hex = utils.rgb2hex(conf.get_color("colors","color_rain1"))
+    # color_rain2_hex = utils.rgb2hex(conf.get_color("colors","color_rain2"))
+    # color_frrain1_hex = utils.rgb2hex(conf.get_color("colors","color_frrain1"))
+    # color_frrain2_hex = utils.rgb2hex(conf.get_color("colors","color_frrain2"))
+    # color_dustsandash1_hex = utils.rgb2hex(conf.get_color("colors","color_dustsandash1"))
+    # color_dustsandash2_hex = utils.rgb2hex(conf.get_color("colors","color_dustsandash2"))
+    # color_fog1_hex = utils.rgb2hex(conf.get_color("colors","color_fog1"))
+    # color_fog2_hex = utils.rgb2hex(conf.get_color("colors","color_fog2"))
+    # color_homeport_hex = utils.rgb2hex(conf.get_color("colors","color_homeport"))
 
     # color picker for transitional wipes
-    fade_color1_hex = utils.rgb2hex(settings["fade_color1"])
-    allsame_color1_hex = utils.rgb2hex(settings["allsame_color1"])
-    allsame_color2_hex = utils.rgb2hex(settings["allsame_color2"])
-    shuffle_color1_hex = utils.rgb2hex(settings["shuffle_color1"])
-    shuffle_color2_hex = utils.rgb2hex(settings["shuffle_color2"])
-    radar_color1_hex = utils.rgb2hex(settings["radar_color1"])
-    radar_color2_hex = utils.rgb2hex(settings["radar_color2"])
-    circle_color1_hex = utils.rgb2hex(settings["circle_color1"])
-    circle_color2_hex = utils.rgb2hex(settings["circle_color2"])
-    square_color1_hex = utils.rgb2hex(settings["square_color1"])
-    square_color2_hex = utils.rgb2hex(settings["square_color2"])
-    updn_color1_hex = utils.rgb2hex(settings["updn_color1"])
-    updn_color2_hex = utils.rgb2hex(settings["updn_color2"])
-    morse_color1_hex = utils.rgb2hex(settings["morse_color1"])
-    morse_color2_hex = utils.rgb2hex(settings["morse_color2"])
-    rabbit_color1_hex = utils.rgb2hex(settings["rabbit_color1"])
-    rabbit_color2_hex = utils.rgb2hex(settings["rabbit_color2"])
-    checker_color1_hex = utils.rgb2hex(settings["checker_color1"])
-    checker_color2_hex = utils.rgb2hex(settings["checker_color2"])
+    # fade_color1_hex = utils.rgb2hex(conf.get_color("colors","fade_color1"))
+    # allsame_color1_hex = utils.rgb2hex(conf.get_color("colors","allsame_color1"))
+    # allsame_color2_hex = utils.rgb2hex(conf.get_color("colors","allsame_color2"))
+    # shuffle_color1_hex = utils.rgb2hex(conf.get_color("colors","shuffle_color1"))
+    # shuffle_color2_hex = utils.rgb2hex(conf.get_color("colors","shuffle_color2"))
+    # radar_color1_hex = utils.rgb2hex(conf.get_color("colors","radar_color1"))
+    # radar_color2_hex = utils.rgb2hex(conf.get_color("colors","radar_color2"))
+    # circle_color1_hex = utils.rgb2hex(conf.get_color("colors","circle_color1"))
+    # circle_color2_hex = utils.rgb2hex(conf.get_color("colors","circle_color2"))
+    # square_color1_hex = utils.rgb2hex(conf.get_color("colors","square_color1"))
+    # square_color2_hex = utils.rgb2hex(conf.get_color("colors","square_color2"))
+    # updn_color1_hex = utils.rgb2hex(conf.get_color("colors","updn_color1"))
+    # updn_color2_hex = utils.rgb2hex(conf.get_color("colors","updn_color2"))
+    # morse_color1_hex = utils.rgb2hex(conf.get_color("colors","morse_color1"))
+    # morse_color2_hex = utils.rgb2hex(conf.get_color("colors","morse_color2"))
+    # rabbit_color1_hex = utils.rgb2hex(conf.get_color("colors","rabbit_color1"))
+    # rabbit_color2_hex = utils.rgb2hex(conf.get_color("colors","rabbit_color2"))
+    # checker_color1_hex = utils.rgb2hex(conf.get_color("colors","checker_color1"))
+    # checker_color2_hex = utils.rgb2hex(conf.get_color("colors","checker_color2"))
 
     # Pass data to html document
     templateData = {
             'title': 'Settings Editor-'+version,
             'settings': settings,
             'ipadd': ipadd,
-            'ipaddresses': ipaddresses,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'num': num,
             'current_timezone': current_timezone,
             'update_available': update_available,
@@ -1182,45 +1236,45 @@ def confedit():
             'machines': machines,
 
             # Color Picker Variables to pass
-            'color_vfr_hex': color_vfr_hex,
-            'color_mvfr_hex': color_mvfr_hex,
-            'color_ifr_hex': color_ifr_hex,
-            'color_lifr_hex': color_lifr_hex,
-            'color_nowx_hex': color_nowx_hex,
-            'color_black_hex': color_black_hex,
-            'color_lghtn_hex': color_lghtn_hex,
-            'color_snow1_hex': color_snow1_hex,
-            'color_snow2_hex': color_snow2_hex,
-            'color_rain1_hex': color_rain1_hex,
-            'color_rain2_hex': color_rain2_hex,
-            'color_frrain1_hex': color_frrain1_hex,
-            'color_frrain2_hex': color_frrain2_hex,
-            'color_dustsandash1_hex': color_dustsandash1_hex,
-            'color_dustsandash2_hex': color_dustsandash2_hex,
-            'color_fog1_hex': color_fog1_hex,
-            'color_fog2_hex': color_fog2_hex,
-            'color_homeport_hex': color_homeport_hex,
+            'color_vfr_hex': conf.get_color("colors", "color_vfr"),
+            'color_mvfr_hex': conf.get_color("colors", "color_mvfr"),
+            'color_ifr_hex': conf.get_color("colors", "color_ifr"),
+            'color_lifr_hex': conf.get_color("colors", "color_lifr"),
+            'color_nowx_hex': conf.get_color("colors", "color_nowx"),
+            'color_black_hex': conf.get_color("colors", "color_black"),
+            'color_lghtn_hex': conf.get_color("colors", "color_lghtn"),
+            'color_snow1_hex': conf.get_color("colors", "color_snow1"),
+            'color_snow2_hex': conf.get_color("colors", "color_snow2"),
+            'color_rain1_hex': conf.get_color("colors", "color_rain1"),
+            'color_rain2_hex': conf.get_color("colors", "color_rain2"),
+            'color_frrain1_hex': conf.get_color("colors", "color_frrain1"),
+            'color_frrain2_hex': conf.get_color("colors", "color_frrain2"),
+            'color_dustsandash1_hex': conf.get_color("colors", "color_dustsandash1"),
+            'color_dustsandash2_hex': conf.get_color("colors", "color_dustsandash2"),
+            'color_fog1_hex': conf.get_color("colors", "color_fog1"),
+            'color_fog2_hex': conf.get_color("colors", "color_fog2"),
+            'color_homeport_hex': conf.get_color("colors", "color_homeport"),
 
             # Color Picker Variables to pass
-            'fade_color1_hex': fade_color1_hex,
-            'allsame_color1_hex': allsame_color1_hex,
-            'allsame_color2_hex': allsame_color2_hex,
-            'shuffle_color1_hex': shuffle_color1_hex,
-            'shuffle_color2_hex': shuffle_color2_hex,
-            'radar_color1_hex': radar_color1_hex,
-            'radar_color2_hex': radar_color2_hex,
-            'circle_color1_hex': circle_color1_hex,
-            'circle_color2_hex': circle_color2_hex,
-            'square_color1_hex': square_color1_hex,
-            'square_color2_hex': square_color2_hex,
-            'updn_color1_hex': updn_color1_hex,
-            'updn_color2_hex': updn_color2_hex,
-            'morse_color1_hex': morse_color1_hex,
-            'morse_color2_hex': morse_color2_hex,
-            'rabbit_color1_hex': rabbit_color1_hex,
-            'rabbit_color2_hex': rabbit_color2_hex,
-            'checker_color1_hex': checker_color1_hex,
-            'checker_color2_hex': checker_color2_hex
+            'fade_color1_hex': conf.get_color("colors", "fade_color1"),
+            'allsame_color1_hex': conf.get_color("colors", "allsame_color1"),
+            'allsame_color2_hex': conf.get_color("colors", "allsame_color2"),
+            'shuffle_color1_hex': conf.get_color("colors", "shuffle_color1"),
+            'shuffle_color2_hex': conf.get_color("colors", "shuffle_color2"),
+            'radar_color1_hex': conf.get_color("colors", "radar_color1"),
+            'radar_color2_hex': conf.get_color("colors", "radar_color2"),
+            'circle_color1_hex': conf.get_color("colors", "circle_color1"),
+            'circle_color2_hex': conf.get_color("colors", "circle_color2"),
+            'square_color1_hex': conf.get_color("colors", "square_color1"),
+            'square_color2_hex': conf.get_color("colors", "square_color2"),
+            'updn_color1_hex': conf.get_color("colors", "updn_color1"),
+            'updn_color2_hex': conf.get_color("colors", "updn_color2"),
+            'morse_color1_hex': conf.get_color("colors", "morse_color1"),
+            'morse_color2_hex': conf.get_color("colors", "morse_color2"),
+            'rabbit_color1_hex': conf.get_color("colors", "rabbit_color1"),
+            'rabbit_color2_hex': conf.get_color("colors", "rabbit_color2"),
+            'checker_color1_hex': conf.get_color("colors", "checker_color1"),
+            'checker_color2_hex': conf.get_color("colors", "checker_color2")
             }
     return render_template('confedit.html', **templateData)
 
@@ -1229,53 +1283,51 @@ def confedit():
 def handle_post_request():
     """Flask Route: /post"""
     debugging.info("Saving Config File")
-    global ipaddresses
-    global loc_timestr
 
     if request.method == "POST":
         data = request.form.to_dict()
 
         # convert hex value back to rgb string value for storage
-        data["color_vfr"] = str(utils.hex2rgb(data["color_vfr"]))
-        data["color_mvfr"] = str(utils.hex2rgb(data["color_mvfr"]))
-        data["color_ifr"] = str(utils.hex2rgb(data["color_ifr"]))
-        data["color_lifr"] = str(utils.hex2rgb(data["color_lifr"]))
-        data["color_nowx"] = str(utils.hex2rgb(data["color_nowx"]))
-        data["color_black"] = str(utils.hex2rgb(data["color_black"]))
-        data["color_lghtn"] = str(utils.hex2rgb(data["color_lghtn"]))
-        data["color_snow1"] = str(utils.hex2rgb(data["color_snow1"]))
-        data["color_snow2"] = str(utils.hex2rgb(data["color_snow2"]))
-        data["color_rain1"] = str(utils.hex2rgb(data["color_rain1"]))
-        data["color_rain2"] = str(utils.hex2rgb(data["color_rain2"]))
-        data["color_frrain1"] = str(utils.hex2rgb(data["color_frrain1"]))
-        data["color_frrain2"] = str(utils.hex2rgb(data["color_frrain2"]))
-        data["color_dustsandash1"] = str(utils.hex2rgb(data["color_dustsandash1"]))
-        data["color_dustsandash2"] = str(utils.hex2rgb(data["color_dustsandash2"]))
-        data["color_fog1"] = str(utils.hex2rgb(data["color_fog1"]))
-        data["color_fog2"] = str(utils.hex2rgb(data["color_fog2"]))
-        data["color_homeport"] = str(utils.hex2rgb(data["color_homeport"]))
+        # data["color_vfr"] = str(utils.hex2rgb(data["color_vfr"]))
+        # data["color_mvfr"] = str(utils.hex2rgb(data["color_mvfr"]))
+        # data["color_ifr"] = str(utils.hex2rgb(data["color_ifr"]))
+        # data["color_lifr"] = str(utils.hex2rgb(data["color_lifr"]))
+        # data["color_nowx"] = str(utils.hex2rgb(data["color_nowx"]))
+        # data["color_black"] = str(utils.hex2rgb(data["color_black"]))
+        # data["color_lghtn"] = str(utils.hex2rgb(data["color_lghtn"]))
+        # data["color_snow1"] = str(utils.hex2rgb(data["color_snow1"]))
+        # data["color_snow2"] = str(utils.hex2rgb(data["color_snow2"]))
+        # data["color_rain1"] = str(utils.hex2rgb(data["color_rain1"]))
+        # data["color_rain2"] = str(utils.hex2rgb(data["color_rain2"]))
+        # data["color_frrain1"] = str(utils.hex2rgb(data["color_frrain1"]))
+        # data["color_frrain2"] = str(utils.hex2rgb(data["color_frrain2"]))
+        # data["color_dustsandash1"] = str(utils.hex2rgb(data["color_dustsandash1"]))
+        # data["color_dustsandash2"] = str(utils.hex2rgb(data["color_dustsandash2"]))
+        # data["color_fog1"] = str(utils.hex2rgb(data["color_fog1"]))
+        # data["color_fog2"] = str(utils.hex2rgb(data["color_fog2"]))
+        # data["color_homeport"] = str(utils.hex2rgb(data["color_homeport"]))
 
         # convert hex value back to rgb string
         # value for storage for Transitional wipes
-        data["fade_color1"] = str(utils.hex2rgb(data["fade_color1"]))
-        data["allsame_color1"] = str(utils.hex2rgb(data["allsame_color1"]))
-        data["allsame_color2"] = str(utils.hex2rgb(data["allsame_color2"]))
-        data["shuffle_color1"] = str(utils.hex2rgb(data["shuffle_color1"]))
-        data["shuffle_color2"] = str(utils.hex2rgb(data["shuffle_color2"]))
-        data["radar_color1"] = str(utils.hex2rgb(data["radar_color1"]))
-        data["radar_color2"] = str(utils.hex2rgb(data["radar_color2"]))
-        data["circle_color1"] = str(utils.hex2rgb(data["circle_color1"]))
-        data["circle_color2"] = str(utils.hex2rgb(data["circle_color2"]))
-        data["square_color1"] = str(utils.hex2rgb(data["square_color1"]))
-        data["square_color2"] = str(utils.hex2rgb(data["square_color2"]))
-        data["updn_color1"] = str(utils.hex2rgb(data["updn_color1"]))
-        data["updn_color2"] = str(utils.hex2rgb(data["updn_color2"]))
-        data["morse_color1"] = str(utils.hex2rgb(data["morse_color1"]))
-        data["morse_color2"] = str(utils.hex2rgb(data["morse_color2"]))
-        data["rabbit_color1"] = str(utils.hex2rgb(data["rabbit_color1"]))
-        data["rabbit_color2"] = str(utils.hex2rgb(data["rabbit_color2"]))
-        data["checker_color1"] = str(utils.hex2rgb(data["checker_color1"]))
-        data["checker_color2"] = str(utils.hex2rgb(data["checker_color2"]))
+        # data["fade_color1"] = str(utils.hex2rgb(data["fade_color1"]))
+        # data["allsame_color1"] = str(utils.hex2rgb(data["allsame_color1"]))
+        # data["allsame_color2"] = str(utils.hex2rgb(data["allsame_color2"]))
+        # data["shuffle_color1"] = str(utils.hex2rgb(data["shuffle_color1"]))
+        # data["shuffle_color2"] = str(utils.hex2rgb(data["shuffle_color2"]))
+        # data["radar_color1"] = str(utils.hex2rgb(data["radar_color1"]))
+        # data["radar_color2"] = str(utils.hex2rgb(data["radar_color2"]))
+        # data["circle_color1"] = str(utils.hex2rgb(data["circle_color1"]))
+        # data["circle_color2"] = str(utils.hex2rgb(data["circle_color2"]))
+        # data["square_color1"] = str(utils.hex2rgb(data["square_color1"]))
+        # data["square_color2"] = str(utils.hex2rgb(data["square_color2"]))
+        # data["updn_color1"] = str(utils.hex2rgb(data["updn_color1"]))
+        # data["updn_color2"] = str(utils.hex2rgb(data["updn_color2"]))
+        # data["morse_color1"] = str(utils.hex2rgb(data["morse_color1"]))
+        # data["morse_color2"] = str(utils.hex2rgb(data["morse_color2"]))
+        # data["rabbit_color1"] = str(utils.hex2rgb(data["rabbit_color1"]))
+        # data["rabbit_color2"] = str(utils.hex2rgb(data["rabbit_color2"]))
+        # data["checker_color1"] = str(utils.hex2rgb(data["checker_color1"]))
+        # data["checker_color2"] = str(utils.hex2rgb(data["checker_color2"]))
 
         # check and fix data with leading zeros.
         for key in data:
@@ -1286,8 +1338,10 @@ def handle_post_request():
                 data[key] = data[key].lstrip('0')
                 # if so, then strip the leading zero before writing to file.
 
-        writeconf(data, settings_file)
-        readconf(settings_file)
+        conf.parse_config_input(data)
+        conf.save_config()
+        # writeconf(data, settings_file)
+        # readconf(settings_file)
         flash('Settings Successfully Saved')
 
         url = request.referrer
@@ -1306,65 +1360,65 @@ def handle_post_request():
 def confeditmobile():
     """Flask Route: /lsremote - Mobile Device API"""
     debugging.info("Opening lsremote.html")
-    global ipaddresses
-    global ipadd
-    global loc_timestr
-    global settings
+    # global settings
 
-    loc_now = datetime.now()
-    loc_timestr = (loc_now.strftime("%H:%M:%S - %b %d, %Y"))
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     debugging.dprint(ipadd)  # debug
 
     # change rgb code to hex for html color picker
-    color_vfr_hex = utils.rgb2hex(settings["color_vfr"])
-    color_mvfr_hex = utils.rgb2hex(settings["color_mvfr"])
-    color_ifr_hex = utils.rgb2hex(settings["color_ifr"])
-    color_lifr_hex = utils.rgb2hex(settings["color_lifr"])
-    color_nowx_hex = utils.rgb2hex(settings["color_nowx"])
-    color_black_hex = utils.rgb2hex(settings["color_black"])
-    color_lghtn_hex = utils.rgb2hex(settings["color_lghtn"])
-    color_snow1_hex = utils.rgb2hex(settings["color_snow1"])
-    color_snow2_hex = utils.rgb2hex(settings["color_snow2"])
-    color_rain1_hex = utils.rgb2hex(settings["color_rain1"])
-    color_rain2_hex = utils.rgb2hex(settings["color_rain2"])
-    color_frrain1_hex = utils.rgb2hex(settings["color_frrain1"])
-    color_frrain2_hex = utils.rgb2hex(settings["color_frrain2"])
-    color_dustsandash1_hex = utils.rgb2hex(settings["color_dustsandash1"])
-    color_dustsandash2_hex = utils.rgb2hex(settings["color_dustsandash2"])
-    color_fog1_hex = utils.rgb2hex(settings["color_fog1"])
-    color_fog2_hex = utils.rgb2hex(settings["color_fog2"])
-    color_homeport_hex = utils.rgb2hex(settings["color_homeport"])
+    color_vfr_hex = utils.rgb2hex(conf.get_color("colors","color_vfr"))
+    color_mvfr_hex = utils.rgb2hex(conf.get_color("colors","color_mvfr"))
+    color_ifr_hex = utils.rgb2hex(conf.get_color("colors","color_ifr"))
+    color_lifr_hex = utils.rgb2hex(conf.get_color("colors","color_lifr"))
+    color_nowx_hex = utils.rgb2hex(conf.get_color("colors","color_nowx"))
+    color_black_hex = utils.rgb2hex(conf.get_color("colors","color_black"))
+    color_lghtn_hex = utils.rgb2hex(conf.get_color("colors","color_lghtn"))
+    color_snow1_hex = utils.rgb2hex(conf.get_color("colors","color_snow1"))
+    color_snow2_hex = utils.rgb2hex(conf.get_color("colors","color_snow2"))
+    color_rain1_hex = utils.rgb2hex(conf.get_color("colors","color_rain1"))
+    color_rain2_hex = utils.rgb2hex(conf.get_color("colors","color_rain2"))
+    color_frrain1_hex = utils.rgb2hex(conf.get_color("colors","color_frrain1"))
+    color_frrain2_hex = utils.rgb2hex(conf.get_color("colors","color_frrain2"))
+    color_dustsandash1_hex = utils.rgb2hex(conf.get_color("colors","color_dustsandash1"))
+    color_dustsandash2_hex = utils.rgb2hex(conf.get_color("colors","color_dustsandash2"))
+    color_fog1_hex = utils.rgb2hex(conf.get_color("colors","color_fog1"))
+    color_fog2_hex = utils.rgb2hex(conf.get_color("colors","color_fog2"))
+    color_homeport_hex = utils.rgb2hex(conf.get_color("colors","color_homeport"))
 
     # color picker for transitional wipes
-    fade_color1_hex = utils.rgb2hex(settings["fade_color1"])
-    allsame_color1_hex = utils.rgb2hex(settings["allsame_color1"])
-    allsame_color2_hex = utils.rgb2hex(settings["allsame_color2"])
-    shuffle_color1_hex = utils.rgb2hex(settings["shuffle_color1"])
-    shuffle_color2_hex = utils.rgb2hex(settings["shuffle_color2"])
-    radar_color1_hex = utils.rgb2hex(settings["radar_color1"])
-    radar_color2_hex = utils.rgb2hex(settings["radar_color2"])
-    circle_color1_hex = utils.rgb2hex(settings["circle_color1"])
-    circle_color2_hex = utils.rgb2hex(settings["circle_color2"])
-    square_color1_hex = utils.rgb2hex(settings["square_color1"])
-    square_color2_hex = utils.rgb2hex(settings["square_color2"])
-    updn_color1_hex = utils.rgb2hex(settings["updn_color1"])
-    updn_color2_hex = utils.rgb2hex(settings["updn_color2"])
-    morse_color1_hex = utils.rgb2hex(settings["morse_color1"])
-    morse_color2_hex = utils.rgb2hex(settings["morse_color2"])
-    rabbit_color1_hex = utils.rgb2hex(settings["rabbit_color1"])
-    rabbit_color2_hex = utils.rgb2hex(settings["rabbit_color2"])
-    checker_color1_hex = utils.rgb2hex(settings["checker_color1"])
-    checker_color2_hex = utils.rgb2hex(settings["checker_color2"])
+    fade_color1_hex = utils.rgb2hex(conf.get_color("colors","fade_color1"))
+    allsame_color1_hex = utils.rgb2hex(conf.get_color("colors","allsame_color1"))
+    allsame_color2_hex = utils.rgb2hex(conf.get_color("colors","allsame_color2"))
+    shuffle_color1_hex = utils.rgb2hex(conf.get_color("colors","shuffle_color1"))
+    shuffle_color2_hex = utils.rgb2hex(conf.get_color("colors","shuffle_color2"))
+    radar_color1_hex = utils.rgb2hex(conf.get_color("colors","radar_color1"))
+    radar_color2_hex = utils.rgb2hex(conf.get_color("colors","radar_color2"))
+    circle_color1_hex = utils.rgb2hex(conf.get_color("colors","circle_color1"))
+    circle_color2_hex = utils.rgb2hex(conf.get_color("colors","circle_color2"))
+    square_color1_hex = utils.rgb2hex(conf.get_color("colors","square_color1"))
+    square_color2_hex = utils.rgb2hex(conf.get_color("colors","square_color2"))
+    updn_color1_hex = utils.rgb2hex(conf.get_color("colors","updn_color1"))
+    updn_color2_hex = utils.rgb2hex(conf.get_color("colors","updn_color2"))
+    morse_color1_hex = utils.rgb2hex(conf.get_color("colors","morse_color1"))
+    morse_color2_hex = utils.rgb2hex(conf.get_color("colors","morse_color2"))
+    rabbit_color1_hex = utils.rgb2hex(conf.get_color("colors","rabbit_color1"))
+    rabbit_color2_hex = utils.rgb2hex(conf.get_color("colors","rabbit_color2"))
+    checker_color1_hex = utils.rgb2hex(conf.get_color("colors","checker_color1"))
+    checker_color2_hex = utils.rgb2hex(conf.get_color("colors","checker_color2"))
 
     # Pass data to html document
     templateData = {
             'title': 'Settings Editor-'+version,
             'settings': settings,
             'ipadd': ipadd,
-            'ipaddresses': ipaddresses,
             'num': num,
             'timestr': loc_timestr,
+            'timestrutc': loc_timestr_utc,
             'current_timezone': current_timezone,
             'update_available': update_available,
             'update_vers': update_vers,
@@ -1419,10 +1473,8 @@ def confeditmobile():
 def importconf():
     """Flask Route: /importconf - Flask Config Uploader"""
     debugging.info("Importing Config File")
-    global ipaddresses
     global airports
-    global settings
-    global loc_timestr
+    # global settings
     tmp_settings = []
 
     if 'file' not in request.files:
@@ -1469,7 +1521,7 @@ def restoreconf():
 @app.route("/profiles", methods=["GET", "POST"])
 def profiles():
     """Flask Route: /profiles - Load from Multiple Config Profiles"""
-    global settings
+    # global settings
     config_profiles = {'b1': 'config-basic.py',
                        'b2': 'config-basic2.py',
                        'b3': 'config-basic3.py',
@@ -1494,6 +1546,7 @@ def profiles():
 @app.route("/reboot1", methods=["GET", "POST"])
 def reboot1():
     """Flask Route: /reboot1 - Request host reboot"""
+    ipadd = sysdata.local_ip()
     url = request.referrer
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
@@ -1512,6 +1565,7 @@ def reboot1():
 def startup1():
     """Flask Route: /startup1 - Trigger process startup"""
     url = request.referrer
+    ipadd = sysdata.local_ip()
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
         # Use index if called from URL and not page.
@@ -1530,6 +1584,7 @@ def startup1():
 def shutdown1():
     """Flask Route: /shutdown1 - Trigger process shutdown"""
     url = request.referrer
+    ipadd = sysdata.local_ip()
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
         # Use index if called from URL and not page.
@@ -1551,6 +1606,7 @@ def shutdown1():
 def shutoffnow1():
     """Flask Route: /shutoffnow1 - Turn Off RPI"""
     url = request.referrer
+    ipadd = sysdata.local_ip()
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
         # Use index if called from URL and not page.
@@ -1568,6 +1624,9 @@ def shutoffnow1():
 def testled():
     """Flask Route: /testled - Run LED Test scripts"""
     url = request.referrer
+    ipadd = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
         # Use index if called from URL and not page.
@@ -1586,6 +1645,7 @@ def testled():
 def testoled():
     """Flask Route: /testoled - Run OLED Test sequence"""
     url = request.referrer
+    ipadd = sysdata.local_ip()
     if url is None:
         url = 'http://' + ipadd + ':5000/index'
         # Use index if called from URL and not page.
@@ -1605,19 +1665,6 @@ def testoled():
 # # # # # # # # # # # # #
 # Functions #
 # # # # # # # # # # # # #
-
-# create backup of config.py
-def copy():
-    """Create copy of old configuration file"""
-    debugging.dprint('In Copy Config file Routine')
-    f = open(settings_file, "r")
-    contents = f.read()
-    f.close()
-
-    f = open(settings_bkup, "w+")
-    f.write(contents)
-    f.close()
-
 
 # open and read config.py into settings dictionary
 def readconf(config_file):
@@ -1705,7 +1752,7 @@ def readhmdata(hmdata_file):
         for airport in airports:
             hmdata.append(airport + " 0")
         debugging.dprint(hmdata)  # debug
-        writehmdata(hmdata, confsettings.get_string("filenames",
+        writehmdata(hmdata, conf.get_string("filenames",
                                                     "heatmap_file"))
 
 
@@ -1922,9 +1969,14 @@ def testupdate():
 if __name__ == '__main__':
     # Display active IP address for builder to open up web
     # browser to configure.
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    confsettings.init()
+    # Initialize configuration file
+    conf = conf.Conf()
+
+    # Generate System Data
+    sysdata = sysinfo.SystemData()
+    sysdata.refresh()
 
     if utils.wait_for_internet():
         # check internet availability and retry if necessary.
@@ -1933,19 +1985,19 @@ if __name__ == '__main__':
     else:
         debugging.warn("Internet NOT Available")
 
-    ipaddr = utils.get_local_ip()
+    ipaddr = sysdata.local_ip()
+    current_timezone = conf.get_string("default", "timezone")
+    settings = conf.gen_settings_dict()
+
     debugging.info('Startup - Current RPI IP Address = ' + ipaddr)
 
     debugging.info('Base Directory :' +
-                   confsettings.get_string("filenames", "basedir"))
+                   conf.get_string("filenames", "basedir"))
     debugging.info('Airports File  :' +
-                   confsettings.get_string("filenames", "airports_file"))
+                   conf.get_string("filenames", "airports_file"))
 
-    # Get Current Time Zone
-    currtzinfo = subprocess.run(['timedatectl', 'status'],
-                                stdout=subprocess.PIPE).stdout.decode('utf-8')
-    tztemp = currtzinfo.split('\n')
-    current_timezone = tztemp[3]
+    loc_timestr = utils.current_time(conf)
+    loc_timestr_utc = utils.current_time_utc(conf)
 
     # Check to see if an newer version of the software is available,
     # and update if user so chooses
@@ -1958,36 +2010,28 @@ if __name__ == '__main__':
     debugging.dprint(python_ver)
     debugging.dprint('LiveSectional Version - ' + version)
     debugging.dprint("\033[1;32;40m***********************************************")
-    debugging.dprint("       My IP Address is = "+ utils.get_local_ip())
+    debugging.dprint("       My IP Address is = "+ sysdata.local_ip())
     debugging.dprint("***********************************************")
     debugging.dprint("  Configure your LiveSectional by opening a   ")
-    debugging.dprint("    browser to http://"+ utils.get_local_ip() +":5000")
+    debugging.dprint("    browser to http://"+ sysdata.local_ip() +":5000")
     debugging.dprint("***********************************************")
     debugging.dprint("\033[0;0m\n")
     debugging.dprint("Raspberry Pi System Time - " + loc_timestr)
 
     # Load files and back up the airports file, then run flask templates
 
-# # This code is obsolete, but left here for posperity's sake.
-# #    if useip2ftp ==  1:
-# #        exec(compile(open("/NeoSectional/ftp-v4.py", "rb").read(),
-# #                 "/NeoSectional/ftp-v4.py", 'exec'))
-# # Get latest ip's to display in editors
-# #        debugging.info("Storing " + str(ipaddresses) + " on ftp server")
-
-    copy()  # make backup of config file
     readconf(settings_file)  # read config file
-    readairports(confsettings.get_string("filenames", "airports_file"))
+    readairports(conf.get_string("filenames", "airports_file"))
     get_apinfo()  # decode airports to get city and state of each airport
     get_led_map_info()  # get airport location in lat lon and flight category
-    readhmdata(confsettings.get_string("filenames", "heatmap_file"))
+    readhmdata(conf.get_string("filenames", "heatmap_file"))
 
     if admin.use_scan_network == 1:
         debugging.dprint("One Moment - Scanning for Other LiveSectional Maps on Local Network")
         machines = scan_network.scan_network()
         debugging.dprint(machines)  # Debug
 
-    debugging.info("IP Address = " + utils.get_local_ip())
+    debugging.info("IP Address = " + sysdata.local_ip())
     debugging.info("Starting Flask Session")
-    app.run(debug=confsettings.get_bool("default",
+    app.run(debug=conf.get_bool("default",
                                         "flask_debug"), host='0.0.0.0')

@@ -614,10 +614,14 @@ def tzset():
 
     if request.method == "POST":
         timezone = request.form['tzselected']
+
         flash('Timezone set to ' + timezone)
         debugging.info("Request to update timezone to: " + timezone)
         conf.set_string("default", "timezone", timezone)
         conf.save_config()
+        # flash('DISABLED: Timezone set to ' + timezone)
+        # flash('NOTE: Select "Reboot RPI" from "Map Functions" Menu for changes to take affect')
+        # os.system('sudo timedatectl set-timezone ' + timezone)
         return redirect('tzset')
 
     tzlist = pytz.common_timezones

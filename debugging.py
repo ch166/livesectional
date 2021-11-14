@@ -5,7 +5,8 @@
 
 import datetime
 
-DEBUG_MSGS = True
+DEBUG_MSGS = False
+PRINT_MSGS = True
 INFO_MSGS = True
 WARN_MSGS = True
 ERR_MSGS = True
@@ -13,7 +14,7 @@ ERR_MSGS = True
 
 def dprint(args):
     ''' Passthrough call to print() if DEBUG_MSGS is enabled '''
-    if DEBUG_MSGS:
+    if PRINT_MSGS:
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(logtime, appname, "PRINT:", args, flush=True )
@@ -38,3 +39,10 @@ def error(args):
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(logtime, appname, "ERROR:", args, flush=True )
+
+def debug(args):
+    ''' Passthrough call to print() if ERR_MSGS is enabled '''
+    if DEBUG_MSGS:
+        appname = "LIVEMAP:"
+        logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(logtime, appname, "DEBUG:", args, flush=True )

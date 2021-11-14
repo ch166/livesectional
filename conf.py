@@ -66,6 +66,11 @@ class Conf:
         return self.configfile.getboolean(section, key)
 
 
+    def get_float(self, section, key):
+        ''' Read Setting '''
+        return self.configfile.getfloat(section, key)
+
+
     def get_int(self, section, key):
         ''' Read Setting '''
         return self.configfile.getint(section, key)

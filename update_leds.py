@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#metar-v4.py - by Mark Harris. Capable of displaying METAR data, TAF or MOS data. Using a rotary switch to select 1 of 12 positions
+# metar-v4.py - by Mark Harris. Capable of displaying METAR data, TAF or MOS data. Using a rotary switch to select 1 of 12 positions
 #    Updated to run under Python 3.7
 #    Added Sleep Timer routine to turn-off map at night if desired.
 #    Added the ability to display TAF or MOS data along with METAR's
@@ -25,31 +25,31 @@
 #    Added routine to check time and reboot each night if setting in admin.py are set accordingly.
 #    Fixed bug that missed lowest sky_condition altitude on METARs not reporting flight categories.
 
-#This version retains the features included in metar-v3.py, including hi-wind blinking and lightning when thunderstorms are reported.
-#However, this version adds representations for snow, rain, freezing rain, dust sand ash, and fog when reported in the metar.
-#The LED's will show the appropriate color for the reported flight category (vfr, mvfr, ifr, lifr) then blink a specific color for the weather
-#For instance, an airport reporting IFR with snow would display Red then blink white for a short period to denote snow. Blue for rain,
-#purple for freezing rain, brown for dust sand ash, and silver for fog. This makes for a colorful map when weather is in the area.
-#A home airport feature has been added as well. When enabled, the map can be dimmed in relation to the home airport as well as
-#have the home alternate between weather color and a user defined marker color(s).
-#Most of these features can be disabled to downgrade the map display in the user-defined variables below.
+# This version retains the features included in metar-v3.py, including hi-wind blinking and lightning when thunderstorms are reported.
+# However, this version adds representations for snow, rain, freezing rain, dust sand ash, and fog when reported in the metar.
+# The LED's will show the appropriate color for the reported flight category (vfr, mvfr, ifr, lifr) then blink a specific color for the weather
+# For instance, an airport reporting IFR with snow would display Red then blink white for a short period to denote snow. Blue for rain,
+# purple for freezing rain, brown for dust sand ash, and silver for fog. This makes for a colorful map when weather is in the area.
+# A home airport feature has been added as well. When enabled, the map can be dimmed in relation to the home airport as well as
+# have the home alternate between weather color and a user defined marker color(s).
+# Most of these features can be disabled to downgrade the map display in the user-defined variables below.
 
-#For detailed instructions on building an Aviation Map, visit http://www.livesectional.com
-#Hardware features are further explained on this site as well. However, this software allows for a power-on/update weather switch,
-#and Power-off/Reboot switch. The use of a display is handled by metar-display.py and not this script.
+# For detailed instructions on building an Aviation Map, visit http://www.livesectional.com
+# Hardware features are further explained on this site as well. However, this software allows for a power-on/update weather switch,
+# and Power-off/Reboot switch. The use of a display is handled by metar-display.py and not this script.
 
-#Flight Category Definitions. (https://www.aviationweather.gov/taf/help?page=plot)
-#+--------------------------------------+---------------+-------------------------------+-------+----------------------------+
-#|Category                              |Color          |Ceiling                        |       |Visibility                  |
-#|--------------------------------------+---------------+-------------------------------+-------+----------------------------+
-#|VFR   Visual Flight Rules             |Green          |greater than 3,000 feet AGL    |and    |greater than 5 miles        |
-#|MVFR  Marginal Visual Flight Rules    |Blue           |1,000 to 3,000 feet AGL        |and/or |3 to 5 miles                |
-#|IFR   Instrument Flight Rules         |Red            |500 to below 1,000 feet AGL    |and/or |1 mile to less than 3 miles |
-#|LIFR  Low Instrument Flight Rules     |Magenta        |       below 500 feet AGL      |and-or |less than 1 mile            |
-#+--------------------------------------+---------------+-------------------------------+-------+----------------------------+
-#AGL = Above Ground Level
+# Flight Category Definitions. (https://www.aviationweather.gov/taf/help?page=plot)
+# +--------------------------------------+---------------+-------------------------------+-------+----------------------------+
+# |Category                              |Color          |Ceiling                        |       |Visibility                  |
+# |--------------------------------------+---------------+-------------------------------+-------+----------------------------+
+# |VFR   Visual Flight Rules             |Green          |greater than 3,000 feet AGL    |and    |greater than 5 miles        |
+# |MVFR  Marginal Visual Flight Rules    |Blue           |1,000 to 3,000 feet AGL        |and/or |3 to 5 miles                |
+# |IFR   Instrument Flight Rules         |Red            |500 to below 1,000 feet AGL    |and/or |1 mile to less than 3 miles |
+# |LIFR  Low Instrument Flight Rules     |Magenta        |       below 500 feet AGL      |and-or |less than 1 mile            |
+# +--------------------------------------+---------------+-------------------------------+-------+----------------------------+
+# AGL = Above Ground Level
 
-#RPI GPIO Pinouts reference
+# RPI GPIO Pinouts reference
 ###########################
 #    3V3  (1) (2)  5V     #
 #  GPIO2  (3) (4)  5V     #
@@ -73,15 +73,17 @@
 #    GND (39) (40) GPIO21 #
 ###########################
 
-#Import needed libraries
-import urllib.request, urllib.error, urllib.parse
+# Import needed libraries
+import urllib.request
+import urllib.error
+import urllib.parse
 import socket
 import xml.etree.ElementTree as ET
 import time
 from datetime import datetime
 from datetime import timedelta
 from datetime import time as time_
-from rpi_ws281x import * #works with python 3.7. sudo pip3 install rpi_ws281x
+from rpi_ws281x import *  # works with python 3.7. sudo pip3 install rpi_ws281x
 import sys
 import os
 from os.path import getmtime
@@ -91,16 +93,18 @@ import re
 # import logging
 # import logzero #had to manually install logzero. https://logzero.readthedocs.io/en/latest/
 # from logzero import logger
-import config #Config.py holds user settings used by the various scripts
+import config  # Config.py holds user settings used by the various scripts
 import admin
 
 import debugging
+import utils
+
 
 class updateLEDs:
 
     def __init__(self, conf):
         # Setup rotating logfile with 3 rotations, each with a maximum filesize of 1MB:
-        self.version = admin.version                 #Software version
+        self.version = admin.version  # Software version
         # self.loglevel = config.loglevel
         # self.loglevels = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR]
         # self.logzero.loglevel(self.loglevels[self.loglevel])   #Choices in order; DEBUG, INFO, WARNING, ERROR
@@ -108,275 +112,392 @@ class updateLEDs:
         # self.debugging.info("\n\nStartup of metar-v4.py Script, Version " + self.version)
         # self.debugging.info("Log Level Set To: " + str(self.loglevels[self.loglevel]))
 
-        #****************************************************************************
-        #* User defined items to be set below - Make changes to config.py, not here *
-        #****************************************************************************
+        # ****************************************************************************
+        # * User defined items to be set below - Make changes to config.py, not here *
+        # ****************************************************************************
+
+        # Current Time Tracker
+        self.currentzulu = ""
 
         # Local access to configuration data
 
         self.conf = conf
 
-        #list of pins that need to reverse the rgb_grb setting. To accommodate two different models of LED's are used.
+        # list of pins that need to reverse the rgb_grb setting. To accommodate two different models of LED's are used.
         # self.rev_rgb_grb = config.rev_rgb_grb        #[] #['1', '2', '3', '4', '5', '6', '7', '8']
 
-        #Specific Variables to default data to display if Rotary Switch is not installed.
-        self.hour_to_display = config.time_sw0       #hour_to_display #Offset in HOURS to choose which TAF/MOS to display
-        self.metar_taf_mos = config.data_sw0         #metar_taf_mos    #0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
-        self.toggle_sw = -1                          #Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
+        # Specific Variables to default data to display if Rotary Switch is not installed.
+        # hour_to_display #Offset in HOURS to choose which TAF/MOS to display
+        self.hour_to_display = config.time_sw0
+        # metar_taf_mos    #0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
+        self.metar_taf_mos = config.data_sw0
+        # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
+        self.toggle_sw = -1
 
-        #MOS/TAF Config settings
-        #self.prob = config.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not. MOS Only.
+        # MOS/TAF Config settings
+        # self.prob = config.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not. MOS Only.
 
-        self.data_sw0 = config.data_sw0              #User selectable source of data on Rotary Switch position 0. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw1 = config.data_sw1              #User selectable source of data on Rotary Switch position 1. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw2 = config.data_sw2              #User selectable source of data on Rotary Switch position 2. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw3 = config.data_sw3              #User selectable source of data on Rotary Switch position 3. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw4 = config.data_sw4              #User selectable source of data on Rotary Switch position 4. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw5 = config.data_sw5              #User selectable source of data on Rotary Switch position 5. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw6 = config.data_sw6              #User selectable source of data on Rotary Switch position 6. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw7 = config.data_sw7              #User selectable source of data on Rotary Switch position 7. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw8 = config.data_sw8              #User selectable source of data on Rotary Switch position 8. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw9 = config.data_sw9              #User selectable source of data on Rotary Switch position 9. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw10 = config.data_sw10            #User selectable source of data on Rotary Switch position 10. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw11 = config.data_sw11            #User selectable source of data on Rotary Switch position 11. 0 = TAF, 1 = METAR, 2 = MOS
+        # User selectable source of data on Rotary Switch position 0. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw0 = config.data_sw0
+        # User selectable source of data on Rotary Switch position 1. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw1 = config.data_sw1
+        # User selectable source of data on Rotary Switch position 2. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw2 = config.data_sw2
+        # User selectable source of data on Rotary Switch position 3. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw3 = config.data_sw3
+        # User selectable source of data on Rotary Switch position 4. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw4 = config.data_sw4
+        # User selectable source of data on Rotary Switch position 5. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw5 = config.data_sw5
+        # User selectable source of data on Rotary Switch position 6. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw6 = config.data_sw6
+        # User selectable source of data on Rotary Switch position 7. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw7 = config.data_sw7
+        # User selectable source of data on Rotary Switch position 8. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw8 = config.data_sw8
+        # User selectable source of data on Rotary Switch position 9. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw9 = config.data_sw9
+        # User selectable source of data on Rotary Switch position 10. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw10 = config.data_sw10
+        # User selectable source of data on Rotary Switch position 11. 0 = TAF, 1 = METAR, 2 = MOS
+        self.data_sw11 = config.data_sw11
 
-        self.time_sw0 = config.time_sw0              #0 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw1 = config.time_sw1              #1 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw2 = config.time_sw2              #2 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw3 = config.time_sw3              #3 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw4 = config.time_sw4              #4 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw5 = config.time_sw5              #5 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw6 = config.time_sw6              #6 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw7 = config.time_sw7              #7 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw8 = config.time_sw8              #8 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw9 = config.time_sw9              #9 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw10 = config.time_sw10            #10 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw11 = config.time_sw11            #11 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        # 0 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw0 = config.time_sw0
+        # 1 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw1 = config.time_sw1
+        # 2 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw2 = config.time_sw2
+        # 3 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw3 = config.time_sw3
+        # 4 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw4 = config.time_sw4
+        # 5 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw5 = config.time_sw5
+        # 6 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw6 = config.time_sw6
+        # 7 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw7 = config.time_sw7
+        # 8 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw8 = config.time_sw8
+        # 9 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw9 = config.time_sw9
+        # 10 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw10 = config.time_sw10
+        # 11 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
+        self.time_sw11 = config.time_sw11
 
-        #Heat Map settings
-        #self.bin_grad = config.bin_grad              #0 = Binary display, 1 = Gradient display
-        #self.fade_yesno = config.fade_yesno          #0 = No, 1 = Yes, if using gradient display, fade in/out the home airport color. will override use_homeap.
-        #self.use_homeap = config.use_homeap          #0 = No, 1 = Yes, Use a separate color to denote home airport.
-        self.fade_delay = conf.get_float("rotaryswitch", "fade_delay")          #delay in fading the home airport if used
+        # Heat Map settings
+        # self.bin_grad = config.bin_grad              #0 = Binary display, 1 = Gradient display
+        # self.fade_yesno = config.fade_yesno          #0 = No, 1 = Yes, if using gradient display, fade in/out the home airport color. will override use_homeap.
+        # self.use_homeap = config.use_homeap          #0 = No, 1 = Yes, Use a separate color to denote home airport.
+        # delay in fading the home airport if used
+        self.fade_delay = conf.get_float("rotaryswitch", "fade_delay")
 
-        #MOS Config settings
-        #self.prob = config.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not.
+        # MOS Config settings
+        # self.prob = config.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not.
 
-        #Specific settings for on/off timer. Used to turn off LED's at night if desired.
-        #Verify Raspberry Pi is set to the correct time zone, otherwise the timer will be off.
-        #self.usetimer = config.usetimer              #0 = No, 1 = Yes. Turn the timer on or off with this setting
-        self.offhour = config.offhour                #Use 24 hour time. Set hour to turn off display
-        self.offminutes = config.offminutes          #Set minutes to turn off display
-        self.onhour = config.onhour                  #Use 24 hour time. Set hour to turn on display
-        self.onminutes = config.onminutes            #Set minutes to on display
-        self.tempsleepon = config.tempsleepon        #Set number of MINUTES to turn map on temporarily during sleep mode
+        # Specific settings for on/off timer. Used to turn off LED's at night if desired.
+        # Verify Raspberry Pi is set to the correct time zone, otherwise the timer will be off.
+        # self.usetimer = config.usetimer              #0 = No, 1 = Yes. Turn the timer on or off with this setting
+        self.offhour = config.offhour  # Use 24 hour time. Set hour to turn off display
+        self.offminutes = config.offminutes  # Set minutes to turn off display
+        self.onhour = config.onhour  # Use 24 hour time. Set hour to turn on display
+        self.onminutes = config.onminutes  # Set minutes to on display
+        # Set number of MINUTES to turn map on temporarily during sleep mode
+        self.tempsleepon = config.tempsleepon
 
-        self.LED_COUNT = config.LED_COUNT            #Number of LED pixels. Change this value to match the number of LED's being used on map
+        # Number of LED pixels. Change this value to match the number of LED's being used on map
+        self.LED_COUNT = config.LED_COUNT
 
-        self.hiwindblink = config.hiwindblink        #1 = Yes, 0 = No. Blink the LED for high wind Airports.
-        self.lghtnflash = config.lghtnflash          #1 = Yes, 0 = No. Flash the LED for an airport reporting severe weather like TSRA.
-        self.rainshow = config.rainshow              #1 = Yes, 0 = No. Change colors to denote rain reported.
-        self.frrainshow = config.frrainshow          #1 = Yes, 0 = No. Change colors to denote freezing rain reported.
-        self.snowshow = config.snowshow              #1 = Yes, 0 = No. Change colors to denote snow reported.
-        self.dustsandashshow = config.dustsandashshow        #1 = Yes, 0 = No. Change colors to denote dust, sand, or ash reported.
-        self.fogshow = config.fogshow                #1 = Yes, 0 = No. Change colors to denote fog reported.
-        self.homeport = config.homeport              #1 = Yes, 0 = No. Turn on/off home airport feature. The home airport will use a marker color on every other pass
+        # 1 = Yes, 0 = No. Blink the LED for high wind Airports.
+        self.hiwindblink = config.hiwindblink
+        # 1 = Yes, 0 = No. Flash the LED for an airport reporting severe weather like TSRA.
+        self.lghtnflash = config.lghtnflash
+        # 1 = Yes, 0 = No. Change colors to denote rain reported.
+        self.rainshow = config.rainshow
+        # 1 = Yes, 0 = No. Change colors to denote freezing rain reported.
+        self.frrainshow = config.frrainshow
+        # 1 = Yes, 0 = No. Change colors to denote snow reported.
+        self.snowshow = config.snowshow
+        # 1 = Yes, 0 = No. Change colors to denote dust, sand, or ash reported.
+        self.dustsandashshow = config.dustsandashshow
+        # 1 = Yes, 0 = No. Change colors to denote fog reported.
+        self.fogshow = config.fogshow
+        # 1 = Yes, 0 = No. Turn on/off home airport feature. The home airport will use a marker color on every other pass
+        self.homeport = config.homeport
 
         # if 'homeport = 1' be sure to set these variables appropriately
-        self.homeport_pin = config.homeport_pin      #Pin number of the home airport to display a marker color every other pass
-        self.homeport_display = config.homeport_display      #2 = no color change, 1 = changing colors - user defined below by homeport_colors[], 0 = Solid color denoted by homeport_color below.
-        self.dim_value = config.dim_value            #Percentage of brightness to dim all other airports if homeport is being used. 0 = No dimming. 100 = completely off
+        # Pin number of the home airport to display a marker color every other pass
+        self.homeport_pin = config.homeport_pin
+        # 2 = no color change, 1 = changing colors - user defined below by homeport_colors[], 0 = Solid color denoted by homeport_color below.
+        self.homeport_display = config.homeport_display
+        # Percentage of brightness to dim all other airports if homeport is being used. 0 = No dimming. 100 = completely off
+        self.dim_value = config.dim_value
 
         # Misc settings
-        self.usewipes = config.usewipes              #0 = No, 1 = Yes, use wipes. Defined by configurator
-        self.rgb_grb = config.rgb_grb                #1 = RGB color codes. 0 = GRB color codes. Populate color codes below with normal RGB codes and script will change if necessary
-        self.max_wind_speed = config.max_wind_speed  #In Knots. Any speed at or above will flash the LED for the appropriate airport if hiwindblink=1
-        self.update_interval = config.update_interval        #Number of MINUTES between FAA updates - 15 minutes is a good compromise. A pushbutton switch can be used to force update.
-        self.dimmed_value = config.dimmed_value      #Range is 0 - 255. This sets the value of LED brightness when light sensor detects low ambient light. Independent of homeport dimming.
-        self.bright_value = config.bright_value      #Range is 0 - 255. This sets the value of LED brightness when light sensor detects high ambient light
-        self.metar_age = config.metar_age            #Metar Age in HOURS. This will pull the latest metar that has been published within the timeframe listed here.
-                                                #If no Metar has been published within this timeframe, the LED will default to the color specified by color_nowx.
-        self.use_reboot = admin.use_reboot           # Used to determine if board should reboot every day at time set in setting below.
-        self.time_reboot = admin.time_reboot         # 24 hour time in this format, '2400' = midnight. Change these 2 settings in the admin.py file if desired.
-        self.autorun = config.autorun                # Check to be sure Autorun on reboot is set to yes.
+        # 0 = No, 1 = Yes, use wipes. Defined by configurator
+        self.usewipes = config.usewipes
+        # 1 = RGB color codes. 0 = GRB color codes. Populate color codes below with normal RGB codes and script will change if necessary
+        self.rgb_grb = config.rgb_grb
+        # In Knots. Any speed at or above will flash the LED for the appropriate airport if hiwindblink=1
+        self.max_wind_speed = config.max_wind_speed
+        # Number of MINUTES between FAA updates - 15 minutes is a good compromise. A pushbutton switch can be used to force update.
+        self.update_interval = config.update_interval
+        # Range is 0 - 255. This sets the value of LED brightness when light sensor detects low ambient light. Independent of homeport dimming.
+        self.dimmed_value = config.dimmed_value
+        # Range is 0 - 255. This sets the value of LED brightness when light sensor detects high ambient light
+        self.bright_value = config.bright_value
+        # Metar Age in HOURS. This will pull the latest metar that has been published within the timeframe listed here.
+        self.metar_age = config.metar_age
+        # If no Metar has been published within this timeframe, the LED will default to the color specified by color_nowx.
+        # Used to determine if board should reboot every day at time set in setting below.
+        self.use_reboot = admin.use_reboot
+        # 24 hour time in this format, '2400' = midnight. Change these 2 settings in the admin.py file if desired.
+        self.time_reboot = admin.time_reboot
+        # Check to be sure Autorun on reboot is set to yes.
+        self.autorun = config.autorun
 
         # Set Colors in RGB. Change numbers in paranthesis as desired. The order should be (Red,Green,Blue). This setup works for the WS2812 model of LED strips.
         # WS2811 strips uses GRB colors, so change "rgb_grb = 0" above if necessary. Range is 0-255. (https://www.rapidtables.com/web/color/RGB_Color.html)
-        self.color_vfr = config.color_vfr            #Full bright Green for VFR
-        self.color_mvfr = config.color_mvfr          #Full bright Blue for MVFR
-        self.color_ifr = config.color_ifr            #Full bright Red for IFR
-        self.color_lifr = config.color_lifr          #Full bright Magenta for LIFR
-        self.color_nowx = config.color_nowx          #No weather for NO WX
-        self.color_black = config.color_black        #Black/Off
-        self.color_lghtn = config.color_lghtn        #Full bright Yellow to represent lightning strikes
-        self.color_snow1 = config.color_snow1        #White for Snow etc.
-        self.color_snow2 = config.color_snow2        #Grey for Snow etc.
-        self.color_rain1 = config.color_rain1        #Dark Blue for Rain etc.
-        self.color_rain2 = config.color_rain2        #Blue for rain etc.
-        self.color_frrain1 = config.color_frrain1    #Light Purple
-        self.color_frrain2 = config.color_frrain2    #Purple for freezing rain etc.
-        self.color_dustsandash1 = config.color_dustsandash1  #Tan/Brown for Dust and Sand
-        self.color_dustsandash2 = config.color_dustsandash2  #Dark Brown for Dust and Sand
-        self.color_fog1 = config.color_fog1          #Silver for Fog
-        self.color_fog2 = config.color_fog2          #Silver for Fog
-        self.color_homeport = config.color_homeport  #Color to denote home airport every other LED cycle. Used if 'homeport_display = 0'
-        self.homeport_colors = config.homeport_colors        #if 'homeport_display=1'. Change these colors as desired.
+        self.color_vfr = config.color_vfr  # Full bright Green for VFR
+        self.color_mvfr = config.color_mvfr  # Full bright Blue for MVFR
+        self.color_ifr = config.color_ifr  # Full bright Red for IFR
+        self.color_lifr = config.color_lifr  # Full bright Magenta for LIFR
+        self.color_nowx = config.color_nowx  # No weather for NO WX
+        self.color_black = config.color_black  # Black/Off
+        # Full bright Yellow to represent lightning strikes
+        self.color_lghtn = config.color_lghtn
+        self.color_snow1 = config.color_snow1  # White for Snow etc.
+        self.color_snow2 = config.color_snow2  # Grey for Snow etc.
+        self.color_rain1 = config.color_rain1  # Dark Blue for Rain etc.
+        self.color_rain2 = config.color_rain2  # Blue for rain etc.
+        self.color_frrain1 = config.color_frrain1  # Light Purple
+        # Purple for freezing rain etc.
+        self.color_frrain2 = config.color_frrain2
+        self.color_dustsandash1 = config.color_dustsandash1  # Tan/Brown for Dust and Sand
+        self.color_dustsandash2 = config.color_dustsandash2  # Dark Brown for Dust and Sand
+        self.color_fog1 = config.color_fog1  # Silver for Fog
+        self.color_fog2 = config.color_fog2  # Silver for Fog
+        # Color to denote home airport every other LED cycle. Used if 'homeport_display = 0'
+        self.color_homeport = config.color_homeport
+        # if 'homeport_display=1'. Change these colors as desired.
+        self.homeport_colors = config.homeport_colors
 
         # Legend on/off. The setting 'legend' must be set to 1 for any legend LED's to be enabled. But you can disable the other
         # legend types by defining it with a 0. No legend LED's, 5 basic legends LED's, 6, 7, 8, 9, 10, 11 or 12 total legend LED's can be used.
-        self.legend = config.legend                  #1 = Yes, 0 = No. Provides for basic vfr, mvfr, ifr, lifr, nowx legend. If 'legend=0' then no legends will be enabled.
-        self.legend_hiwinds = config.legend_hiwinds  #1 = Yes, 0 = No. With this enabled high winds legend will be displayed.
-        self.legend_lghtn = config.legend_lghtn      #1 = Yes, 0 = No. With this enabled Lightning/Thunderstorm legend will be displayed as well
-        self.legend_snow = config.legend_snow        #1 = Yes, 0 = No. Snow legend
-        self.legend_rain = config.legend_rain        #1 = Yes, 0 = No. Rain legend
-        self.legend_frrain = config.legend_frrain    #1 = Yes, 0 = No. Freezing Rain legend
-        self.legend_dustsandash = config.legend_dustsandash  #1 = Yes, 0 = No. Dust, Sand and/or Ash legend
-        self.legend_fog = config.legend_fog          #1 = Yes, 0 = No. Fog legend
+        # 1 = Yes, 0 = No. Provides for basic vfr, mvfr, ifr, lifr, nowx legend. If 'legend=0' then no legends will be enabled.
+        self.legend = config.legend
+        # 1 = Yes, 0 = No. With this enabled high winds legend will be displayed.
+        self.legend_hiwinds = config.legend_hiwinds
+        # 1 = Yes, 0 = No. With this enabled Lightning/Thunderstorm legend will be displayed as well
+        self.legend_lghtn = config.legend_lghtn
+        self.legend_snow = config.legend_snow  # 1 = Yes, 0 = No. Snow legend
+        self.legend_rain = config.legend_rain  # 1 = Yes, 0 = No. Rain legend
+        # 1 = Yes, 0 = No. Freezing Rain legend
+        self.legend_frrain = config.legend_frrain
+        # 1 = Yes, 0 = No. Dust, Sand and/or Ash legend
+        self.legend_dustsandash = config.legend_dustsandash
+        self.legend_fog = config.legend_fog  # 1 = Yes, 0 = No. Fog legend
 
         # Legend Pins assigned if used. Be sure that the 'airports' file has 'LGND' at these LED positions otherwise the legend will not display properly.
-        self.leg_pin_vfr = config.leg_pin_vfr        #Set LED pin number for VFR Legend LED
-        self.leg_pin_mvfr = config.leg_pin_mvfr      #Set LED pin number for MVFR Legend LED
-        self.leg_pin_ifr = config.leg_pin_ifr        #Set LED pin number for IFR Legend LED
-        self.leg_pin_lifr = config.leg_pin_lifr      #Set LED pin number for LIFR Legend LED
-        self.leg_pin_nowx = config.leg_pin_nowx      #Set LED pin number for No Weather Legend LED
-        self.leg_pin_hiwinds = config.leg_pin_hiwinds        #Set LED pin number for High Winds Legend LED
-        self.leg_pin_lghtn = config.leg_pin_lghtn    #Set LED pin number for Thunderstorms Legend LED
-        self.leg_pin_snow = config.leg_pin_snow      #Set LED pin number for Snow Legend LED
-        self.leg_pin_rain = config.leg_pin_rain      #Set LED pin number for Rain Legend LED
-        self.leg_pin_frrain = config.leg_pin_frrain  #Set LED pin number for Freezing Rain Legend LED
-        self.leg_pin_dustsandash = config.leg_pin_dustsandash #Set LED pin number for Dust/Sand/Ash Legend LED
-        self.leg_pin_fog = config.leg_pin_fog        #Set LED pin number for Fog Legend LED
+        self.leg_pin_vfr = config.leg_pin_vfr  # Set LED pin number for VFR Legend LED
+        # Set LED pin number for MVFR Legend LED
+        self.leg_pin_mvfr = config.leg_pin_mvfr
+        self.leg_pin_ifr = config.leg_pin_ifr  # Set LED pin number for IFR Legend LED
+        # Set LED pin number for LIFR Legend LED
+        self.leg_pin_lifr = config.leg_pin_lifr
+        # Set LED pin number for No Weather Legend LED
+        self.leg_pin_nowx = config.leg_pin_nowx
+        # Set LED pin number for High Winds Legend LED
+        self.leg_pin_hiwinds = config.leg_pin_hiwinds
+        # Set LED pin number for Thunderstorms Legend LED
+        self.leg_pin_lghtn = config.leg_pin_lghtn
+        # Set LED pin number for Snow Legend LED
+        self.leg_pin_snow = config.leg_pin_snow
+        # Set LED pin number for Rain Legend LED
+        self.leg_pin_rain = config.leg_pin_rain
+        # Set LED pin number for Freezing Rain Legend LED
+        self.leg_pin_frrain = config.leg_pin_frrain
+        # Set LED pin number for Dust/Sand/Ash Legend LED
+        self.leg_pin_dustsandash = config.leg_pin_dustsandash
+        self.leg_pin_fog = config.leg_pin_fog  # Set LED pin number for Fog Legend LED
 
-        #************************************************************
-        #* End of User defined settings. Normally shouldn't change  *
-        #* any thing under here unless you are confident in change. *
-        #************************************************************
+        # ************************************************************
+        # * End of User defined settings. Normally shouldn't change  *
+        # * any thing under here unless you are confident in change. *
+        # ************************************************************
 
-        self.turnoffrefresh = 1                      #0 = do not turn refresh off, 1 = turn off the blanking refresh of the LED string between FAA updates.
+        # 0 = do not turn refresh off, 1 = turn off the blanking refresh of the LED string between FAA updates.
+        self.turnoffrefresh = 1
 
-        #LED Cycle times - Can change if necessary.
-        self.cycle0_wait = .9        #These cycle times all added together will equal the total amount of time the LED takes to finish displaying one cycle.
-        self.cycle1_wait = .9        #Each  cycle, depending on flight category, winds and weather reported will have various colors assigned.
-        self.cycle2_wait = .08       #For instance, VFR with 20 kts winds will have the first 3 cycles assigned Green and the last 3 Black for blink effect.
-        self.cycle3_wait = .1        #The cycle times then reflect how long each color cycle will stay on, producing blinking or flashing effects.
-        self.cycle4_wait = .08       #Lightning effect uses the short intervals at cycle 2 and cycle 4 to create the quick flash. So be careful if you change them.
+        # LED Cycle times - Can change if necessary.
+        # These cycle times all added together will equal the total amount of time the LED takes to finish displaying one cycle.
+        self.cycle0_wait = .9
+        # Each  cycle, depending on flight category, winds and weather reported will have various colors assigned.
+        self.cycle1_wait = .9
+        # For instance, VFR with 20 kts winds will have the first 3 cycles assigned Green and the last 3 Black for blink effect.
+        self.cycle2_wait = .08
+        # The cycle times then reflect how long each color cycle will stay on, producing blinking or flashing effects.
+        self.cycle3_wait = .1
+        # Lightning effect uses the short intervals at cycle 2 and cycle 4 to create the quick flash. So be careful if you change them.
+        self.cycle4_wait = .08
         self.cycle5_wait = .5
 
-        #List of METAR weather categories to designate weather in area. Many Metars will report multiple conditions, i.e. '-RA BR'.
-        #The code pulls the first/main weather reported to compare against the lists below. In this example it uses the '-RA' and ignores the 'BR'.
-        #See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
+        # List of METAR weather categories to designate weather in area. Many Metars will report multiple conditions, i.e. '-RA BR'.
+        # The code pulls the first/main weather reported to compare against the lists below. In this example it uses the '-RA' and ignores the 'BR'.
+        # See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
         #Thunderstorm and lightning
-        self.wx_lghtn_ck = ["TS", "TSRA", "TSGR", "+TSRA", "TSRG", "FC", "SQ", "VCTS", "VCTSRA", "VCTSDZ", "LTG"]
-        #Snow in various forms
-        self.wx_snow_ck = ["BLSN", "DRSN", "-RASN", "RASN", "+RASN", "-SN", "SN", "+SN", "SG", "IC", "PE", "PL", "-SHRASN", "SHRASN", "+SHRASN", "-SHSN", "SHSN", "+SHSN"]
-        #Rain in various forms
-        self.wx_rain_ck = ["-DZ", "DZ", "+DZ", "-DZRA", "DZRA", "-RA", "RA", "+RA", "-SHRA", "SHRA", "+SHRA", "VIRGA", "VCSH"]
-        #Freezing Rain
-        self.wx_frrain_ck = ["-FZDZ", "FZDZ", "+FZDZ", "-FZRA", "FZRA", "+FZRA"]
-        #Dust Sand and/or Ash
-        self.wx_dustsandash_ck = ["DU", "SA", "HZ", "FU", "VA", "BLDU", "BLSA", "PO", "VCSS", "SS", "+SS",]
-        #Fog
+        self.wx_lghtn_ck = ["TS", "TSRA", "TSGR", "+TSRA",
+                            "TSRG", "FC", "SQ", "VCTS", "VCTSRA", "VCTSDZ", "LTG"]
+        # Snow in various forms
+        self.wx_snow_ck = ["BLSN", "DRSN", "-RASN", "RASN", "+RASN", "-SN", "SN", "+SN",
+                           "SG", "IC", "PE", "PL", "-SHRASN", "SHRASN", "+SHRASN", "-SHSN", "SHSN", "+SHSN"]
+        # Rain in various forms
+        self.wx_rain_ck = ["-DZ", "DZ", "+DZ", "-DZRA", "DZRA", "-RA",
+                           "RA", "+RA", "-SHRA", "SHRA", "+SHRA", "VIRGA", "VCSH"]
+        # Freezing Rain
+        self.wx_frrain_ck = ["-FZDZ", "FZDZ",
+                             "+FZDZ", "-FZRA", "FZRA", "+FZRA"]
+        # Dust Sand and/or Ash
+        self.wx_dustsandash_ck = ["DU", "SA", "HZ", "FU",
+                                  "VA", "BLDU", "BLSA", "PO", "VCSS", "SS", "+SS", ]
+        # Fog
         self.wx_fog_ck = ["BR", "MIFG", "VCFG", "BCFG", "PRFG", "FG", "FZFG"]
 
-        #list definitions
-        self.cycle_wait = [self.cycle0_wait, self.cycle1_wait, self.cycle2_wait, self.cycle3_wait, self.cycle4_wait, self.cycle5_wait] #Used to create weather designation effects.
-        self.cycles = [0,1,2,3,4,5] #Used as a index for the cycle loop.
-        self.legend_pins = [self.leg_pin_vfr, self.leg_pin_mvfr, self.leg_pin_ifr, self.leg_pin_lifr, self.leg_pin_nowx, self.leg_pin_hiwinds, self.leg_pin_lghtn, self.leg_pin_snow, self.leg_pin_rain, self.leg_pin_frrain, self.leg_pin_dustsandash, self.leg_pin_fog] #Used to build legend display
+        # list definitions
+        # Used to create weather designation effects.
+        self.cycle_wait = [self.cycle0_wait, self.cycle1_wait, self.cycle2_wait,
+                           self.cycle3_wait, self.cycle4_wait, self.cycle5_wait]
+        self.cycles = [0, 1, 2, 3, 4, 5]  # Used as a index for the cycle loop.
+        self.legend_pins = [self.leg_pin_vfr, self.leg_pin_mvfr, self.leg_pin_ifr, self.leg_pin_lifr, self.leg_pin_nowx, self.leg_pin_hiwinds, self.leg_pin_lghtn,
+                            self.leg_pin_snow, self.leg_pin_rain, self.leg_pin_frrain, self.leg_pin_dustsandash, self.leg_pin_fog]  # Used to build legend display
 
-        #Setup for IC238 Light Sensor for LED Dimming, does not need to be commented out if sensor is not used, map will remain at full brightness.
-        #For more info on the sensor visit; http://www.uugear.com/portfolio/using-light-sensor-module-with-raspberry-pi/
-        
+        # Setup for IC238 Light Sensor for LED Dimming, does not need to be commented out if sensor is not used, map will remain at full brightness.
+        # For more info on the sensor visit; http://www.uugear.com/portfolio/using-light-sensor-module-with-raspberry-pi/
 
-        GPIO.setmode(GPIO.BCM)  #set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
-        GPIO.setup(4, GPIO.IN)  #set pin 4 as input for light sensor, if one is used. If no sensor used board remains at high brightness always.
-        GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP) #set pin 22 to momentary push button to force FAA Weather Data update if button is used.
+        # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
+        GPIO.setmode(GPIO.BCM)
+        # set pin 4 as input for light sensor, if one is used. If no sensor used board remains at high brightness always.
+        GPIO.setup(4, GPIO.IN)
+        # set pin 22 to momentary push button to force FAA Weather Data update if button is used.
+        GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        #Setup GPIO pins for rotary switch to choose between Metars, or Tafs and which hour of TAF
-        #Not all the pins are required to be used. If only METARS are desired, then no Rotary Switch is needed.
-        GPIO.setup(0, GPIO.IN, pull_up_down=GPIO.PUD_UP)        #set pin 0 to ground for METARS
-        GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_UP)        #set pin 5 to ground for TAF + 1 hour
-        GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP)        #set pin 6 to ground for TAF + 2 hours
-        GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 13 to ground for TAF + 3 hours
-        GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 19 to ground for TAF + 4 hours
-        GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 26 to ground for TAF + 5 hours
-        GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 21 to ground for TAF + 6 hours
-        GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 20 to ground for TAF + 7 hours
-        GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 16 to ground for TAF + 8 hours
-        GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)       #set pin 12 to ground for TAF + 9 hours
-        GPIO.setup(1, GPIO.IN, pull_up_down=GPIO.PUD_UP)        #set pin 1 to ground for TAF + 10 hours
-        GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)        #set pin 7 to ground for TAF + 11 hours
+        # Setup GPIO pins for rotary switch to choose between Metars, or Tafs and which hour of TAF
+        # Not all the pins are required to be used. If only METARS are desired, then no Rotary Switch is needed.
+        # set pin 0 to ground for METARS
+        GPIO.setup(0, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 5 to ground for TAF + 1 hour
+        GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 6 to ground for TAF + 2 hours
+        GPIO.setup(6, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 13 to ground for TAF + 3 hours
+        GPIO.setup(13, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 19 to ground for TAF + 4 hours
+        GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 26 to ground for TAF + 5 hours
+        GPIO.setup(26, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 21 to ground for TAF + 6 hours
+        GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 20 to ground for TAF + 7 hours
+        GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 16 to ground for TAF + 8 hours
+        GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 12 to ground for TAF + 9 hours
+        GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 1 to ground for TAF + 10 hours
+        GPIO.setup(1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 7 to ground for TAF + 11 hours
+        GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        #LED strip configuration:
-        self.LED_PIN        = 18                     #GPIO pin connected to the pixels (18 uses PWM!).
-        self.LED_FREQ_HZ    = 800000                 #LED signal frequency in hertz (usually 800khz)
-        self.LED_DMA        = 5                      #DMA channel to use for generating signal (try 5)
-        self.LED_INVERT     = False                  #True to invert the signal (when using NPN transistor level shift)
-        self.LED_CHANNEL    = 0                      #set to '1' for GPIOs 13, 19, 41, 45 or 53
-        self.LED_STRIP      = ws.WS2811_STRIP_GRB    #Strip type and color ordering
-        self.LED_BRIGHTNESS = self.bright_value           #255    #starting brightness. It will be changed below.
+        # LED strip configuration:
+        self.LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
+        # LED signal frequency in hertz (usually 800khz)
+        self.LED_FREQ_HZ = 800000
+        self.LED_DMA = 5  # DMA channel to use for generating signal (try 5)
+        # True to invert the signal (when using NPN transistor level shift)
+        self.LED_INVERT = False
+        self.LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
+        self.LED_STRIP = ws.WS2811_STRIP_GRB  # Strip type and color ordering
+        # 255    #starting brightness. It will be changed below.
+        self.LED_BRIGHTNESS = self.bright_value
 
-        #Setup paths for restart on change routine. Routine from;
-        #https://blog.petrzemek.net/2014/03/23/restarting-a-python-script-within-itself
+        # Setup paths for restart on change routine. Routine from;
+        # https://blog.petrzemek.net/2014/03/23/restarting-a-python-script-within-itself
         self.LOCAL_CONFIG_FILE_PATH = '/NeoSectional/config.py'
         self.WATCHED_FILES = [self.LOCAL_CONFIG_FILE_PATH, __file__]
-        self.WATCHED_FILES_MTIMES = [(f, getmtime(f)) for f in self.WATCHED_FILES]
-        debugging.info('Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
+        self.WATCHED_FILES_MTIMES = [(f, getmtime(f))
+                                     for f in self.WATCHED_FILES]
+        debugging.info(
+            'Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
 
-        #Timer calculations
-        self.now = datetime.now()                    #Get current time and compare to timer setting
-        self.lights_out = time_(self.conf.get_int("schedule", "offhour"), 
-                self.conf.get_int("schedule", "offminutes"), 0)
+        # Timer calculations
+        self.now = datetime.now()  # Get current time and compare to timer setting
+        self.lights_out = time_(self.conf.get_int("schedule", "offhour"),
+                                self.conf.get_int("schedule", "offminutes"), 0)
         self.timeoff = self.lights_out
         self.lights_on = time_(self.onhour, self.onminutes, 0)
         self.end_time = self.lights_on
-        self.delay_time = 10                         #Number of seconds to delay before retrying to connect to the internet.
-        self.temp_lights_on = 0                      #Set flag for next round if sleep timer is interrupted by button push.
+        # Number of seconds to delay before retrying to connect to the internet.
+        self.delay_time = 10
+        # Set flag for next round if sleep timer is interrupted by button push.
+        self.temp_lights_on = 0
 
-        #MOS Data Settings
-        self.mos_filepath = '/NeoSectional/data/GFSMAV'      #location of the downloaded local MOS file.
-        self.categories = ['HR', 'CLD', 'WDR', 'WSP', 'P06', 'T06', 'POZ', 'POS', 'TYP', 'CIG','VIS','OBV']
-        self.obv_wx = {'N': 'None', 'HZ': 'HZ','BR': 'RA','FG': 'FG','BL': 'HZ'} #Decode from MOS to TAF/METAR
-        self.typ_wx = {'S': 'SN','Z': 'FZRA','R': 'RA'}      #Decode from MOS to TAF/METAR
-        self.mos_dict = collections.OrderedDict()    #Outer Dictionary, keyed by airport ID
-        self.hour_dict = collections.OrderedDict()   #Middle Dictionary, keyed by hour of forcast. Will contain a list of data for categories.
-        self.ap_flag = 0                             #Used to determine that an airport from our airports file is currently being read.
+        # MOS Data Settings
+        # location of the downloaded local MOS file.
+        self.mos_filepath = '/NeoSectional/data/GFSMAV'
+        self.categories = ['HR', 'CLD', 'WDR', 'WSP', 'P06',
+                           'T06', 'POZ', 'POS', 'TYP', 'CIG', 'VIS', 'OBV']
+        self.obv_wx = {'N': 'None', 'HZ': 'HZ', 'BR': 'RA',
+                       'FG': 'FG', 'BL': 'HZ'}  # Decode from MOS to TAF/METAR
+        # Decode from MOS to TAF/METAR
+        self.typ_wx = {'S': 'SN', 'Z': 'FZRA', 'R': 'RA'}
+        # Outer Dictionary, keyed by airport ID
+        self.mos_dict = collections.OrderedDict()
+        # Middle Dictionary, keyed by hour of forcast. Will contain a list of data for categories.
+        self.hour_dict = collections.OrderedDict()
+        # Used to determine that an airport from our airports file is currently being read.
+        self.ap_flag = 0
 
-        #Used by Heat Map. Do not change - assumed by routines below.
-        self.low_visits = (0, 0, 255)                #Start with Blue - Do Not Change
-        self.high_visits = (255, 0, 0)               #Increment to Red as visits get closer to 100 - Do Not Change
-        self.fadehome = -1                           #start with neg number
-        self.homeap = self.color_vfr                      #If 100, then home airport - designate with Green
-        self.no_visits = (20, 20, 20)        #color_fog2                     #(10, 10, 10)        #dk grey to denote airports never visited
-        self.black = self.color_black                     #(0,0,0)
+        # Used by Heat Map. Do not change - assumed by routines below.
+        self.low_visits = (0, 0, 255)  # Start with Blue - Do Not Change
+        # Increment to Red as visits get closer to 100 - Do Not Change
+        self.high_visits = (255, 0, 0)
+        self.fadehome = -1  # start with neg number
+        self.homeap = self.color_vfr  # If 100, then home airport - designate with Green
+        # color_fog2                     #(10, 10, 10)        #dk grey to denote airports never visited
+        self.no_visits = (20, 20, 20)
+        self.black = self.color_black  # (0,0,0)
 
         # Misc Settings
-        self.ambient_toggle = 0                      # Toggle used for logging when ambient sensor changes from bright to dim.
+        # Toggle used for logging when ambient sensor changes from bright to dim.
+        self.ambient_toggle = 0
 
         debugging.info("metar-v4.py Settings Loaded")
 
-        #Create an instance of NeoPixel
+        # Create an instance of NeoPixel
         self.strip = Adafruit_NeoPixel(self.LED_COUNT,
-                self.LED_PIN, 
-                self.LED_FREQ_HZ, 
-                self.LED_DMA, 
-                self.LED_INVERT, 
-                self.LED_BRIGHTNESS, 
-                self.LED_CHANNEL, 
-                self.LED_STRIP)
+                                       self.LED_PIN,
+                                       self.LED_FREQ_HZ,
+                                       self.LED_DMA,
+                                       self.LED_INVERT,
+                                       self.LED_BRIGHTNESS,
+                                       self.LED_CHANNEL,
+                                       self.LED_STRIP)
         self.strip.begin()
 
-
     # Functions
+
     def turnoff(self, strip):
         for i in range(self.strip.numPixels()):
-            self.strip.setPixelColor(i, Color(0,0,0))
+            self.strip.setPixelColor(i, Color(0, 0, 0))
         self.strip.show()
 
-    #Reduces the brightness of the colors for every airport except for the "homeport_pin" designated airport, which remains at the brightness set by
-    #"bright_value" above in user setting. "data" is the airport color to display and "value" is the percentage of the brightness to be dimmed.
-    #For instance if full bright white (255,255,255) is provided and the desired dimming is 50%, then the color returned will be (128,128,128),
-    #or half as bright. The dim_value is set in the user defined area.
-    def dim(self, data,value):
+    # Reduces the brightness of the colors for every airport except for the "homeport_pin" designated airport, which remains at the brightness set by
+    # "bright_value" above in user setting. "data" is the airport color to display and "value" is the percentage of the brightness to be dimmed.
+    # For instance if full bright white (255,255,255) is provided and the desired dimming is 50%, then the color returned will be (128,128,128),
+    # or half as bright. The dim_value is set in the user defined area.
+    def dim(self, data, value):
         red = data[0] - ((value * data[0])/100)
         if red < 0:
             red = 0
@@ -389,35 +510,38 @@ class updateLEDs:
         if blu < 0:
             blu = 0
 
-        data =[red,grn,blu]
+        data = [red, grn, blu]
         return data
 
-    #Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
-    #Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.
-    #If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
+    # Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
+    # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.
+    # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
     def rgbtogrb(self, pin, data, order=0):
         # rev_rgb_grb #list of pins that need to use the reverse of the normal order setting.
-        if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"): #This accommodates the use of both models of LED strings on one map.
+        # This accommodates the use of both models of LED strings on one map.
+        if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"):
             order = not order
-            debugging.info('Reversing rgb2grb Routine Output for PIN ' + str(pin))
+            debugging.info(
+                'Reversing rgb2grb Routine Output for PIN ' + str(pin))
 
         red = data[0]
         grn = data[1]
         blu = data[2]
 
         if order:
-            data = [red,grn,blu]
+            data = [red, grn, blu]
         else:
-            data =[grn,red,blu]
+            data = [grn, red, blu]
         return data
 
-    #Compare current time plus offset to TAF's time period and return difference
+    # Compare current time plus offset to TAF's time period and return difference
     def comp_time(self, taf_time):
         # global current_zulu
         datetimeFormat = ('%Y-%m-%dT%H:%M:%SZ')
         date1 = taf_time
         date2 = self.current_zulu
-        diff = datetime.strptime(date1, datetimeFormat) - datetime.strptime(date2, datetimeFormat)
+        diff = datetime.strptime(date1, datetimeFormat) - \
+            datetime.strptime(date2, datetimeFormat)
         diff_minutes = int(diff.seconds/60)
         diff_hours = int(diff_minutes/60)
         return diff.seconds, diff_minutes, diff_hours, diff.days
@@ -429,7 +553,7 @@ class updateLEDs:
         else:
             return start <= x or x <= end
 
-    #Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
+    # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
     def set_data(self):
         # global hour_dict
         # global mos_dict
@@ -438,36 +562,42 @@ class updateLEDs:
         # global temp
         # global keys
 
-        #Clean up line of MOS data.
-        if len(self.temp) >= 0: #this check is unneeded. Put here to vary length of list to clean up.
+        # Clean up line of MOS data.
+        # this check is unneeded. Put here to vary length of list to clean up.
+        if len(self.temp) >= 0:
             temp1 = []
             tmp_sw = 0
 
-            for val in self.temp: #Check each item in the list
-                val = val.lstrip() #remove leading white space
-                val = val.rstrip('/') #remove trailing /
+            for val in self.temp:  # Check each item in the list
+                val = val.lstrip()  # remove leading white space
+                val = val.rstrip('/')  # remove trailing /
 
-                if len(val) == 6: #this is for T06 to build appropriate length list
-                    temp1.append('0') #add a '0' to the front of the list. T06 doesn't report data in first 3 hours.
-                    temp1.append(val) #add back the original value taken from T06
-                    tmp_sw = 1 #Turn on switch so we don't go through it again.
+                if len(val) == 6:  # this is for T06 to build appropriate length list
+                    # add a '0' to the front of the list. T06 doesn't report data in first 3 hours.
+                    temp1.append('0')
+                    # add back the original value taken from T06
+                    temp1.append(val)
+                    # Turn on switch so we don't go through it again.
+                    tmp_sw = 1
 
-                elif len(val) > 2 and tmp_sw == 0: # and tmp_sw == 0: #if item is 1 or 2 chars long, then bypass. Otherwise fix.
-                    pos = val.find('100') #locate first 100
-                    tmp = val[0:pos] #capture the first value which is not a 100
-                    temp1.append(tmp) #and store it in temp list.
+                # and tmp_sw == 0: #if item is 1 or 2 chars long, then bypass. Otherwise fix.
+                elif len(val) > 2 and tmp_sw == 0:
+                    pos = val.find('100')  # locate first 100
+                    # capture the first value which is not a 100
+                    tmp = val[0:pos]
+                    temp1.append(tmp)  # and store it in temp list.
 
                     k = 0
-                    for j in range(pos, len(val), 3): #now iterate through remainder
-                        temp1.append(val[j:j+3]) #and capture all the 100's
+                    for j in range(pos, len(val), 3):  # now iterate through remainder
+                        temp1.append(val[j:j+3])  # and capture all the 100's
                         k += 1
                 else:
-                    temp1.append(val) #Store the normal values too.
+                    temp1.append(val)  # Store the normal values too.
 
             self.temp = temp1
 
-        #load data into appropriate lists by hours designated by current MOS file
-        #clean up data by removing '/' and spaces
+        # load data into appropriate lists by hours designated by current MOS file
+        # clean up data by removing '/' and spaces
         self.temp0 = ([x.strip() for x in self.temp[0].split('/')])
         self.temp1 = ([x.strip() for x in self.temp[1].split('/')])
         self.temp2 = ([x.strip() for x in self.temp[2].split('/')])
@@ -477,7 +607,7 @@ class updateLEDs:
         self.temp6 = ([x.strip() for x in self.temp[6].split('/')])
         self.temp7 = ([x.strip() for x in self.temp[7].split('/')])
 
-        #build a list for each data group. grab 1st element [0] in list to store.
+        # build a list for each data group. grab 1st element [0] in list to store.
         self.dat0.append(self.temp0[0])
         self.dat1.append(self.temp1[0])
         self.dat2.append(self.temp2[0])
@@ -488,7 +618,7 @@ class updateLEDs:
         self.dat7.append(self.temp7[0])
 
         j = 0
-        for key in self.keys: #add cat data to the hour_dict by hour
+        for key in self.keys:  # add cat data to the hour_dict by hour
 
             if j == 0:
                 self.hour_dict[key] = self.dat0
@@ -508,10 +638,11 @@ class updateLEDs:
                 self.hour_dict[key] = self.dat7
             j += 1
 
-            self.mos_dict[self.apid] = self.hour_dict #marry the hour_dict to the proper key in mos_dict
+            # marry the hour_dict to the proper key in mos_dict
+            self.mos_dict[self.apid] = self.hour_dict
 
-    #For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
-    #Can choose to display binary colors with homeap.
+    # For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
+    # Can choose to display binary colors with homeap.
     def assign_color(self, visits):
         if visits == '0':
             color = self.no_visits
@@ -524,23 +655,23 @@ class updateLEDs:
             else:
                 color = self.homeap
 
-        elif '1' <= visits <= '50': #Working
+        elif '1' <= visits <= '50':  # Working
             if self.conf.get_bool("rotaryswitch", "bin_grad"):
                 red = self.low_visits[0]
                 grn = self.low_visits[1]
                 blu = self.low_visits[2]
                 red = int(int(visits) * 5.1)
-                color = (red,grn,blu)
+                color = (red, grn, blu)
             else:
                 color = self.high_visits
 
-        elif '51' <= visits <= '99': #Working
+        elif '51' <= visits <= '99':  # Working
             if self.conf.get_bool("rotaryswitch", "bin_grad"):
                 red = self.high_visits[0]
                 grn = self.high_visits[1]
                 blu = self.high_visits[2]
                 blu = (255 - int((int(visits)-50) * 5.1))
-                color = (red,grn,blu)
+                color = (red, grn, blu)
             else:
                 color = self.high_visits
 
@@ -549,543 +680,440 @@ class updateLEDs:
 
         return color
 
+    def load_airports(self):
+        # read airports file - read each time weather is updated in case a change to "airports" file was made while script was running.
+        try:
+            with open('/NeoSectional/data/airports') as f:
+                self.airports = f.readlines()
+        except IOError as error:
+            debugging.error('Airports file could not be loaded.')
+            debugging.error(error)
+            return False
+
+        self.airports = [x.strip() for x in self.airports]
+        debugging.info('Airports File Loaded')
+        return True
+
+
+    def wipe_displays(self):
+        # Call script and execute desired wipe(s) while data is being updated.
+        # FIXME to make this imported
+        if self.usewipes == 1 and self.toggle_sw != -1:
+            # Get latest ip's to display in editors
+            # FIXME: Move wipes-v4 to be an included module, call here
+            exec(compile(open("/NeoSectional/wipes-v4.py", "rb").read(),
+                         "/NeoSectional/wipes-v4.py", 'exec'))
+            debugging.info("Calling wipes script")
+        return True
+
+
+    def check_heat_map(self, stationiddict, windsdict, wxstringdict):
+        # MOS decode routine
+        # MOS data is downloaded daily from; https://www.weather.gov/mdl/mos_gfsmos_mav to the local drive by crontab scheduling.
+        # Then this routine reads through the entire file looking for those airports that are in the airports file. If airport is
+        # found, the data needed to display the weather for the next 24 hours is captured into mos_dict, which is nested with
+        # hour_dict, which holds the airport's MOS data by 3 hour chunks. See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for
+        # a breakdown of what the MOS data looks like and what each line represents.
+        if self.metar_taf_mos == 2:
+            debugging.info("Starting MOS Data Display")
+            # Read current MOS text file
+            try:
+                file = open(self.mos_filepath, 'r')
+                lines = file.readlines()
+            except IOError as error:
+                debugging.error('MOS data file could not be loaded.')
+                debugging.error(error)
+                return error
+
+            for line in lines:  # read the MOS data file line by line0
+                line = str(line)
+
+                # Ignore blank lines of MOS airport
+                if line.startswith('     '):
+                    ap_flag = 0
+                    continue
+
+                # Check for and grab date of MOS
+                if 'DT /' in line:
+                    unused, dt_cat, month, unused, unused, day, unused = line.split(
+                        " ", 6)
+                    continue
+
+                # Check for and grab the Airport ID of the current MOS
+                if 'MOS' in line:
+                    unused, apid, mos_date = line.split(" ", 2)
+
+                    # If this Airport ID is in the airports file then grab all the info needed from this MOS
+                    if apid in self.airports:
+                        ap_flag = 1
+                        # used to determine if a category is being reported in MOS or not. If not, need to inject it.
+                        cat_counter = 0
+                        dat0, dat1, dat2, dat3, dat4, dat5, dat6, dat7 = (
+                            [] for i in range(8))  # Clear lists
+                    continue
+
+                # If we just found an airport that is in our airports file, then grab the appropriate weather data from it's MOS
+                if ap_flag:
+                    # capture the category the line read represents
+                    xtra, cat, value = line.split(" ", 2)
+                    # Check if the needed categories are being read and if so, grab its data
+                    if cat in self.categories:
+                        cat_counter += 1  # used to check if a category is not in mos report for airport
+                        if cat == 'HR':  # hour designation
+                            # grab all the hours from line read
+                            temp = (re.findall(
+                                r'\s?(\s*\S+)', value.rstrip()))
+                            for j in range(8):
+                                tmp = temp[j].strip()
+                                # create hour dictionary based on mos data
+                                self.hour_dict[tmp] = ''
+                            # Get the hours which are the keys in this dict, so they can be properly poplulated
+                            keys = list(self.hour_dict.keys())
+
+                        else:
+                            # Checking for missing lines of data and x out if necessary.
+                            if (cat_counter == 5 and cat != 'P06')\
+                                    or (cat_counter == 6 and cat != 'T06')\
+                                    or (cat_counter == 7 and cat != 'POZ')\
+                                    or (cat_counter == 8 and cat != 'POS')\
+                                    or (cat_counter == 9 and cat != 'TYP'):
+
+                                # calculate the number of consecutive missing cats and inject 9's into those positions
+                                a = self.categories.index(self.last_cat)+1
+                                b = self.categories.index(cat)+1
+                                c = b - a - 1
+                                debugging.debug(
+                                    apid, self.last_cat, cat, a, b, c)
+
+                                for j in range(c):
+                                    temp = ['9', '9', '9', '9', '9', '9', '9', '9', '9',
+                                            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9']
+                                    self.set_data()
+                                    cat_counter += 1
+
+                                # Now write the orignal cat data read from the line in the mos file
+                                self.cat_counter += 1
+                                # clear out hour_dict for next airport
+                                self.hour_dict = collections.OrderedDict()
+                                self.last_cat = self.cat
+                                # add the actual line of data read
+                                temp = (re.findall(
+                                    r'\s?(\s*\S+)', self.value.rstrip()))
+                                self.set_data()
+                                # clear out hour_dict for next airport
+                                self.hour_dict = collections.OrderedDict()
+
+                            else:
+                                # continue to decode the next category data that was read.
+                                # store what the last read cat was.
+                                self.last_cat = self.cat
+                                temp = (re.findall(
+                                    r'\s?(\s*\S+)', self.value.rstrip()))
+                                self.set_data()
+                                # clear out hour_dict for next airport
+                                self.hour_dict = collections.OrderedDict()
+
+            # Now grab the data needed to display on map. Key: [airport][hr][j] - using nested dictionaries
+            #   airport = from airport file, 4 character ID. hr = 1 of 8 three-hour periods of time, 00 03 06 09 12 15 18 21
+            #   j = index to weather categories, in this order; 'CLD','WDR','WSP','P06', 'T06', 'POZ', 'POS', 'TYP','CIG','VIS','OBV'.
+            #   See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for description of available data.
+            for airport in self.airports:
+                if airport in self.mos_dict:
+                    debugging.debug('\n' + self.airport)  # debug
+                    debugging.debug(self.categories)  # debug
+
+                    mos_time = int(self.current_hr_zulu) + \
+                        self.hour_to_display
+                    if mos_time >= 24:  # check for reset at 00z
+                        mos_time = mos_time - 24
+
+                    for hr in keys:
+                        if int(hr) <= mos_time <= int(hr)+2.99:
+
+                            cld = (self.mos_dict[self.airport][hr][0])
+                            # make wind direction end in zero
+                            wdr = (
+                                self.mos_dict[self.airport][hr][1]) + '0'
+                            wsp = (self.mos_dict[self.airport][hr][2])
+                            p06 = (self.mos_dict[self.airport][hr][3])
+                            t06 = (self.mos_dict[self.airport][hr][4])
+                            poz = (self.mos_dict[self.airport][hr][5])
+                            pos = (self.mos_dict[self.airport][hr][6])
+                            typ = (self.mos_dict[self.airport][hr][7])
+                            cig = (self.mos_dict[self.airport][hr][8])
+                            vis = (self.mos_dict[self.airport][hr][9])
+                            obv = (self.mos_dict[self.airport][hr][10])
+
+                            debugging.debug(
+                                mos_date + hr + cld + wdr + wsp + p06 + t06 + poz + pos + typ + cig + vis + obv)  # debug
+
+                            # decode the weather for each airport to display on the livesectional map
+                            flightcategory = "VFR"  # start with VFR as the assumption
+                            # If the layer is OVC, BKN, set Flight category based on height of layer
+                            if cld in ("OV", "BK"):
+
+                                if cig <= '2':  # AGL is less than 500:
+                                    flightcategory = "LIFR"
+
+                                elif cig == '3':  # AGL is between 500 and 1000
+                                    flightcategory = "IFR"
+                                elif '4' <= cig <= '5':  # AGL is between 1000 and 3000:
+                                    flightcategory = "MVFR"
+
+                                elif cig >= '6':  # AGL is above 3000
+                                    flightcategory = "VFR"
+
+                            # Check visability too.
+                            if flightcategory != "LIFR":  # if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
+
+                                if vis <= '2':  # vis < 1.0 mile:
+                                    flightcategory = "LIFR"
+
+                                elif '3' <= vis < '4':  # 1.0 <= vis < 3.0 miles:
+                                    flightcategory = "IFR"
+
+                                elif vis == '5' and flightcategory != "IFR":  # 3.0 <= vis <= 5.0 miles
+                                    flightcategory = "MVFR"
+
+                            debugging.debug(flightcategory + " |"),
+                            debugging.debug(
+                                'Windspeed = ' + wsp + ' | Wind dir = ' + wdr + ' |'),
+
+                            # decode reported weather using probabilities provided.
+                            if typ == '9':  # check to see if rain, freezing rain or snow is reported. If not use obv weather
+                                # Get proper representation for obv designator
+                                wx = self.obv_wx[obv]
+                            else:
+                                # Get proper representation for typ designator
+                                wx = self.typ_wx[typ]
+
+                                if wx == 'RA' and int(p06) < self.conf.get_int("rotaryswitch", "prob"):
+                                    if obv != 'N':
+                                        wx = self.obv_wx[obv]
+                                    else:
+                                        wx = 'NONE'
+
+                                if wx == 'SN' and int(pos) < self.conf.get_int("rotaryswitch", "prob"):
+                                    wx = 'NONE'
+
+                                if wx == 'FZRA' and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
+                                    wx = 'NONE'
+
+    #                            print (t06,apid) #debug
+                                if t06 == '' or t06 is None:
+                                    t06 = '0'
+
+                                # check for thunderstorms
+                                if int(t06) > self.conf.get_int("rotaryswitch", "prob"):
+                                    wx = 'TSRA'
+                                else:
+                                    wx = 'NONE'
+
+                            debugging.debug('Reported Weather = ' + wx)
+
+                    # Connect the information from MOS to the board
+                    stationId = airport
+
+                    # grab wind speeds from returned MOS data
+                    if wsp == None:  # if wind speed is blank, then bypass
+                        windspeedkt = 0
+                    elif wsp == '99':  # Check to see if MOS data is not reporting windspeed for this airport
+                        windspeedkt = 0
+                    else:
+                        windspeedkt = int(wsp)
+
+                    # grab Weather info from returned FAA data
+                    if wx is None:  # if weather string is blank, then bypass
+                        wxstring = "NONE"
+                    else:
+                        wxstring = wx
+
+                    debugging.debug(
+                        stationId + ", " + str(windspeedkt) + ", " + wxstring)  # debug
+
+                    # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
+                    if stationId in stationiddict:
+                        debugging.info(
+                            stationId + " Duplicate, only saved first metar category")
+                    else:
+                        # build category dictionary
+                        stationiddict[stationId] = flightcategory
+
+                    if stationId in windsdict:
+                        debugging.info(
+                            stationId + " Duplicate, only saved the first winds")
+                    else:
+                        # build windspeed dictionary
+                        windsdict[stationId] = windspeedkt
+
+                    if stationId in wxstringdict:
+                        debugging.info(
+                            stationId + " Duplicate, only saved the first weather")
+                    else:
+                        # build weather dictionary
+                        wxstringdict[stationId] = wxstring
+            debugging.info("Decoded MOS Data for Display")
+        return True
+
+
+
     def updateLedLoop(self):
         ##########################
         # Start of executed code #
         ##########################
-        toggle = 0                      #used for homeport display
-        outerloop = 1                   #Set to TRUE for infinite outerloop
+        toggle = 0  # used for homeport display
+        outerloop = True  # Set to TRUE for infinite outerloop
         display_num = 0
         while (outerloop):
             display_num = display_num + 1
 
-            #Time calculations, dependent on 'hour_to_display' offset. this determines how far in the future the TAF data should be.
-            #This time is recalculated everytime the FAA data gets updated
-            zulu = datetime.utcnow() + timedelta(hours=self.hour_to_display)     #Get current time plus Offset
-            current_zulu = zulu.strftime('%Y-%m-%dT%H:%M:%SZ')              #Format time to match whats reported in TAF. ie. 2020-03-24T18:21:54Z
-            self.current_hr_zulu = zulu.strftime('%H')                           #Zulu time formated for just the hour, to compare to MOS data
+            # Time calculations, dependent on 'hour_to_display' offset. this determines how far in the future the TAF data should be.
+            # This time is recalculated everytime the FAA data gets updated
+            # Get current time plus Offset
+            zulu = datetime.utcnow() + timedelta(hours=self.hour_to_display)
+            # Format time to match whats reported in TAF. ie. 2020-03-24T18:21:54Z
+            self.current_zulu = zulu.strftime('%Y-%m-%dT%H:%M:%SZ')
+            # Zulu time formated for just the hour, to compare to MOS data
+            self.current_hr_zulu = zulu.strftime('%H')
 
-            #Dictionary definitions. Need to reset whenever new weather is received
+            # Dictionary definitions. Need to reset whenever new weather is received
             stationiddict = {}
-            windsdict = {"":""}
-            wxstringdict = {"":""}
+            windsdict = {"": ""}
+            wxstringdict = {"": ""}
 
-            #Call script and execute desired wipe(s) while data is being updated.
-            if self.usewipes ==  1 and self.toggle_sw != -1:
-                exec(compile(open("/NeoSectional/wipes-v4.py", "rb").read(), "/NeoSectional/wipes-v4.py", 'exec')) #Get latest ip's to display in editors
-                debugging.info("Calling wipes script")
 
-            #read airports file - read each time weather is updated in case a change to "airports" file was made while script was running.
-            try:
-                with open('/NeoSectional/data/airports') as f:
-                    self.airports = f.readlines()
-            except IOError as error:
-                debugging.error('Airports file could not be loaded.')
-                debugging.error(error)
+            if self.wipe_displays() == False:
+                debugging.error("Error returned while trying to wipe LEDs and Displays")
+            if self.load_airports() == False:
                 break
 
-            self.airports = [x.strip() for x in self.airports]
-            debugging.info('Airports File Loaded')
 
-            #depending on what data is to be displayed, either use an URL for METARs and TAFs or read file from drive (pass).
-            if self.metar_taf_mos == 1: #Check to see if the script should display TAF data (0), METAR data (1) or MOS data (2)
-                #Define URL to get weather METARS. If no METAR reported withing the last 2.5 hours, Airport LED will be white (nowx).
-                url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&mostRecentForEachStation=constraint&hoursBeforeNow="+str(self.metar_age)+"&stationString="
+            # depending on what data is to be displayed, either use an URL for METARs and TAFs or read file from drive (pass).
+            # Check to see if the script should display TAF data (0), METAR data (1) or MOS data (2)
+            if self.metar_taf_mos == 1:
+                # Define URL to get weather METARS. If no METAR reported withing the last 2.5 hours, Airport LED will be white (nowx).
+                url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=xml&mostRecentForEachStation=constraint&hoursBeforeNow=" + \
+                    str(self.metar_age)+"&stationString="
                 debugging.info("METAR Data Loading")
 
             elif self.metar_taf_mos == 0:
-                #Define URL to get weather URL for TAF. If no TAF reported for an airport, the Airport LED will be white (nowx).
-                url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=tafs&requestType=retrieve&format=xml&mostRecentForEachStation=constraint&hoursBeforeNow="+str(self.metar_age)+"&stationString="
+                # Define URL to get weather URL for TAF. If no TAF reported for an airport, the Airport LED will be white (nowx).
+                url = "https://www.aviationweather.gov/adds/dataserver_current/httpparam?dataSource=tafs&requestType=retrieve&format=xml&mostRecentForEachStation=constraint&hoursBeforeNow=" + \
+                    str(self.metar_age)+"&stationString="
                 debugging.info("TAF Data Loading")
 
-            elif self.metar_taf_mos == 2: #MOS data is not accessible in the same way as METARs and TAF's. A large file is downloaded by crontab everyday that gets read.
-                pass             #This elif is not strictly needed and is only here for clarity
+            # MOS data is not accessible in the same way as METARs and TAF's. A large file is downloaded by crontab everyday that gets read.
+            elif self.metar_taf_mos == 2:
+                pass  # This elif is not strictly needed and is only here for clarity
                 debugging.info("MOS Data Loading")
 
-            elif self.metar_taf_mos == 3: #Heat Map
+            elif self.metar_taf_mos == 3:  # Heat Map
                 pass
                 debugging.info("Heat Map Data Loading")
 
-            #Build URL to submit to FAA with the proper airports from the airports file for METARs and TAF's but not MOS data
+            # Build URL to submit to FAA with the proper airports from the airports file for METARs and TAF's but not MOS data
             if self.metar_taf_mos != 2 and self.metar_taf_mos != 3:
                 for airportcode in self.airports:
                     if airportcode == "NULL" or airportcode == "LGND":
                         continue
                     url = url + airportcode + ","
-                url = url[:-1] #strip trailing comma from string
-                debugging.info(url) #debug
+                url = url[:-1]  # strip trailing comma from string
+                debugging.info(url)  # debug
 
-                while True: #check internet availability and retry if necessary. If house power outage, map may boot quicker than router.
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s.connect(("8.8.8.8", 80))
-                    ipadd = s.getsockname()[0] #get IP Address
-                    debugging.info('RPI IP Address = ' + ipadd) #log IP address when ever FAA weather update is retreived.
+                utils.wait_for_internet()
 
-                    try:
-                        content = urllib.request.urlopen(url).read()
-                        debugging.info('Internet Available')
-                        debugging.info(url)
-                        break
-                    except:
-                        debugging.warn('FAA Data is Not Available')
-                        debugging.warn(url)
-                        time.sleep(self.delay_time)
-                        pass
+                content = urllib.request.urlopen(url).read()
 
-                root = ET.fromstring(content) #Process XML data returned from FAA
+                # Process XML data returned from FAA
+                root = ET.fromstring(content)
 
             if self.turnoffrefresh == 0:
-                self.turnoff(self.strip) #turn off led before repainting them. If Rainbow stays on, it has hung up before this.
-
-            #Heat Map routine
-            #This will allow the user to display which airports on the map have been landed at. There are 2 display modes;
-            #Binary and Gradient. Binary simply uses Red for visited airports and grey for not visited.
-            #Gradient display will starts with cool blue for airports rarely visited to hot red to those visited alot.
-            #The home airport can be denoted using Green. It can also fade in/out for some animation.
-            if self.metar_taf_mos == 3:
-                #read hmdata file - read each time weather is updated in case a change to "airports" file was made while script was running.
-                j = 0
-                debugging.info("Starting Heat Map")
-                with open('/NeoSectional/data/hmdata') as f:
-                    for line in f:
-                        (apid, visits) = line.split(' ')
-                        apid = apid.strip()
-                        visits = visits.strip()
-                        pin = str(j)
-                        j += 1
-                        if apid != 'NULL' and apid != 'LGND':
-                            stationiddict[pin] = (apid,visits)
-
-                    #set all the airport their correct color.
-                    for pin in stationiddict:
-                        apid = stationiddict[pin][0]
-                        visits = stationiddict[pin][1]
-                        if visits == '100':
-                            self.fadehome = pin
-                        color = self.assign_color(visits)
-                        debugging.debug(str(pin) + str(apid) + str(visits) + str(color)) #debug
-
-                        xcolor = self.rgbtogrb(pin, color, self.rgb_grb)
-                        color = Color(self.xcolor[0], self.xcolor[1], self.xcolor[2])
-                        self.strip.setPixelColor(int(pin), color) #set color to display on a specific LED for the current cycle_num cycle.
-
-                    self.strip.show() #Display strip with newly assigned colors for the current cycle_num cycle.
-
-                while True:
-                    #Routine to restart this script if config.py is changed while this script is running.
-                    for f, mtime in self.WATCHED_FILES_MTIMES:
-                        if getmtime(f) != mtime:
-                            debugging.info("Restarting from awake" + __file__ + " in 2 sec...")
-                            time.sleep(2)
-                            os.execv(sys.executable, [sys.executable] +  [__file__]) #'/NeoSectional/metar-v4.py'])
-
-                    #Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
-                    #Full brightness will be used if no light sensor is installed.
-                    if GPIO.input(4) == 1:
-                        self.LED_BRIGHTNESS = self.dimmed_value
-                    else:
-                        self.LED_BRIGHTNESS = self.bright_value
-                    self.strip.setBrightness(self.LED_BRIGHTNESS)
-                    self.strip.show()
-
-                    #fade in/out the home airport
-                    if int(self.fadehome) >= 0 and self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool("rotaryswitch", "bin_grad"):
-                        pin = self.fadehome
-                        for i in range(256):
-                            time.sleep(self.fade_delay)
-                            red = self.homeap[0]
-                            grn = self.homeap[1]
-                            blu = self.homeap[2]
-                            color = [red, i, blu]
-                            xcolor = self.rgbtogrb(pin, color, self.rgb_grb)
-                            color = Color(self.xcolor[0], self.xcolor[1], self.xcolor[2])
-                            self.strip.setPixelColor(int(pin), color) #set color to display on a specific LED for the current cycle_num cycle.
-                            self.strip.show()
-
-                        time.sleep(self.fade_delay *50) #Keep light full bright for a moment.
-
-                        for j in range(255,-1,-1):
-                            time.sleep(self.fade_delay)
-                            red = self.homeap[0]
-                            grn = self.homeap[1]
-                            blu = self.homeap[2]
-                            color = [red, j, blu]
-                            xcolor = self.rgbtogrb(pin, color, self.rgb_grb)
-                            color = Color(self.xcolor[0], self.xcolor[1], self.xcolor[2])
-                            self.strip.setPixelColor(int(pin), color) #set color to display on a specific LED for the current cycle_num cycle.
-                            self.strip.show()
-
-                    #Check if rotary switch is used, and what position it is in. This will determine what to display, METAR, TAF and MOS data.
-                    #If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
-                    #If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
-                    if GPIO.input(0) == False and self.toggle_sw != 0:
-                        self.toggle_sw = 0
-                        self.hour_to_display = self.time_sw0              #Offset in HOURS not used to display METAR
-                        self.metar_taf_mos = self.data_sw0                #1 = Display METAR.
-                        debugging.debug('Switch in position 0. Breaking out of loop for METARs')
-                        break
-
-                    elif GPIO.input(5) == False and self.toggle_sw != 1:
-                        self.toggle_sw = 1
-                        self.hour_to_display = self.time_sw1              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw1                #0 = Display TAF.
-                        debugging.debug('Switch in position 1. Breaking out of loop for TAF/MOS + ' + str(self.time_sw1) + ' hour')
-                        break
-
-                    elif GPIO.input(6) == False and self.toggle_sw != 2:
-                        self.toggle_sw = 2
-                        self.hour_to_display = self.time_sw2              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw2                #0 = Display TAF.
-                        debugging.debug('Switch in position 2. Breaking out of loop for MOS/TAF + ' + str(self.time_sw2) + '  hours')
-                        break
-
-                    elif GPIO.input(13) == False and self.toggle_sw != 3:
-                        self.toggle_sw = 3
-                        self.hour_to_display = self.time_sw3              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw3                #0 = Display TAF.
-                        debugging.debug('Switch in position 3. Breaking out of loop for MOS/TAF + ' + str(self.time_sw3) + '  hours')
-                        break
-
-                    elif GPIO.input(19) == False and self.toggle_sw != 4:
-                        self.toggle_sw = 4
-                        self.hour_to_display = self.time_sw4              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw4                #0 = Display TAF.
-                        debugging.debug('Switch in position 4. Breaking out of loop for MOS/TAF + ' + str(self.time_sw4) + '  hours')
-                        break
-
-                    elif GPIO.input(26) == False and self.toggle_sw != 5:
-                        self.toggle_sw = 5
-                        self.hour_to_display = self.time_sw5              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw5                #0 = Display TAF.
-                        debugging.debug('Switch in position 5. Breaking out of loop for MOS/TAF + ' + str(self.time_sw5) + '  hours')
-                        break
-
-                    elif GPIO.input(21) == False and self.toggle_sw != 6:
-                        self.toggle_sw = 6
-                        self.hour_to_display = self.time_sw6              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw6                #0 = Display TAF.
-                        debugging.debug('Switch in position 6. Breaking out of loop for MOS/TAF + ' + str(self.time_sw6) + '  hours')
-                        break
-
-                    elif GPIO.input(20) == False and self.toggle_sw != 7:
-                        self.toggle_sw = 7
-                        self.hour_to_display = self.time_sw7              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw7                #0 = Display TAF.
-                        debugging.debug('Switch in position 7. Breaking out of loop for MOS/TAF + ' + str(self.time_sw7) + '  hours')
-                        break
-
-                    elif GPIO.input(16) == False and self.toggle_sw != 8:
-                        self.toggle_sw = 8
-                        self.hour_to_display = self.time_sw8              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw8                #0 = Display TAF.
-                        debugging.debug('Switch in position 8. Breaking out of loop for MOS/TAF + ' + str(self.time_sw8) + '  hours')
-                        break
-
-                    elif GPIO.input(12) == False and self.toggle_sw != 9:
-                        self.toggle_sw = 9
-                        self.hour_to_display = self.time_sw9              #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw9                #0 = Display TAF.
-                        debugging.debug('Switch in position 9. Breaking out of loop for MOS/TAF + ' + str(self.time_sw9) + '  hours')
-                        break
-
-                    elif GPIO.input(1) == False and self.toggle_sw != 10:
-                        self.toggle_sw = 10
-                        self.hour_to_display = self.time_sw10             #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw10               #0 = Display TAF.
-                        debugging.debug('Switch in position 10. Breaking out of loop for MOS/TAF + ' + str(self.time_sw10) + '  hours')
-                        break
-
-                    elif GPIO.input(7) == False and self.toggle_sw != 11:
-                        self.toggle_sw = 11
-                        self.hour_to_display = self.time_sw11             #Offset in HOURS to choose which TAF to display
-                        self.metar_taf_mos = self.data_sw11               #0 = Display TAF.
-                        debugging.debug('Switch in position 11. Breaking out of loop for MOS/TAF + ' + str(self.time_sw11) + '  hours')
-                        break
-
-                    elif self.toggle_sw == -1 or self.toggle_sw == 12:                       #used if no Rotary Switch is installed
-                        self.toggle_sw = 12
-                        self.hour_to_display = self.time_sw0              #Offset in HOURS not used to display METAR
-                        self.metar_taf_mos = self.data_sw0                    #1 = Display METAR.
-                        debugging.debug('Rotary Switch Not Installed. Using Switch Position 0 as Default')
-                        # break
-
-            #The Heat Map routine stays within this limit and won't proceed beyond this point.
-
-            #MOS decode routine
-            #MOS data is downloaded daily from; https://www.weather.gov/mdl/mos_gfsmos_mav to the local drive by crontab scheduling.
-            #Then this routine reads through the entire file looking for those airports that are in the airports file. If airport is
-            #found, the data needed to display the weather for the next 24 hours is captured into mos_dict, which is nested with
-            #hour_dict, which holds the airport's MOS data by 3 hour chunks. See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for
-            #a breakdown of what the MOS data looks like and what each line represents.
-            if self.metar_taf_mos == 2:
-                debugging.info("Starting MOS Data Display")
-                #Read current MOS text file
-                try:
-                    file = open(self.mos_filepath, 'r')
-                    lines = file.readlines()
-                except IOError as error:
-                    debugging.error('MOS data file could not be loaded.')
-                    debugging.error(error)
-                    break
-
-                for line in lines:      #read the MOS data file line by line0
-                    line = str(line)
-
-                    #Ignore blank lines of MOS airport
-                    if line.startswith('     '):
-                        ap_flag = 0
-                        continue
-
-                    #Check for and grab date of MOS
-                    if 'DT /' in line:
-                        unused, dt_cat, month, unused, unused, day, unused = line.split(" ",6)
-                        continue
-
-                    #Check for and grab the Airport ID of the current MOS
-                    if 'MOS' in line:
-                        unused, apid, mos_date = line.split(" ",2)
-
-                        #If this Airport ID is in the airports file then grab all the info needed from this MOS
-                        if apid in self.airports:
-                            ap_flag = 1
-                            cat_counter = 0 #used to determine if a category is being reported in MOS or not. If not, need to inject it.
-                            dat0, dat1, dat2, dat3, dat4, dat5, dat6, dat7 = ([] for i in range(8)) #Clear lists
-                        continue
-
-                    #If we just found an airport that is in our airports file, then grab the appropriate weather data from it's MOS
-                    if ap_flag:
-                        xtra, cat, value = line.split(" ",2)    #capture the category the line read represents
-                        #Check if the needed categories are being read and if so, grab its data
-                        if cat in self.categories:
-                            cat_counter += 1 #used to check if a category is not in mos report for airport
-                            if cat == 'HR': #hour designation
-                                temp = (re.findall(r'\s?(\s*\S+)', value.rstrip()))     #grab all the hours from line read
-                                for j in range(8):
-                                    tmp = temp[j].strip()
-                                    self.hour_dict[tmp] = '' #create hour dictionary based on mos data
-                                keys = list(self.hour_dict.keys()) #Get the hours which are the keys in this dict, so they can be properly poplulated
-
-                            else:
-                                #Checking for missing lines of data and x out if necessary.
-                                if (cat_counter == 5 and cat != 'P06')\
-                                        or (cat_counter == 6 and cat != 'T06')\
-                                        or (cat_counter == 7 and cat != 'POZ')\
-                                        or (cat_counter == 8 and cat != 'POS')\
-                                        or (cat_counter == 9 and cat != 'TYP'):
-
-                                    #calculate the number of consecutive missing cats and inject 9's into those positions
-                                    a = self.categories.index(self.last_cat)+1
-                                    b = self.categories.index(cat)+1
-                                    c = b - a - 1
-                                    debugging.debug(apid,self.last_cat,cat,a,b,c)
-
-                                    for j in range(c):
-                                        temp = ['9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9', '9']
-                                        self.set_data()
-                                        cat_counter += 1
-
-                                    #Now write the orignal cat data read from the line in the mos file
-                                    self.cat_counter += 1
-                                    self.hour_dict = collections.OrderedDict() #clear out hour_dict for next airport
-                                    self.last_cat = self.cat
-                                    temp = (re.findall(r'\s?(\s*\S+)', self.value.rstrip())) #add the actual line of data read
-                                    self.set_data()
-                                    self.hour_dict = collections.OrderedDict() #clear out hour_dict for next airport
-
-                                else:
-                                    #continue to decode the next category data that was read.
-                                    self.last_cat = self.cat #store what the last read cat was.
-                                    temp = (re.findall(r'\s?(\s*\S+)', self.value.rstrip()))
-                                    self.set_data()
-                                    self.hour_dict = collections.OrderedDict() #clear out hour_dict for next airport
-
-                #Now grab the data needed to display on map. Key: [airport][hr][j] - using nested dictionaries
-                #   airport = from airport file, 4 character ID. hr = 1 of 8 three-hour periods of time, 00 03 06 09 12 15 18 21
-                #   j = index to weather categories, in this order; 'CLD','WDR','WSP','P06', 'T06', 'POZ', 'POS', 'TYP','CIG','VIS','OBV'.
-                #   See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for description of available data.
-                for airport in self.airports:
-                    if airport in self.mos_dict:
-                        debugging.debug('\n' + self.airport) #debug
-                        debugging.debug(self.categories) #debug
-
-                        mos_time = int(self.current_hr_zulu) + self.hour_to_display
-                        if mos_time >= 24: #check for reset at 00z
-                            mos_time = mos_time - 24
-
-                        for hr in keys:
-                            if int(hr) <= mos_time <= int(hr)+2.99:
-
-                                cld = (self.mos_dict[self.airport][hr][0])
-                                wdr = (self.mos_dict[self.airport][hr][1]) +'0' #make wind direction end in zero
-                                wsp = (self.mos_dict[self.airport][hr][2])
-                                p06 = (self.mos_dict[self.airport][hr][3])
-                                t06 = (self.mos_dict[self.airport][hr][4])
-                                poz = (self.mos_dict[self.airport][hr][5])
-                                pos = (self.mos_dict[self.airport][hr][6])
-                                typ = (self.mos_dict[self.airport][hr][7])
-                                cig = (self.mos_dict[self.airport][hr][8])
-                                vis = (self.mos_dict[self.airport][hr][9])
-                                obv = (self.mos_dict[self.airport][hr][10])
-
-                                debugging.debug(mos_date + hr + cld + wdr + wsp + p06 + t06 + poz + pos + typ + cig + vis + obv) #debug
-
-                                #decode the weather for each airport to display on the livesectional map
-                                flightcategory = "VFR" #start with VFR as the assumption
-                                if cld in ("OV","BK"): #If the layer is OVC, BKN, set Flight category based on height of layer
-
-                                    if cig <= '2': #AGL is less than 500:
-                                        flightcategory = "LIFR"
-
-                                    elif cig == '3': #AGL is between 500 and 1000
-                                        flightcategory = "IFR"
-                                    elif '4' <= cig <= '5': #AGL is between 1000 and 3000:
-                                        flightcategory = "MVFR"
-
-                                    elif cig >= '6': #AGL is above 3000
-                                        flightcategory = "VFR"
-
-                                #Check visability too.
-                                if flightcategory != "LIFR": #if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
-
-                                    if vis <= '2': #vis < 1.0 mile:
-                                        flightcategory = "LIFR"
-
-                                    elif '3' <= vis < '4': #1.0 <= vis < 3.0 miles:
-                                        flightcategory = "IFR"
-
-                                    elif vis == '5' and flightcategory != "IFR":  #3.0 <= vis <= 5.0 miles
-                                        flightcategory = "MVFR"
-
-                                debugging.debug(flightcategory + " |"),
-                                debugging.debug('Windspeed = ' + wsp + ' | Wind dir = ' + wdr + ' |'),
-
-                                #decode reported weather using probabilities provided.
-                                if typ == '9': #check to see if rain, freezing rain or snow is reported. If not use obv weather
-                                    wx = self.obv_wx[obv] #Get proper representation for obv designator
-                                else:
-                                    wx = self.typ_wx[typ] #Get proper representation for typ designator
-
-                                    if wx == 'RA' and int(p06) < self.conf.get_int("rotaryswitch", "prob"):
-                                        if obv != 'N':
-                                            wx = self.obv_wx[obv]
-                                        else:
-                                            wx = 'NONE'
-
-                                    if wx == 'SN' and int(pos) < self.conf.get_int("rotaryswitch", "prob"):
-                                        wx = 'NONE'
-
-                                    if wx == 'FZRA' and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
-                                        wx = 'NONE'
-
-        #                            print (t06,apid) #debug
-                                    if t06 == '' or t06 is None:
-                                        t06 = '0'
-
-                                    if int(t06) > self.conf.get_int("rotaryswitch", "prob"): #check for thunderstorms
-                                        wx = 'TSRA'
-                                    else:
-                                        wx = 'NONE'
-
-                                debugging.debug('Reported Weather = ' + wx)
-
-                        #Connect the information from MOS to the board
-                        stationId = airport
-
-                        #grab wind speeds from returned MOS data
-                        if wsp == None: #if wind speed is blank, then bypass
-                            windspeedkt = 0
-                        elif wsp == '99': #Check to see if MOS data is not reporting windspeed for this airport
-                            windspeedkt = 0
-                        else:
-                            windspeedkt = int(wsp)
-
-                        #grab Weather info from returned FAA data
-                        if wx is None: #if weather string is blank, then bypass
-                            wxstring = "NONE"
-                        else:
-                            wxstring = wx
-
-                        debugging.debug(stationId + ", " + str(windspeedkt) + ", " + wxstring) #debug
-
-                        #Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
-                        if stationId in stationiddict:
-                            debugging.info(stationId + " Duplicate, only saved first metar category")
-                        else:
-                            stationiddict[stationId] = flightcategory #build category dictionary
-
-                        if stationId in windsdict:
-                            debugging.info(stationId + " Duplicate, only saved the first winds")
-                        else:
-                            windsdict[stationId] = windspeedkt #build windspeed dictionary
-
-                        if stationId in wxstringdict:
-                            debugging.info(stationId + " Duplicate, only saved the first weather")
-                        else:
-                            wxstringdict[stationId] = wxstring #build weather dictionary
-                debugging.info("Decoded MOS Data for Display")
-
-
-            #TAF decode routine
-            if self.metar_taf_mos == 0: #0 equals display TAF. This routine will decode the TAF, pick the appropriate time frame to display.
+                # turn off led before repainting them. If Rainbow stays on, it has hung up before this.
+                self.turnoff(self.strip)
+
+            if self.check_heat_map(stationiddict, windsdict, wxstringdict) == False:
+                break
+
+            # TAF decode routine
+            # 0 equals display TAF. This routine will decode the TAF, pick the appropriate time frame to display.
+            if self.metar_taf_mos == 0:
                 debugging.info("Starting TAF Data Display")
-                #start of TAF decoding routine
+                # start of TAF decoding routine
                 for data in root.iter('data'):
-                    num_results = data.attrib['num_results']        #get number of airports reporting TAFs to be used for diagnosis only
-                    debugging.info("\nNum of Airport TAFs = " + num_results) #debug
+                    # get number of airports reporting TAFs to be used for diagnosis only
+                    num_results = data.attrib['num_results']
+                    debugging.info("\nNum of Airport TAFs = " +
+                                   num_results)  # debug
 
-                for taf in root.iter('TAF'):                            #iterate through each airport's TAF
-                    stationId = taf.find('station_id').text #debug
-                    debugging.info(stationId) #debug
-                    debugging.info('Current+Offset Zulu - ' + current_zulu) #debug
+                for taf in root.iter('TAF'):  # iterate through each airport's TAF
+                    stationId = taf.find('station_id').text  # debug
+                    debugging.info(stationId)  # debug
+                    debugging.info('Current+Offset Zulu - ' +
+                                   self.current_zulu)  # debug
                     taf_wx_string = ""
                     taf_change_indicator = ""
                     taf_wind_dir_degrees = ""
                     taf_wind_speed_kt = ""
                     taf_wind_gust_kt = ""
 
-                    for forecast in taf.findall('forecast'):        #Now look at the forecasts for the airport
+                    # Now look at the forecasts for the airport
+                    for forecast in taf.findall('forecast'):
 
                         # Routine inspired by Nick Cirincione.
-                        flightcategory = "VFR"                  #intialize flight category
-                        taf_time_from = forecast.find('fcst_time_from').text #get taf's from time
-                        taf_time_to = forecast.find('fcst_time_to').text #get taf's to time
+                        flightcategory = "VFR"  # intialize flight category
+                        taf_time_from = forecast.find(
+                            'fcst_time_from').text  # get taf's from time
+                        taf_time_to = forecast.find(
+                            'fcst_time_to').text  # get taf's to time
 
                         if forecast.find('wx_string') is not None:
-                            taf_wx_string = forecast.find('wx_string').text #get weather conditions
+                            taf_wx_string = forecast.find(
+                                'wx_string').text  # get weather conditions
 
                         if forecast.find('change_indicator') is not None:
-                            taf_change_indicator = forecast.find('change_indicator').text #get change indicator
+                            taf_change_indicator = forecast.find(
+                                'change_indicator').text  # get change indicator
 
                         if forecast.find('wind_dir_degrees') is not None:
-                            taf_wind_dir_degrees = forecast.find('wind_dir_degrees').text #get wind direction
+                            taf_wind_dir_degrees = forecast.find(
+                                'wind_dir_degrees').text  # get wind direction
 
                         if forecast.find('wind_speed_kt') is not None:
-                            taf_wind_speed_kt = forecast.find('wind_speed_kt').text #get wind speed
+                            taf_wind_speed_kt = forecast.find(
+                                'wind_speed_kt').text  # get wind speed
 
                         if forecast.find('wind_gust_kt') is not None:
-                            taf_wind_gust_kt = forecast.find('wind_gust_kt').text #get wind gust speed
+                            taf_wind_gust_kt = forecast.find(
+                                'wind_gust_kt').text  # get wind gust speed
 
-                        if taf_time_from <= current_zulu <= taf_time_to: #test if current time plus offset falls within taf's timeframe
+                        # test if current time plus offset falls within taf's timeframe
+                        if taf_time_from <= self.current_zulu <= taf_time_to:
                             debugging.info('FROM - ' + taf_time_from)
                             debugging.info(self.comp_time(taf_time_from))
                             debugging.info('TO - ' + taf_time_to)
                             debugging.info(self.comp_time(taf_time_to))
 
-                            #There can be multiple layers of clouds in each taf, but they are always listed lowest AGL first.
-                            #Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set $
-                            #This algorithm basically sets the flight category based on the lowest OVC, BKN or OVX layer.
-                            for sky_condition in forecast.findall('sky_condition'): #for each sky_condition from the XML
-                                sky_cvr = sky_condition.attrib['sky_cover']     #get the sky cover (BKN, OVC, SCT, etc)
-                                debugging.info(sky_cvr) #debug
+                            # There can be multiple layers of clouds in each taf, but they are always listed lowest AGL first.
+                            # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set $
+                            # This algorithm basically sets the flight category based on the lowest OVC, BKN or OVX layer.
+                            # for each sky_condition from the XML
+                            for sky_condition in forecast.findall('sky_condition'):
+                                # get the sky cover (BKN, OVC, SCT, etc)
+                                sky_cvr = sky_condition.attrib['sky_cover']
+                                debugging.info(sky_cvr)  # debug
 
-                                if sky_cvr in ("OVC","BKN","OVX"): #If the layer is OVC, BKN or OVX, set Flight category based on height AGL
+                                # If the layer is OVC, BKN or OVX, set Flight category based on height AGL
+                                if sky_cvr in ("OVC", "BKN", "OVX"):
 
                                     try:
-                                        cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl'] #get cloud base AGL from XML
-                                        debugging.info(cld_base_ft_agl) #debug
+                                        # get cloud base AGL from XML
+                                        cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl']
+                                        debugging.info(
+                                            cld_base_ft_agl)  # debug
                                     except:
-                                        cld_base_ft_agl = forecast.find('vert_vis_ft').text #get cloud base AGL from XML
-
+                                        # get cloud base AGL from XML
+                                        cld_base_ft_agl = forecast.find(
+                                            'vert_vis_ft').text
 
         #                            cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl'] #get cloud base AGL from XML
         #                            debugging.info(cld_base_ft_agl) #debug
@@ -1107,11 +1135,15 @@ class updateLEDs:
                                         flightcategory = "VFR"
                                         break
 
-                            #visibilty can also set flight category. If the clouds haven't set the fltcat to LIFR. See if visibility will
-                            if flightcategory != "LIFR": #if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.
-                                if forecast.find('visibility_statute_mi') is not None: #check XML if visibility value exists
-                                    visibility_statute_mi = forecast.find('visibility_statute_mi').text   #get visibility number
-                                    visibility_statute_mi = float(visibility_statute_mi)
+                            # visibilty can also set flight category. If the clouds haven't set the fltcat to LIFR. See if visibility will
+                            # if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.
+                            if flightcategory != "LIFR":
+                                # check XML if visibility value exists
+                                if forecast.find('visibility_statute_mi') is not None:
+                                    visibility_statute_mi = forecast.find(
+                                        'visibility_statute_mi').text  # get visibility number
+                                    visibility_statute_mi = float(
+                                        visibility_statute_mi)
                                     debugging.info(visibility_statute_mi)
 
                                     if visibility_statute_mi < 1.0:
@@ -1120,95 +1152,118 @@ class updateLEDs:
                                     elif 1.0 <= visibility_statute_mi < 3.0:
                                         flightcategory = "IFR"
 
-                                    elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":  #if Flight Category was already set to IFR $
+                                    # if Flight Category was already set to IFR $
+                                    elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":
                                         flightcategory = "MVFR"
 
-                            #Print out TAF data to screen for diagnosis only
+                            # Print out TAF data to screen for diagnosis only
                             debugging.info('Airport - ' + stationId)
-                            debugging.info('Flight Category - ' + flightcategory)
+                            debugging.info(
+                                'Flight Category - ' + flightcategory)
                             debugging.info('Wind Speed - ' + taf_wind_speed_kt)
                             debugging.info('WX String - ' + taf_wx_string)
-                            debugging.info('Change Indicator - ' + taf_change_indicator)
-                            debugging.info('Wind Director Degrees - ' + taf_wind_dir_degrees)
+                            debugging.info(
+                                'Change Indicator - ' + taf_change_indicator)
+                            debugging.info(
+                                'Wind Director Degrees - ' + taf_wind_dir_degrees)
                             debugging.info('Wind Gust - ' + taf_wind_gust_kt)
 
-                            #grab flightcategory from returned FAA data
-                            if flightcategory is None: #if wind speed is blank, then bypass
+                            # grab flightcategory from returned FAA data
+                            if flightcategory is None:  # if wind speed is blank, then bypass
                                 flightcategory = None
 
-                            #grab wind speeds from returned FAA data
-                            if taf_wind_speed_kt is None: #if wind speed is blank, then bypass
+                            # grab wind speeds from returned FAA data
+                            if taf_wind_speed_kt is None:  # if wind speed is blank, then bypass
                                 windspeedkt = 0
                             else:
                                 windspeedkt = taf_wind_speed_kt
 
-                            #grab Weather info from returned FAA data
-                            if taf_wx_string is None: #if weather string is blank, then bypass
+                            # grab Weather info from returned FAA data
+                            if taf_wx_string is None:  # if weather string is blank, then bypass
                                 wxstring = "NONE"
                             else:
                                 wxstring = taf_wx_string
 
-                    #Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
+                    # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
                     if stationId in stationiddict:
-                        debugging.info(stationId + " Duplicate, only saved first metar category")
+                        debugging.info(
+                            stationId + " Duplicate, only saved first metar category")
                     else:
-                        stationiddict[stationId] = flightcategory #build category dictionary
+                        # build category dictionary
+                        stationiddict[stationId] = flightcategory
 
                     if stationId in windsdict:
-                        debugging.info(stationId + " Duplicate, only saved the first winds")
+                        debugging.info(
+                            stationId + " Duplicate, only saved the first winds")
                     else:
-                        windsdict[stationId] = windspeedkt #build windspeed dictionary
+                        # build windspeed dictionary
+                        windsdict[stationId] = windspeedkt
 
                     if stationId in wxstringdict:
-                        debugging.info(stationId + " Duplicate, only saved the first weather")
+                        debugging.info(
+                            stationId + " Duplicate, only saved the first weather")
                     else:
-                        wxstringdict[stationId] = wxstring #build weather dictionary
+                        # build weather dictionary
+                        wxstringdict[stationId] = wxstring
                 debugging.info("Decoded TAF Data for Display")
-
 
             elif self.metar_taf_mos == 1:
                 debugging.info("Starting METAR Data Display")
-                #start of METAR decode routine if 'metar_taf_mos' equals 1. Script will default to this routine without a rotary switch installed.
-                #grab the airport category, wind speed and various weather from the results given from FAA.
+                # start of METAR decode routine if 'metar_taf_mos' equals 1. Script will default to this routine without a rotary switch installed.
+                # grab the airport category, wind speed and various weather from the results given from FAA.
                 for metar in root.iter('METAR'):
                     stationId = metar.find('station_id').text
 
-
-                ### METAR Decode Routine to create flight category via cloud cover and/or visability when flight category is not reported.
+                # METAR Decode Routine to create flight category via cloud cover and/or visability when flight category is not reported.
                 # Routine contributed to project by Nick Cirincione. Thank you for your contribution.
-                    if metar.find('flight_category') is None or metar.find('flight_category') == 'NONE': #if category is blank, then see if there's a sky condition or vis that would dictate flight category
-                        flightcategory = "VFR" #intialize flight category
-                        sky_cvr = "SKC" # Initialize to Sky Clear
-                        debugging.info(stationId + " Not Reporting Flight Category through the API.")
+                    # if category is blank, then see if there's a sky condition or vis that would dictate flight category
+                    if metar.find('flight_category') is None or metar.find('flight_category') == 'NONE':
+                        flightcategory = "VFR"  # intialize flight category
+                        sky_cvr = "SKC"  # Initialize to Sky Clear
+                        debugging.info(
+                            stationId + " Not Reporting Flight Category through the API.")
 
                         # There can be multiple layers of clouds in each METAR, but they are always listed lowest AGL first.
                         # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set flight category.
                         # This algorithm basically sets the flight category based on the lowest OVC, BKN or OVX layer.
                         # First check to see if the FAA provided the forecast field, if not get the sky_condition.
                         if metar.find('forecast') is None or metar.find('forecast') == 'NONE':
-                            debugging.info('FAA xml data is NOT providing the forecast field for this airport')
-                            for sky_condition in metar.findall('./sky_condition'):   #for each sky_condition from the XML
-                                sky_cvr = sky_condition.attrib['sky_cover']     #get the sky cover (BKN, OVC, SCT, etc)
+                            debugging.info(
+                                'FAA xml data is NOT providing the forecast field for this airport')
+                            # for each sky_condition from the XML
+                            for sky_condition in metar.findall('./sky_condition'):
+                                # get the sky cover (BKN, OVC, SCT, etc)
+                                sky_cvr = sky_condition.attrib['sky_cover']
                                 debugging.info('Sky Cover = ' + sky_cvr)
 
-                                if sky_cvr in ("OVC","BKN","OVX"): # Break out of for loop once we find one of these conditions
+                                # Break out of for loop once we find one of these conditions
+                                if sky_cvr in ("OVC", "BKN", "OVX"):
                                     break
 
                         else:
-                            debugging.info('FAA xml data IS providing the forecast field for this airport')
-                            for sky_condition in metar.findall('./forecast/sky_condition'):   #for each sky_condition from the XML
-                                sky_cvr = sky_condition.attrib['sky_cover']     #get the sky cover (BKN, OVC, SCT, etc)
+                            debugging.info(
+                                'FAA xml data IS providing the forecast field for this airport')
+                            # for each sky_condition from the XML
+                            for sky_condition in metar.findall('./forecast/sky_condition'):
+                                # get the sky cover (BKN, OVC, SCT, etc)
+                                sky_cvr = sky_condition.attrib['sky_cover']
                                 debugging.info('Sky Cover = ' + sky_cvr)
-                                debugging.info(metar.find('./forecast/fcst_time_from').text)
+                                debugging.info(metar.find(
+                                    './forecast/fcst_time_from').text)
 
-                                if sky_cvr in ("OVC","BKN","OVX"): # Break out of for loop once we find one of these conditions
+                                # Break out of for loop once we find one of these conditions
+                                if sky_cvr in ("OVC", "BKN", "OVX"):
                                     break
 
-                        if sky_cvr in ("OVC","BKN","OVX"): #If the layer is OVC, BKN or OVX, set Flight category based on height AGL
+                        # If the layer is OVC, BKN or OVX, set Flight category based on height AGL
+                        if sky_cvr in ("OVC", "BKN", "OVX"):
                             try:
-                                cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl'] #get cloud base AGL from XML
+                                # get cloud base AGL from XML
+                                cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl']
                             except:
-                                cld_base_ft_agl = forecast.find('vert_vis_ft').text #get cloud base AGL from XML
+                                # get cloud base AGL from XML
+                                cld_base_ft_agl = forecast.find(
+                                    'vert_vis_ft').text
 
                             debugging.info('Cloud Base = ' + cld_base_ft_agl)
                             cld_base_ft_agl = int(cld_base_ft_agl)
@@ -1226,11 +1281,15 @@ class updateLEDs:
                                 flightcategory = "VFR"
         #                        break
 
-                        #visibilty can also set flight category. If the clouds haven't set the fltcat to LIFR. See if visibility will
-                        if flightcategory != "LIFR": #if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.
-                            if metar.find('./forecast/visibility_statute_mi') is not None: #check XML if visibility value exists
-                                visibility_statute_mi = metar.find('./forecast/visibility_statute_mi').text   #get visibility number
-                                visibility_statute_mi = float(visibility_statute_mi)
+                        # visibilty can also set flight category. If the clouds haven't set the fltcat to LIFR. See if visibility will
+                        # if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.
+                        if flightcategory != "LIFR":
+                            # check XML if visibility value exists
+                            if metar.find('./forecast/visibility_statute_mi') is not None:
+                                visibility_statute_mi = metar.find(
+                                    './forecast/visibility_statute_mi').text  # get visibility number
+                                visibility_statute_mi = float(
+                                    visibility_statute_mi)
 
                                 if visibility_statute_mi < 1.0:
                                     flightcategory = "LIFR"
@@ -1238,75 +1297,93 @@ class updateLEDs:
                                 elif 1.0 <= visibility_statute_mi < 3.0:
                                     flightcategory = "IFR"
 
-                                elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":  #if Flight Category was already set to IFR by clouds, it can't be reduced to MVFR
+                                # if Flight Category was already set to IFR by clouds, it can't be reduced to MVFR
+                                elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":
                                     flightcategory = "MVFR"
 
-                        debugging.info(stationId + " flight category is Decode script-determined as " + flightcategory)
+                        debugging.info(
+                            stationId + " flight category is Decode script-determined as " + flightcategory)
 
                     else:
-                        debugging.info(stationId + ': FAA is reporting '+metar.find('flight_category').text + ' through their API')
-                        flightcategory = metar.find('flight_category').text  #pull flight category if it exists and save all the algoritm above
-                    ### End of METAR Decode added routine to create flight category via cloud cover and/or visability when flight category is not reported.
+                        debugging.info(stationId + ': FAA is reporting ' +
+                                       metar.find('flight_category').text + ' through their API')
+                        # pull flight category if it exists and save all the algoritm above
+                        flightcategory = metar.find('flight_category').text
+                    # End of METAR Decode added routine to create flight category via cloud cover and/or visability when flight category is not reported.
 
-
-                    #grab wind speeds from returned FAA data
-                    if metar.find('wind_speed_kt') is None: #if wind speed is blank, then bypass
+                    # grab wind speeds from returned FAA data
+                    # if wind speed is blank, then bypass
+                    if metar.find('wind_speed_kt') is None:
                         windspeedkt = 0
                     else:
                         windspeedkt = metar.find('wind_speed_kt').text
 
-                    #grab Weather info from returned FAA data
-                    if metar.find('wx_string') is None: #if weather string is blank, then bypass
+                    # grab Weather info from returned FAA data
+                    # if weather string is blank, then bypass
+                    if metar.find('wx_string') is None:
                         wxstring = "NONE"
                     else:
                         wxstring = metar.find('wx_string').text
 
-                    #Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
+                    # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
                     if stationId in stationiddict:
-                        debugging.info(stationId + " Duplicate, only saved first metar category")
+                        debugging.info(
+                            stationId + " Duplicate, only saved first metar category")
                     else:
-                        stationiddict[stationId] = flightcategory #build category dictionary
+                        # build category dictionary
+                        stationiddict[stationId] = flightcategory
 
                     if stationId in windsdict:
-                        debugging.info(stationId + " Duplicate, only saved the first winds")
+                        debugging.info(
+                            stationId + " Duplicate, only saved the first winds")
                     else:
-                        windsdict[stationId] = windspeedkt #build windspeed dictionary
+                        # build windspeed dictionary
+                        windsdict[stationId] = windspeedkt
 
                     if stationId in wxstringdict:
-                        debugging.info(stationId + " Duplicate, only saved the first weather")
+                        debugging.info(
+                            stationId + " Duplicate, only saved the first weather")
                     else:
-                        wxstringdict[stationId] = wxstring #build weather dictionary
+                        # build weather dictionary
+                        wxstringdict[stationId] = wxstring
                 debugging.info("Decoded METAR Data for Display")
 
-            #Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
-            self.timeout_start = time.time() #Start the timer. When timer hits user-defined value, go back to outer loop to update FAA Weather.
-            loopcount=0
-            while time.time() < self.timeout_start + (self.update_interval * 60): #take 'update_interval' which is in minutes and turn into seconds
+            # Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
+            # Start the timer. When timer hits user-defined value, go back to outer loop to update FAA Weather.
+            self.timeout_start = time.time()
+            loopcount = 0
+            # take 'update_interval' which is in minutes and turn into seconds
+            while time.time() < self.timeout_start + (self.update_interval * 60):
                 loopcount = loopcount + 1
 
                 # Check time and reboot machine if time equals time_reboot and if use_reboot along with autorun are both set to 1
                 if self.use_reboot == 1 and self.autorun == 1:
                     now = datetime.now()
                     rb_time = now.strftime("%H:%M")
-                    debugging.info("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(self.time_reboot))
-                    print("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(self.time_reboot)) #debug
+                    debugging.info("**Current Time=" + str(rb_time) +
+                                   " - **Reboot Time=" + str(self.time_reboot))
+                    print("**Current Time=" + str(rb_time) +
+                          " - **Reboot Time=" + str(self.time_reboot))  # debug
 
                     if rb_time == self.time_reboot:
                         debugging.info("Rebooting at " + self.time_reboot)
                         time.sleep(1)
                         os.system("sudo reboot now")
 
-                #Routine to restart this script if config.py is changed while this script is running.
+                # Routine to restart this script if config.py is changed while this script is running.
                 for f, mtime in self.WATCHED_FILES_MTIMES:
                     if getmtime(f) != mtime:
-                        debugging.info("Restarting from awake" + __file__ + " in 2 sec...")
+                        debugging.info("Restarting from awake" +
+                                       __file__ + " in 2 sec...")
                         time.sleep(2)
-                        os.execv(sys.executable, [sys.executable] +  [__file__]) #'/NeoSectional/metar-v4.py'])
+                        # '/NeoSectional/metar-v4.py'])
+                        os.execv(sys.executable, [sys.executable] + [__file__])
 
-                #Timer routine, used to turn off LED's at night if desired. Use 24 hour time in settings.
-                if self.conf.get_bool("schedule", "usetimer"): #check to see if the user wants to use a timer.
+                # Timer routine, used to turn off LED's at night if desired. Use 24 hour time in settings.
+                # check to see if the user wants to use a timer.
+                if self.conf.get_bool("schedule", "usetimer"):
 
-                     if self.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
+                    if self.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
 
                         # If temporary lights-on period from refresh button has expired, restore the original light schedule
                         if self.temp_lights_on == 1:
@@ -1314,182 +1391,228 @@ class updateLEDs:
                             self.timeoff = self.lights_out
                             self.temp_lights_on = 0
 
-                        sys.stdout.write ("\n\033[1;34;40m Sleeping-  ") #Escape codes to render Blue text on screen
-                        sys.stdout.flush ()
+                        # Escape codes to render Blue text on screen
+                        sys.stdout.write("\n\033[1;34;40m Sleeping-  ")
+                        sys.stdout.flush()
                         self.turnoff(self.strip)
                         debugging.info("Map Going to Sleep")
 
                         while self.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
-                            sys.stdout.write ("z")
-                            sys.stdout.flush ()
+                            sys.stdout.write("z")
+                            sys.stdout.flush()
                             time.sleep(1)
-                            if GPIO.input(22) == False: #Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
+                            # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
+                            if GPIO.input(22) == False:
                                 # Set to turn lights on two seconds ago to make sure we hit the loop next time through
-                                self.end_time = (datetime.now()-timedelta(seconds=2)).time()
-                                self.timeoff = (datetime.now()+timedelta(minutes=self.tempsleepon)).time()
-                                self.temp_lights_on = 1 #Set this to 1 if button is pressed
-                                debugging.info("Sleep interrupted by button push")
+                                self.end_time = (
+                                    datetime.now()-timedelta(seconds=2)).time()
+                                self.timeoff = (
+                                    datetime.now()+timedelta(minutes=self.tempsleepon)).time()
+                                self.temp_lights_on = 1  # Set this to 1 if button is pressed
+                                debugging.info(
+                                    "Sleep interrupted by button push")
 
-                            #Routine to restart this script if config.py is changed while this script is running.
+                            # Routine to restart this script if config.py is changed while this script is running.
                             for f, mtime in self.WATCHED_FILES_MTIMES:
                                 if getmtime(f) != mtime:
-                                    print ("\033[0;0m\n") #Turn off Blue text.
-                                    debugging.info("Restarting from sleep" + __file__ + " in 2 sec...")
+                                    print("\033[0;0m\n")  # Turn off Blue text.
+                                    debugging.info(
+                                        "Restarting from sleep" + __file__ + " in 2 sec...")
                                     time.sleep(2)
-                                    os.execv(sys.executable, [sys.executable] +  [__file__]) #restart this script.
+                                    # restart this script.
+                                    os.execv(sys.executable, [
+                                             sys.executable] + [__file__])
 
-                        print ("\033[0;0m\n") #Turn off Blue text.
+                        print("\033[0;0m\n")  # Turn off Blue text.
 
-                #Check if rotary switch is used, and what position it is in. This will determine what to display, METAR, TAF and MOS data.
-                #If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
-                #If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
+                # Check if rotary switch is used, and what position it is in. This will determine what to display, METAR, TAF and MOS data.
+                # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
+                # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
                 if GPIO.input(0) == False and self.toggle_sw != 0:
                     self.toggle_sw = 0
-                    self.hour_to_display = self.time_sw0              #Offset in HOURS not used to display METAR
-                    self.metar_taf_mos = self.data_sw0                #1 = Display METAR.
-                    debugging.info('Switch in position 0. Breaking out of loop for METARs')
+                    # Offset in HOURS not used to display METAR
+                    self.hour_to_display = self.time_sw0
+                    self.metar_taf_mos = self.data_sw0  # 1 = Display METAR.
+                    debugging.info(
+                        'Switch in position 0. Breaking out of loop for METARs')
                     break
 
                 elif GPIO.input(5) == False and self.toggle_sw != 1:
                     self.toggle_sw = 1
-                    self.hour_to_display = self.time_sw1              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw1                #0 = Display TAF.
-                    debugging.info('Switch in position 1. Breaking out of loop for TAF/MOS + ' + str(self.time_sw1) + ' hour')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw1
+                    self.metar_taf_mos = self.data_sw1  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 1. Breaking out of loop for TAF/MOS + ' + str(self.time_sw1) + ' hour')
                     break
 
                 elif GPIO.input(6) == False and self.toggle_sw != 2:
                     self.toggle_sw = 2
-                    self.hour_to_display = self.time_sw2              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw2                #0 = Display TAF.
-                    debugging.info('Switch in position 2. Breaking out of loop for MOS/TAF + ' + str(self.time_sw2) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw2
+                    self.metar_taf_mos = self.data_sw2  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 2. Breaking out of loop for MOS/TAF + ' + str(self.time_sw2) + '  hours')
                     break
 
                 elif GPIO.input(13) == False and self.toggle_sw != 3:
                     self.toggle_sw = 3
-                    self.hour_to_display = self.time_sw3              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw3                #0 = Display TAF.
-                    debugging.info('Switch in position 3. Breaking out of loop for MOS/TAF + ' + str(self.time_sw3) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw3
+                    self.metar_taf_mos = self.data_sw3  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 3. Breaking out of loop for MOS/TAF + ' + str(self.time_sw3) + '  hours')
                     break
 
                 elif GPIO.input(19) == False and self.toggle_sw != 4:
                     self.toggle_sw = 4
-                    self.hour_to_display = self.time_sw4              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw4                #0 = Display TAF.
-                    debugging.info('Switch in position 4. Breaking out of loop for MOS/TAF + ' + str(self.time_sw4) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw4
+                    self.metar_taf_mos = self.data_sw4  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 4. Breaking out of loop for MOS/TAF + ' + str(self.time_sw4) + '  hours')
                     break
 
                 elif GPIO.input(26) == False and self.toggle_sw != 5:
                     self.toggle_sw = 5
-                    self.hour_to_display = self.time_sw5              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw5                #0 = Display TAF.
-                    debugging.info('Switch in position 5. Breaking out of loop for MOS/TAF + ' + str(self.time_sw5) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw5
+                    self.metar_taf_mos = self.data_sw5  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 5. Breaking out of loop for MOS/TAF + ' + str(self.time_sw5) + '  hours')
                     break
 
                 elif GPIO.input(21) == False and self.toggle_sw != 6:
                     self.toggle_sw = 6
-                    self.hour_to_display = self.time_sw6              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw6                #0 = Display TAF.
-                    debugging.info('Switch in position 6. Breaking out of loop for MOS/TAF + ' + str(self.time_sw6) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw6
+                    self.metar_taf_mos = self.data_sw6  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 6. Breaking out of loop for MOS/TAF + ' + str(self.time_sw6) + '  hours')
                     break
 
                 elif GPIO.input(20) == False and self.toggle_sw != 7:
                     self.toggle_sw = 7
-                    self.hour_to_display = self.time_sw7              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw7                #0 = Display TAF.
-                    debugging.info('Switch in position 7. Breaking out of loop for MOS/TAF + ' + str(self.time_sw7) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw7
+                    self.metar_taf_mos = self.data_sw7  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 7. Breaking out of loop for MOS/TAF + ' + str(self.time_sw7) + '  hours')
                     break
 
                 elif GPIO.input(16) == False and self.toggle_sw != 8:
                     self.toggle_sw = 8
-                    self.hour_to_display = self.time_sw8              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw8                #0 = Display TAF.
-                    debugging.info('Switch in position 8. Breaking out of loop for MOS/TAF + ' + str(self.time_sw8) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw8
+                    self.metar_taf_mos = self.data_sw8  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 8. Breaking out of loop for MOS/TAF + ' + str(self.time_sw8) + '  hours')
                     break
 
                 elif GPIO.input(12) == False and self.toggle_sw != 9:
                     self.toggle_sw = 9
-                    self.hour_to_display = self.time_sw9              #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw9                #0 = Display TAF.
-                    debugging.info('Switch in position 9. Breaking out of loop for MOS/TAF + ' + str(self.time_sw9) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw9
+                    self.metar_taf_mos = self.data_sw9  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 9. Breaking out of loop for MOS/TAF + ' + str(self.time_sw9) + '  hours')
                     break
 
                 elif GPIO.input(1) == False and self.toggle_sw != 10:
                     self.toggle_sw = 10
-                    self.hour_to_display = self.time_sw10             #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw10               #0 = Display TAF.
-                    debugging.info('Switch in position 10. Breaking out of loop for MOS/TAF + ' + str(self.time_sw10) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw10
+                    self.metar_taf_mos = self.data_sw10  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 10. Breaking out of loop for MOS/TAF + ' + str(self.time_sw10) + '  hours')
                     break
 
                 elif GPIO.input(7) == False and self.toggle_sw != 11:
                     self.toggle_sw = 11
-                    self.hour_to_display = self.time_sw11             #Offset in HOURS to choose which TAF to display
-                    self.metar_taf_mos = self.data_sw11               #0 = Display TAF.
-                    debugging.info('Switch in position 11. Breaking out of loop for MOS/TAF + ' + str(self.time_sw11) + '  hours')
+                    # Offset in HOURS to choose which TAF to display
+                    self.hour_to_display = self.time_sw11
+                    self.metar_taf_mos = self.data_sw11  # 0 = Display TAF.
+                    debugging.info(
+                        'Switch in position 11. Breaking out of loop for MOS/TAF + ' + str(self.time_sw11) + '  hours')
                     break
 
-                elif self.toggle_sw == -1:                       #used if no Rotary Switch is installed
+                elif self.toggle_sw == -1:  # used if no Rotary Switch is installed
                     self.toggle_sw = 12
-                    self.hour_to_display = self.time_sw0              #Offset in HOURS not used to display METAR
-                    self.metar_taf_mos = self.data_sw0                    #1 = Display METAR.
-                    debugging.info('Rotary Switch Not Installed. Using Switch Position 0 as Default')
+                    # Offset in HOURS not used to display METAR
+                    self.hour_to_display = self.time_sw0
+                    self.metar_taf_mos = self.data_sw0  # 1 = Display METAR.
+                    debugging.info(
+                        'Rotary Switch Not Installed. Using Switch Position 0 as Default')
                     break
 
-                #Check to see if pushbutton is pressed to force an update of FAA Weather
-                #If no button is connected, then this is bypassed and will only update when 'update_interval' is met
+                # Check to see if pushbutton is pressed to force an update of FAA Weather
+                # If no button is connected, then this is bypassed and will only update when 'update_interval' is met
                 if GPIO.input(22) == False:
-                    debugging.info('Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data')
+                    debugging.info(
+                        'Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data')
                     break
 
-                #Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
-                #Full brightness will be used if no light sensor is installed.
+                # Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
+                # Full brightness will be used if no light sensor is installed.
                 if GPIO.input(4) == 1:
                     self.LED_BRIGHTNESS = self.dimmed_value
                     if self.ambient_toggle == 1:
-                        debugging.info("Ambient Sensor set brightness to dimmed_value")
+                        debugging.info(
+                            "Ambient Sensor set brightness to dimmed_value")
                         self.ambient_toggle = 0
                 else:
                     self.LED_BRIGHTNESS = self.bright_value
                     if self.ambient_toggle == 0:
-                        debugging.info("Ambient Sensor set brightness to bright_value")
+                        debugging.info(
+                            "Ambient Sensor set brightness to bright_value")
                         self.ambient_toggle = 1
 
                 self.strip.setBrightness(self.LED_BRIGHTNESS)
 
-                toggle = not(toggle) #Used to determine if the homeport color should be displayed if "homeport = 1"
+                # Used to determine if the homeport color should be displayed if "homeport = 1"
+                toggle = not(toggle)
 
-                print("\nWX Display") # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
-                #Start main loop. This loop will create all the necessary colors to display the weather one time.
-                for cycle_num in self.cycles: #cycle through the strip 6 times, setting the color then displaying to create various effects.
-                    print(" " + str(cycle_num), end = '')
+                # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
+                print("\nWX Display")
+                # Start main loop. This loop will create all the necessary colors to display the weather one time.
+                # cycle through the strip 6 times, setting the color then displaying to create various effects.
+                for cycle_num in self.cycles:
+                    print(" " + str(cycle_num), end='')
                     sys.stdout.flush()
 
-                    i = 0 #Inner Loop. Increments through each LED in the strip setting the appropriate color to each individual LED.
+                    # Inner Loop. Increments through each LED in the strip setting the appropriate color to each individual LED.
+                    i = 0
                     for airportcode in self.airports:
 
-                        flightcategory = stationiddict.get(airportcode,"NONE") #Pull the next flight category from dictionary.
-                        airportwinds = windsdict.get(airportcode,0) #Pull the winds from the dictionary.
-                        airportwx_long = wxstringdict.get(airportcode,"NONE") #Pull the weather reported for the airport from dictionary.
-                        airportwx = airportwx_long.split(" ",1)[0] #Grab only the first parameter of the weather reported.
+                        # Pull the next flight category from dictionary.
+                        flightcategory = stationiddict.get(airportcode, "NONE")
+                        # Pull the winds from the dictionary.
+                        airportwinds = windsdict.get(airportcode, 0)
+                        # Pull the weather reported for the airport from dictionary.
+                        airportwx_long = wxstringdict.get(airportcode, "NONE")
+                        # Grab only the first parameter of the weather reported.
+                        airportwx = airportwx_long.split(" ", 1)[0]
 
-                        #debug print out
+                        # debug print out
                         if self.metar_taf_mos == 0:
-                            debugging.debug("TAF Time +" + str(self.hour_to_display) + " Hour")
-                        elif self.metar_taf_mos==1:
+                            debugging.debug(
+                                "TAF Time +" + str(self.hour_to_display) + " Hour")
+                        elif self.metar_taf_mos == 1:
                             debugging.debug("METAR")
                         elif self.metar_taf_mos == 2:
-                            debugging.debug("MOS Time +" + str(self.hour_to_display) + " Hour")
+                            debugging.debug(
+                                "MOS Time +" + str(self.hour_to_display) + " Hour")
                         elif self.metar_taf_mos == 3:
                             debugging.debug("Heat Map + ")
 
+                        debugging.debug((airportcode + " " + flightcategory + " " + str(
+                            airportwinds) + " " + airportwx + " " + str(cycle_num) + " "))  # debug
 
-                        debugging.debug((airportcode + " " + flightcategory + " " + str(airportwinds) + " " + airportwx + " " + str(cycle_num) + " ")) #debug
-
-                        #Check to see if airport code is a NULL and set to black.
+                        # Check to see if airport code is a NULL and set to black.
                         if airportcode == "NULL" or airportcode == "LGND":
                             color = self.color_black
 
-
-                        #Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
+                        # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
                         if self.legend and airportcode == "LGND" and (i in self.legend_pins):
                             if i == self.leg_pin_vfr:
                                 color = self.color_vfr
@@ -1510,37 +1633,37 @@ class updateLEDs:
                                 if (cycle_num == 3 or cycle_num == 4 or cycle_num == 5):
                                     color = self.color_black
                                 else:
-                                    color=self.color_ifr
+                                    color = self.color_ifr
 
                             if i == self.leg_pin_lghtn and self.legend_lghtn:
-                                if (cycle_num == 2 or cycle_num == 4): #Check for Thunderstorms
+                                if (cycle_num == 2 or cycle_num == 4):  # Check for Thunderstorms
                                     color = self.color_lghtn
 
                                 elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 3 or cycle_num == 5):
-                                    color=self.color_mvfr
+                                    color = self.color_mvfr
 
                             if i == self.leg_pin_snow and self.legend_snow:
-                                if (cycle_num == 3 or cycle_num == 5): #Check for Snow
+                                if (cycle_num == 3 or cycle_num == 5):  # Check for Snow
                                     color = self.color_snow1
 
                                 if (cycle_num == 4):
                                     color = self.color_snow2
 
                                 elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color=self.color_lifr
+                                    color = self.color_lifr
 
                             if i == self.leg_pin_rain and self.legend_rain:
-                                if (cycle_num == 3 or cycle_num == 5): #Check for Rain
+                                if (cycle_num == 3 or cycle_num == 5):  # Check for Rain
                                     color = self.color_rain1
 
                                 if (cycle_num == 4):
                                     color = self.color_rain2
 
                                 elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color= self.color_vfr
+                                    color = self.color_vfr
 
                             if i == self.leg_pin_frrain and self.legend_frrain:
-                                if (cycle_num == 3 or cycle_num == 5): #Check for Freezing Rain
+                                if (cycle_num == 3 or cycle_num == 5):  # Check for Freezing Rain
                                     color = self.color_frrain1
 
                                 if (cycle_num == 4):
@@ -1550,91 +1673,100 @@ class updateLEDs:
                                     color = self.color_mvfr
 
                             if i == self.leg_pin_dustsandash and self.legend_dustsandash:
-                                if (cycle_num == 3 or cycle_num == 5): #Check for Dust, Sand or Ash
+                                if (cycle_num == 3 or cycle_num == 5):  # Check for Dust, Sand or Ash
                                     color = self.color_dustsandash1
 
                                 if (cycle_num == 4):
                                     color = self.color_dustsandash2
 
                                 elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color=self.color_vfr
+                                    color = self.color_vfr
 
                             if i == self.leg_pin_fog and self.legend_fog:
-                                if (cycle_num == 3 or cycle_num == 5): #Check for Fog
+                                if (cycle_num == 3 or cycle_num == 5):  # Check for Fog
                                     color = self.color_fog1
 
                                 if (cycle_num == 4):
                                     color = self.color_fog2
 
                                 elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color=self.color_ifr
+                                    color = self.color_ifr
 
-                        #Start of weather display code for each airport in the "airports" file
-                        #Check flight category and set the appropriate color to display
-                        if  flightcategory != "NONE":
-                            if flightcategory == "VFR":     #Visual Flight Rules
+                        # Start of weather display code for each airport in the "airports" file
+                        # Check flight category and set the appropriate color to display
+                        if flightcategory != "NONE":
+                            if flightcategory == "VFR":  # Visual Flight Rules
                                 color = self.color_vfr
-                            elif flightcategory == "MVFR":  #Marginal Visual Flight Rules
+                            elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
                                 color = self.color_mvfr
-                            elif flightcategory == "IFR":   #Instrument Flight Rules
+                            elif flightcategory == "IFR":  # Instrument Flight Rules
                                 color = self.color_ifr
-                            elif flightcategory == "LIFR":  #Low Instrument Flight Rules
+                            elif flightcategory == "LIFR":  # Low Instrument Flight Rules
                                 color = self.color_lifr
                             else:
                                 color = self.color_nowx
 
-                        elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL": #3.01 bug fix by adding "LGND" test
-                            color = self.color_nowx          #No Weather reported.
+                        # 3.01 bug fix by adding "LGND" test
+                        elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL":
+                            color = self.color_nowx  # No Weather reported.
 
-                        #Check winds and set the 2nd half of cycles to black to create blink effect
-                        if self.hiwindblink: #bypass if "hiwindblink" is set to 0
+                        # Check winds and set the 2nd half of cycles to black to create blink effect
+                        if self.hiwindblink:  # bypass if "hiwindblink" is set to 0
                             if (int(airportwinds) >= self.max_wind_speed and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
                                 color = self.color_black
-                                print(("HIGH WINDS-> " + airportcode + " Winds = " + str(airportwinds) + " ")) #debug
+                                # debug
+                                print(("HIGH WINDS-> " + airportcode +
+                                       " Winds = " + str(airportwinds) + " "))
 
-                        #Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
+                        # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
                         if airportwx != "NONE":
-                            if  self.lghtnflash:
-                                if (airportwx in self.wx_lghtn_ck and (cycle_num == 2 or cycle_num == 4)): #Check for Thunderstorms
+                            if self.lghtnflash:
+                                # Check for Thunderstorms
+                                if (airportwx in self.wx_lghtn_ck and (cycle_num == 2 or cycle_num == 4)):
                                     color = self.color_lghtn
 
                             if self.snowshow:
-                                if (airportwx in self.wx_snow_ck and (cycle_num == 3 or cycle_num == 5)): #Check for Snow
+                                # Check for Snow
+                                if (airportwx in self.wx_snow_ck and (cycle_num == 3 or cycle_num == 5)):
                                     color = self.color_snow1
 
                                 if (airportwx in self.wx_snow_ck and cycle_num == 4):
                                     color = self.color_snow2
 
                             if self.rainshow:
-                                if (airportwx in self.wx_rain_ck and (cycle_num == 3 or cycle_num == 4)): #Check for Rain
+                                # Check for Rain
+                                if (airportwx in self.wx_rain_ck and (cycle_num == 3 or cycle_num == 4)):
                                     color = self.color_rain1
 
                                 if (airportwx in self.wx_rain_ck and cycle_num == 5):
                                     color = self.color_rain2
 
                             if self.frrainshow:
-                                if (airportwx in self.wx_frrain_ck and (cycle_num == 3 or cycle_num == 5)): #Check for Freezing Rain
+                                # Check for Freezing Rain
+                                if (airportwx in self.wx_frrain_ck and (cycle_num == 3 or cycle_num == 5)):
                                     color = self.color_frrain1
 
                                 if (airportwx in self.wx_frrain_ck and cycle_num == 4):
                                     color = self.color_frrain2
 
                             if self.dustsandashshow:
-                                if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)): #Check for Dust, Sand or Ash
+                                # Check for Dust, Sand or Ash
+                                if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)):
                                     color = self.color_dustsandash1
 
                                 if (airportwx in self.wx_dustsandash_ck and cycle_num == 4):
                                     color = self.color_dustsandash2
 
                             if self.fogshow:
-                                if (airportwx in self.wx_fog_ck and (cycle_num == 3 or cycle_num == 5)): #Check for Fog
+                                # Check for Fog
+                                if (airportwx in self.wx_fog_ck and (cycle_num == 3 or cycle_num == 5)):
                                     color = self.color_fog1
 
                                 if (airportwx in self.wx_fog_ck and cycle_num == 4):
                                     color = self.color_fog2
 
-                        #If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
-                        #so that every other time through, the color will display the proper weather, then homeport color(s).
+                        # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
+                        # so that every other time through, the color will display the proper weather, then homeport color(s).
                         if i == self.homeport_pin and self.homeport and toggle:
                             if self.homeport_display == 1:
                                 color = self.homeport_colors[cycle_num]
@@ -1643,24 +1775,33 @@ class updateLEDs:
                             else:
                                 color = self.color_homeport
 
-                        self.xcolor = self.rgbtogrb(i, color, self.rgb_grb) #pass pin, color and format. Check and change color code for RGB or GRB format
+                        # pass pin, color and format. Check and change color code for RGB or GRB format
+                        self.xcolor = self.rgbtogrb(i, color, self.rgb_grb)
 
-                        if i == self.homeport_pin and self.homeport: #if this is the home airport, don't dim out the brightness
+                        if i == self.homeport_pin and self.homeport:  # if this is the home airport, don't dim out the brightness
                             self.norm_color = self.xcolor
-                            self.xcolor = Color(self.norm_color[0], self.norm_color[1], self.norm_color[2])
-                        elif self.homeport: #if this is not the home airport, dim out the brightness
-                            self.dim_color = self.dim(self.xcolor,self.dim_value)
-                            self.xcolor = Color(int(self.dim_color[0]), int(self.dim_color[1]), int(self.dim_color[2]))
-                        else: #if home airport feature is disabled, then don't dim out any airports brightness
+                            self.xcolor = Color(
+                                self.norm_color[0], self.norm_color[1], self.norm_color[2])
+                        elif self.homeport:  # if this is not the home airport, dim out the brightness
+                            self.dim_color = self.dim(
+                                self.xcolor, self.dim_value)
+                            self.xcolor = Color(int(self.dim_color[0]), int(
+                                self.dim_color[1]), int(self.dim_color[2]))
+                        else:  # if home airport feature is disabled, then don't dim out any airports brightness
                             self.norm_color = self.xcolor
-                            self.xcolor = Color(self.norm_color[0], self.norm_color[1], self.norm_color[2])
+                            self.xcolor = Color(
+                                self.norm_color[0], self.norm_color[1], self.norm_color[2])
 
-                        self.strip.setPixelColor(i, self.xcolor) #set color to display on a specific LED for the current cycle_num cycle.
-                        i = i + 1 #set next LED pin in strip
+                        # set color to display on a specific LED for the current cycle_num cycle.
+                        self.strip.setPixelColor(i, self.xcolor)
+                        i = i + 1  # set next LED pin in strip
 
-                    print("/LED.",end='')
+                    print("/LED.", end='')
                     sys.stdout.flush()
-                    self.strip.show() #Display strip with newly assigned colors for the current cycle_num cycle.
-                    print(".",end='')
-                    self.wait_time = self.cycle_wait[cycle_num] #cycle_wait time is a user defined value
-                    time.sleep(self.wait_time) #pause between cycles. pauses are setup in user definitions.
+                    # Display strip with newly assigned colors for the current cycle_num cycle.
+                    self.strip.show()
+                    print(".", end='')
+                    # cycle_wait time is a user defined value
+                    self.wait_time = self.cycle_wait[cycle_num]
+                    # pause between cycles. pauses are setup in user definitions.
+                    time.sleep(self.wait_time)

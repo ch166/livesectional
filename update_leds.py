@@ -134,61 +134,12 @@ class updateLEDs:
         self.metar_taf_mos = config.data_sw0
         # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
         self.toggle_sw = -1
+        self.toggle = ""
 
         self.root = ""
 
         # MOS/TAF Config settings
         # self.prob = config.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not. MOS Only.
-
-        # User selectable source of data on Rotary Switch position 0. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw0 = config.data_sw0
-        # User selectable source of data on Rotary Switch position 1. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw1 = config.data_sw1
-        # User selectable source of data on Rotary Switch position 2. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw2 = config.data_sw2
-        # User selectable source of data on Rotary Switch position 3. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw3 = config.data_sw3
-        # User selectable source of data on Rotary Switch position 4. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw4 = config.data_sw4
-        # User selectable source of data on Rotary Switch position 5. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw5 = config.data_sw5
-        # User selectable source of data on Rotary Switch position 6. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw6 = config.data_sw6
-        # User selectable source of data on Rotary Switch position 7. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw7 = config.data_sw7
-        # User selectable source of data on Rotary Switch position 8. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw8 = config.data_sw8
-        # User selectable source of data on Rotary Switch position 9. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw9 = config.data_sw9
-        # User selectable source of data on Rotary Switch position 10. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw10 = config.data_sw10
-        # User selectable source of data on Rotary Switch position 11. 0 = TAF, 1 = METAR, 2 = MOS
-        self.data_sw11 = config.data_sw11
-
-        # 0 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw0 = config.time_sw0
-        # 1 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw1 = config.time_sw1
-        # 2 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw2 = config.time_sw2
-        # 3 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw3 = config.time_sw3
-        # 4 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw4 = config.time_sw4
-        # 5 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw5 = config.time_sw5
-        # 6 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw6 = config.time_sw6
-        # 7 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw7 = config.time_sw7
-        # 8 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw8 = config.time_sw8
-        # 9 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw9 = config.time_sw9
-        # 10 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw10 = config.time_sw10
-        # 11 = number of hours ahead to display. Time equals time period of TAF/MOS to display.
-        self.time_sw11 = config.time_sw11
 
         # Heat Map settings
         # self.bin_grad = config.bin_grad              #0 = Binary display, 1 = Gradient display
@@ -1573,8 +1524,7 @@ class updateLEDs:
         # Offset in HOURS to choose which TAF to display
         self.hour_to_display = time_sw
         self.metar_taf_mos = data_sw  # 0 = Display TAF.
-        debugging.info(
-            'Switch in position ' + toggle_value + '. Breaking out of loop for MOS/TAF + ' + str(self.time_sw4) + '  hours')
+        # debugging.info( 'Switch in position ' )
 
 
     def updateLedLoop(self):
@@ -1687,55 +1637,68 @@ class updateLEDs:
                 # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
                 # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
                 if GPIO.input(0) == False and self.toggle_sw != 0:
-                    self.update_gpio_flags(self, 0, self.time_sw0, self.data_sw0)
+                    self.update_gpio_flags(0, self.conf.get_int("rotaryswitch", "time_sw0"), 
+                            self.conf.get_int("rotaryswitch", "data_sw0"))
                     break
 
                 elif GPIO.input(5) == False and self.toggle_sw != 1:
-                    self.update_gpio_flags(self, 1, self.time_sw1, self.data_sw1)
+                    self.update_gpio_flags(1, self.conf.get_int("rotaryswitch", "time_sw1"), 
+                        self.conf.get_int("rotaryswitch", "data_sw1"))
                     break
 
                 elif GPIO.input(6) == False and self.toggle_sw != 2:
-                    self.update_gpio_flags(self, 2, self.time_sw2, self.data_sw2)
+                    self.update_gpio_flags(2, self.conf.get_int("rotaryswitch", "time_sw2"), 
+                        self.conf.get_int("rotaryswitch", "data_sw2"))
                     break
 
                 elif GPIO.input(13) == False and self.toggle_sw != 3:
-                    self.update_gpio_flags(self, 3, self.time_sw3, self.data_sw3)
+                    self.update_gpio_flags(3, self.conf.get_int("rotaryswitch", "time_sw3"), 
+                        self.conf.get_int("rotaryswitch", "data_sw3"))
                     break
 
                 elif GPIO.input(19) == False and self.toggle_sw != 4:
-                    self.update_gpio_flags(self, 4, self.time_sw4, self.data_sw4)
+                    self.update_gpio_flags(4, self.conf.get_int("rotaryswitch", "time_sw4"), 
+                        self.conf.get_int("rotaryswitch", "data_sw4"))
                     break
 
                 elif GPIO.input(26) == False and self.toggle_sw != 5:
-                    self.update_gpio_flags(self, 5, self.time_sw5, self.data_sw5)
+                    self.update_gpio_flags(5, self.conf.get_int("rotaryswitch", "time_sw5"), 
+                        self.conf.get_int("rotaryswitch", "data_sw5"))
                     break
 
                 elif GPIO.input(21) == False and self.toggle_sw != 6:
-                    self.update_gpio_flags(self, 6, self.time_sw6, self.data_sw6)
+                    self.update_gpio_flags(6, self.conf.get_int("rotaryswitch", "time_sw6"), 
+                        self.conf.get_int("rotaryswitch", "data_sw6"))
                     break
 
                 elif GPIO.input(20) == False and self.toggle_sw != 7:
-                    self.update_gpio_flags(self, 7, self.time_sw7, self.data_sw7)
+                    self.update_gpio_flags(7, self.conf.get_int("rotaryswitch", "time_sw7"), 
+                        self.conf.get_int("rotaryswitch", "data_sw7"))
                     break
 
                 elif GPIO.input(16) == False and self.toggle_sw != 8:
-                    self.update_gpio_flags(self, 8, self.time_sw8, self.data_sw8)
+                    self.update_gpio_flags(8, self.conf.get_int("rotaryswitch", "time_sw8"), 
+                        self.conf.get_int("rotaryswitch", "data_sw8"))
                     break
 
                 elif GPIO.input(12) == False and self.toggle_sw != 9:
-                    self.update_gpio_flags(self, 9, self.time_sw9, self.data_sw9)
+                    self.update_gpio_flags(9, self.conf.get_int("rotaryswitch", "time_sw9"), 
+                        self.conf.get_int("rotaryswitch", "data_sw9"))
                     break
 
                 elif GPIO.input(1) == False and self.toggle_sw != 10:
-                    self.update_gpio_flags(self, 10, self.time_sw10, self.data_sw10)
+                    self.update_gpio_flags(10, self.conf.get_int("rotaryswitch", "time_sw10"), 
+                        self.conf.get_int("rotaryswitch", "data_sw10"))
                     break
 
                 elif GPIO.input(7) == False and self.toggle_sw != 11:
-                    self.update_gpio_flags(self, 11, self.time_sw11, self.data_sw11)
+                    self.update_gpio_flags(11, self.conf.get_int("rotaryswitch", "time_sw11"), 
+                        self.conf.get_int("rotaryswitch", "data_sw11"))
                     break
 
                 elif self.toggle_sw == -1:  # used if no Rotary Switch is installed
-                    self.update_gpio_flags(self, 12, self.time_sw0, self.data_sw0)
+                    self.update_gpio_flags(12, self.conf.get_int("rotaryswitch", "time_sw0"), 
+                        self.conf.get_int("rotaryswitch", "data_sw0"))
                     break
 
                 # Check to see if pushbutton is pressed to force an update of FAA Weather

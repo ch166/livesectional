@@ -16,6 +16,7 @@ import utils
 import sysinfo
 import appinfo
 
+import update_airports
 import update_leds
 # import update_oled
 
@@ -42,16 +43,26 @@ if __name__ == '__main__':
     debugging.info('Base Directory :' +
             conf.get_string("filenames", "basedir"))
 
-    LEDmgmt = update_leds.updateLEDs(conf)
 
     # Start Threads
+
+    # Load Airports
+    debugging.info('Starting Airport data management thread')
+    airport_database = update_airports.AirportDB(conf)
+    airport_database.load_airport_db()
+    airport_thread = threading.Thread(target=airport_database.update_loop, args=(conf,))
+
+    # Start updating LEDs
     debugging.info('Starting LED updating thread')
-    thread = threading.Thread(target=LEDmgmt.updateLedLoop(), args=(conf,))
-    thread.start()
+    LEDmgmt = update_leds.updateLEDs(conf, airport_database)
+    # led_thread = threading.Thread(target=LEDmgmt.update_loop, args=(conf,))
 
     debugging.info('Starting OLED updating thread')
-    # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop(), args=(conf,))
+    # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop, args=(conf,))
     # threadOLEDs.start()
+
+    airport_thread.start()
+    led_thread.start()
 
     while(True):
         print("In Main Loop")

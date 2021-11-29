@@ -33,3 +33,6 @@ Werkzeug==2.0.2                          #
 wget                                #
 psutil>=5.8.0
 pytz
+metar
+gzip
+urllib2

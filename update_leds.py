@@ -102,7 +102,7 @@ import utils
 
 class updateLEDs:
 
-    def __init__(self, conf):
+    def __init__(self, conf, airport_database):
         # Setup rotating logfile with 3 rotations, each with a maximum filesize of 1MB:
         self.version = admin.version  # Software version
         # self.loglevel = config.loglevel
@@ -637,7 +637,8 @@ class updateLEDs:
     def load_airports(self):
         # read airports file - read each time weather is updated in case a change to "airports" file was made while script was running.
         try:
-            with open('/NeoSectional/data/airports') as f:
+            airport_file = self.conf.get_string("filenames", "airports_file")
+            with open(airport_file) as f:
                 self.airports = f.readlines()
         except IOError as error:
             debugging.error('Airports file could not be loaded.')
@@ -1146,6 +1147,10 @@ class updateLEDs:
                     time.sleep(self.wait_time)
 
 
+    def calculate_wx_conditions(self, ceiling, visibility):
+        wx_conditions = "VFR"
+        return wx_conditions
+
     def update_metar_data(self,  stationiddict, windsdict, wxstringdict):
         # depending on what data is to be displayed, either use an URL for METARs and TAFs or read file from drive (pass).
         # Check to see if the script should display TAF data (0), METAR data (1) or MOS data (2)
@@ -1527,7 +1532,7 @@ class updateLEDs:
         # debugging.info( 'Switch in position ' )
 
 
-    def updateLedLoop(self):
+    def update_loop(self, conf):
         ##########################
         # Start of executed code #
         ##########################
@@ -1637,67 +1642,67 @@ class updateLEDs:
                 # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
                 # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
                 if GPIO.input(0) == False and self.toggle_sw != 0:
-                    self.update_gpio_flags(0, self.conf.get_int("rotaryswitch", "time_sw0"), 
+                    self.update_gpio_flags(0, self.conf.get_int("rotaryswitch", "time_sw0"),
                             self.conf.get_int("rotaryswitch", "data_sw0"))
                     break
 
                 elif GPIO.input(5) == False and self.toggle_sw != 1:
-                    self.update_gpio_flags(1, self.conf.get_int("rotaryswitch", "time_sw1"), 
+                    self.update_gpio_flags(1, self.conf.get_int("rotaryswitch", "time_sw1"),
                         self.conf.get_int("rotaryswitch", "data_sw1"))
                     break
 
                 elif GPIO.input(6) == False and self.toggle_sw != 2:
-                    self.update_gpio_flags(2, self.conf.get_int("rotaryswitch", "time_sw2"), 
+                    self.update_gpio_flags(2, self.conf.get_int("rotaryswitch", "time_sw2"),
                         self.conf.get_int("rotaryswitch", "data_sw2"))
                     break
 
                 elif GPIO.input(13) == False and self.toggle_sw != 3:
-                    self.update_gpio_flags(3, self.conf.get_int("rotaryswitch", "time_sw3"), 
+                    self.update_gpio_flags(3, self.conf.get_int("rotaryswitch", "time_sw3"),
                         self.conf.get_int("rotaryswitch", "data_sw3"))
                     break
 
                 elif GPIO.input(19) == False and self.toggle_sw != 4:
-                    self.update_gpio_flags(4, self.conf.get_int("rotaryswitch", "time_sw4"), 
+                    self.update_gpio_flags(4, self.conf.get_int("rotaryswitch", "time_sw4"),
                         self.conf.get_int("rotaryswitch", "data_sw4"))
                     break
 
                 elif GPIO.input(26) == False and self.toggle_sw != 5:
-                    self.update_gpio_flags(5, self.conf.get_int("rotaryswitch", "time_sw5"), 
+                    self.update_gpio_flags(5, self.conf.get_int("rotaryswitch", "time_sw5"),
                         self.conf.get_int("rotaryswitch", "data_sw5"))
                     break
 
                 elif GPIO.input(21) == False and self.toggle_sw != 6:
-                    self.update_gpio_flags(6, self.conf.get_int("rotaryswitch", "time_sw6"), 
+                    self.update_gpio_flags(6, self.conf.get_int("rotaryswitch", "time_sw6"),
                         self.conf.get_int("rotaryswitch", "data_sw6"))
                     break
 
                 elif GPIO.input(20) == False and self.toggle_sw != 7:
-                    self.update_gpio_flags(7, self.conf.get_int("rotaryswitch", "time_sw7"), 
+                    self.update_gpio_flags(7, self.conf.get_int("rotaryswitch", "time_sw7"),
                         self.conf.get_int("rotaryswitch", "data_sw7"))
                     break
 
                 elif GPIO.input(16) == False and self.toggle_sw != 8:
-                    self.update_gpio_flags(8, self.conf.get_int("rotaryswitch", "time_sw8"), 
+                    self.update_gpio_flags(8, self.conf.get_int("rotaryswitch", "time_sw8"),
                         self.conf.get_int("rotaryswitch", "data_sw8"))
                     break
 
                 elif GPIO.input(12) == False and self.toggle_sw != 9:
-                    self.update_gpio_flags(9, self.conf.get_int("rotaryswitch", "time_sw9"), 
+                    self.update_gpio_flags(9, self.conf.get_int("rotaryswitch", "time_sw9"),
                         self.conf.get_int("rotaryswitch", "data_sw9"))
                     break
 
                 elif GPIO.input(1) == False and self.toggle_sw != 10:
-                    self.update_gpio_flags(10, self.conf.get_int("rotaryswitch", "time_sw10"), 
+                    self.update_gpio_flags(10, self.conf.get_int("rotaryswitch", "time_sw10"),
                         self.conf.get_int("rotaryswitch", "data_sw10"))
                     break
 
                 elif GPIO.input(7) == False and self.toggle_sw != 11:
-                    self.update_gpio_flags(11, self.conf.get_int("rotaryswitch", "time_sw11"), 
+                    self.update_gpio_flags(11, self.conf.get_int("rotaryswitch", "time_sw11"),
                         self.conf.get_int("rotaryswitch", "data_sw11"))
                     break
 
                 elif self.toggle_sw == -1:  # used if no Rotary Switch is installed
-                    self.update_gpio_flags(12, self.conf.get_int("rotaryswitch", "time_sw0"), 
+                    self.update_gpio_flags(12, self.conf.get_int("rotaryswitch", "time_sw0"),
                         self.conf.get_int("rotaryswitch", "data_sw0"))
                     break
 

@@ -55,7 +55,7 @@ if __name__ == '__main__':
     # Start updating LEDs
     debugging.info('Starting LED updating thread')
     LEDmgmt = update_leds.updateLEDs(conf, airport_database)
-    # led_thread = threading.Thread(target=LEDmgmt.update_loop, args=(conf,))
+    led_thread = threading.Thread(target=LEDmgmt.update_loop, args=(conf,))
 
     debugging.info('Starting OLED updating thread')
     # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop, args=(conf,))
@@ -66,4 +66,4 @@ if __name__ == '__main__':
 
     while(True):
         print("In Main Loop")
-        time.sleep(30)
+        time.sleep(300)

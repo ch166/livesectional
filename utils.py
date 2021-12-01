@@ -9,8 +9,12 @@ import requests
 import wget
 import debugging
 from datetime import datetime
+from dateutil.parser import parse as parsedate
+
+import urllib
 import pytz
 import conf
+import gzip
 
 def is_connected():
     ''' Check to see if we can reach an endpoint on the Internet '''
@@ -113,6 +117,45 @@ def download_file(url, filename):
     """ Download a file """
     wget.download(url, filename)
     debugging.info('Downloaded ' + filename + ' from neoupdate')
+
+def download_newer_gz_file(url, filename):
+    """
+    Download a gzip compressed file from URL if the 
+    last-modified header is newer than our timestamp
+    """
+
+    # Do a HTTP GET to pull headers so we can check timestamps
+    r = requests.head(url)
+
+    # Technically this isn't the same timestamp as our filename 
+    # there is a race condition where the server updates the 
+    # file as we're in the middle of downloading it. When we 
+    # finish downloading we then save the file. That new local 
+    # file has a time stamp based on the file save time, which 
+    # could happen after the server side file is updated. Our 
+    # next update check will be wrong. We will remain
+    # wrong until the server side file is updated.
+    url_time = r.headers['last-modified']
+    url_date = parsedate(url_time)
+    file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+    if url_date.timestamp() > file_time.timestamp() :
+        # Download archive
+        try:
+            # Read the file inside the .gz archive located at url
+            with urllib.request.urlopen(url) as response:
+                with gzip.GzipFile(fileobj=response) as uncompressed:
+                    file_content = uncompressed.read()
+                # write to file in binary mode 'wb'
+            with open(filename, 'wb') as f:
+                f.write(file_content)
+                f.close()
+                return 0
+
+        except Exception as e:
+            debugging.error(e)
+            return 1
+    return 3
+
 
   
 def current_time_utc(conf):

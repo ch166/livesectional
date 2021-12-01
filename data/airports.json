@@ -1,0 +1,67 @@
+{
+    "airports": [
+        {
+            "active": "yes",
+            "icao": "kbfi",
+            "led": "0",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "krnt",
+            "led": "1",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "ksea",
+            "led": "2",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "kpwt",
+            "led": "3",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "ktiw",
+            "led": "4",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "kolm",
+            "led": "5",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "kcls",
+            "led": "6",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "kkls",
+            "led": "7",
+            "purpose": "all",
+            "wxsrc": "adds"
+        },
+        {
+            "active": "yes",
+            "icao": "kbvs",
+            "led": "8",
+            "purpose": "all",
+            "wxsrc": "adds"
+        }
+    ]
+}

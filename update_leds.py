@@ -442,7 +442,7 @@ class updateLEDs:
 
     # Functions
 
-    def turnoff(self, strip):
+    def turnoff(self):
         for i in range(self.strip.numPixels()):
             self.strip.setPixelColor(i, Color(0, 0, 0))
         self.strip.show()
@@ -656,9 +656,9 @@ class updateLEDs:
         if self.usewipes == 1 and self.toggle_sw != -1:
             # Get latest ip's to display in editors
             # FIXME: Move wipes-v4 to be an included module, call here
-            exec(compile(open("/NeoSectional/wipes-v4.py", "rb").read(),
-                         "/NeoSectional/wipes-v4.py", 'exec'))
-            debugging.info("Calling wipes script")
+            # exec(compile(open("/NeoSectional/wipes-v4.py", "rb").read(),
+            #              "/NeoSectional/wipes-v4.py", 'exec'))
+            # debugging.info("Calling wipes script")
         return True
 
 
@@ -914,8 +914,13 @@ class updateLEDs:
     def wx_display_loop(self, stationiddict, windsdict, wxstringdict):
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
         print("\nWX Display")
+
+        color = 0
+        normcolor = 0
+        xcolor = 0
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
         # cycle through the strip 6 times, setting the color then displaying to create various effects.
+
         for cycle_num in self.cycles:
                     print(" " + str(cycle_num), end='')
                     sys.stdout.flush()
@@ -1055,7 +1060,7 @@ class updateLEDs:
                             if (int(airportwinds) >= self.max_wind_speed and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
                                 color = self.color_black
                                 # debug
-                                print(("HIGH WINDS-> " + airportcode +
+                                debugging.debug(("HIGH WINDS-> " + airportcode +
                                        " Winds = " + str(airportwinds) + " "))
 
                         # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
@@ -1116,24 +1121,22 @@ class updateLEDs:
                                 color = self.color_homeport
 
                         # pass pin, color and format. Check and change color code for RGB or GRB format
-                        self.xcolor = self.rgbtogrb(i, color, self.rgb_grb)
+                        xcolor = self.rgbtogrb(i, color, self.rgb_grb)
 
                         if i == self.homeport_pin and self.homeport:  # if this is the home airport, don't dim out the brightness
-                            self.norm_color = self.xcolor
-                            self.xcolor = Color(
-                                self.norm_color[0], self.norm_color[1], self.norm_color[2])
+                            norm_color = xcolor
+                            xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
                         elif self.homeport:  # if this is not the home airport, dim out the brightness
-                            self.dim_color = self.dim(
-                                self.xcolor, self.dim_value)
-                            self.xcolor = Color(int(self.dim_color[0]), int(
-                                self.dim_color[1]), int(self.dim_color[2]))
+                            dim_color = self.dim(xcolor, self.dim_value)
+                            xcolor = Color(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
                         else:  # if home airport feature is disabled, then don't dim out any airports brightness
-                            self.norm_color = self.xcolor
-                            self.xcolor = Color(
-                                self.norm_color[0], self.norm_color[1], self.norm_color[2])
+                            norm_color = xcolor
+                            xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
 
                         # set color to display on a specific LED for the current cycle_num cycle.
-                        self.strip.setPixelColor(i, self.xcolor)
+                        if i == 1 or i == 3:
+                                debugging.info("Airport:" + airportcode + " Flight Category: " + flightcategory + " Color: " + str(color)  + " xColor: " + str(xcolor) + " LED(i) " + str(i))
+                        self.strip.setPixelColor(i, xcolor)
                         i = i + 1  # set next LED pin in strip
 
                     print("/LED.", end='')
@@ -1142,9 +1145,9 @@ class updateLEDs:
                     self.strip.show()
                     print(".", end='')
                     # cycle_wait time is a user defined value
-                    self.wait_time = self.cycle_wait[cycle_num]
+                    wait_time = self.cycle_wait[cycle_num]
                     # pause between cycles. pauses are setup in user definitions.
-                    time.sleep(self.wait_time)
+                    time.sleep(wait_time)
 
 
     def calculate_wx_conditions(self, ceiling, visibility):
@@ -1565,7 +1568,7 @@ class updateLEDs:
 
             if self.turnoffrefresh == 0:
                 # turn off led before repainting them. If Rainbow stays on, it has hung up before this.
-                self.turnoff(self.strip)
+                self.turnoff()
 
             if self.check_heat_map(stationiddict, windsdict, wxstringdict) == False:
                 break
@@ -1607,7 +1610,7 @@ class updateLEDs:
                         # Escape codes to render Blue text on screen
                         sys.stdout.write("\n\033[1;34;40m Sleeping-  ")
                         sys.stdout.flush()
-                        self.turnoff(self.strip)
+                        self.turnoff()
                         debugging.info("Map Going to Sleep")
 
                         while self.time_in_range(self.timeoff, self.end_time, datetime.now().time()):

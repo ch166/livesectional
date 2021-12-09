@@ -10,6 +10,7 @@ import wget
 import debugging
 from datetime import datetime
 from dateutil.parser import parse as parsedate
+from datetime import timedelta
 
 import urllib
 import pytz
@@ -120,19 +121,19 @@ def download_file(url, filename):
 
 def download_newer_gz_file(url, filename):
     """
-    Download a gzip compressed file from URL if the 
+    Download a gzip compressed file from URL if the
     last-modified header is newer than our timestamp
     """
 
     # Do a HTTP GET to pull headers so we can check timestamps
     r = requests.head(url)
 
-    # Technically this isn't the same timestamp as our filename 
-    # there is a race condition where the server updates the 
-    # file as we're in the middle of downloading it. When we 
-    # finish downloading we then save the file. That new local 
-    # file has a time stamp based on the file save time, which 
-    # could happen after the server side file is updated. Our 
+    # Technically this isn't the same timestamp as our filename
+    # there is a race condition where the server updates the
+    # file as we're in the middle of downloading it. When we
+    # finish downloading we then save the file. That new local
+    # file has a time stamp based on the file save time, which
+    # could happen after the server side file is updated. Our
     # next update check will be wrong. We will remain
     # wrong until the server side file is updated.
     url_time = r.headers['last-modified']
@@ -157,29 +158,91 @@ def download_newer_gz_file(url, filename):
     return 3
 
 
-  
+# See if a time falls within a range
+def time_in_range(start, end, x):
+    if start <= end:
+        return start <= x <= end
+    else:
+        return start <= x or x <= end
+
+# Compare current time plus offset to TAF's time period and return difference
+def comp_time(zulu_time, taf_time):
+    # global current_zulu
+    datetimeFormat = ('%Y-%m-%dT%H:%M:%SZ')
+    date1 = taf_time
+    date2 = zulu_time
+    diff = datetime.strptime(date1, datetimeFormat) - \
+    datetime.strptime(date2, datetimeFormat)
+    diff_minutes = int(diff.seconds/60)
+    diff_hours = int(diff_minutes/60)
+    return diff.seconds, diff_minutes, diff_hours, diff.days
+
+
+def reboot_if_time(conf):
+    # Check time and reboot machine if time equals 
+    # time_reboot and if use_reboot along with autorun are both set to 1
+    use_reboot = conf.get_bool("default", "nightly_reboot")
+    use_autorun = conf.get_bool("default", "autorun")
+    reboot_time = conf.get_string("default", "nightly_reboot_hr")
+    if use_reboot and use_autorun:
+        now = datetime.now()
+        rb_time = now.strftime("%H:%M")
+        debugging.info("**Current Time=" + str(rb_time) +
+            " - **Reboot Time=" + str(reboot_time))
+        print("**Current Time=" + str(rb_time) +
+            " - **Reboot Time=" + str(reboot_time))  # debug
+
+        if rb_time == self.time_reboot:
+            debugging.info("Rebooting at " + self.time_reboot)
+            time.sleep(1)
+            # FIXME: This should use a more secure mechanism,
+            # and have some sanity checks - that we aren't in a reboot loop.
+            # Also should handle daylight savings time changes (avoid double reboot)
+            # If using sudo - need to make sure that install scripts
+            # set sudo perms for this command only
+            os.system("sudo reboot now")
+
+
+def time_format_taf(raw_time)
+    """ Convert raw time into TAF formatted printable string """
+    return raw_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def time_format(raw_time)
+    """ Convert raw time into standardized printable string """
+    return raw_time.strftime("%H:%M:%S - %b %d, %Y")
+
+
 def current_time_utc(conf):
-    """ Generate standard string format for current itme """
+    """ Get time in UTC """
     UTC = pytz.utc
     curr_time = datetime.now(UTC)
-    return curr_time.strftime("%H:%M:%S - %b %d, %Y")
+    return curr_time
 
 
 def current_time(conf):
-    """ Generate standard string format for current itme """
+    """ Get time Now """
     TMZONE = pytz.timezone(conf.get_string("default", "timezone"))
     curr_time = datetime.now(TMZONE)
-    return curr_time.strftime("%H:%M:%S - %b %d, %Y")
+    return curr_time
+
+
+def current_time_taf_offset(conf):
+    """ Get time for TAF period selected (UTC) """
+    UTC = pytz.utc
+    offset = conf.get_int("rotaryswitch", "hour_to_display")
+    curr_time = datetime.now(UTC) +  timedelta(hours=offset)
+    return curr_time
 
 
 def set_timezone(conf, newtimezone):
     """ Set timezone configuration string """
-    # Doo stuff to set the timezone 
+    # Doo stuff to set the timezone
     conf.set_string("default", "timezone")
     conf.save_config()
 
 
-def get_timezone(conf): 
+def get_timezone(conf):
     """ Return timezone configuration """
     return conf.get_string("default", "timezone")
 

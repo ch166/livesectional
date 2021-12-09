@@ -488,25 +488,6 @@ class updateLEDs:
             data = [grn, red, blu]
         return data
 
-    # Compare current time plus offset to TAF's time period and return difference
-    def comp_time(self, taf_time):
-        # global current_zulu
-        datetimeFormat = ('%Y-%m-%dT%H:%M:%SZ')
-        date1 = taf_time
-        date2 = self.current_zulu
-        diff = datetime.strptime(date1, datetimeFormat) - \
-            datetime.strptime(date2, datetimeFormat)
-        diff_minutes = int(diff.seconds/60)
-        diff_hours = int(diff_minutes/60)
-        return diff.seconds, diff_minutes, diff_hours, diff.days
-
-    # See if a time falls within a range
-    def time_in_range(self, start, end, x):
-        if start <= end:
-            return start <= x <= end
-        else:
-            return start <= x or x <= end
-
     # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
     def set_data(self):
         # global hour_dict
@@ -653,7 +634,7 @@ class updateLEDs:
     def wipe_displays(self):
         # Call script and execute desired wipe(s) while data is being updated.
         # FIXME to make this imported
-        if self.usewipes == 1 and self.toggle_sw != -1:
+        # if self.usewipes == 1 and self.toggle_sw != -1:
             # Get latest ip's to display in editors
             # FIXME: Move wipes-v4 to be an included module, call here
             # exec(compile(open("/NeoSectional/wipes-v4.py", "rb").read(),
@@ -1195,7 +1176,7 @@ class updateLEDs:
             self.root = ET.fromstring(content)
 
 
-    def reboot_if_time(self):
+    def moved_to_utils_reboot_if_time(self):
         # Check time and reboot machine if time equals time_reboot and if use_reboot along with autorun are both set to 1
         if self.use_reboot == 1 and self.autorun == 1:
             now = datetime.now()
@@ -1211,7 +1192,7 @@ class updateLEDs:
                 os.system("sudo reboot now")
 
 
-    def decode_taf_data(self, stationiddict, windsdict, wxstringdict):
+    def moved_to_update_airport_decode_taf_data(self, stationiddict, windsdict, wxstringdict):
         # TAF decode routine
         # 0 equals display TAF. This routine will decode the TAF, pick the appropriate time frame to display.
         if self.metar_taf_mos == 0:
@@ -1267,9 +1248,9 @@ class updateLEDs:
                     # test if current time plus offset falls within taf's timeframe
                     if taf_time_from <= self.current_zulu <= taf_time_to:
                         debugging.info('FROM - ' + taf_time_from)
-                        debugging.info(self.comp_time(taf_time_from))
+                        debugging.info(utils.comp_time(self.zulu_time, taf_time_from))
                         debugging.info('TO - ' + taf_time_to)
-                        debugging.info(self.comp_time(taf_time_to))
+                        debugging.info(utils.comp_time(self.zulu_time, taf_time_to))
 
                         # There can be multiple layers of clouds in each taf, but they are always listed lowest AGL first.
                         # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set $
@@ -1548,9 +1529,9 @@ class updateLEDs:
             # Time calculations, dependent on 'hour_to_display' offset. this determines how far in the future the TAF data should be.
             # This time is recalculated everytime the FAA data gets updated
             # Get current time plus Offset
-            zulu = datetime.utcnow() + timedelta(hours=self.hour_to_display)
+            zulu = utils.current_time_taf_offset(conf)
             # Format time to match whats reported in TAF. ie. 2020-03-24T18:21:54Z
-            self.current_zulu = zulu.strftime('%Y-%m-%dT%H:%M:%SZ')
+            self.current_zulu = utils.time_format_taf(utils.current_time(conf))
             # Zulu time formated for just the hour, to compare to MOS data
             self.current_hr_zulu = zulu.strftime('%H')
 
@@ -1564,7 +1545,7 @@ class updateLEDs:
             if self.load_airports() == False:
                 break
 
-            self.update_metar_data( stationiddict, windsdict, wxstringdict)
+            self.update_metar_data(stationiddict, windsdict, wxstringdict)
 
             if self.turnoffrefresh == 0:
                 # turn off led before repainting them. If Rainbow stays on, it has hung up before this.
@@ -1573,7 +1554,7 @@ class updateLEDs:
             if self.check_heat_map(stationiddict, windsdict, wxstringdict) == False:
                 break
 
-            self.decode_taf_data( stationiddict, windsdict, wxstringdict)
+            self.decode_taf_data(stationiddict, windsdict, wxstringdict, self.metar_taf_mos, self.root)
 
             # Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
             # Start the timer. When timer hits user-defined value, go back to outer loop to update FAA Weather.
@@ -1584,7 +1565,7 @@ class updateLEDs:
                 # This while statement sets an expiry time for when the next section must complete.
                 loopcount = loopcount + 1
 
-                self.reboot_if_time()
+                utils.reboot_if_time(self.conf)
 
                 # Routine to restart this script if config.py is changed while this script is running.
                 for f, mtime in self.WATCHED_FILES_MTIMES:
@@ -1599,7 +1580,7 @@ class updateLEDs:
                 # check to see if the user wants to use a timer.
                 if self.conf.get_bool("schedule", "usetimer"):
 
-                    if self.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
+                    if utils.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
 
                         # If temporary lights-on period from refresh button has expired, restore the original light schedule
                         if self.temp_lights_on == 1:
@@ -1613,7 +1594,7 @@ class updateLEDs:
                         self.turnoff()
                         debugging.info("Map Going to Sleep")
 
-                        while self.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
+                        while utils.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
                             sys.stdout.write("z")
                             sys.stdout.flush()
                             time.sleep(1)

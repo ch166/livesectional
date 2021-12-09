@@ -240,8 +240,8 @@ def touchscr():
 def open_console():
     """Flask Route: /open_console - Launching Console in discrete window"""
     console_ips = []
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
     with open("/NeoSectional/data/console_ip.txt", "r") as file:
         for line in file.readlines()[-1:]:
             line = line.rstrip()
@@ -264,8 +264,8 @@ def open_console():
 @app.route('/stream_log', methods=["GET", "POST"])
 def stream_log():
     """Flask Route: /stream_log - Watch logs live"""
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
@@ -329,8 +329,8 @@ def update_info():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
     with open(conf.get_string("filenames", "release_notes"), "r") as file:
         content = file.readlines()
         debugging.dprint(content)
@@ -368,8 +368,8 @@ def update_page():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
     return render_template("update_page.html",
                            title='Software Update Information-'+version,
                            num=5,
@@ -392,8 +392,8 @@ def led_map():
     global version
     global current_timezone
 
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
@@ -608,8 +608,8 @@ def tzset():
     global current_timezone
 
     ipadd = sysdata.local_ip()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
     loc_currtzinfolist = []
 
     if request.method == "POST":
@@ -711,8 +711,8 @@ def index():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     templateData = {
             'title': 'LiveSectional Home-'+version,
@@ -781,8 +781,8 @@ def hmedit():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     readhmdata(conf.get_string("filenames", "heatmap_file"))
 
@@ -852,8 +852,8 @@ def importhm():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     if 'file' not in request.files:
         flash('No File Selected')
@@ -902,8 +902,8 @@ def apedit():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     readairports(conf.get_string("filenames",
                                          "airports_file"))
@@ -936,8 +936,8 @@ def numap():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     if request.method == "POST":
         loc_numap = int(request.form["numofap"])
@@ -1028,8 +1028,8 @@ def ledonoff():
     global num
 
     ipadd = sysdata.local_ip()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     if request.method == "POST":
 
@@ -1127,8 +1127,8 @@ def importap():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     if 'file' not in request.files:
         flash('No File Selected')
@@ -1175,8 +1175,8 @@ def confedit():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     # debugging.dprint(ipadd)  # debug
     debugging.dprint(settings)
@@ -1365,8 +1365,8 @@ def confeditmobile():
     ipadd = sysdata.local_ip()
     current_timezone = conf.get_string("default", "timezone")
     settings = conf.gen_settings_dict()
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     debugging.dprint(ipadd)  # debug
 
@@ -1996,8 +1996,8 @@ if __name__ == '__main__':
     debugging.info('Airports File  :' +
                    conf.get_string("filenames", "airports_file"))
 
-    loc_timestr = utils.current_time(conf)
-    loc_timestr_utc = utils.current_time_utc(conf)
+    loc_timestr = utils.time_format(utils.current_time(conf))
+    loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
 
     # Check to see if an newer version of the software is available,
     # and update if user so chooses

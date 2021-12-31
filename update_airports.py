@@ -6,6 +6,31 @@ Created on Sat Jun 15 08:01:44 2019
 @author: Chris Higgins
 """
 
+# This is the collection and aggregation of all functions that manage Airports and airport weather
+# products. It's initially focused on processing METARs, but will end up including all of the functions
+# related to TAFs and MOS data.
+#
+# It is comprised of an AirportDB class - which provides collections of Airport objects
+# - List of airports associated with LED Strings (airports, null, legend etc)
+# - List of airports associated with OLED displays
+# - List of airports associated with HDMI displays (future)
+# - List of airports associated with Web Pages (future)
+#
+# Each list is comprised of an Airport object
+# The airport object stores all of the interesting data for an airport
+# - Airport ICAO code
+# - Weather Source ( adds , metar URL, future options)
+# - Airport Code to use for WX data (future - for airports without active ASOS/AWOS reporting)
+# - Current conditions
+# - etc.
+
+# The update_loop function is intended to be called in a discrete thread, so that it can run
+# forever, checking for updated weather data - and processing that data to keep the Airport
+# objects up to date with current conditions. 
+# This should be the only place that is creating and writing to airport objects.
+# - The airport DB and airport objects should be effectively readonly in all other threads
+
+
 import os
 import time
 from datetime import datetime
@@ -30,7 +55,6 @@ from dateutil.parser import parse as parsedate
 
 # XML Handling
 import xml.etree.ElementTree as ET
-
 
 
 class WxConditions(Enum):
@@ -123,17 +147,42 @@ class Airport:
 
     def get_airport_wx_xml(self):
         """ Pull Airport XML data from ADDS XML """
-        
+
+    def set_led_index(self, led_index):
+        """ Update LED ID """
+        self.led_index = led_index
+
+    def set_wxsrc(self, wxsrc):
+        """ Set Weather source """
+        self.wxsrc = wxsrc
+
+    def set_active(self):
+        """ Mark Airport as Active """
+        self.active_led = True
+
+    def set_inactive(self):
+        """ Mark Airport as Inactive """
+        self.active_led = False
+
+    def get_wx_category_str(self):
+        """ Return string form of airport weather category """
+        return self.wx_category_str
+
+    def get_wx_windspeed(self):
+        """ Return reported windspeed """
+        return self.wx_windspeed
 
     def get_adds_metar(self, metar_dict):
         """ Try get Fresh METAR data from local Aviation Digital Data Service (ADDS) download """
-        self.set_metar(metar_dict[self.iaco]['raw_text'])
-        self.wx_visibility = metar_dict[self.icao]['visibility_statute_mi']
+        debugging.info("Updating WX from adds for " + self.icao)
+        self.set_metar(metar_dict[self.icao]['raw_text'])
+        self.wx_visibility = metar_dict[self.icao]['visibility']
         self.wx_ceiling = metar_dict[self.icao]['ceiling']
         self.wx_windspeed = metar_dict[self.icao]['wind_speed_kt']
         self.wx_windgust = metar_dict[self.icao]['wind_gust_kt']
         self.wx_category = metar_dict[self.icao]['flight_category']
         self.wx_category_str = metar_dict[self.icao]['flight_category']
+        self.calculate_wx_from_metar()
         return False
 
     def get_usa_metar(self):
@@ -255,8 +304,9 @@ class Airport:
         # Should have Good METAR data in self.metar
         # Need to Figure out Airport State
         try:
-            if not self.observation:
+            if self.observation is None:
                 debugging.warn("Observation data for " + self.icao + " Missing")
+                self.observation = Metar.Metar(self.metar)
             else:
                 self.observation = Metar.Metar(self.metar)
         except Metar.ParserError as exc:
@@ -272,6 +322,7 @@ class Airport:
             return
 
         if not self.observation:
+            debugging.warn("Have no observations for " + self.icao )
             return False
 
         if self.observation.wind_gust:
@@ -656,16 +707,19 @@ class AirportDB:
         # Active Airport Information
         # All lists use lowercase key information to identify airports
         # Full list of interesting Airports loaded from JSON data
-        self.airport_json_list = []
+        self.airport_master_dict = {}
+        self.airport_json_dict = {}
+
+        self.airport_master_list = []
         
         # Subset of airport_json_list that is active for live HTML page
-        self.airport_web_list = []
+        self.airport_web_dict = {}
 
         # Subset of airport_json_list that is active for LEDs
-        self.airport_led_list = []
+        self.airport_led_dict = {}
 
         self.tafs_xml_data = []
-        self.metar_xml_dict = []
+        self.metar_xml_dict = {}
         self.metar_xml_list = []
 
         self.metar_xml_url = conf.get_string("urls", "metar_xml_gz")
@@ -677,44 +731,18 @@ class AirportDB:
         utils.download_newer_gz_file(self.metar_xml_url, self.metar_file)
         # FIXME: Not sure if we want to try load/save on init
         self.load_airport_db()
-        self.update_airport_data()
         self.update_airport_metar_xml()
         self.save_airport_db()
         debugging.info("AirportDB : init complete")
 
 
-    def update_airport_data(self):
-        """ Update airport data """
-        # This function runs through the current list of JSON listed airports,
-        # and creates updated internal subset lists of Airports
-
-        # Use the JSON 'purpose' value to update the airport lists
-        # Purpose values:
-        #  led : Airport appears in LED list
-        #  web : Airport appears on live WEB page
-        #  all : Airport appears on all lists
-
-        debugging.info("Updating active airport lists")
-        for i in self.airport_json_list['airports']:
-            airport_icao = i['icao']
-            airport_led = i['led']
-            airport_wxsrc = i['wxsrc']
-            airport_active = i['active']
-            airport_index = i['led']
-            new_airport = Airport(airport_icao,\
-                airport_icao,\
-                airport_wxsrc,\
-                airport_active,\
-                airport_index,\
-                conf)
-            if i['purpose'] == "led" or i['purpose'] == "all":
-                self.airport_led_list.append(new_airport)
-            if i['purpose'] == "web" or i['purpose'] == "all":
-                self.airport_web_list.append(new_airport)
+    def get_airport_dict_led(self):
+        """ Return Airport LED dict """
+        return self.airport_led_dict
 
     def update_airport_wx(self):
         """ Update airport WX data for each known Airport """
-        for arpt in self.airport_json_list['airports']:
+        for icao, arpt in self.airport_master_dict.items():
             debugging.info("Updating WX for " + arpt.icao)
             arpt.update_wx(self.metar_xml_dict)
 
@@ -725,13 +753,70 @@ class AirportDB:
         airport_json = self.conf.get_string("filenames", "airports_json")
         # Opening JSON file
         f = open(airport_json)
- 
-        # returns JSON object as
-        # a dictionary
-        self.airport_json_list = json.load(f)
- 
+        # returns JSON object as a dictionary
+        new_airport_json_dict = json.load(f)
         # Closing file
         f.close()
+
+        # Need to merge this data set into the existing data set
+        # On initial boot ; the saved data set could be empty
+        # - This will need to create all the objects
+        # On update ; some records will already exist, but may have updates
+        for json_airport in new_airport_json_dict['airports']:
+            debugging.info("Merging Airport List")
+            #print(json_airport, flush = True)
+            json_airport_icao = json_airport['icao']
+            json_airport_icao = json_airport_icao.lower()
+            if json_airport_icao == 'null':
+                # Null entry in config file
+                # Need to add entry into master airport list and into LED list
+                # FIXME: Do something useful
+                self.airport_master_list.append(json_airport)
+                continue
+            if json_airport_icao == 'lgnd':
+                # Legend entry in config file
+                # Need to add entry into master airport list and into LED list
+                # FIXME: Do something useful
+                self.airport_master_list.append(json_airport)
+                continue
+            #print(json_airport_icao, flush = True)
+            if json_airport_icao in self.airport_master_dict:
+                #  Airport exists already - need to update rather than  create new
+                # This will need to handle changes in LED and STATE for airports
+                # FIXME: Need to add handling for changed purpose - remove / delete old object
+                # perhaps change the sequence of this to do an optional create first, and then
+                # do all the insertions every time regardless.
+                print("Updating existing airport on list")
+                print(self.airport_master_dict[json_airport_icao], flush = True)
+                self.airport_master_dict[json_airport_icao].set_led_index(json_airport['led'])
+                self.airport_master_dict[json_airport_icao].set_wxsrc(json_airport['wxsrc'])
+                if json_airport['active']:
+                    self.airport_master_dict[json_airport_icao].set_active()
+                else:
+                    self.airport_master_dict[json_airport_icao].set_inactive()
+                break
+            else:
+                # New Airport in config - need to create the airport object
+                print("Adding new airport to list :" + json_airport_icao)
+                self.airport_master_list.append(json_airport)
+                airport_icao = json_airport['icao']
+                airport_led = json_airport['led']
+                airport_wxsrc = json_airport['wxsrc']
+                airport_active = json_airport['active']
+                airport_index = json_airport['led']
+                new_airport_obj = Airport(airport_icao,\
+                    airport_icao,\
+                    airport_wxsrc,\
+                    airport_active,\
+                    airport_index,\
+                    self.conf)
+                self.airport_master_dict[airport_icao] = new_airport_obj
+                if json_airport['purpose'] == "led" or json_airport['purpose'] == "all":
+                    self.airport_led_dict[airport_icao] = new_airport_obj
+                if json_airport['purpose'] == "web" or json_airport['purpose'] == "all":
+                    self.airport_web_dict[airport_icao] = new_airport_obj
+        debugging.info("Airport Load and Merge complete")
+
 
 
     def save_airport_db(self):
@@ -746,9 +831,11 @@ class AirportDB:
 
         shutil.move(airport_json, airport_json_backup)
 
+        
+        json_save_data = {"airports": self.airport_master_list }
         # Opening JSON file
         with open(airport_json_new, 'w') as f:
-            json.dump(self.airport_json_list, f, sort_keys=True, indent=4)
+            json.dump(json_save_data, f, sort_keys=True, indent=4)
         #s FIXME:  Only if write was successful, then we should 
         #   mv airport_json_new over airport_json
         shutil.move(airport_json_new, airport_json)
@@ -767,57 +854,69 @@ class AirportDB:
         for metar_data in root.iter('METAR'):
             station_id = metar_data.find('station_id').text
             station_id = station_id.lower()
-            print(station_id + " : ", end='')
+            # print(":" + station_id + ": ", end='')
             metar_dict[station_id] = {}
             metar_dict[station_id]['station_id'] = station_id
             next_object = metar_data.find('raw_text')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['raw_text'] = next_object.text
             else:
                 metar_dict[station_id]['raw_text'] = "Missing"
             next_object = metar_data.find('observation_time')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['observation_time'] = next_object.text
             else:
                 metar_dict[station_id]['observation_time'] = "Missing"
             next_object = metar_data.find('wind_speed_kt')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['wind_speed_kt'] = int(next_object.text)
             else:
                 metar_dict[station_id]['wind_speed_kt'] = 0
             next_object = metar_data.find('metar_type')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['metar_type'] = next_object.text
             else:
                 metar_dict[station_id]['metar_type'] = "Missing"
             next_object = metar_data.find('wind_gust_kt')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['wind_gust_kt'] = int(next_object.text)
             else:
                 metar_dict[station_id]['wind_gust_kt'] = 0
             next_object = metar_data.find('sky_condition')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['sky_condition'] = next_object.text
             else:
                 metar_dict[station_id]['sky_condition'] = "Missing"
             next_object = metar_data.find('flight_category')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['flight_category'] = next_object.text
             else:
                 metar_dict[station_id]['flight_category'] = "Missing"
+            next_object = metar_data.find('ceiling')
+            if next_object is not None:
+                metar_dict[station_id]['ceiling'] = next_object.text
+            else:
+                metar_dict[station_id]['ceiling'] = "Missing"
             next_object = metar_data.find('visibility_statute_mi')
-            if next_object:
+            if next_object is not None:
                 metar_dict[station_id]['visibility'] = next_object.text
             else:
                 metar_dict[station_id]['visibility'] = "Missing"
         self.metar_xml_dict = metar_dict
         debugging.info("Updating Airport METAR from XML")
-        for airports in self.airport_json_list['airports']:
+        # print(self.airport_master_dict, flush=True)
+        for key in self.airport_master_dict:
+            airport = self.airport_master_dict[key]
             # update Airport METAR data to matching entry from metar_xml_dict
-            station_id = airports['icao']
-            airport_metar = metar_dict[station_id]['raw_text']
+            station_id = airport.icaocode()
+            if station_id in self.metar_xml_dict:
+                airport_metar = self.metar_xml_dict[key]['raw_text']
+            else:
+                print("Airport metar missing for :" + station_id + ": ", flush=True)
+                airport_metar = ""
             debugging.info(station_id + " : ")
             debugging.info(airport_metar)
+            airport.set_metar(airport_metar)
         #print(self.metar_xml_list)
             
 
@@ -837,6 +936,7 @@ class AirportDB:
 
         # aviation_weather_adds_timer = 5 * 60
         aviation_weather_adds_timer = 300
+        self.update_airport_wx()
 
         while(True):
             debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "s)")
@@ -855,8 +955,8 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
-            time.sleep(aviation_weather_adds_timer)
             self.update_airport_wx()
+            time.sleep(aviation_weather_adds_timer)
 
 
 

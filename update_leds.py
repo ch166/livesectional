@@ -1,17 +1,18 @@
 #!/usr/bin/python3
+"""
 # update_leds.py
 # Moved all of the airport specific data / metar analysis functions to update_airport.py
-# This module creates a class updateLEDs that is specifically focused around 
+# This module creates a class updateLEDs that is specifically focused around
 # managing a string of LEDs.
 #
-# All of the functions to initialise, manipulate, wipe, change the LEDs are 
+# All of the functions to initialise, manipulate, wipe, change the LEDs are
 # being included here.
 #
 # This also includes the wipe patterns from wipes-v4.py
 #
-# As this transition completes, all older code will be removed from here, so that the focus is only 
+# As this transition completes, all older code will be removed from here, so that the focus is only
 # on managing an LED strip
-# 
+#
 # metar-v4.py - by Mark Harris. Capable of displaying METAR data, TAF or MOS data. Using a rotary switch to select 1 of 12 positions
 #    Updated to run under Python 3.7
 #    Added Sleep Timer routine to turn-off map at night if desired.
@@ -37,6 +38,7 @@
 #    Fixed METAR Decode routine to handle FAA results that don't include flight_category and forecast fields.
 #    Added routine to check time and reboot each night if setting in admin.py are set accordingly.
 #    Fixed bug that missed lowest sky_condition altitude on METARs not reporting flight categories.
+"""
 
 # This version retains the features included in metar-v3.py, including hi-wind blinking and lightning when thunderstorms are reported.
 # However, this version adds representations for snow, rain, freezing rain, dust sand ash, and fog when reported in the metar.
@@ -87,11 +89,13 @@
 ###########################
 
 # Import needed libraries
-import urllib.request
-import urllib.error
-import urllib.parse
-import socket
-import xml.etree.ElementTree as ET
+
+## Removing URL related actions from update_leds
+# import urllib.request
+# import urllib.error
+# import urllib.parse
+# import socket
+# import xml.etree.ElementTree as ET
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -103,6 +107,8 @@ from os.path import getmtime
 import RPi.GPIO as GPIO
 import collections
 import re
+
+# Moved logging activities to debugging.py
 # import logging
 # import logzero #had to manually install logzero. https://logzero.readthedocs.io/en/latest/
 # from logzero import logger
@@ -114,6 +120,7 @@ import utils
 
 
 class updateLEDs:
+    """ Class to manage LSD strips """
 
     def __init__(self, conf, airport_database):
         # Setup rotating logfile with 3 rotations, each with a maximum filesize of 1MB:
@@ -456,15 +463,19 @@ class updateLEDs:
     # Functions
 
     def turnoff(self):
+        """ Set color to 0,0,0  - turning off LED """
         for i in range(self.strip.numPixels()):
             self.strip.setPixelColor(i, Color(0, 0, 0))
         self.strip.show()
 
-    # Reduces the brightness of the colors for every airport except for the "homeport_pin" designated airport, which remains at the brightness set by
-    # "bright_value" above in user setting. "data" is the airport color to display and "value" is the percentage of the brightness to be dimmed.
-    # For instance if full bright white (255,255,255) is provided and the desired dimming is 50%, then the color returned will be (128,128,128),
-    # or half as bright. The dim_value is set in the user defined area.
+
     def dim(self, data, value):
+        """ 
+        # Reduces the brightness of the colors for every airport except for the "homeport_pin" designated airport, which remains at the brightness set by
+        # "bright_value" above in user setting. "data" is the airport color to display and "value" is the percentage of the brightness to be dimmed.
+        # For instance if full bright white (255,255,255) is provided and the desired dimming is 50%, then the color returned will be (128,128,128),
+        # or half as bright. The dim_value is set in the user defined area. 
+        """
         red = data[0] - ((value * data[0])/100)
         if red < 0:
             red = 0
@@ -484,6 +495,7 @@ class updateLEDs:
     # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.
     # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
     def rgbtogrb(self, pin, data, order=0):
+        """ Change colorcode to match strip RGB / GRB style """
         # rev_rgb_grb #list of pins that need to use the reverse of the normal order setting.
         # This accommodates the use of both models of LED strings on one map.
         if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"):
@@ -503,6 +515,7 @@ class updateLEDs:
 
     # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
     def set_data(self):
+        """ FIXME: Needs reworking for MOS data """
         # global hour_dict
         # global mos_dict
         # global dat0, dat1, dat2, dat3, dat4, dat5, dat6, dat7
@@ -592,6 +605,7 @@ class updateLEDs:
     # For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
     # Can choose to display binary colors with homeap.
     def assign_color(self, visits):
+        """ Color codes assigned with heatmap """
         if visits == '0':
             color = self.no_visits
         elif visits == '100':
@@ -625,6 +639,7 @@ class updateLEDs:
 
 
     def wipe_displays(self):
+        """ FIXME: Retire this function, and import the functions from wipes-v4.py """
         # Call script and execute desired wipe(s) while data is being updated.
         # FIXME to make this imported
         # if self.usewipes == 1 and self.toggle_sw != -1:
@@ -637,12 +652,14 @@ class updateLEDs:
 
 
     def check_heat_map(self, stationiddict, windsdict, wxstringdict):
+        """
         # MOS decode routine
         # MOS data is downloaded daily from; https://www.weather.gov/mdl/mos_gfsmos_mav to the local drive by crontab scheduling.
         # Then this routine reads through the entire file looking for those airports that are in the airports file. If airport is
         # found, the data needed to display the weather for the next 24 hours is captured into mos_dict, which is nested with
         # hour_dict, which holds the airport's MOS data by 3 hour chunks. See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for
         # a breakdown of what the MOS data looks like and what each line represents.
+        """
         if self.metar_taf_mos == 2:
             debugging.info("Starting MOS Data Display")
             # Read current MOS text file
@@ -662,7 +679,7 @@ class updateLEDs:
                     continue
                 # Check for and grab date of MOS
                 if 'DT /' in line:
-                    unused, dt_cat, month, unused, unused, day, unused = line.split(
+                    unused1, dt_cat, month, unused2, unused3, day, unused4 = line.split(
                         " ", 6)
                     continue
                 # Check for and grab the Airport ID of the current MOS
@@ -794,9 +811,9 @@ class updateLEDs:
                                 elif vis == '5' and flightcategory != "IFR":  # 3.0 <= vis <= 5.0 miles
                                     flightcategory = "MVFR"
 
-                            debugging.debug(flightcategory + " |"),
+                            debugging.debug(flightcategory + " |")
                             debugging.debug(
-                                'Windspeed = ' + wsp + ' | Wind dir = ' + wdr + ' |'),
+                                'Windspeed = ' + wsp + ' | Wind dir = ' + wdr + ' |')
 
                             # decode reported weather using probabilities provided.
                             if typ == '9':  # check to see if rain, freezing rain or snow is reported. If not use obv weather
@@ -880,7 +897,6 @@ class updateLEDs:
         debugging.info("\nWX Display")
 
         color = 0
-        normcolor = 0
         xcolor = 0
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
         # cycle through the strip 6 times, setting the color then displaying to create various effects.
@@ -888,252 +904,256 @@ class updateLEDs:
         airport_list = airport_database.get_airport_dict_led()
 
         for cycle_num in self.cycles:
-                    print(" " + str(cycle_num), end='')
-                    sys.stdout.flush()
+            print(" " + str(cycle_num), end='')
+            sys.stdout.flush()
 
-                    # Inner Loop. Increments through each LED in the strip setting the appropriate color to each individual LED.
-                    i = 0
-                    for airport_key in airport_list:
+            # Inner Loop. Increments through each LED in the strip setting the appropriate color to each individual LED.
+            i = 0
+            for airport_key in airport_list:
 
-                        airport_record = airport_list[airport_key]
-                        airportcode = airport_record.icaocode()
+                airport_record = airport_list[airport_key]
+                airportcode = airport_record.icaocode()
 
-                        if not airportcode:
-                            break
+                if not airportcode:
+                    break
 
-                        # FIXME: Cheating by updating here
-                        # airport_record.calculate_wx_from_metar()
+                # FIXME: Cheating by updating here
+                # airport_record.calculate_wx_from_metar()
 
 
-                        #
-                        # debugging.info("WX Display Loop : " + airportcode)
-                        # Pull the next flight category from dictionary.
-                        flightcategory = airport_record.get_wx_category_str()
-                        if not flightcategory:
-                            flightcategory = "UNKN"
-                        # debugging.info("WX Display Loop - flight category : " + flightcategory)
-                        # Pull the winds from the dictionary.
-                        airportwinds = airport_record.get_wx_windspeed()
-                        if not airportwinds:
-                            airportwinds = -1
-                        # Pull the weather reported for the airport from dictionary.
-                        # airportwx_long = wxstringdict.get(airportcode, "NONE")
-                        # Grab only the first parameter of the weather reported.
-                        # airportwx = airportwx_long.split(" ", 1)[0]
-                        # FIXME: 
-                        airportwx = "NONE"
+                #
+                # debugging.info("WX Display Loop : " + airportcode)
+                # Pull the next flight category from dictionary.
+                flightcategory = airport_record.get_wx_category_str()
+                if not flightcategory:
+                    flightcategory = "UNKN"
+                # debugging.info("WX Display Loop - flight category : " + flightcategory)
+                # Pull the winds from the dictionary.
+                airportwinds = airport_record.get_wx_windspeed()
+                if not airportwinds:
+                    airportwinds = -1
+                # Pull the weather reported for the airport from dictionary.
+                # airportwx_long = wxstringdict.get(airportcode, "NONE")
+                # Grab only the first parameter of the weather reported.
+                # airportwx = airportwx_long.split(" ", 1)[0]
+                # FIXME:
+                airportwx = "NONE"
 
-                        # debug print out
-                        if self.metar_taf_mos == 0:
-                            debugging.debug(
-                                "TAF Time +" + str(self.hour_to_display) + " Hour")
-                        elif self.metar_taf_mos == 1:
-                            debugging.debug("METAR")
-                        elif self.metar_taf_mos == 2:
-                            debugging.debug(
-                                "MOS Time +" + str(self.hour_to_display) + " Hour")
-                        elif self.metar_taf_mos == 3:
-                            debugging.debug("Heat Map + ")
+                # debug print out
+                if self.metar_taf_mos == 0:
+                    debugging.debug(
+                        "TAF Time +" + str(self.hour_to_display) + " Hour")
+                elif self.metar_taf_mos == 1:
+                    debugging.debug("METAR")
+                elif self.metar_taf_mos == 2:
+                    debugging.debug(
+                        "MOS Time +" + str(self.hour_to_display) + " Hour")
+                elif self.metar_taf_mos == 3:
+                    debugging.debug("Heat Map + ")
 
-                        debugging.debug((airportcode + " " + str(flightcategory) + 
-                            " " + str(airportwinds) + 
-                            " " + airportwx + " " + str(cycle_num) + " "))  # debug
+                debugging.debug((airportcode + " " + str(flightcategory) +
+                    " " + str(airportwinds) +
+                    " " + airportwx + " " + str(cycle_num) + " "))  # debug
 
-                        # Check to see if airport code is a NULL and set to black.
-                        if airportcode == "NULL" or airportcode == "LGND":
+                # Check to see if airport code is a NULL and set to black.
+                if airportcode == "NULL" or airportcode == "LGND":
+                    color = self.color_black
+
+                # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
+                if self.legend and airportcode == "LGND" and (i in self.legend_pins):
+                    if i == self.leg_pin_vfr:
+                        color = self.color_vfr
+
+                    if i == self.leg_pin_mvfr:
+                        color = self.color_mvfr
+
+                    if i == self.leg_pin_ifr:
+                        color = self.color_ifr
+
+                    if i == self.leg_pin_lifr:
+                        color = self.color_lifr
+
+                    if i == self.leg_pin_nowx:
+                        color = self.color_nowx
+
+                    if i == self.leg_pin_hiwinds and self.legend_hiwinds:
+                        if (cycle_num == 3 or cycle_num == 4 or cycle_num == 5):
                             color = self.color_black
+                        else:
+                            color = self.color_ifr
 
-                        # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
-                        if self.legend and airportcode == "LGND" and (i in self.legend_pins):
-                            if i == self.leg_pin_vfr:
-                                color = self.color_vfr
+                    if i == self.leg_pin_lghtn and self.legend_lghtn:
+                        if (cycle_num == 2 or cycle_num == 4):  # Check for Thunderstorms
+                            color = self.color_lghtn
 
-                            if i == self.leg_pin_mvfr:
-                                color = self.color_mvfr
+                        elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 3 or cycle_num == 5):
+                            color = self.color_mvfr
 
-                            if i == self.leg_pin_ifr:
-                                color = self.color_ifr
+                    if i == self.leg_pin_snow and self.legend_snow:
+                        if (cycle_num == 3 or cycle_num == 5):  # Check for Snow
+                            color = self.color_snow1
 
-                            if i == self.leg_pin_lifr:
-                                color = self.color_lifr
+                        if (cycle_num == 4):
+                            color = self.color_snow2
 
-                            if i == self.leg_pin_nowx:
-                                color = self.color_nowx
+                        elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
+                            color = self.color_lifr
 
-                            if i == self.leg_pin_hiwinds and self.legend_hiwinds:
-                                if (cycle_num == 3 or cycle_num == 4 or cycle_num == 5):
-                                    color = self.color_black
-                                else:
-                                    color = self.color_ifr
+                    if i == self.leg_pin_rain and self.legend_rain:
+                        if (cycle_num == 3 or cycle_num == 5):  # Check for Rain
+                            color = self.color_rain1
 
-                            if i == self.leg_pin_lghtn and self.legend_lghtn:
-                                if (cycle_num == 2 or cycle_num == 4):  # Check for Thunderstorms
-                                    color = self.color_lghtn
+                        if (cycle_num == 4):
+                            color = self.color_rain2
 
-                                elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 3 or cycle_num == 5):
-                                    color = self.color_mvfr
+                        elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
+                            color = self.color_vfr
 
-                            if i == self.leg_pin_snow and self.legend_snow:
-                                if (cycle_num == 3 or cycle_num == 5):  # Check for Snow
-                                    color = self.color_snow1
+                    if i == self.leg_pin_frrain and self.legend_frrain:
+                        if (cycle_num == 3 or cycle_num == 5):  # Check for Freezing Rain
+                            color = self.color_frrain1
 
-                                if (cycle_num == 4):
-                                    color = self.color_snow2
+                        if (cycle_num == 4):
+                            color = self.color_frrain2
 
-                                elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color = self.color_lifr
+                        elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
+                            color = self.color_mvfr
 
-                            if i == self.leg_pin_rain and self.legend_rain:
-                                if (cycle_num == 3 or cycle_num == 5):  # Check for Rain
-                                    color = self.color_rain1
+                    if i == self.leg_pin_dustsandash and self.legend_dustsandash:
+                        if (cycle_num == 3 or cycle_num == 5):  # Check for Dust, Sand or Ash
+                            color = self.color_dustsandash1
 
-                                if (cycle_num == 4):
-                                    color = self.color_rain2
+                        if (cycle_num == 4):
+                            color = self.color_dustsandash2
 
-                                elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color = self.color_vfr
+                        elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
+                            color = self.color_vfr
 
-                            if i == self.leg_pin_frrain and self.legend_frrain:
-                                if (cycle_num == 3 or cycle_num == 5):  # Check for Freezing Rain
-                                    color = self.color_frrain1
+                    if i == self.leg_pin_fog and self.legend_fog:
+                        if (cycle_num == 3 or cycle_num == 5):  # Check for Fog
+                            color = self.color_fog1
 
-                                if (cycle_num == 4):
-                                    color = self.color_frrain2
+                        if (cycle_num == 4):
+                            color = self.color_fog2
 
-                                elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color = self.color_mvfr
+                        elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
+                            color = self.color_ifr
 
-                            if i == self.leg_pin_dustsandash and self.legend_dustsandash:
-                                if (cycle_num == 3 or cycle_num == 5):  # Check for Dust, Sand or Ash
-                                    color = self.color_dustsandash1
+                # Start of weather display code for each airport in the "airports" file
+                # Check flight category and set the appropriate color to display
+                if flightcategory != "NONE":
+                    if flightcategory == "VFR":  # Visual Flight Rules
+                        color = self.color_vfr
+                    elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
+                        color = self.color_mvfr
+                    elif flightcategory == "IFR":  # Instrument Flight Rules
+                        color = self.color_ifr
+                    elif flightcategory == "LIFR":  # Low Instrument Flight Rules
+                        color = self.color_lifr
+                    else:
+                        color = self.color_nowx
 
-                                if (cycle_num == 4):
-                                    color = self.color_dustsandash2
+                # 3.01 bug fix by adding "LGND" test
+                elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL":
+                    color = self.color_nowx  # No Weather reported.
 
-                                elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color = self.color_vfr
+                # Check winds and set the 2nd half of cycles to black to create blink effect
+                if self.hiwindblink:  # bypass if "hiwindblink" is set to 0
+                    if (int(airportwinds) >= self.max_wind_speed and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
+                        color = self.color_black
+                        # debug
+                        debugging.debug(("HIGH WINDS-> " + airportcode +
+                               " Winds = " + str(airportwinds) + " "))
 
-                            if i == self.leg_pin_fog and self.legend_fog:
-                                if (cycle_num == 3 or cycle_num == 5):  # Check for Fog
-                                    color = self.color_fog1
+                # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
+                if airportwx != "NONE":
+                    if self.lghtnflash:
+                        # Check for Thunderstorms
+                        if (airportwx in self.wx_lghtn_ck and (cycle_num == 2 or cycle_num == 4)):
+                            color = self.color_lghtn
 
-                                if (cycle_num == 4):
-                                    color = self.color_fog2
+                    if self.snowshow:
+                        # Check for Snow
+                        if (airportwx in self.wx_snow_ck and (cycle_num == 3 or cycle_num == 5)):
+                            color = self.color_snow1
 
-                                elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                                    color = self.color_ifr
+                        if (airportwx in self.wx_snow_ck and cycle_num == 4):
+                            color = self.color_snow2
 
-                        # Start of weather display code for each airport in the "airports" file
-                        # Check flight category and set the appropriate color to display
-                        if flightcategory != "NONE":
-                            if flightcategory == "VFR":  # Visual Flight Rules
-                                color = self.color_vfr
-                            elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
-                                color = self.color_mvfr
-                            elif flightcategory == "IFR":  # Instrument Flight Rules
-                                color = self.color_ifr
-                            elif flightcategory == "LIFR":  # Low Instrument Flight Rules
-                                color = self.color_lifr
-                            else:
-                                color = self.color_nowx
+                    if self.rainshow:
+                        # Check for Rain
+                        if (airportwx in self.wx_rain_ck and (cycle_num == 3 or cycle_num == 4)):
+                            color = self.color_rain1
 
-                        # 3.01 bug fix by adding "LGND" test
-                        elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL":
-                            color = self.color_nowx  # No Weather reported.
+                        if (airportwx in self.wx_rain_ck and cycle_num == 5):
+                            color = self.color_rain2
 
-                        # Check winds and set the 2nd half of cycles to black to create blink effect
-                        if self.hiwindblink:  # bypass if "hiwindblink" is set to 0
-                            if (int(airportwinds) >= self.max_wind_speed and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
-                                color = self.color_black
-                                # debug
-                                debugging.debug(("HIGH WINDS-> " + airportcode +
-                                       " Winds = " + str(airportwinds) + " "))
+                    if self.frrainshow:
+                        # Check for Freezing Rain
+                        if (airportwx in self.wx_frrain_ck and (cycle_num == 3 or cycle_num == 5)):
+                            color = self.color_frrain1
 
-                        # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
-                        if airportwx != "NONE":
-                            if self.lghtnflash:
-                                # Check for Thunderstorms
-                                if (airportwx in self.wx_lghtn_ck and (cycle_num == 2 or cycle_num == 4)):
-                                    color = self.color_lghtn
+                        if (airportwx in self.wx_frrain_ck and cycle_num == 4):
+                            color = self.color_frrain2
 
-                            if self.snowshow:
-                                # Check for Snow
-                                if (airportwx in self.wx_snow_ck and (cycle_num == 3 or cycle_num == 5)):
-                                    color = self.color_snow1
+                    if self.dustsandashshow:
+                        # Check for Dust, Sand or Ash
+                        if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)):
+                            color = self.color_dustsandash1
 
-                                if (airportwx in self.wx_snow_ck and cycle_num == 4):
-                                    color = self.color_snow2
+                        if (airportwx in self.wx_dustsandash_ck and cycle_num == 4):
+                            color = self.color_dustsandash2
 
-                            if self.rainshow:
-                                # Check for Rain
-                                if (airportwx in self.wx_rain_ck and (cycle_num == 3 or cycle_num == 4)):
-                                    color = self.color_rain1
+                    if self.fogshow:
+                        # Check for Fog
+                        if (airportwx in self.wx_fog_ck and (cycle_num == 3 or cycle_num == 5)):
+                            color = self.color_fog1
 
-                                if (airportwx in self.wx_rain_ck and cycle_num == 5):
-                                    color = self.color_rain2
+                        if (airportwx in self.wx_fog_ck and cycle_num == 4):
+                            color = self.color_fog2
 
-                            if self.frrainshow:
-                                # Check for Freezing Rain
-                                if (airportwx in self.wx_frrain_ck and (cycle_num == 3 or cycle_num == 5)):
-                                    color = self.color_frrain1
+                # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
+                # so that every other time through, the color will display the proper weather, then homeport color(s).
+                if i == self.homeport_pin and self.homeport and self.toggle:
+                    if self.homeport_display == 1:
+                        color = self.homeport_colors[cycle_num]
+                    elif self.homeport_display == 2:
+                        pass
+                    else:
+                        color = self.color_homeport
 
-                                if (airportwx in self.wx_frrain_ck and cycle_num == 4):
-                                    color = self.color_frrain2
+                # pass pin, color and format. Check and change color code for RGB or GRB format
+                xcolor = self.rgbtogrb(i, color, self.rgb_grb)
 
-                            if self.dustsandashshow:
-                                # Check for Dust, Sand or Ash
-                                if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)):
-                                    color = self.color_dustsandash1
+                if i == self.homeport_pin and self.homeport:  # if this is the home airport, don't dim out the brightness
+                    norm_color = xcolor
+                    xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
+                elif self.homeport:  # if this is not the home airport, dim out the brightness
+                    dim_color = self.dim(xcolor, self.dim_value)
+                    xcolor = Color(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
+                else:  # if home airport feature is disabled, then don't dim out any airports brightness
+                    norm_color = xcolor
+                    xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
 
-                                if (airportwx in self.wx_dustsandash_ck and cycle_num == 4):
-                                    color = self.color_dustsandash2
+                # set color to display on a specific LED for the current cycle_num cycle.
+                # if i == 1 or i == 3:
+                #         debugging.info("Airport:" + airportcode +
+                #               " Flight Category: " + flightcategory +
+                #               " Color: " + str(color)  + 
+                #               " xColor: " + str(xcolor) + 
+                #               " LED(i) " + str(i))
+                self.strip.setPixelColor(i, xcolor)
+                i = i + 1  # set next LED pin in strip
 
-                            if self.fogshow:
-                                # Check for Fog
-                                if (airportwx in self.wx_fog_ck and (cycle_num == 3 or cycle_num == 5)):
-                                    color = self.color_fog1
-
-                                if (airportwx in self.wx_fog_ck and cycle_num == 4):
-                                    color = self.color_fog2
-
-                        # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
-                        # so that every other time through, the color will display the proper weather, then homeport color(s).
-                        if i == self.homeport_pin and self.homeport and self.toggle:
-                            if self.homeport_display == 1:
-                                color = self.homeport_colors[cycle_num]
-                            elif self.homeport_display == 2:
-                                pass
-                            else:
-                                color = self.color_homeport
-
-                        # pass pin, color and format. Check and change color code for RGB or GRB format
-                        xcolor = self.rgbtogrb(i, color, self.rgb_grb)
-
-                        if i == self.homeport_pin and self.homeport:  # if this is the home airport, don't dim out the brightness
-                            norm_color = xcolor
-                            xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
-                        elif self.homeport:  # if this is not the home airport, dim out the brightness
-                            dim_color = self.dim(xcolor, self.dim_value)
-                            xcolor = Color(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
-                        else:  # if home airport feature is disabled, then don't dim out any airports brightness
-                            norm_color = xcolor
-                            xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
-
-                        # set color to display on a specific LED for the current cycle_num cycle.
-                        # if i == 1 or i == 3:
-                        #         debugging.info("Airport:" + airportcode + " Flight Category: " + flightcategory + " Color: " + str(color)  + " xColor: " + str(xcolor) + " LED(i) " + str(i))
-                        self.strip.setPixelColor(i, xcolor)
-                        i = i + 1  # set next LED pin in strip
-
-                    print("/LED.", end='')
-                    sys.stdout.flush()
-                    # Display strip with newly assigned colors for the current cycle_num cycle.
-                    self.strip.show()
-                    print(".", end='')
-                    # cycle_wait time is a user defined value
-                    wait_time = self.cycle_wait[cycle_num]
-                    # pause between cycles. pauses are setup in user definitions.
-                    time.sleep(wait_time)
+            print("/LED.", end='')
+            sys.stdout.flush()
+            # Display strip with newly assigned colors for the current cycle_num cycle.
+            self.strip.show()
+            print(".", end='')
+            # cycle_wait time is a user defined value
+            wait_time = self.cycle_wait[cycle_num]
+            # pause between cycles. pauses are setup in user definitions.
+            time.sleep(wait_time)
 
 
     def calculate_wx_conditions(self, ceiling, visibility):
@@ -1156,7 +1176,7 @@ class updateLEDs:
         toggle = 0  # used for homeport display
         outerloop = True  # Set to TRUE for infinite outerloop
         display_num = 0
-        while (outerloop):
+        while outerloop:
             display_num = display_num + 1
 
             # Time calculations, dependent on 'hour_to_display' offset. this determines how far in the future the TAF data should be.
@@ -1350,6 +1370,6 @@ class updateLEDs:
                 self.strip.setBrightness(self.LED_BRIGHTNESS)
 
                 # Used to determine if the homeport color should be displayed if "homeport = 1"
-                toggle = not(toggle)
+                toggle = not toggle
 
                 self.wx_display_loop(stationiddict, windsdict, wxstringdict, airport_database)

@@ -26,12 +26,12 @@ Created on Sat Jun 15 08:01:44 2019
 
 # The update_loop function is intended to be called in a discrete thread, so that it can run
 # forever, checking for updated weather data - and processing that data to keep the Airport
-# objects up to date with current conditions. 
+# objects up to date with current conditions.
 # This should be the only place that is creating and writing to airport objects.
 # - The airport DB and airport objects should be effectively readonly in all other threads
 
 
-import os
+# import os
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -39,18 +39,18 @@ from distutils import util
 from enum import Enum
 from urllib.request import urlopen
 import urllib.error
-import requests
 import socket
 import shutil
+# import gzip
+import json
+# import requests
+# from dateutil.parser import parse as parsedate
 
 from metar import Metar
 
 import debugging
 import ledstrip
 import utils
-import gzip
-import json
-from dateutil.parser import parse as parsedate
 
 
 # XML Handling
@@ -176,7 +176,9 @@ class Airport:
         """ Try get Fresh METAR data from local Aviation Digital Data Service (ADDS) download """
         debugging.info("Updating WX from adds for " + self.icao)
         if self.icao not in metar_dict:
-            debugging.info("metar_dict WX for " + self.icao + " missing")
+            debugging.debug("metar_dict WX for " + self.icao + " missing")
+            self.wx_category = AirportFlightCategory.UNKNOWN
+            self.wx_category_str = "UNK"
             self.set_metar(None)
             return
         self.set_metar(metar_dict[self.icao]['raw_text'])
@@ -215,13 +217,13 @@ class Airport:
                     self.metar = report
                     debugging.info(report)
             if not report:
-                debugging.info("No data for " + self.icao)
+                debugging.debug("No data for " + self.icao)
         except urllib.error.HTTPError:
-            debugging.info("HTTPError retrieving " + self.icao + " data")
+            debugging.debug("HTTPError retrieving " + self.icao + " data")
         except urllib.error.URLError:
             # import traceback
             # debugging.info(traceback.format_exc())
-            debugging.info("URLError retrieving " + self.icao + " data")
+            debugging.debug("URLError retrieving " + self.icao + " data")
             if urlh:
                 if urlh.getcode() == 404:
                     self.metar_date = timenow
@@ -701,13 +703,14 @@ class Airport:
 
 
 class AirportDB:
+    """ Airport Database - Keeping track of interesting sets of airport data """
 
     def __init__(self, conf):
         """ Create a database of Airports to be tracked """
 
         # Reference to Global Configuration Data
         self.conf = conf
-        
+
         # Active Airport Information
         # All lists use lowercase key information to identify airports
         # Full list of interesting Airports loaded from JSON data
@@ -715,7 +718,7 @@ class AirportDB:
         self.airport_json_dict = {}
 
         self.airport_master_list = []
-        
+
         # Subset of airport_json_list that is active for live HTML page
         self.airport_web_dict = {}
 
@@ -756,11 +759,11 @@ class AirportDB:
         debugging.info("Loading Airport List")
         airport_json = self.conf.get_string("filenames", "airports_json")
         # Opening JSON file
-        f = open(airport_json, encoding="utf8")
+        json_file = open(airport_json, encoding="utf8")
         # returns JSON object as a dictionary
-        new_airport_json_dict = json.load(f)
+        new_airport_json_dict = json.load(json_file)
         # Closing file
-        f.close()
+        json_file.close()
 
         # Need to merge this data set into the existing data set
         # On initial boot ; the saved data set could be empty
@@ -807,12 +810,11 @@ class AirportDB:
                 airport_led = json_airport['led']
                 airport_wxsrc = json_airport['wxsrc']
                 airport_active = json_airport['active']
-                airport_index = json_airport['led']
                 new_airport_obj = Airport(airport_icao,\
                     airport_icao,\
                     airport_wxsrc,\
                     airport_active,\
-                    airport_index,\
+                    airport_led,\
                     self.conf)
                 self.airport_master_dict[airport_icao] = new_airport_obj
                 if json_airport['purpose'] == "led" or json_airport['purpose'] == "all":
@@ -835,12 +837,12 @@ class AirportDB:
 
         shutil.move(airport_json, airport_json_backup)
 
-        
+
         json_save_data = {"airports": self.airport_master_list }
         # Opening JSON file
-        with open(airport_json_new, 'w', encoding="utf8") as f:
-            json.dump(json_save_data, f, sort_keys=True, indent=4)
-        #s FIXME:  Only if write was successful, then we should 
+        with open(airport_json_new, 'w', encoding="utf8") as json_file:
+            json.dump(json_save_data, json_file, sort_keys=True, indent=4)
+        #s FIXME:  Only if write was successful, then we should
         #   mv airport_json_new over airport_json
         shutil.move(airport_json_new, airport_json)
 
@@ -850,7 +852,6 @@ class AirportDB:
         # FIXME: Add file error handling
         # Consider extracting only interesting airports from dict first
         debugging.info("Updating Airport METAR DICT")
-        airport_metar_list = {}
         metar_data = []
         metar_dict = {}
         metar_file = self.conf.get_string("filenames", "metar_xml_data")
@@ -922,12 +923,11 @@ class AirportDB:
             debugging.info(airport_metar)
             airport.set_metar(airport_metar)
         #print(self.metar_xml_list)
-            
+
 
     def update_loop(self, conf):
-        """ Master loop for keeping the airport data set current """
+        """ Master loop for keeping the airport data set current 
 
-        """
         Infinite Loop
          1/ Update METAR for all Airports in DB
          2/ Update TAF for all Airports in DB

@@ -376,7 +376,7 @@ class Airport:
             wx_conditions = wx_conditions + (WxConditions.GUSTS, )
         return wx_conditions
 
-    def decode_taf_data(stationiddict, windsdict, wxstringdict, metar_taf_mos, root_data):
+    def decode_taf_data(self, stationiddict, windsdict, wxstringdict, metar_taf_mos, root_data):
         # FIXME: Moved from update_leds ; fix references to variables over there, that aren't here.
         # TAF decode routine
         # 0 equals display TAF. This routine will decode the TAF, pick the appropriate time frame to display.
@@ -752,7 +752,7 @@ class AirportDB:
         debugging.info("Loading Airport List")
         airport_json = self.conf.get_string("filenames", "airports_json")
         # Opening JSON file
-        f = open(airport_json)
+        f = open(airport_json, encoding="utf8")
         # returns JSON object as a dictionary
         new_airport_json_dict = json.load(f)
         # Closing file
@@ -834,7 +834,7 @@ class AirportDB:
         
         json_save_data = {"airports": self.airport_master_list }
         # Opening JSON file
-        with open(airport_json_new, 'w') as f:
+        with open(airport_json_new, 'w', encoding="utf8") as f:
             json.dump(json_save_data, f, sort_keys=True, indent=4)
         #s FIXME:  Only if write was successful, then we should 
         #   mv airport_json_new over airport_json

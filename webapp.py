@@ -242,7 +242,7 @@ def open_console():
     console_ips = []
     loc_timestr = utils.time_format(utils.current_time(conf))
     loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
-    with open("/NeoSectional/data/console_ip.txt", "r") as file:
+    with open("/NeoSectional/data/console_ip.txt", "r", encoding="utf8") as file:
         for line in file.readlines()[-1:]:
             line = line.rstrip()
             console_ips.append(line)
@@ -285,7 +285,7 @@ def stream_log():
 def stream_log1():
     """Flask Route: /stream_log1 - UNUSED ALTERNATE LOGS ROUTE"""
     def generate():
-        with open('/NeoSectional/logs/logfile.log') as f:
+        with open('/NeoSectional/logs/logfile.log', encoding="utf8") as f:
             while True:
                 yield "{}\n".format(f.read())
                 time.sleep(1)
@@ -331,7 +331,7 @@ def update_info():
     settings = conf.gen_settings_dict()
     loc_timestr = utils.time_format(utils.current_time(conf))
     loc_timestr_utc = utils.time_format(utils.current_time_utc(conf))
-    with open(conf.get_string("filenames", "release_notes"), "r") as file:
+    with open(conf.get_string("filenames", "release_notes"), "r", encoding="utf8") as file:
         content = file.readlines()
         debugging.dprint(content)
     return render_template("update_info.html",
@@ -1671,7 +1671,7 @@ def readconf(config_file):
     """Load old configuration file """
     debugging.dprint('In ReadConf Routine')
     try:
-        with open(config_file) as f:
+        with open(config_file, encoding="utf8") as f:
             for line in f:
                 if line[0] == "#" or line[0] == "\n":
                     pass
@@ -1693,7 +1693,7 @@ def readconf(config_file):
 def writeconf(loc_settings, file):
     """Save old style configuration file"""
     debugging.dprint('In WriteConf Routine')
-    f = open(file, "w+")
+    f = open(file, "w+", encoding="utf8")
     f.write('# config.py - use web based configurator')
     f.write('# Manual configuration should be avoided')
     f.write('\n\n')
@@ -1708,7 +1708,7 @@ def writeconf(loc_settings, file):
 def writeairports(loc_settings, file):
     """Save settings key data - FIXME - Why settings and not airports here"""
     debugging.dprint('In WriteAirports Routine')
-    f = open(file, "w")  # "w+")
+    f = open(file, "w", encoding="utf8")  # "w+")
 #       debugging.dprint(loc_settings)
     for key in loc_settings:
         value = loc_settings.get(key)
@@ -1725,7 +1725,7 @@ def readairports(filename):
     global airports
     airports = []
     try:
-        with open(filename) as f:
+        with open(filename, encoding="utf8") as f:
             for line in f:
                 airports.append(line.rstrip())
             debugging.dprint(airports)  # debug
@@ -1741,7 +1741,7 @@ def readhmdata(hmdata_file):
     global hmdata
     hmdata = []
     try:
-        with open(hmdata_file) as f:
+        with open(hmdata_file, encoding="utf8") as f:
             for line in f:
                 hmdata.append(line.rstrip())
             debugging.dprint(hmdata)  # debug
@@ -1760,7 +1760,7 @@ def readhmdata(hmdata_file):
 def writehmdata(loc_hmdata, filename):
     """Save hmdata to hmdata file"""
     debugging.dprint('In WriteHMdata Routine')
-    f = open(filename, "w+")
+    f = open(filename, "w+", encoding="utf8")
 
     for key in loc_hmdata:
         debugging.dprint(key)  # debug
@@ -1922,7 +1922,7 @@ def checkforupdate():
                         target_path + verfilename)
     # download version file from neoupdate
 
-    with open(target_path + verfilename) as file:
+    with open(target_path + verfilename, encoding="utf8") as file:
         # Read version number of latest version
         update_vers = file.read()
 

@@ -630,7 +630,7 @@ class updateLEDs:
         # if self.usewipes == 1 and self.toggle_sw != -1:
             # Get latest ip's to display in editors
             # FIXME: Move wipes-v4 to be an included module, call here
-            # exec(compile(open("/NeoSectional/wipes-v4.py", "rb").read(),
+            # exec(compile(open("/NeoSectional/wipes-v4.py", "rb", encoding="utf8").read(),
             #              "/NeoSectional/wipes-v4.py", 'exec'))
             # debugging.info("Calling wipes script")
         return True
@@ -647,7 +647,7 @@ class updateLEDs:
             debugging.info("Starting MOS Data Display")
             # Read current MOS text file
             try:
-                file = open(self.mos_filepath, 'r')
+                file = open(self.mos_filepath, 'r', encoding="utf8")
                 lines = file.readlines()
             except IOError as error:
                 debugging.error('MOS data file could not be loaded.')

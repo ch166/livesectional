@@ -150,7 +150,7 @@ def download_newer_gz_file(url, filename):
                 with gzip.GzipFile(fileobj=response) as uncompressed:
                     file_content = uncompressed.read()
                 # write to file in binary mode 'wb'
-            with open(filename, 'wb') as f:
+            with open(filename, 'wb', encoding="utf8") as f:
                 f.write(file_content)
                 f.close()
                 return 0
@@ -252,4 +252,3 @@ def set_timezone(conf, newtimezone):
 def get_timezone(conf):
     """ Return timezone configuration """
     return conf.get_string("default", "timezone")
-

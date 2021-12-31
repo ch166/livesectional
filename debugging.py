@@ -4,6 +4,7 @@
 
 
 import datetime
+import logging
 
 # FIXME: Move these flags to configuration
 DEBUG_MSGS = False
@@ -13,21 +14,27 @@ WARN_MSGS = True
 ERR_MSGS = True
 
 
+def loginit():
+    ''' Init logging data '''
+    # FIXME: Move filename to config
+    logging.basicConfig(filename="logs/debugging.log", level=logging.DEBUG)
+
+
 def crash(args):
     ''' Handle Crash Data - Append to crash.log '''
-    # FIXME: Move to config
+    # FIXME: Move filename to config
     appname = "LIVEMAP:"
     logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    f = open("logs/crash.log", "w+", encoding="utf8")
-    f.write("***********************************************************")
-    f.write(appname)
-    f.write(logtime)
-    f.write(args)
-    f.write("-----------------------------------------------------------")
-    f.flush()
-    f.close()
-    
+    logging.debug(args)
+
+    with open("logs/crash.log", "w+", encoding="utf8") as log_file:
+        log_file.write("***********************************************************")
+        log_file.write(appname)
+        log_file.write(logtime)
+        log_file.write(args)
+        log_file.write("-----------------------------------------------------------")
+        log_file.flush()
+
 
 def dprint(args):
     ''' Passthrough call to print() if DEBUG_MSGS is enabled '''
@@ -70,6 +77,7 @@ def debug(args):
     if DEBUG_MSGS:
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logging.debug(args)
         print(logtime, appname, "DEBUG:", args, flush=True )
     else:
         return

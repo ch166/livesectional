@@ -5,17 +5,20 @@ import os
 import time
 import socket
 import json
+import urllib
+import gzip
+
+from datetime import datetime
+from datetime import timedelta
+from dateutil.parser import parse as parsedate
+
 import requests
 import wget
-import debugging
-from datetime import datetime
-from dateutil.parser import parse as parsedate
-from datetime import timedelta
-
-import urllib
 import pytz
-import conf
-import gzip
+
+import debugging
+
+# import conf
 
 def is_connected():
     ''' Check to see if we can reach an endpoint on the Internet '''
@@ -126,7 +129,7 @@ def download_newer_gz_file(url, filename):
     """
 
     # Do a HTTP GET to pull headers so we can check timestamps
-    r = requests.head(url)
+    req = requests.head(url)
 
     # Technically this isn't the same timestamp as our filename
     # there is a race condition where the server updates the
@@ -136,7 +139,7 @@ def download_newer_gz_file(url, filename):
     # could happen after the server side file is updated. Our
     # next update check will be wrong. We will remain
     # wrong until the server side file is updated.
-    url_time = r.headers['last-modified']
+    url_time = req.headers['last-modified']
     url_date = parsedate(url_time)
     file_time = datetime.fromtimestamp(os.path.getmtime(filename))
     if url_date.timestamp() > file_time.timestamp() :
@@ -159,27 +162,30 @@ def download_newer_gz_file(url, filename):
 
 
 # See if a time falls within a range
-def time_in_range(start, end, x):
+def time_in_range(start, end, x_time):
+    """ See if a time falls within range """
     if start <= end:
-        return start <= x <= end
+        return start <= x_time <= end
     else:
-        return start <= x or x <= end
+        return start <= x_time or x_time <= end
 
 # Compare current time plus offset to TAF's time period and return difference
 def comp_time(zulu_time, taf_time):
+    """ Compare time plus offset to TAF """
     # global current_zulu
-    datetimeFormat = ('%Y-%m-%dT%H:%M:%SZ')
+    date_time_format = ('%Y-%m-%dT%H:%M:%SZ')
     date1 = taf_time
     date2 = zulu_time
-    diff = datetime.strptime(date1, datetimeFormat) - \
-    datetime.strptime(date2, datetimeFormat)
+    diff = datetime.strptime(date1, date_time_format) - \
+    datetime.strptime(date2, date_time_format)
     diff_minutes = int(diff.seconds/60)
     diff_hours = int(diff_minutes/60)
     return diff.seconds, diff_minutes, diff_hours, diff.days
 
 
 def reboot_if_time(conf):
-    # Check time and reboot machine if time equals 
+    """ Check to see if it's time to reboot """
+    # Check time and reboot machine if time equals
     # time_reboot and if use_reboot along with autorun are both set to 1
     use_reboot = conf.get_bool("default", "nightly_reboot")
     use_autorun = conf.get_bool("default", "autorun")
@@ -192,23 +198,24 @@ def reboot_if_time(conf):
         print("**Current Time=" + str(rb_time) +
             " - **Reboot Time=" + str(reboot_time))  # debug
 
-        if rb_time == self.time_reboot:
-            debugging.info("Rebooting at " + self.time_reboot)
-            time.sleep(1)
+        # FIXME: Reference to 'self' here
+        # if rb_time == self.time_reboot:
+        #    debugging.info("Rebooting at " + self.time_reboot)
+        #    time.sleep(1)
             # FIXME: This should use a more secure mechanism,
             # and have some sanity checks - that we aren't in a reboot loop.
             # Also should handle daylight savings time changes (avoid double reboot)
             # If using sudo - need to make sure that install scripts
             # set sudo perms for this command only
-            os.system("sudo reboot now")
+        #    os.system("sudo reboot now")
 
 
-def time_format_taf(raw_time)
+def time_format_taf(raw_time):
     """ Convert raw time into TAF formatted printable string """
     return raw_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def time_format(raw_time)
+def time_format(raw_time):
     """ Convert raw time into standardized printable string """
     return raw_time.strftime("%H:%M:%S - %b %d, %Y")
 
@@ -238,7 +245,7 @@ def current_time_taf_offset(conf):
 def set_timezone(conf, newtimezone):
     """ Set timezone configuration string """
     # Doo stuff to set the timezone
-    conf.set_string("default", "timezone")
+    conf.set_string("default", "timezone", newtimezone)
     conf.save_config()
 
 

@@ -13,6 +13,22 @@ WARN_MSGS = True
 ERR_MSGS = True
 
 
+def crash(args):
+    ''' Handle Crash Data - Append to crash.log '''
+    # FIXME: Move to config
+    appname = "LIVEMAP:"
+    logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    f = open("logs/crash.log", "w+", encoding="utf8")
+    f.write("***********************************************************")
+    f.write(appname)
+    f.write(logtime)
+    f.write(args)
+    f.write("-----------------------------------------------------------")
+    f.flush()
+    f.close()
+    
+
 def dprint(args):
     ''' Passthrough call to print() if DEBUG_MSGS is enabled '''
     if PRINT_MSGS:

@@ -569,7 +569,7 @@ while True:
 
     #read airports file - read each time weather is updated in case a change to "airports" file was made while script was running.
     try:
-        with open("/NeoSectional/data/airports") as f:
+        with open("/NeoSectional/data/airports", encoding="utf8") as f:
             airports = f.readlines()
     except IOError as error:
         logger.error('Airports file could not be loaded.')
@@ -581,7 +581,7 @@ while True:
 
     #read hmdata file and display the top 10 airports on the OLEDs
     try:
-        with open("/NeoSectional/data/hmdata") as f:
+        with open("/NeoSectional/data/hmdata", encoding="utf8") as f:
             hmdata = f.readlines()
     except IOError as error:
         logger.error('Heat Map file could not be loaded.')
@@ -650,7 +650,7 @@ while True:
     if metar_taf_mos == 2:
         #Read current MOS text file
         try:
-            file = open(mos_filepath, 'r')
+            file = open(mos_filepath, 'r', encoding="utf8")
             lines = file.readlines()
         except IOError as error:
             logger.error('MOS data file could not be loaded.')

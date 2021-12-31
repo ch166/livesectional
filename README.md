@@ -8,7 +8,7 @@ The current intent is to
  - run the webapp as a non-priv user
  - move some of the 'one time setup' actions to a setup script (eg: filesystem expansion)
  - prepare for packaging via .deb to make it more repeatable
- - Restructure to run as two applications (webapp, map updater) to allow
+ - Restructure to run as one application (livemap) to allow
   - Code reuse
   - Data reuse (lookup / calculate state once)
   - Less process overhead ( less fork(), exec() )

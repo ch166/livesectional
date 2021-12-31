@@ -1,20 +1,32 @@
 #!/usr/bin/env python3
+"""
+
+Main livemap program
+
+Takes care of all of the setup needed for each component in the system
+
+Start individual threads
+ a) update_airport thread - to keep METAR/TAF/MOS data up to date
+ b) update_leds thread - keep the LEDs updated to reflect airport state
+ c) update_oleds thread - keep the OLEDs updated to reflect state
+ d) SOON: Web interface for config and maps
+
+"""
 
 # livemap.py - Main engine ; running threads to keep the data updated
 
-import os
-import sys
+# import os
+# import sys
 import threading
 import time
-import logging
+# import logging
 import debugging
 import conf                                   # Config.py holds user settings used by the various scripts
-import admin
+# import admin
 
-import conf
 import utils
 import sysinfo
-import appinfo
+# import appinfo
 
 import update_airports
 import update_leds
@@ -30,6 +42,8 @@ if __name__ == '__main__':
     # Generate System Data
     sysdata = sysinfo.SystemData()
     sysdata.refresh()
+
+    debugging.loginit()
 
     if utils.wait_for_internet():
         # Check for working Internet access
@@ -64,7 +78,7 @@ if __name__ == '__main__':
     airport_thread.start()
     led_thread.start()
 
-    while(True):
-        msg = "In Main Loop - Threadcount ({})"
-        print(msg.format(threading.active_count()))
+    while True:
+        MSG = "In Main Loop - Threadcount ({})"
+        print(MSG.format(threading.active_count()))
         time.sleep(300)

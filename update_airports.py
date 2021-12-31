@@ -175,6 +175,10 @@ class Airport:
     def get_adds_metar(self, metar_dict):
         """ Try get Fresh METAR data from local Aviation Digital Data Service (ADDS) download """
         debugging.info("Updating WX from adds for " + self.icao)
+        if self.icao not in metar_dict:
+            debugging.info("metar_dict WX for " + self.icao + " missing")
+            self.set_metar(None)
+            return
         self.set_metar(metar_dict[self.icao]['raw_text'])
         self.wx_visibility = metar_dict[self.icao]['visibility']
         self.wx_ceiling = metar_dict[self.icao]['ceiling']

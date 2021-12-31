@@ -46,15 +46,15 @@ import json
 # import requests
 # from dateutil.parser import parse as parsedate
 
+
+# XML Handling
+import xml.etree.ElementTree as ET
 from metar import Metar
 
 import debugging
 import ledstrip
 import utils
 
-
-# XML Handling
-import xml.etree.ElementTree as ET
 
 
 class WxConditions(Enum):
@@ -176,9 +176,13 @@ class Airport:
         """ Try get Fresh METAR data from local Aviation Digital Data Service (ADDS) download """
         debugging.info("Updating WX from adds for " + self.icao)
         if self.icao not in metar_dict:
+            # TODO: If METAR data is missing from the ADDS dataset, then it hasn't been updated
+            # We have the option to try a direct query for the data ; but don't have any hint
+            # on which alternative source to use.
             debugging.debug("metar_dict WX for " + self.icao + " missing")
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
+            self.metar_date = datetime.now()
             self.set_metar(None)
             return
         self.set_metar(metar_dict[self.icao]['raw_text'])

@@ -465,11 +465,10 @@ class Airport:
                                         cld_base_ft_agl)  # debug
                                 except:
                                     # get cloud base AGL from XML
-                                    cld_base_ft_agl = forecast.find(
-                                        'vert_vis_ft').text
+                                    cld_base_ft_agl = forecast.find('vert_vis_ft').text
 
-    #                            cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl'] #get cloud base AGL from XML
-    #                            debugging.info(cld_base_ft_agl) #debug
+                                #  cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl'] #get cloud base AGL from XML
+                                #  debugging.info(cld_base_ft_agl) #debug
 
                                 cld_base_ft_agl = int(cld_base_ft_agl)
                                 if cld_base_ft_agl < 500:
@@ -627,16 +626,16 @@ class Airport:
 
                         if cld_base_ft_agl < 500:
                             flightcategory = "LIFR"
-    #                        break
+                            # break
                         elif 500 <= cld_base_ft_agl < 1000:
                             flightcategory = "IFR"
-    #                        break
+                            # break
                         elif 1000 <= cld_base_ft_agl <= 3000:
                             flightcategory = "MVFR"
-    #                        break
+                            # break
                         elif cld_base_ft_agl > 3000:
                             flightcategory = "VFR"
-    #                        break
+                            # break
 
                     # visibilty can also set flight category. If the clouds haven't set the fltcat to LIFR. See if visibility will
                     # if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.

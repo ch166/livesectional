@@ -113,6 +113,8 @@ class Airport:
         self.wx_windgust = None
         self.wx_category = None
         self.wx_category_str = "UNSET"
+        self.latitude = None
+        self.longitude = None
         self.metar_returncode = ""
 
     def created(self):
@@ -192,6 +194,8 @@ class Airport:
         self.wx_windgust = metar_dict[self.icao]['wind_gust_kt']
         self.wx_category = metar_dict[self.icao]['flight_category']
         self.wx_category_str = metar_dict[self.icao]['flight_category']
+        self.latitude = metar_dict[self.icao]['latitude']
+        self.longitude = metar_dict[self.icao]['longitude']
         self.calculate_wx_from_metar()
         return False
 
@@ -919,6 +923,16 @@ class AirportDB:
                 metar_dict[station_id]['visibility'] = next_object.text
             else:
                 metar_dict[station_id]['visibility'] = "Missing"
+            next_object = metar_data.find('latitude')
+            if next_object is not None:
+                metar_dict[station_id]['latitude'] = next_object.text
+            else:
+                metar_dict[station_id]['latitude'] = "Missing"
+            next_object = metar_data.find('longitude')
+            if next_object is not None:
+                metar_dict[station_id]['longitude'] = next_object.text
+            else:
+                metar_dict[station_id]['longitude'] = "Missing"
         self.metar_xml_dict = metar_dict
         debugging.info("Updating Airport METAR from XML")
         # print(self.airport_master_dict, flush=True)

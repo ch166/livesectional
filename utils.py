@@ -122,6 +122,7 @@ def download_file(url, filename):
     wget.download(url, filename)
     debugging.info('Downloaded ' + filename + ' from neoupdate')
 
+
 def download_newer_gz_file(url, filename):
     """
     Download a gzip compressed file from URL if the
@@ -161,13 +162,12 @@ def download_newer_gz_file(url, filename):
     return 3
 
 
-# See if a time falls within a range
 def time_in_range(start, end, x_time):
     """ See if a time falls within range """
     if start <= end:
         return start <= x_time <= end
-    else:
-        return start <= x_time or x_time <= end
+    return end <= x_time <= start
+
 
 # Compare current time plus offset to TAF's time period and return difference
 def comp_time(zulu_time, taf_time):

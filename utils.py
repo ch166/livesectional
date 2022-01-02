@@ -142,15 +142,20 @@ def download_newer_file(url, filename):
     # wrong until the server side file is updated.
     url_time = req.headers['last-modified']
     url_date = parsedate(url_time)
-    if os.path.exists(filename):
-        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+    download = False
+    if not os.path.exists(filename):
+        download = True
     else:
-        file_time = datetime.now() - timedelta(days=10)
-    if url_date.timestamp() > file_time.timestamp() :
+        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+        if url_date.timestamp() > file_time.timestamp():
+            download = True
+
+    if download:
         # Download archive
         try:
             # Read the file inside the .gz archive located at url
             urllib.request.urlretrieve(url, filename)
+            return 0
         except Exception as e:
             debugging.error(e)
             return 1
@@ -176,11 +181,15 @@ def download_newer_gz_file(url, filename):
     # wrong until the server side file is updated.
     url_time = req.headers['last-modified']
     url_date = parsedate(url_time)
-    if os.path.exists(filename):
-        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+    download = False
+    if not os.path.exists(filename):
+        download = True
     else:
-        file_time = datetime.now() - timedelta(days=10)
-    if url_date.timestamp() > file_time.timestamp() :
+        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+        if url_date.timestamp() > file_time.timestamp():
+            download = True
+
+    if download:
         # Download archive
         try:
             # Read the file inside the .gz archive located at url

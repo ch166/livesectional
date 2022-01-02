@@ -142,7 +142,10 @@ def download_newer_gz_file(url, filename):
     # wrong until the server side file is updated.
     url_time = req.headers['last-modified']
     url_date = parsedate(url_time)
-    file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+    if os.path.exists(filename):
+        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+    else:
+        file_time = datetime.timedelta(days=-10)
     if url_date.timestamp() > file_time.timestamp() :
         # Download archive
         try:

@@ -45,6 +45,7 @@ def dprint(args):
     else:
         return
 
+
 def info(args):
     ''' Passthrough call to print() if DEBUG_MSGS is enabled '''
     if INFO_MSGS:
@@ -53,6 +54,7 @@ def info(args):
         print(logtime, appname, "INFO:", args, flush=True )
     else:
         return
+
 
 def warn(args):
     ''' Passthrough call to print() if WARN_MSGS is enabled '''
@@ -63,6 +65,7 @@ def warn(args):
     else:
         return
 
+
 def error(args):
     ''' Passthrough call to print() if ERR_MSGS is enabled '''
     if ERR_MSGS:
@@ -71,6 +74,7 @@ def error(args):
         print(logtime, appname, "ERROR:", args, flush=True )
     else:
         return
+
 
 def debug(args):
     ''' Passthrough call to print() if ERR_MSGS is enabled '''

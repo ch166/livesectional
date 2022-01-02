@@ -733,9 +733,18 @@ class AirportDB:
         self.metar_xml_list = []
 
         self.metar_xml_url = conf.get_string("urls", "metar_xml_gz")
-        self.tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
         self.metar_file = conf.get_string("filenames", "metar_xml_data")
+        self.tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
         self.tafs_file = conf.get_string("filenames", "tafs_xml_data")
+        self.mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
+        self.mos00_file = conf.get_string("filenames", "mos00_xml_data")
+        self.mos06_xml_url = conf.get_string("urls", "mos06_data_gz")
+        self.mos06_file = conf.get_string("filenames", "mos06_xml_data")
+        self.mos12_xml_url = conf.get_string("urls", "mos12_data_gz")
+        self.mos12_file = conf.get_string("filenames", "mos12_xml_data")
+        self.mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
+        self.mos18_file = conf.get_string("filenames", "mos18_xml_data")
+
 
         debugging.info("AirportDB : init")
         utils.download_newer_gz_file(self.metar_xml_url, self.metar_file)
@@ -929,7 +938,7 @@ class AirportDB:
 
 
     def update_loop(self, conf):
-        """ Master loop for keeping the airport data set current 
+        """ Master loop for keeping the airport data set current
 
         Infinite Loop
          1/ Update METAR for all Airports in DB
@@ -955,6 +964,7 @@ class AirportDB:
                 print(self.metar_xml_list)
             elif ret == 3:
                 debugging.info("Server side METAR older")
+                
             ret = utils.download_newer_gz_file(self.tafs_xml_url, self.tafs_file)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
@@ -962,8 +972,29 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
+            ret = utils.download_newer_gz_file(self.mos00_xml_url, self.mos00_file)
+            if ret == 0:
+                debugging.info("Downloaded MOS00 file")
+            elif ret == 3:
+                debugging.info("Server side MOS00 older")
+
+            ret = utils.download_newer_gz_file(self.mos06_xml_url, self.mos06_file)
+            if ret == 0:
+                debugging.info("Downloaded MOS06 file")
+            elif ret == 3:
+                debugging.info("Server side MOS06 older")
+
+            ret = utils.download_newer_gz_file(self.mos12_xml_url, self.mos12_file)
+            if ret == 0:
+                debugging.info("Downloaded MOS12 file")
+            elif ret == 3:
+                debugging.info("Server side MOS12 older")
+
+            ret = utils.download_newer_gz_file(self.mos18_xml_url, self.mos18_file)
+            if ret == 0:
+                debugging.info("Downloaded MOS18 file")
+            elif ret == 3:
+                debugging.info("Server side MOS18 older")
+
             self.update_airport_wx()
             time.sleep(aviation_weather_adds_timer)
-
-
-

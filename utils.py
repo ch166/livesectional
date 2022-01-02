@@ -150,18 +150,13 @@ def download_newer_file(url, filename):
         # Download archive
         try:
             # Read the file inside the .gz archive located at url
-            with urllib.request.urlopen(url) as response:
-                    file_content = response.read()
-                # write to file in binary mode 'wb'
-            with open(filename, 'w', encoding="ascii") as f:
-                f.write(file_content)
-                f.close()
-                return 0
-
+            urllib.request.urlretrieve(url, filename)
         except Exception as e:
             debugging.error(e)
             return 1
     return 3
+
+
 def download_newer_gz_file(url, filename):
     """
     Download a gzip compressed file from URL if the

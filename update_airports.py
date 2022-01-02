@@ -972,25 +972,25 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
-            ret = utils.download_newer_gz_file(self.mos00_xml_url, self.mos00_file)
+            ret = utils.download_newer_file(self.mos00_xml_url, self.mos00_file)
             if ret == 0:
                 debugging.info("Downloaded MOS00 file")
             elif ret == 3:
                 debugging.info("Server side MOS00 older")
 
-            ret = utils.download_newer_gz_file(self.mos06_xml_url, self.mos06_file)
+            ret = utils.download_newer_file(self.mos06_xml_url, self.mos06_file)
             if ret == 0:
                 debugging.info("Downloaded MOS06 file")
             elif ret == 3:
                 debugging.info("Server side MOS06 older")
 
-            ret = utils.download_newer_gz_file(self.mos12_xml_url, self.mos12_file)
+            ret = utils.download_newer_file(self.mos12_xml_url, self.mos12_file)
             if ret == 0:
                 debugging.info("Downloaded MOS12 file")
             elif ret == 3:
                 debugging.info("Server side MOS12 older")
 
-            ret = utils.download_newer_gz_file(self.mos18_xml_url, self.mos18_file)
+            ret = utils.download_newer_file(self.mos18_xml_url, self.mos18_file)
             if ret == 0:
                 debugging.info("Downloaded MOS18 file")
             elif ret == 3:

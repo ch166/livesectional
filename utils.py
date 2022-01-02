@@ -145,7 +145,7 @@ def download_newer_gz_file(url, filename):
     if os.path.exists(filename):
         file_time = datetime.fromtimestamp(os.path.getmtime(filename))
     else:
-        file_time = datetime.timedelta(days=-10)
+        file_time = datetime.now() - timedelta(days=10)
     if url_date.timestamp() > file_time.timestamp() :
         # Download archive
         try:

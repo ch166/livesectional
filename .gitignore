@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
+.spyproject
+.vscode
 
 logfile.log.1
 logfile.log.2

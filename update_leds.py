@@ -835,7 +835,7 @@ class updateLEDs:
                                 if wx == 'FZRA' and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
                                     wx = 'NONE'
 
-    #                            print (t06,apid) #debug
+                                # print (t06,apid) #debug
                                 if t06 == '' or t06 is None:
                                     t06 = '0'
 

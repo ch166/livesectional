@@ -736,6 +736,7 @@ class AirportDB:
         self.metar_xml_dict = {}
         self.metar_xml_list = []
 
+        # TODO: Do we really need these, or can we just do the conf lookup when needed
         self.metar_xml_url = conf.get_string("urls", "metar_xml_gz")
         self.metar_file = conf.get_string("filenames", "metar_xml_data")
         self.tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
@@ -752,7 +753,7 @@ class AirportDB:
 
         debugging.info("AirportDB : init")
         utils.download_newer_gz_file(self.metar_xml_url, self.metar_file)
-        # FIXME: Not sure if we want to try load/save on init
+        # TODO: Not sure if we want to try load/save on init
         self.load_airport_db()
         self.update_airport_metar_xml()
         self.save_airport_db()
@@ -763,11 +764,13 @@ class AirportDB:
         """ Return Airport LED dict """
         return self.airport_led_dict
 
+
     def update_airport_wx(self):
         """ Update airport WX data for each known Airport """
         for icao, arpt in self.airport_master_dict.items():
             debugging.info("Updating WX for " + arpt.icao)
             arpt.update_wx(self.metar_xml_dict)
+
 
     def load_airport_db(self):
         """ Load Airport Data file """
@@ -840,7 +843,6 @@ class AirportDB:
         debugging.info("Airport Load and Merge complete")
 
 
-
     def save_airport_db(self):
         """ Save Airport Data file """
         # FIXME: Add file error handling
@@ -876,6 +878,7 @@ class AirportDB:
             station_id = metar_data.find('station_id').text
             station_id = station_id.lower()
             # print(":" + station_id + ": ", end='')
+            # FIXME: Move most of this code into an Airport Class function, where it belongs
             metar_dict[station_id] = {}
             metar_dict[station_id]['station_id'] = station_id
             next_object = metar_data.find('raw_text')

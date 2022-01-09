@@ -34,3 +34,5 @@ wget                                #
 psutil>=5.8.0
 pytz
 metar
+pypng
+pyqrcode

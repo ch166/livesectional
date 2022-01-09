@@ -15,9 +15,13 @@ class AppInfo:
     - Update Information
     '''
     def __init__(self):
-        self.cur_version_info =  3.0
-        self.available_version = 3.0
+        self.cur_version_info =  "4.4"
+        self.available_version = "3.0"
         self.refresh()
+
+    def current_version(self):
+        """ Return Current Version """
+        return self.cur_version_info
 
     def refresh(self):
         """ Update AppInfo data """

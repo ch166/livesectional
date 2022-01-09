@@ -113,8 +113,8 @@ class Airport:
         self.wx_windgust = None
         self.wx_category = None
         self.wx_category_str = "UNSET"
-        self.latitude = None
-        self.longitude = None
+        self.latitude = 0
+        self.longitude = 0
         self.metar_returncode = ""
 
     def created(self):
@@ -124,6 +124,14 @@ class Airport:
     def updated(self):
         """ Get last updated time """
         return self.updated_time
+
+    def get_latitude(self):
+        """ Return Airport Latitude """
+        return self.latitude
+
+    def get_longitude(self):
+        """ Return Airport longitude """
+        return self.longitude
 
     def icaocode(self):
         """ airport ICAO (4 letter) code """
@@ -154,6 +162,10 @@ class Airport:
         """ Update LED ID """
         self.led_index = led_index
 
+    def get_led_index(self):
+        """ Return LED ID """
+        return self.led_index
+
     def set_wxsrc(self, wxsrc):
         """ Set Weather source """
         self.wxsrc = wxsrc
@@ -161,6 +173,10 @@ class Airport:
     def set_active(self):
         """ Mark Airport as Active """
         self.active_led = True
+
+    def active(self):
+        """ Active """
+        return self.active_led
 
     def set_inactive(self):
         """ Mark Airport as Inactive """
@@ -194,8 +210,8 @@ class Airport:
         self.wx_windgust = metar_dict[self.icao]['wind_gust_kt']
         self.wx_category = metar_dict[self.icao]['flight_category']
         self.wx_category_str = metar_dict[self.icao]['flight_category']
-        self.latitude = metar_dict[self.icao]['latitude']
-        self.longitude = metar_dict[self.icao]['longitude']
+        self.latitude = float(metar_dict[self.icao]['latitude'])
+        self.longitude = float(metar_dict[self.icao]['longitude'])
         self.calculate_wx_from_metar()
         return False
 

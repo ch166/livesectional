@@ -112,7 +112,7 @@ import re
 # import logging
 # import logzero #had to manually install logzero. https://logzero.readthedocs.io/en/latest/
 # from logzero import logger
-import config  # Config.py holds user settings used by the various scripts
+# import config  # Config.py holds user settings used by the various scripts
 import admin
 
 import debugging

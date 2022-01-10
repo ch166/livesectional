@@ -9,6 +9,22 @@ Created on Oct 28 - 2021
 import re
 import configparser
 
+# This configuration parser provides access to the key/value data stored in 
+# the config.ini file. It currently uses configparser as the backend for managing ini files.
+# .ini files are useful for swapping data with humans
+# Future work in this space should look at storing the config as either
+# - json - structured, able to store more data cleanly
+#        - harder to handle random external generated configs through the export/import process
+# - toml - more rigid .ini file equivalent
+#
+# What would be really useful ; 
+#   - a config file format that supports persistance of comments across load - parse - save cycles.  
+#   - a config file format that allows file imports
+#
+# There are snippets of the configuration that are site hardware implementation specific, and
+# snippets of the configuration that are 'end user' airport / settings specific. It would be useful
+# to be able to swap out / reset the 'end user' pieces of the configuration without losing the 
+# configuration state for the hardware (LED , OLED , Switch setup )
 
 class Conf:
     """ Configuration Class"""

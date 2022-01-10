@@ -49,9 +49,9 @@
     <tr>
         <td><b>Auto Run on Boot</b><br>
         <td>
-            <input type="radio" name="autorun" id="autorunyes" value="1" {{'checked="checked"' if settings.autorun=="1" else "" }}/> 
+            <input type="radio" name="autorun" id="autorunyes" value="1" {{'checked="checked"' if settings.autorun else "" }}/> 
             <label for="autorunyes">Yes</label>
-            <input type="radio" name="autorun" id="autorunno" value="0" {{'checked="checked"' if settings.autorun=="0" else "" }}/>
+            <input type="radio" name="autorun" id="autorunno" value="0" {{'checked="checked"' if not settings.autorun else "" }}/>
             <label for="autorunno">No</label>
         <td>Set this to 'Yes' to have Live Sectional Map run on boot/reboot. Set to 'No' to boot to command line. 
             Note: This must be set to 'Yes' for reboot in the middle of night to occur.

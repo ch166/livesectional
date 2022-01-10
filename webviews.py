@@ -45,6 +45,8 @@ class WebViews:
         self.app.add_url_rule('/download_ap', view_func= self.downloadairports, methods=["GET", "POST"])
         self.app.add_url_rule('/download_cf', view_func= self.downloadconfig, methods=["GET", "POST"])
         self.app.add_url_rule('/download_log', view_func= self.downloadlog, methods=["GET", "POST"])
+        self.app.add_url_rule('/confedit', view_func= self.confedit, methods=["GET", "POST"])
+        self.app.add_url_rule('/post', view_func= self.handle_post_request, methods=["GET", "POST"])
 
         self.max_lat = 0
         self.min_lat = 0
@@ -331,6 +333,7 @@ class WebViews:
 
         for icao, arpt in self.airports.items():
             if not arpt.active():
+                # Inactive airports likely don't have valid lat/lon data
                 continue
             # Add lines between self.airports. Must make lat/lons
             # floats otherwise recursion error occurs.
@@ -338,7 +341,7 @@ class WebViews:
             points.insert(pin_index,
                     [arpt.get_latitude(), arpt.get_longitude()])
 
-        debugging.dprint(points)
+        debugging.debug(points)
         folium.PolyLine(points, color='grey',
                         weight=2.5,
                         opacity=1,
@@ -377,6 +380,7 @@ class WebViews:
 
         folium.LayerControl().add_to(folium_map)
 
+        # FIXME: Move filename to config.ini
         folium_map.save('/NeoSectional/templates/map.html')
         debugging.info("Opening led_map in separate window")
 
@@ -409,7 +413,7 @@ class WebViews:
         return render_template('qrcode.html', qraddress=qraddress, qrimage=qrcode_url)
 
 
-    # FIXME: Integrate into Class
+    # FIXME: Figure out what the home page will look like.
     # @app.route('/', methods=["GET", "POST"])
     # @app.route('/index', methods=["GET", "POST"])
     def index(self):
@@ -463,8 +467,6 @@ class WebViews:
     def hmedit(self):
         """Flask Route: /hmedit - Heat Map Editor"""
         debugging.info("Opening hmedit.html")
-        # global self.strip
-        # global num
 
         self.readhmdata(self.conf.get_string("filenames", "heatmap_file"))
 
@@ -734,16 +736,9 @@ class WebViews:
     def confedit(self):
         """Flask Route: /confedit - Configuration Editor"""
         debugging.info("Opening confedit.html")
-        # global settings
-
-        ipadd = self.sysdata.local_ip()
-        current_timezone = self.conf.get_string("default", "timezone")
-        settings = self.conf.gen_settings_dict()
-        loc_timestr = utils.time_format(utils.current_time(self.conf))
-        loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
 
         # debugging.dprint(ipadd)  # debug
-        debugging.dprint(settings)
+        # debugging.dprint(settings)
 
         # change rgb code to hex for html color picker
         # color_vfr_hex = utils.rgb2hex(self.conf.get_color("colors","color_vfr"))
@@ -789,60 +784,46 @@ class WebViews:
         # Pass data to html document
         template_data = self.standardtemplate_data()
         template_data['title'] = "Settings Editor"
+
         # FIXME: Needs a better way
-        template_data = {
-                'title': 'Settings Editor-'+self.appinfo.current_version(),
-                'settings': settings,
-                'ipadd': ipadd,
-                'timestr': loc_timestr,
-                'timestrutc': loc_timestr_utc,
-                # 'num': num,
-                'current_timezone': current_timezone,
-                # 'update_available': update_available,
-                # 'update_vers': update_vers,
-                # 'machines': machines,
+        template_data['color_vfr_hex'] = self.conf.get_color("colors", "color_vfr")
+        template_data['color_mvfr_hex'] = self.conf.get_color("colors", "color_mvfr")
+        template_data['color_ifr_hex'] = self.conf.get_color("colors", "color_ifr")
+        template_data['color_lifr_hex'] = self.conf.get_color("colors", "color_lifr")
+        template_data['color_nowx_hex'] = self.conf.get_color("colors", "color_nowx")
+        template_data['color_black_hex'] = self.conf.get_color("colors", "color_black")
+        template_data['color_lghtn_hex'] = self.conf.get_color("colors", "color_lghtn")
+        template_data['color_snow1_hex'] = self.conf.get_color("colors", "color_snow1")
+        template_data['color_snow2_hex'] = self.conf.get_color("colors", "color_snow2")
+        template_data['color_rain1_hex'] = self.conf.get_color("colors", "color_rain1")
+        template_data['color_rain2_hex'] = self.conf.get_color("colors", "color_rain2")
+        template_data['color_frrain1_hex'] = self.conf.get_color("colors", "color_frrain1")
+        template_data['color_frrain2_hex'] = self.conf.get_color("colors", "color_frrain2")
+        template_data['color_dustsandash1_hex'] = self.conf.get_color("colors", "color_dustsandash1")
+        template_data['color_dustsandash2_hex'] = self.conf.get_color("colors", "color_dustsandash2")
+        template_data['color_fog1_hex'] = self.conf.get_color("colors", "color_fog1")
+        template_data['color_fog2_hex'] = self.conf.get_color("colors", "color_fog2")
+        template_data['color_homeport_hex'] = self.conf.get_color("colors", "color_homeport")
 
-                # Color Picker Variables to pass
-                'color_vfr_hex': self.conf.get_color("colors", "color_vfr"),
-                'color_mvfr_hex': self.conf.get_color("colors", "color_mvfr"),
-                'color_ifr_hex': self.conf.get_color("colors", "color_ifr"),
-                'color_lifr_hex': self.conf.get_color("colors", "color_lifr"),
-                'color_nowx_hex': self.conf.get_color("colors", "color_nowx"),
-                'color_black_hex': self.conf.get_color("colors", "color_black"),
-                'color_lghtn_hex': self.conf.get_color("colors", "color_lghtn"),
-                'color_snow1_hex': self.conf.get_color("colors", "color_snow1"),
-                'color_snow2_hex': self.conf.get_color("colors", "color_snow2"),
-                'color_rain1_hex': self.conf.get_color("colors", "color_rain1"),
-                'color_rain2_hex': self.conf.get_color("colors", "color_rain2"),
-                'color_frrain1_hex': self.conf.get_color("colors", "color_frrain1"),
-                'color_frrain2_hex': self.conf.get_color("colors", "color_frrain2"),
-                'color_dustsandash1_hex': self.conf.get_color("colors", "color_dustsandash1"),
-                'color_dustsandash2_hex': self.conf.get_color("colors", "color_dustsandash2"),
-                'color_fog1_hex': self.conf.get_color("colors", "color_fog1"),
-                'color_fog2_hex': self.conf.get_color("colors", "color_fog2"),
-                'color_homeport_hex': self.conf.get_color("colors", "color_homeport"),
-
-                # Color Picker Variables to pass
-                'fade_color1_hex': self.conf.get_color("colors", "fade_color1"),
-                'allsame_color1_hex': self.conf.get_color("colors", "allsame_color1"),
-                'allsame_color2_hex': self.conf.get_color("colors", "allsame_color2"),
-                'shuffle_color1_hex': self.conf.get_color("colors", "shuffle_color1"),
-                'shuffle_color2_hex': self.conf.get_color("colors", "shuffle_color2"),
-                'radar_color1_hex': self.conf.get_color("colors", "radar_color1"),
-                'radar_color2_hex': self.conf.get_color("colors", "radar_color2"),
-                'circle_color1_hex': self.conf.get_color("colors", "circle_color1"),
-                'circle_color2_hex': self.conf.get_color("colors", "circle_color2"),
-                'square_color1_hex': self.conf.get_color("colors", "square_color1"),
-                'square_color2_hex': self.conf.get_color("colors", "square_color2"),
-                'updn_color1_hex': self.conf.get_color("colors", "updn_color1"),
-                'updn_color2_hex': self.conf.get_color("colors", "updn_color2"),
-                'morse_color1_hex': self.conf.get_color("colors", "morse_color1"),
-                'morse_color2_hex': self.conf.get_color("colors", "morse_color2"),
-                'rabbit_color1_hex': self.conf.get_color("colors", "rabbit_color1"),
-                'rabbit_color2_hex': self.conf.get_color("colors", "rabbit_color2"),
-                'checker_color1_hex': self.conf.get_color("colors", "checker_color1"),
-                'checker_color2_hex': self.conf.get_color("colors", "checker_color2")
-                }
+        template_data['fade_color1_hex'] = self.conf.get_color("colors", "fade_color1")
+        template_data['allsame_color1_hex'] = self.conf.get_color("colors", "allsame_color1")
+        template_data['allsame_color2_hex'] = self.conf.get_color("colors", "allsame_color2")
+        template_data['shuffle_color1_hex'] = self.conf.get_color("colors", "shuffle_color1")
+        template_data['shuffle_color2_hex'] = self.conf.get_color("colors", "shuffle_color2")
+        template_data['radar_color1_hex'] = self.conf.get_color("colors", "radar_color1")
+        template_data['radar_color2_hex'] = self.conf.get_color("colors", "radar_color2")
+        template_data['circle_color1_hex'] = self.conf.get_color("colors", "circle_color1")
+        template_data['circle_color2_hex'] = self.conf.get_color("colors", "circle_color2")
+        template_data['square_color1_hex'] = self.conf.get_color("colors", "square_color1")
+        template_data['square_color2_hex'] = self.conf.get_color("colors", "square_color2")
+        template_data['updn_color1_hex'] = self.conf.get_color("colors", "updn_color1")
+        template_data['updn_color2_hex'] = self.conf.get_color("colors", "updn_color2")
+        template_data['morse_color1_hex'] = self.conf.get_color("colors", "morse_color1")
+        template_data['morse_color2_hex'] = self.conf.get_color("colors", "morse_color2")
+        template_data['rabbit_color1_hex'] = self.conf.get_color("colors", "rabbit_color1")
+        template_data['rabbit_color2_hex'] = self.conf.get_color("colors", "rabbit_color2")
+        template_data['checker_color1_hex'] = self.conf.get_color("colors", "checker_color1")
+        template_data['checker_color2_hex'] = self.conf.get_color("colors", "checker_color2")
         return render_template('confedit.html', **template_data)
 
 
@@ -1047,8 +1028,6 @@ class WebViews:
     def importconf(self):
         """Flask Route: /importconf - Flask Config Uploader"""
         debugging.info("Importing Config File")
-        # global self.airports
-        # global settings
         tmp_settings = []
 
         if 'file' not in request.files:
@@ -1097,7 +1076,6 @@ class WebViews:
     # @app.route("/profiles", methods=["GET", "POST"])
     def profiles(self):
         """Flask Route: /profiles - Load from Multiple Config Profiles"""
-        # global settings
         config_profiles = {'b1': 'config-basic.py',
                            'b2': 'config-basic2.py',
                            'b3': 'config-basic3.py',

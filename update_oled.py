@@ -91,7 +91,7 @@ import random
 import logging
 import logzero
 from logzero import logger
-import config                                   #User settings stored in file config.py, used by other scripts
+# import config                                   #User settings stored in file config.py, used by other scripts
 import admin
 
 #LCD Libraries - Only needed if an LCD Display is to be used. Comment out if you would like.

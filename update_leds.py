@@ -192,6 +192,7 @@ class updateLEDs:
         # 24 hour time in this format, '2400' = midnight. Change these 2 settings in the admin.py file if desired.
         self.time_reboot = admin.time_reboot
 
+        self.homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
         # ************************************************************
         # * End of User defined settings. Normally shouldn't change  *
         # * any thing under here unless you are confident in change. *
@@ -1019,7 +1020,7 @@ class updateLEDs:
                 if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_boolean("lights", "homeport") and self.toggle:
                     if self.conf.get_int("lights", "homeport_display") == 1:
                         homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
-                        color = self.conf.homeport_colors[cycle_num]
+                        color = self.homeport_colors[cycle_num]
                     elif self.conf.get_int("lights", "homeport_display") == 2:
                         pass
                     else:
@@ -1028,11 +1029,11 @@ class updateLEDs:
                 # pass pin, color and format. Check and change color code for RGB or GRB format
                 xcolor = self.rgbtogrb(i, color, self.rgb_grb)
 
-                if i == self.conf.homeport_pin and self.conf.homeport:  # if this is the home airport, don't dim out the brightness
+                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_boolean("lights", "homeport"):  # if this is the home airport, don't dim out the brightness
                     norm_color = xcolor
                     xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
-                elif self.conf.homeport:  # if this is not the home airport, dim out the brightness
-                    dim_color = self.dim(xcolor, self.conf.dim_value)
+                elif self.conf.get_boolean("lights", "homeport"):  # if this is not the home airport, dim out the brightness
+                    dim_color = self.dim(xcolor, self.conf.get_int("lights", "dim_value"))
                     xcolor = Color(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness
                     norm_color = xcolor
@@ -1259,13 +1260,13 @@ class updateLEDs:
                 # Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
                 # Full brightness will be used if no light sensor is installed.
                 if GPIO.input(4) == 1:
-                    self.LED_BRIGHTNESS = self.conf.dimmed_value
+                    self.LED_BRIGHTNESS = self.conf.get_int("lights", "dimmed_value")
                     if self.ambient_toggle == 1:
                         debugging.info(
                             "Ambient Sensor set brightness to dimmed_value")
                         self.ambient_toggle = 0
                 else:
-                    self.LED_BRIGHTNESS = self.conf.bright_value
+                    self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
                     if self.ambient_toggle == 0:
                         debugging.info(
                             "Ambient Sensor set brightness to bright_value")

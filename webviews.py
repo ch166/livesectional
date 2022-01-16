@@ -1110,7 +1110,8 @@ class WebViews:
         temp = url.split('/')
         # flash("Rebooting Map ")
         debugging.info("Rebooting Map from " + url)
-        os.system('sudo shutdown -r now')
+        # FIXME: 
+        # os.system('sudo shutdown -r now')
         return redirect(temp[3])
         # temp[3] holds name of page that called this route.
 
@@ -1128,7 +1129,8 @@ class WebViews:
 
         temp = url.split('/')
         debugging.info("Startup Map from " + url)
-        os.system('sudo python3 /NeoSectional/startup.py run &')
+        # FIXME: 
+        # os.system('sudo python3 /NeoSectional/startup.py run &')
         flash("Map Turned On ")
         time.sleep(1)
         return redirect(temp[3])
@@ -1148,10 +1150,11 @@ class WebViews:
 
         temp = url.split('/')
         debugging.info("Shutoff Map from " + url)
-        os.system("ps -ef | grep '/NeoSectional/metar-display-v4.py' | awk '{print $2}' | xargs sudo kill")
-        os.system("ps -ef | grep '/NeoSectional/metar-v4.py' | awk '{print $2}' | xargs sudo kill")
-        os.system("ps -ef | grep '/NeoSectional/check-display.py' | awk '{print $2}' | xargs sudo kill")
-        os.system('sudo python3 /NeoSectional/shutoff.py &')
+        # FIXME: 
+        # os.system("ps -ef | grep '/NeoSectional/metar-display-v4.py' | awk '{print $2}' | xargs sudo kill")
+        # os.system("ps -ef | grep '/NeoSectional/metar-v4.py' | awk '{print $2}' | xargs sudo kill")
+        # os.system("ps -ef | grep '/NeoSectional/check-display.py' | awk '{print $2}' | xargs sudo kill")
+        # os.system('sudo python3 /NeoSectional/shutoff.py &')
         flash("Map Turned Off ")
         time.sleep(1)
         return redirect(temp[3])
@@ -1192,9 +1195,9 @@ class WebViews:
 
         temp = url.split('/')
 
-    #   flash("Testing LED's")
+        # flash("Testing LED's")
         debugging.info("Running testled.py from " + url)
-        os.system('sudo python3 /NeoSectional/testled.py')
+        # os.system('sudo python3 /NeoSectional/testled.py')
         return redirect(temp[3])
         # temp[3] holds name of page that called this route.
 
@@ -1217,6 +1220,7 @@ class WebViews:
 
         # flash("Testing OLEDs ")
         debugging.info("Running testoled.py from " + url)
-        os.system('sudo python3 /NeoSectional/testoled.py')
+        # FIXME: Call update_oled equivalent functions
+        # os.system('sudo python3 /NeoSectional/testoled.py')
         return redirect(temp[3])
         # temp[3] holds name of page that called this route.

@@ -865,105 +865,105 @@ class updateLEDs:
                 # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
                 if self.conf.get_bool("default", "legend") and airportcode == "LGND" and (i in self.legend_pins):
                     if i == self.conf.get_int("lights", "leg_pin_vfr"):
-                        color = self.conf.get_int("colors", "color_vfr")
+                        color = self.conf.get_color("colors", "color_vfr")
 
                     if i == self.conf.get_int("lights", "leg_pin_mvfr"):
-                        color = self.conf.get_int("colors", "color_mvfr")
+                        color = self.conf.get_color("colors", "color_mvfr")
 
                     if i == self.conf.get_int("lights", "leg_pin_ifr"):
-                        color = self.conf.get_int("colors", "color_ifr")
+                        color = self.conf.get_color("colors", "color_ifr")
 
                     if i == self.conf.get_int("lights", "leg_pin_lifr"):
-                        color = self.conf.get_int("colors", "color_lifr")
+                        color = self.conf.get_color("colors", "color_lifr")
 
                     if i == self.conf.get_int("lights", "leg_pin_nowx"):
-                        color = self.conf.get_int("colors", "color_nowx")
+                        color = self.conf.get_color("colors", "color_nowx")
 
                     if i == self.conf.get_int("lights", "leg_pin_hiwinds") and self.conf.get_int("lights", "legend_hiwinds"):
                         if (cycle_num == 3 or cycle_num == 4 or cycle_num == 5):
-                            color = self.conf.get_int("colors", "color_black")
+                            color = self.conf.get_color("colors", "color_black")
                         else:
-                            color = self.conf.get_int("colors", "color_ifr")
+                            color = self.conf.get_color("colors", "color_ifr")
 
                     if i == self.conf.get_int("lights", "leg_pin_lghtn") and self.conf.get_int("lights", "legend_lghtn"):
                         if (cycle_num == 2 or cycle_num == 4):  # Check for Thunderstorms
-                            color = self.conf.get_int("colors", "color_lghtn")
+                            color = self.conf.get_color("colors", "color_lghtn")
 
                         elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 3 or cycle_num == 5):
-                            color = self.conf.get_int("colors", "color_mvfr")
+                            color = self.conf.get_color("colors", "color_mvfr")
 
                     if i == self.conf.get_int("lights", "leg_pin_snow") and self.conf.get_int("lights", "legend_snow"):
                         if (cycle_num == 3 or cycle_num == 5):  # Check for Snow
-                            color = self.conf.get_int("colors", "color_snow1")
+                            color = self.conf.get_color("colors", "color_snow1")
 
                         if (cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_snow2")
+                            color = self.conf.get_color("colors", "color_snow2")
 
                         elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                            color = self.conf.get_int("colors", "color_lifr")
+                            color = self.conf.get_color("colors", "color_lifr")
 
                     if i == self.conf.get_int("lights", "leg_pin_rain") and self.conf.get_int("lights", "legend_rain"):
                         if (cycle_num == 3 or cycle_num == 5):  # Check for Rain
-                            color = self.conf.get_int("colors", "color_rain1")
+                            color = self.conf.get_color("colors", "color_rain1")
 
                         if (cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_rain2")
+                            color = self.conf.get_color("colors", "color_rain2")
 
                         elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                            color = self.conf.get_int("colors", "color_vfr")
+                            color = self.conf.get_color("colors", "color_vfr")
 
                     if i == self.conf.get_int("lights", "leg_pin_frrain") and self.conf.get_int("lights", "legend_frrain"):
                         if (cycle_num == 3 or cycle_num == 5):  # Check for Freezing Rain
-                            color = self.conf.get_int("colors", "color_frrain1")
+                            color = self.conf.get_color("colors", "color_frrain1")
 
                         if (cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_frrain2")
+                            color = self.conf.get_color("colors", "color_frrain2")
 
                         elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                            color = self.conf.get_int("colors", "color_mvfr")
+                            color = self.conf.get_color("colors", "color_mvfr")
 
                     if i == self.conf.get_int("lights", "leg_pin_dustsandash") and self.conf.get_int("lights", "legend_dustsandash"):
                         if (cycle_num == 3 or cycle_num == 5):  # Check for Dust, Sand or Ash
-                            color = self.conf.get_int("colors", "color_dustsandash1")
+                            color = self.conf.get_color("colors", "color_dustsandash1")
 
                         if (cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_dustsandash2")
+                            color = self.conf.get_color("colors", "color_dustsandash2")
 
                         elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                            color = self.conf.get_int("colors", "color_vfr")
+                            color = self.conf.get_color("colors", "color_vfr")
 
                     if i == self.conf.get_int("lights", "leg_pin_fog") and self.conf.get_int("lights", "legend_fog"):
                         if (cycle_num == 3 or cycle_num == 5):  # Check for Fog
-                            color = self.conf.get_int("colors", "color_fog1")
+                            color = self.conf.get_color("colors", "color_fog1")
 
                         if (cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_fog2")
+                            color = self.conf.get_color("colors", "color_fog2")
 
                         elif (cycle_num == 0 or cycle_num == 1 or cycle_num == 2):
-                            color = self.conf.get_int("colors", "color_ifr")
+                            color = self.conf.get_color("colors", "color_ifr")
 
                 # Start of weather display code for each airport in the "airports" file
                 # Check flight category and set the appropriate color to display
                 if flightcategory != "NONE":
                     if flightcategory == "VFR":  # Visual Flight Rules
-                        color = self.conf.get_int("colors", "color_vfr")
+                        color = self.conf.get_color("colors", "color_vfr")
                     elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
-                        color = self.conf.get_int("colors", "color_mvfr")
+                        color = self.conf.get_color("colors", "color_mvfr")
                     elif flightcategory == "IFR":  # Instrument Flight Rules
-                        color = self.conf.get_int("colors", "color_ifr")
+                        color = self.conf.get_color("colors", "color_ifr")
                     elif flightcategory == "LIFR":  # Low Instrument Flight Rules
-                        color = self.conf.get_int("colors", "color_lifr")
+                        color = self.conf.get_color("colors", "color_lifr")
                     else:
-                        color = self.conf.get_int("colors", "color_nowx")
+                        color = self.conf.get_color("colors", "color_nowx")
 
                 # 3.01 bug fix by adding "LGND" test
                 elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL":
-                    color = self.conf.get_int("colors", "color_nowx")  # No Weather reported.
+                    color = self.conf.get_color("colors", "color_nowx")  # No Weather reported.
 
                 # Check winds and set the 2nd half of cycles to black to create blink effect
                 if self.conf.get_bool("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
                     if (int(airportwinds) >= self.conf.get_int("metar", "max_wind_speed") and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
-                        color = self.conf.get_int("colors", "color_black")
+                        color = self.conf.get_color("colors", "color_black")
                         # debug
                         debugging.debug(("HIGH WINDS-> " + airportcode +
                                " Winds = " + str(airportwinds) + " "))
@@ -973,47 +973,47 @@ class updateLEDs:
                     if self.conf.get_bool("lights", "lghtnflash"):
                         # Check for Thunderstorms
                         if (airportwx in self.wx_lghtn_ck and (cycle_num == 2 or cycle_num == 4)):
-                            color = self.conf.get_int("colors", "color_lghtn")
+                            color = self.conf.get_color("colors", "color_lghtn")
 
                     if self.conf.get_bool("lights", "snowshow"):
                         # Check for Snow
                         if (airportwx in self.wx_snow_ck and (cycle_num == 3 or cycle_num == 5)):
-                            color = self.conf.get_int("colors", "color_snow1")
+                            color = self.conf.get_color("colors", "color_snow1")
 
                         if (airportwx in self.wx_snow_ck and cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_snow2")
+                            color = self.conf.get_color("colors", "color_snow2")
 
                     if self.conf.get_bool("lights", "rainshow"):
                         # Check for Rain
                         if (airportwx in self.wx_rain_ck and (cycle_num == 3 or cycle_num == 4)):
-                            color = self.conf.get_int("colors", "color_rain1")
+                            color = self.conf.get_color("colors", "color_rain1")
 
                         if (airportwx in self.wx_rain_ck and cycle_num == 5):
-                            color = self.conf.get_int("colors", "color_rain2")
+                            color = self.conf.get_color("colors", "color_rain2")
 
                     if self.conf.get_bool("lights", "frrainshow"):
                         # Check for Freezing Rain
                         if (airportwx in self.wx_frrain_ck and (cycle_num == 3 or cycle_num == 5)):
-                            color = self.conf.get_int("colors", "color_frrain1")
+                            color = self.conf.get_color("colors", "color_frrain1")
 
                         if (airportwx in self.wx_frrain_ck and cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_frrain2")
+                            color = self.conf.get_color("colors", "color_frrain2")
 
                     if self.conf.get_bool("lights", "dustsandashshow"):
                         # Check for Dust, Sand or Ash
                         if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)):
-                            color = self.conf.get_int("colors", "color_dustsandash1")
+                            color = self.conf.get_color("colors", "color_dustsandash1")
 
                         if (airportwx in self.wx_dustsandash_ck and cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_dustsandash2")
+                            color = self.conf.get_color("colors", "color_dustsandash2")
 
                     if self.conf.get_bool("lights", "fogshow"):
                         # Check for Fog
                         if (airportwx in self.wx_fog_ck and (cycle_num == 3 or cycle_num == 5)):
-                            color = self.conf.get_int("colors", "color_fog1")
+                            color = self.conf.get_color("colors", "color_fog1")
 
                         if (airportwx in self.wx_fog_ck and cycle_num == 4):
-                            color = self.conf.get_int("colors", "color_fog2")
+                            color = self.conf.get_color("colors", "color_fog2")
 
                 # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
                 # so that every other time through, the color will display the proper weather, then homeport color(s).
@@ -1024,7 +1024,7 @@ class updateLEDs:
                     elif self.conf.get_int("lights", "homeport_display") == 2:
                         pass
                     else:
-                        color = self.conf.get_int("colors", "color_homeport")
+                        color = self.conf.get_color("colors", "color_homeport")
 
                 # pass pin, color and format. Check and change color code for RGB or GRB format
                 xcolor = self.rgbtogrb(i, color, self.rgb_grb)

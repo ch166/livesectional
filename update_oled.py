@@ -275,7 +275,7 @@ lights_out = time_(offhour, offminutes, 0)
 timeoff = lights_out
 lights_on = time_(onhour, onminutes, 0)
 end_time = lights_on
-delay_time = 10                         #Number of seconds to delay before retrying to connect to the internet.
+# delay_time = 10                         #Number of seconds to delay before retrying to connect to the internet.
 temp_lights_on = 0                      #Set flag for next round if sleep timer is interrupted by button push.
 
 #MOS related settings
@@ -636,7 +636,7 @@ while True:
             except:
                 logger.warning('FAA Data is Not Available')
                 logger.info(url)
-                time.sleep(delay_time)
+                # time.sleep(delay_time)
                 pass
 
         root = ET.fromstring(content.read())    #Process XML data returned from FAA

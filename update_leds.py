@@ -302,12 +302,12 @@ class updateLEDs:
 
         # Setup paths for restart on change routine. Routine from;
         # https://blog.petrzemek.net/2014/03/23/restarting-a-python-script-within-itself
-        self.LOCAL_CONFIG_FILE_PATH = '/NeoSectional/config.py'
-        self.WATCHED_FILES = [self.LOCAL_CONFIG_FILE_PATH, __file__]
-        self.WATCHED_FILES_MTIMES = [(f, getmtime(f))
-                                     for f in self.WATCHED_FILES]
-        debugging.info(
-            'Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
+        # self.LOCAL_CONFIG_FILE_PATH = '/NeoSectional/config.py'
+        # self.WATCHED_FILES = [self.LOCAL_CONFIG_FILE_PATH, __file__]
+        # self.WATCHED_FILES_MTIMES = [(f, getmtime(f))
+        #                              for f in self.WATCHED_FILES]
+        # debugging.info(
+        #     'Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
 
         # Timer calculations
         self.lights_out = time_(self.conf.get_int("schedule", "offhour"),
@@ -1123,14 +1123,15 @@ class updateLEDs:
 
                 utils.reboot_if_time(self.conf)
 
+                # FIXME: Restore functionality
                 # Routine to restart this script if config.py is changed while this script is running.
-                for f, mtime in self.WATCHED_FILES_MTIMES:
-                    if getmtime(f) != mtime:
-                        debugging.info("Restarting from awake" +
-                                       __file__ + " in 2 sec...")
-                        time.sleep(2)
-                        # '/NeoSectional/metar-v4.py'])
-                        os.execv(sys.executable, [sys.executable] + [__file__])
+                # for f, mtime in self.WATCHED_FILES_MTIMES:
+                #     if getmtime(f) != mtime:
+                #         debugging.info("Restarting from awake" +
+                #                        __file__ + " in 2 sec...")
+                #         time.sleep(2)
+                #         # '/NeoSectional/metar-v4.py'])
+                #         # os.execv(sys.executable, [sys.executable] + [__file__])
 
                 # Timer routine, used to turn off LED's at night if desired. Use 24 hour time in settings.
                 # check to see if the user wants to use a timer.
@@ -1165,15 +1166,16 @@ class updateLEDs:
                                     "Sleep interrupted by button push")
 
                             # Routine to restart this script if config.py is changed while this script is running.
-                            for f, mtime in self.WATCHED_FILES_MTIMES:
-                                if getmtime(f) != mtime:
-                                    print("\033[0;0m\n")  # Turn off Blue text.
-                                    debugging.info(
-                                        "Restarting from sleep" + __file__ + " in 2 sec...")
-                                    time.sleep(2)
-                                    # restart this script.
-                                    os.execv(sys.executable, [
-                                             sys.executable] + [__file__])
+                            # FIXME: Restore functionality 
+                            # for f, mtime in self.WATCHED_FILES_MTIMES:
+                            #     if getmtime(f) != mtime:
+                            #         print("\033[0;0m\n")  # Turn off Blue text.
+                            #         debugging.info(
+                            #             "Restarting from sleep" + __file__ + " in 2 sec...")
+                            #         time.sleep(2)
+                            #         # restart this script.
+                            #         os.execv(sys.executable, [
+                            #                  sys.executable] + [__file__])
 
                         print("\033[0;0m\n")  # Turn off Blue text.
 

@@ -248,7 +248,7 @@ class updateLEDs:
                 self.conf.get_int("lights", "leg_pin_snow"), 
                 self.conf.get_int("lights", "leg_pin_rain"), 
                 self.conf.get_int("lights", "leg_pin_frrain"), 
-                self.conf.get_int("lights", "leg_pin_dustandash"), 
+                self.conf.get_int("lights", "leg_pin_dustsandash"), 
                 self.conf.get_int("lights", "leg_pin_fog")]  # Used to build legend display
 
         # Setup for IC238 Light Sensor for LED Dimming, does not need to be commented out if sensor is not used, map will remain at full brightness.
@@ -997,7 +997,7 @@ class updateLEDs:
                         if (airportwx in self.wx_frrain_ck and cycle_num == 4):
                             color = self.conf.get_int("colors", "color_frrain2")
 
-                    if self.conf.get_boolean("lights", "dustandashshow"):
+                    if self.conf.get_boolean("lights", "dustsandashshow"):
                         # Check for Dust, Sand or Ash
                         if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)):
                             color = self.conf.get_int("colors", "color_dustsandash1")

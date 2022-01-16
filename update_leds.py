@@ -107,6 +107,7 @@ from os.path import getmtime
 import RPi.GPIO as GPIO
 import collections
 import re
+import ast
 
 # Moved logging activities to debugging.py
 # import logging
@@ -959,8 +960,8 @@ class updateLEDs:
                     color = self.conf.get_int("colors", "color_nowx")  # No Weather reported.
 
                 # Check winds and set the 2nd half of cycles to black to create blink effect
-                if self.conf.hiwindblink:  # bypass if "hiwindblink" is set to 0
-                    if (int(airportwinds) >= self.conf.max_wind_speed and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
+                if self.conf.get_boolean("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
+                    if (int(airportwinds) >= self.conf.get_int("metar", "max_wind_speed") and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
                         color = self.conf.get_int("colors", "color_black")
                         # debug
                         debugging.debug(("HIGH WINDS-> " + airportcode +
@@ -1017,6 +1018,7 @@ class updateLEDs:
                 # so that every other time through, the color will display the proper weather, then homeport color(s).
                 if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_boolean("lights", "homeport") and self.toggle:
                     if self.conf.get_int("lights", "homeport_display") == 1:
+                        homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
                         color = self.conf.homeport_colors[cycle_num]
                     elif self.conf.get_int("lights", "homeport_display") == 2:
                         pass
@@ -1114,7 +1116,7 @@ class updateLEDs:
 
             # Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
             # Start the timer. When timer hits user-defined value, go back to outer loop to update FAA Weather.
-            timeout_end = time.time() + (self.conf.update_interval * 60)
+            timeout_end = time.time() + (self.conf.get_int("metar", "update_interval") * 60)
             loopcount = 0
             # take 'update_interval' which is in minutes and turn into seconds
             while time.time() < timeout_end:

@@ -863,7 +863,7 @@ class updateLEDs:
                     color = self.conf.get_color("colors", "color_black")
 
                 # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
-                if self.conf.get_boolean("default", "legend") and airportcode == "LGND" and (i in self.legend_pins):
+                if self.conf.get_bool("default", "legend") and airportcode == "LGND" and (i in self.legend_pins):
                     if i == self.conf.get_int("lights", "leg_pin_vfr"):
                         color = self.conf.get_int("colors", "color_vfr")
 
@@ -961,7 +961,7 @@ class updateLEDs:
                     color = self.conf.get_int("colors", "color_nowx")  # No Weather reported.
 
                 # Check winds and set the 2nd half of cycles to black to create blink effect
-                if self.conf.get_boolean("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
+                if self.conf.get_bool("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
                     if (int(airportwinds) >= self.conf.get_int("metar", "max_wind_speed") and (cycle_num == 3 or cycle_num == 4 or cycle_num == 5)):
                         color = self.conf.get_int("colors", "color_black")
                         # debug
@@ -970,12 +970,12 @@ class updateLEDs:
 
                 # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
                 if airportwx != "NONE":
-                    if self.conf.get_boolean("lights", "lghtnflash"):
+                    if self.conf.get_bool("lights", "lghtnflash"):
                         # Check for Thunderstorms
                         if (airportwx in self.wx_lghtn_ck and (cycle_num == 2 or cycle_num == 4)):
                             color = self.conf.get_int("colors", "color_lghtn")
 
-                    if self.conf.get_boolean("lights", "snowshow"):
+                    if self.conf.get_bool("lights", "snowshow"):
                         # Check for Snow
                         if (airportwx in self.wx_snow_ck and (cycle_num == 3 or cycle_num == 5)):
                             color = self.conf.get_int("colors", "color_snow1")
@@ -983,7 +983,7 @@ class updateLEDs:
                         if (airportwx in self.wx_snow_ck and cycle_num == 4):
                             color = self.conf.get_int("colors", "color_snow2")
 
-                    if self.conf.get_boolean("lights", "rainshow"):
+                    if self.conf.get_bool("lights", "rainshow"):
                         # Check for Rain
                         if (airportwx in self.wx_rain_ck and (cycle_num == 3 or cycle_num == 4)):
                             color = self.conf.get_int("colors", "color_rain1")
@@ -991,7 +991,7 @@ class updateLEDs:
                         if (airportwx in self.wx_rain_ck and cycle_num == 5):
                             color = self.conf.get_int("colors", "color_rain2")
 
-                    if self.conf.get_boolean("lights", "frrainshow"):
+                    if self.conf.get_bool("lights", "frrainshow"):
                         # Check for Freezing Rain
                         if (airportwx in self.wx_frrain_ck and (cycle_num == 3 or cycle_num == 5)):
                             color = self.conf.get_int("colors", "color_frrain1")
@@ -999,7 +999,7 @@ class updateLEDs:
                         if (airportwx in self.wx_frrain_ck and cycle_num == 4):
                             color = self.conf.get_int("colors", "color_frrain2")
 
-                    if self.conf.get_boolean("lights", "dustsandashshow"):
+                    if self.conf.get_bool("lights", "dustsandashshow"):
                         # Check for Dust, Sand or Ash
                         if (airportwx in self.wx_dustsandash_ck and (cycle_num == 3 or cycle_num == 5)):
                             color = self.conf.get_int("colors", "color_dustsandash1")
@@ -1007,7 +1007,7 @@ class updateLEDs:
                         if (airportwx in self.wx_dustsandash_ck and cycle_num == 4):
                             color = self.conf.get_int("colors", "color_dustsandash2")
 
-                    if self.conf.get_boolean("lights", "fogshow"):
+                    if self.conf.get_bool("lights", "fogshow"):
                         # Check for Fog
                         if (airportwx in self.wx_fog_ck and (cycle_num == 3 or cycle_num == 5)):
                             color = self.conf.get_int("colors", "color_fog1")
@@ -1017,7 +1017,7 @@ class updateLEDs:
 
                 # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
                 # so that every other time through, the color will display the proper weather, then homeport color(s).
-                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_boolean("lights", "homeport") and self.toggle:
+                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport") and self.toggle:
                     if self.conf.get_int("lights", "homeport_display") == 1:
                         homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
                         color = self.homeport_colors[cycle_num]
@@ -1029,10 +1029,10 @@ class updateLEDs:
                 # pass pin, color and format. Check and change color code for RGB or GRB format
                 xcolor = self.rgbtogrb(i, color, self.rgb_grb)
 
-                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_boolean("lights", "homeport"):  # if this is the home airport, don't dim out the brightness
+                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport"):  # if this is the home airport, don't dim out the brightness
                     norm_color = xcolor
                     xcolor = Color(norm_color[0], norm_color[1], norm_color[2])
-                elif self.conf.get_boolean("lights", "homeport"):  # if this is not the home airport, dim out the brightness
+                elif self.conf.get_bool("lights", "homeport"):  # if this is not the home airport, dim out the brightness
                     dim_color = self.dim(xcolor, self.conf.get_int("lights", "dim_value"))
                     xcolor = Color(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness

@@ -372,13 +372,19 @@ class updateLEDs:
         self.strip.show()
 
 
-    def dim(self, data, value):
+    def dim(self, color_in, value):
         """ 
-        # Reduces the brightness of the colors for every airport except for the "homeport_pin" designated airport, which remains at the brightness set by
-        # "bright_value" above in user setting. "data" is the airport color to display and "value" is the percentage of the brightness to be dimmed.
-        # For instance if full bright white (255,255,255) is provided and the desired dimming is 50%, then the color returned will be (128,128,128),
+        # Reduces the brightness of the colors for every airport except for 
+        # the "homeport_pin" designated airport, which remains at the brightness set by
+        # "bright_value" above in user setting. "data" is the airport color to display 
+        # and "value" is the percentage of the brightness to be dimmed.
+        # For instance if full bright white (255,255,255) is provided and the desired 
+        # dimming is 50%, then the color returned will be (128,128,128),
         # or half as bright. The dim_value is set in the user defined area. 
         """
+        # Input Color is #HEX Value
+        data = utils.hex2rgb(color_in) 
+
         red = data[0] - ((value * data[0])/100)
         if red < 0:
             red = 0
@@ -392,7 +398,9 @@ class updateLEDs:
             blu = 0
 
         data = [red, grn, blu]
-        return data
+
+        color_out = utils.rgb2hex(data)
+        return color_out
 
     # Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
     # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.

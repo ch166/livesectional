@@ -319,7 +319,7 @@ def test_for_update():
         flash('New Image Available -  Use Map Utilities to Download')
 
     debugging.info('Checking to see if there is an update available')
-    return redirect(temp[3])  # temp[3] holds page that called this route.
+    return redirect('/')  # temp[3] holds page that called this route.
 
 
 # Route to update Software if one is available and user chooses to update
@@ -359,7 +359,7 @@ def update():
     updatefiles()
     flash('Software has been updated to v' + update_vers)
     debugging.info('Updated Software to version ' + update_vers)
-    return redirect(temp[3])  # temp[3] holds name of page that called route.
+    return redirect('/')  # temp[3] holds name of page that called route.
 
 
 @app.route('/update_page', methods=["GET", "POST"])
@@ -1350,8 +1350,8 @@ def handle_post_request():
             # Use index if called from URL and not page.
 
         temp = url.split('/')
-        return redirect(temp[3])
-        # temp[3] holds name of page that called this route.
+        return redirect('/')
+        #  holds name of page that called this route.
 
 
 # Routes for LSREMOTE - Allow Mobile Device Remote. Thank Lance
@@ -1556,8 +1556,8 @@ def reboot1():
     # flash("Rebooting Map ")
     debugging.info("Rebooting Map from " + url)
     os.system('sudo shutdown -r now')
-    return redirect(temp[3])
-    # temp[3] holds name of page that called this route.
+    return redirect('/')
+    #  holds name of page that called this route.
 
 
 # Route to startup map and displays
@@ -1575,8 +1575,8 @@ def startup1():
     os.system('sudo python3 /NeoSectional/startup.py run &')
     flash("Map Turned On ")
     time.sleep(1)
-    return redirect(temp[3])
-    # temp[3] holds name of page that called this route.
+    return redirect('/')
+    #  holds name of page that called this route.
 
 
 # Route to turn off the map and displays
@@ -1597,8 +1597,8 @@ def shutdown1():
     os.system('sudo python3 /NeoSectional/shutoff.py &')
     flash("Map Turned Off ")
     time.sleep(1)
-    return redirect(temp[3])
-    # temp[3] holds name of page that called this route.
+    return redirect('/')
+    #  holds name of page that called this route.
 
 
 # Route to power down the RPI
@@ -1615,8 +1615,8 @@ def shutoffnow1():
     # flash("RPI is Shutting Down ")
     debugging.info("Shutdown RPI from " + url)
     os.system('sudo shutdown -h now')
-    return redirect(temp[3])
-    # temp[3] holds name of page that called this route.
+    return redirect('/')
+    #  holds name of page that called this route.
 
 
 # Route to run LED test
@@ -1636,8 +1636,8 @@ def testled():
 #   flash("Testing LED's")
     debugging.info("Running testled.py from " + url)
     os.system('sudo python3 /NeoSectional/testled.py')
-    return redirect(temp[3])
-    # temp[3] holds name of page that called this route.
+    return redirect('/')
+    #  holds name of page that called this route.
 
 
 # Route to run OLED test
@@ -1652,14 +1652,14 @@ def testoled():
 
     temp = url.split('/')
     if config.displayused != 1 or config.oledused != 1:
-        return redirect(temp[3])
-        # temp[3] holds name of page that called this route.
+        return redirect('/')
+        #  holds name of page that called this route.
 
     # flash("Testing OLEDs ")
     debugging.info("Running testoled.py from " + url)
     os.system('sudo python3 /NeoSectional/testoled.py')
-    return redirect(temp[3])
-    # temp[3] holds name of page that called this route.
+    return redirect('/')
+    #  holds name of page that called this route.
 
 
 # # # # # # # # # # # # #

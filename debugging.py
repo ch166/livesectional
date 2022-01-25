@@ -3,8 +3,10 @@
 # -*- coding: utf-8 -*-
 
 
+import time
 import datetime
 import logging
+import logging.handlers
 
 # FIXME: Move these flags to configuration
 DEBUG_MSGS = False
@@ -17,7 +19,15 @@ ERR_MSGS = True
 def loginit():
     ''' Init logging data '''
     # FIXME: Move filename to config
-    logging.basicConfig(filename="logs/debugging.log", level=logging.DEBUG)
+    # logging.basicConfig(filename="logs/debugging.log", level=logging.DEBUG)
+    loghandler = logging.handlers.WatchedFileHandler("logs/debugging.log")
+    formatter = logging.Formatter('%(asctime)s program_name [%(process)d]: %(message)s',
+        '%b %d %H:%M:%S')
+    formatter.converter = time.gmtime
+    logger = logging.getLogger()
+    logger.addHandler(loghandler)
+    logger.setLevel(logging.DEBUG)
+
 
 
 def crash(args):
@@ -71,6 +81,7 @@ def error(args):
     if ERR_MSGS:
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logging.error(args)
         print(logtime, appname, "ERROR:", args, flush=True )
     else:
         return

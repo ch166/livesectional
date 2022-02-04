@@ -18,7 +18,7 @@ html5lib==1.1                           #
 Jinja2==3.0.3                            #
 logzero==1.7.0                            #
 lxml==4.7.1                               #
-numpy==1.22.1                             #
+numpy==1.22.2                             #
 Pillow==9.0.0                             #
 pysftp==0.2.9                             #
 python-nmap==0.7.1                        #

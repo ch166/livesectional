@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # Updating LEDs
     debugging.info('Starting LED updating thread')
     # LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
-    led_thread = threading.Thread(target=LEDmgmt.update_loop, args=(conf,airport_database))
+    led_thread = threading.Thread(target=LEDmgmt.update_loop, args=())
 
     # Updating OLEDs
     debugging.info('Starting OLED updating thread')

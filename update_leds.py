@@ -126,7 +126,7 @@ import utils
 import colors
 
 
-class updateLEDs:
+class UpdateLEDs:
     """ Class to manage LSD strips """
 
     def __init__(self, conf, airport_database):
@@ -231,6 +231,10 @@ class updateLEDs:
                                   "VA", "BLDU", "BLSA", "PO", "VCSS", "SS", "+SS", ]
         # Fog
         self.wx_fog_ck = ["BR", "MIFG", "VCFG", "BCFG", "PRFG", "FG", "FZFG"]
+
+
+        # FIXME: Needs to tie to the list of disabled LEDs
+        self.nullpins = []
 
         # list definitions
         # Used to create weather designation effects.
@@ -400,11 +404,11 @@ class updateLEDs:
 
         return data
 
-    # Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
-    # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.
-    # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
     def rgbtogrb(self, pin, data, order=0):
         """ Change colorcode to match strip RGB / GRB style """
+        # Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
+        # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.
+        # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
         # rev_rgb_grb #list of pins that need to use the reverse of the normal order setting.
         # This accommodates the use of both models of LED strings on one map.
         if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"):
@@ -544,20 +548,9 @@ class updateLEDs:
         return color
 
 
-    def wipe_displays(self):
-        """ FIXME: Retire this function, and import the functions from wipes-v4.py """
-        # Call script and execute desired wipe(s) while data is being updated.
-        # FIXME to make this imported
-        # if self.usewipes == 1 and self.toggle_sw != -1:
-            # Get latest ip's to display in editors
-            # FIXME: Move wipes-v4 to be an included module, call here
-            # exec(compile(open("/NeoSectional/wipes-v4.py", "rb", encoding="utf8").read(),
-            #              "/NeoSectional/wipes-v4.py", 'exec'))
-            # debugging.info("Calling wipes script")
-        return True
-
-
     def check_heat_map(self, stationiddict, windsdict, wxstringdict):
+        # FIXME: This still uses the old fields - needs cleanup
+        #
         """
         # MOS decode routine
         # MOS data is downloaded daily from; https://www.weather.gov/mdl/mos_gfsmos_mav to the local drive by crontab scheduling.
@@ -797,7 +790,7 @@ class updateLEDs:
         return True
 
 
-    def wx_display_loop(self, stationiddict, windsdict, wxstringdict, airport_database):
+    def wx_display_loop(self, stationiddict, windsdict, wxstringdict, airport_database, toggle):
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
         debugging.info("\nWX Display")
 
@@ -1039,7 +1032,7 @@ class updateLEDs:
                     norm_color = color
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
 
-                self.strip.setLedColor(i, color)
+                self.setLedColor(i, color)
                 i = i + 1  # set next LED pin in strip
 
             print("/LED.", end='')
@@ -1090,10 +1083,6 @@ class updateLEDs:
             windsdict = {"": ""}
             wxstringdict = {"": ""}
 
-            if not self.wipe_displays():
-                debugging.error("Error returned while trying to wipe LEDs and Displays")
-            # if self.load_airports() == False:
-            #     break
 
             # FIXME: These will be empty - need to clean them up
             # self.update_metar_data(stationiddict, windsdict, wxstringdict)
@@ -1270,7 +1259,7 @@ class updateLEDs:
                 # Used to determine if the homeport color should be displayed if "homeport = 1"
                 toggle = not toggle
 
-                self.wx_display_loop(stationiddict, windsdict, wxstringdict, airport_database)
+                self.wx_display_loop(stationiddict, windsdict, wxstringdict, airport_database, toggle)
 
 
     def wheel(self, pos):
@@ -1292,9 +1281,9 @@ class updateLEDs:
             for led_pin in range(self.strip.numPixels()):
                 if str(led_pin) in self.nullpins:
                     #exclude NULL and LGND pins from wipe
-                    self.strip.setLedColor(led_pin, colors.black(self.conf))
+                    self.setLedColor(led_pin, colors.black(self.conf))
                 else:
-                    self.strip.setLedColor(led_pin, self.wheel((int(led_pin * 256 / self.strip.numPixels()) + j) & 255))
+                    self.setLedColor(led_pin, self.wheel((int(led_pin * 256 / self.strip.numPixels()) + j) & 255))
             self.strip.show()
             time.sleep(wait/100)
 
@@ -1316,12 +1305,12 @@ class updateLEDs:
             rabbit = led_pin + 1
 
             if str(led_pin) in self.nullpins or str(rabbit) in self.nullpins: #exclude NULL and LGND pins from wipe
-                self.strip.setLedColor(led_pin, colors.black(self.conf))
-                self.strip.setLedColor(rabbit, colors.black(self.conf))
+                self.setLedColor(led_pin, colors.black(self.conf))
+                self.setLedColor(rabbit, colors.black(self.conf))
             else:
                 if 0 < rabbit < self.strip.numPixels():
-                    self.strip.setLedColor(rabbit, color2)
-                self.strip.setLedColor(led_pin, color1)
+                    self.setLedColor(rabbit, color2)
+                self.setLedColor(led_pin, color1)
 
             self.strip.show()
             time.sleep(wait)
@@ -1331,14 +1320,14 @@ class updateLEDs:
             erase_pin = led_pin + 2
 
             if str(rabbit) in self.nullpins or str(erase_pin) in self.nullpins: #exclude NULL and LGND pins from wipe
-                self.strip.setLedColor(rabbit, colors.black(self.conf))
-                self.strip.setLedColor(erase_pin, colors.black(self.conf))
+                self.setLedColor(rabbit, colors.black(self.conf))
+                self.setLedColor(erase_pin, colors.black(self.conf))
             else:
                 if 0 < rabbit < self.strip.numPixels():
-                    self.strip.setLedColor(rabbit, color2)
+                    self.setLedColor(rabbit, color2)
 
                 if 0 < erase_pin < self.strip.numPixels():
-                    self.strip.setLedColor(erase_pin, colors.black(self.conf))
+                    self.setLedColor(erase_pin, colors.black(self.conf))
 
             self.strip.show()
             time.sleep(wait)
@@ -1351,9 +1340,9 @@ class updateLEDs:
         for led_pin in l:
             if str(led_pin) in self.nullpins:
                 #exclude NULL and LGND pins from wipe
-                self.strip.setLedColor(led_pin, colors.black(self.conf))
+                self.setLedColor(led_pin, colors.black(self.conf))
             else:
-                self.strip.setLedColor(led_pin, color1)
+                self.setLedColor(led_pin, color1)
             self.strip.show()
             time.sleep(wait*1)
 
@@ -1377,10 +1366,10 @@ class updateLEDs:
             for led_pin in range(self.strip.numPixels()): #LED_BRIGHTNESS,0,-1):
                 if str(led_pin) in self.nullpins:
                     #exclude NULL and LGND pins from wipe
-                    self.strip.setLedColor(led_pin, colors.black(self.conf))
+                    self.setLedColor(led_pin, colors.black(self.conf))
                 else:
                     color2 = self.dimwipe(color1,val)
-                    self.strip.setLedColor(led_pin, color2)
+                    self.setLedColor(led_pin, color2)
             self.strip.show()
             time.sleep(wait*.5)
 
@@ -1388,10 +1377,10 @@ class updateLEDs:
             for led_pin in range(self.strip.numPixels()): #0,LED_BRIGHTNESS,1):
                 if str(led_pin) in self.nullpins:
                     #exclude NULL and LGND pins from wipe
-                    self.strip.setLedColor(led_pin, colors.black(self.conf))
+                    self.setLedColor(led_pin, colors.black(self.conf))
                 else:
                     color2 = self.dimwipe(color1,val)
-                    self.strip.setLedColor(led_pin, color2)
+                    self.setLedColor(led_pin, color2)
             self.strip.show()
             time.sleep(wait*.5)
         time.sleep(wait*1)

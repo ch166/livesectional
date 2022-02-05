@@ -64,7 +64,7 @@ if __name__ == '__main__':
     airport_database.load_airport_db()
 
     # Setup LED Management
-    LEDmgmt = update_leds.updateLEDs(conf, airport_database)
+    LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
 
     # Setup Flask APP
     web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     # Updating LEDs
     debugging.info('Starting LED updating thread')
-    LEDmgmt = update_leds.updateLEDs(conf, airport_database)
+    # LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
     led_thread = threading.Thread(target=LEDmgmt.update_loop, args=(conf,airport_database))
 
     # Updating OLEDs

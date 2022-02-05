@@ -101,7 +101,7 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import time as time_
 import sys
-import os
+# import os
 # from os.path import getmtime
 
 import random
@@ -134,12 +134,9 @@ class UpdateLEDs:
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************
 
-        # Current Time Tracker
-        self.currentzulu = ""
-
-        # Local access to configuration data
-
         self.conf = conf
+
+        self.airport_database = airport_database
 
         # list of pins that need to reverse the rgb_grb setting. To accommodate two different models of LED's are used.
         # self.rev_rgb_grb = self.conf.rev_rgb_grb        #[] #['1', '2', '3', '4', '5', '6', '7', '8']
@@ -656,7 +653,7 @@ class UpdateLEDs:
                     debugging.debug('\n' + airport)  # debug
                     debugging.debug(self.categories)  # debug
 
-                    mos_time = int(self.current_hr_zulu) + \
+                    mos_time = utils.current_time_hr_utc(self.conf) + \
                         self.hour_to_display
                     if mos_time >= 24:  # check for reset at 00z
                         mos_time = mos_time - 24
@@ -790,7 +787,7 @@ class UpdateLEDs:
         return True
 
 
-    def wx_display_loop(self, stationiddict, windsdict, wxstringdict, airport_database, toggle):
+    def wx_display_loop(self, stationiddict, windsdict, wxstringdict, toggle):
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
         debugging.info("\nWX Display")
 
@@ -799,7 +796,7 @@ class UpdateLEDs:
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
         # cycle through the strip 6 times, setting the color then displaying to create various effects.
 
-        airport_list = airport_database.get_airport_dict_led()
+        airport_list = self.airport_database.get_airport_dict_led()
 
         for cycle_num in self.cycles:
             print(" " + str(cycle_num), end='')
@@ -1059,7 +1056,7 @@ class UpdateLEDs:
         # debugging.info( 'Switch in position ' )
 
 
-    def update_loop(self, conf, airport_database):
+    def update_loop(self):
         ##########################
         # Start of executed code #
         ##########################
@@ -1072,11 +1069,11 @@ class UpdateLEDs:
             # Time calculations, dependent on 'hour_to_display' offset. this determines how far in the future the TAF data should be.
             # This time is recalculated everytime the FAA data gets updated
             # Get current time plus Offset
-            zulu = utils.current_time_taf_offset(conf)
+            # zulu = utils.current_time_taf_offset(conf)
             # Format time to match whats reported in TAF. ie. 2020-03-24T18:21:54Z
-            self.current_zulu = utils.time_format_taf(utils.current_time(conf))
+            # current_zulu = utils.time_format_taf(utils.current_time(conf))
             # Zulu time formated for just the hour, to compare to MOS data
-            self.current_hr_zulu = zulu.strftime('%H')
+            # current_hr_zulu = zulu.strftime('%H')
 
             # Dictionary definitions. Need to reset whenever new weather is received
             stationiddict = {}
@@ -1093,9 +1090,6 @@ class UpdateLEDs:
 
             if self.check_heat_map(stationiddict, windsdict, wxstringdict) == False:
                 break
-
-            # FIXME: This goes away - airport information will be in airport_database
-            # self.decode_taf_data(stationiddict, windsdict, wxstringdict, self.metar_taf_mos, self.root)
 
             # Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
             # Start the timer. When timer hits user-defined value, go back to outer loop to update FAA Weather.
@@ -1259,7 +1253,7 @@ class UpdateLEDs:
                 # Used to determine if the homeport color should be displayed if "homeport = 1"
                 toggle = not toggle
 
-                self.wx_display_loop(stationiddict, windsdict, wxstringdict, airport_database, toggle)
+                self.wx_display_loop(stationiddict, windsdict, wxstringdict, toggle)
 
 
     def wheel(self, pos):

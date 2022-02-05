@@ -266,6 +266,13 @@ def time_format(raw_time):
     return raw_time.strftime("%H:%M:%S - %b %d, %Y")
 
 
+def current_time_hr_utc(conf):
+    """ Get current HR in UTC """
+    UTC = pytz.utc
+    curr_time = datetime.now(UTC)
+    return int(curr_time.strftime('%H'))
+
+
 def current_time_utc(conf):
     """ Get time in UTC """
     UTC = pytz.utc

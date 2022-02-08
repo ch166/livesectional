@@ -11,33 +11,33 @@
 # This also includes the wipe patterns from wipes-v4.py
 #
 # As this transition completes, all older code will be removed from here, so that the focus is only
-# on managing an LED strip
+# on managing an LED self.strip
 #
 # metar-v4.py - by Mark Harris. Capable of displaying METAR data, TAF or MOS data. Using a rotary switch to select 1 of 12 positions
-#    Updated to run under Python 3.7
-#    Added Sleep Timer routine to turn-off map at night if desired.
-#    Added the ability to display TAF or MOS data along with METAR's
-#    Note: MOS data is only available for United States, Puerto Rico, and the U.S. Virgin Islands.
-#    The timeframe of the TAF, MOS data to display can be selected via the rotary switch. A switch with up to 12 positions can be used.
-#    If no Rotary Switch is used, this script's config will set default data to display.
-#    Added routine by by Nick Cirincione to decode flight category if flight category is not provided by the FAA.
-#    Fixed bug that wouldn't allow the last airport to be 'NULL' without causing all LED's to show white.
-#    Added auto restart when config.py is changed, so settings will be automatically re-loaded.
-#    Added internet availability check and retry if necessary. This should help when power is disrupted and board reboots before router does.
-#    Added Logging capabilities which is stored in /NeoSectional/logs/logfile.log with 3 backup files for older logfile data.
-#    Added ability to specify specific LED pins to reverse the normal rgb_grb setting. For mixing models of LED strings.
-#    Added a Heat Map of what airports the user has landed at. Not available through Rotary switch. Only Web interface.
-#    Added new wipes, some based on lat/lon of airports
-#    Fixed bug where wipes would execute twice on map startup.
-#    Added admin.py for behinds the scenes variables to be stored. i.e. use_mos=1 to determine if bash files should or should not download MOS data.
-#    Added ability to detect a Rotary Switch is NOT installed and react accordingly.
-#    Added logging of Current RPI IP address whenever FAA weather update is retrieved
-#    Fixed bug where TAF XML reports OVC without a cloud level agl. It uses vert_vis_ft as a backup.
-#    Fixed bug when debug mode is changed to 'Debug'.
-#    Switch Version control over to Github at https://github.com/markyharris/livesectional
-#    Fixed METAR Decode routine to handle FAA results that don't include flight_category and forecast fields.
-#    Added routine to check time and reboot each night if setting in admin.py are set accordingly.
-#    Fixed bug that missed lowest sky_condition altitude on METARs not reporting flight categories.
+# Updated to run under Python 3.7
+# Added Sleep Timer routine to turn-off map at night if desired.
+# Added the ability to display TAF or MOS data along with METAR's
+# Note: MOS data is only available for United States, Puerto Rico, and the U.S. Virgin Islands.
+# The timeframe of the TAF, MOS data to display can be selected via the rotary switch. A switch with up to 12 positions can be used.
+# If no Rotary Switch is used, this script's config will set default data to display.
+# Added routine by by Nick Cirincione to decode flight category if flight category is not provided by the FAA.
+# Fixed bug that wouldn't allow the last airport to be 'NULL' without causing all LED's to show white.
+# Added auto restart when config.py is changed, so settings will be automatically re-loaded.
+# Added internet availability check and retry if necessary. This should help when power is disrupted and board reboots before router does.
+# Added Logging capabilities which is stored in /NeoSectional/logs/logfile.log with 3 backup files for older logfile data.
+# Added ability to specify specific LED pins to reverse the normal rgb_grb setting. For mixing models of LED strings.
+# Added a Heat Map of what airports the user has landed at. Not available through Rotary switch. Only Web interface.
+# Added new wipes, some based on lat/lon of airports
+# Fixed bug where wipes would execute twice on map startup.
+# Added admin.py for behinds the scenes variables to be stored. i.e. use_mos=1 to determine if bash files should or should not download MOS data.
+# Added ability to detect a Rotary Switch is NOT installed and react accordingly.
+# Added logging of Current RPI IP address whenever FAA weather update is retrieved
+# Fixed bug where TAF XML reports OVC without a cloud level agl. It uses vert_vis_ft as a backup.
+# Fixed bug when debug mode is changed to 'Debug'.
+# Switch Version control over to Github at https://github.com/markyharris/livesectional
+# Fixed METAR Decode routine to handle FAA results that don't include flight_category and forecast fields.
+# Added routine to check time and reboot each night if setting in admin.py are set accordingly.
+# Fixed bug that missed lowest sky_condition altitude on METARs not reporting flight categories.
 """
 
 # This version retains the features included in metar-v3.py, including hi-wind blinking and lightning when thunderstorms are reported.
@@ -66,31 +66,31 @@
 
 # RPI GPIO Pinouts reference
 ###########################
-#    3V3  (1) (2)  5V     #
-#  GPIO2  (3) (4)  5V     #
-#  GPIO3  (5) (6)  GND    #
-#  GPIO4  (7) (8)  GPIO14 #
-#    GND  (9) (10) GPIO15 #
+# 3V3  (1) (2)  5V     #
+# GPIO2  (3) (4)  5V     #
+# GPIO3  (5) (6)  GND    #
+# GPIO4  (7) (8)  GPIO14 #
+# GND  (9) (10) GPIO15 #
 # GPIO17 (11) (12) GPIO18 #
 # GPIO27 (13) (14) GND    #
 # GPIO22 (15) (16) GPIO23 #
-#    3V3 (17) (18) GPIO24 #
+# 3V3 (17) (18) GPIO24 #
 # GPIO10 (19) (20) GND    #
-#  GPIO9 (21) (22) GPIO25 #
+# GPIO9 (21) (22) GPIO25 #
 # GPIO11 (23) (24) GPIO8  #
-#    GND (25) (26) GPIO7  #
-#  GPIO0 (27) (28) GPIO1  #
-#  GPIO5 (29) (30) GND    #
-#  GPIO6 (31) (32) GPIO12 #
+# GND (25) (26) GPIO7  #
+# GPIO0 (27) (28) GPIO1  #
+# GPIO5 (29) (30) GND    #
+# GPIO6 (31) (32) GPIO12 #
 # GPIO13 (33) (34) GND    #
 # GPIO19 (35) (36) GPIO16 #
 # GPIO26 (37) (38) GPIO20 #
-#    GND (39) (40) GPIO21 #
+# GND (39) (40) GPIO21 #
 ###########################
 
 # Import needed libraries
 
-## Removing URL related actions from update_leds
+# Removing URL related actions from update_leds
 # import urllib.request
 # import urllib.error
 # import urllib.parse
@@ -115,10 +115,10 @@ from rpi_ws281x import *  # works with python 3.7. sudo pip3 install rpi_ws281x
 
 # Moved logging activities to debugging.py
 # import logging
-# import logzero #had to manually install logzero. https://logzero.readthedocs.io/en/latest/
+# import logzero # had to manually install logzero. https://logzero.readthedocs.io/en/latest/
 # from logzero import logger
-# import config  # Config.py holds user settings used by the various scripts
-import admin
+# import config # Config.py holds user settings used by the various scripts
+# import admin
 
 import debugging
 import utils
@@ -127,7 +127,7 @@ import colors
 
 
 class UpdateLEDs:
-    """ Class to manage LSD strips """
+    """ Class to manage LSD self.strips """
 
     def __init__(self, conf, airport_database):
         # ****************************************************************************
@@ -139,33 +139,32 @@ class UpdateLEDs:
         self.airport_database = airport_database
 
         # list of pins that need to reverse the rgb_grb setting. To accommodate two different models of LED's are used.
-        # self.rev_rgb_grb = self.conf.rev_rgb_grb        #[] #['1', '2', '3', '4', '5', '6', '7', '8']
+        # self.rev_rgb_grb = self.conf.rev_rgb_grb        # [] # ['1', '2', '3', '4', '5', '6', '7', '8']
 
         # Specific Variables to default data to display if Rotary Switch is not installed.
-        # hour_to_display #Offset in HOURS to choose which TAF/MOS to display
+        # hour_to_display # Offset in HOURS to choose which TAF/MOS to display
         self.hour_to_display = self.conf.get_int("rotaryswitch", "time_sw0")
-        # metar_taf_mos    #0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
+        # metar_taf_mos    # 0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
         self.metar_taf_mos = self.conf.get_int("rotaryswitch", "data_sw0")
         # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
         self.toggle_sw = -1
 
-
         # MOS/TAF Config settings
-        # self.prob = self.conf.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not. MOS Only.
+        # self.prob = self.conf.prob                      # probability threshhold in Percent to assume reported weather will be displayed on map or not. MOS Only.
 
         # Heat Map settings
-        # self.bin_grad = self.conf.bin_grad              #0 = Binary display, 1 = Gradient display
-        # self.fade_yesno = self.conf.fade_yesno          #0 = No, 1 = Yes, if using gradient display, fade in/out the home airport color. will override use_homeap.
-        # self.use_homeap = self.conf.use_homeap          #0 = No, 1 = Yes, Use a separate color to denote home airport.
+        # self.bin_grad = self.conf.bin_grad              # 0 = Binary display, 1 = Gradient display
+        # self.fade_yesno = self.conf.fade_yesno          # 0 = No, 1 = Yes, if using gradient display, fade in/out the home airport color. will override use_homeap.
+        # self.use_homeap = self.conf.use_homeap          # 0 = No, 1 = Yes, Use a separate color to denote home airport.
         # delay in fading the home airport if used
         self.fade_delay = conf.get_float("rotaryswitch", "fade_delay")
 
         # MOS Config settings
-        # self.prob = self.conf.prob                      #probability threshhold in Percent to assume reported weather will be displayed on map or not.
+        # self.prob = self.conf.prob                      # probability threshhold in Percent to assume reported weather will be displayed on map or not.
 
         # Specific settings for on/off timer. Used to turn off LED's at night if desired.
         # Verify Raspberry Pi is set to the correct time zone, otherwise the timer will be off.
-        # self.usetimer = self.conf.usetimer              #0 = No, 1 = Yes. Turn the timer on or off with this setting
+        # self.usetimer = self.conf.usetimer              # 0 = No, 1 = Yes. Turn the timer on or off with this setting
         self.offhour = self.conf.get_int("schedule", "offhour")  # Use 24 hour time. Set hour to turn off display
         self.offminutes = self.conf.get_int("schedule", "offminutes")  # Set minutes to turn off display
         self.onhour = self.conf.get_int("schedule", "onhour")  # Use 24 hour time. Set hour to turn on display
@@ -182,9 +181,9 @@ class UpdateLEDs:
         # 1 = RGB color codes. 0 = GRB color codes. Populate color codes below with normal RGB codes and script will change if necessary
         self.rgb_grb = self.conf.get_int("lights", "rgb_grb")
         # Used to determine if board should reboot every day at time set in setting below.
-        self.use_reboot = admin.use_reboot
-        # 24 hour time in this format, '2400' = midnight. Change these 2 settings in the admin.py file if desired.
-        self.time_reboot = admin.time_reboot
+        self.use_reboot = self.conf.get_int("modules", "use_reboot")
+
+        self.time_reboot = self.conf.get_string("default", "nightly_reboot_hr")
 
         self.homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
         # ************************************************************
@@ -211,7 +210,7 @@ class UpdateLEDs:
         # List of METAR weather categories to designate weather in area. Many Metars will report multiple conditions, i.e. '-RA BR'.
         # The code pulls the first/main weather reported to compare against the lists below. In this example it uses the '-RA' and ignores the 'BR'.
         # See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
-        #Thunderstorm and lightning
+        # Thunderstorm and lightning
         self.wx_lghtn_ck = ["TS", "TSRA", "TSGR", "+TSRA",
                             "TSRG", "FC", "SQ", "VCTS", "VCTSRA", "VCTSDZ", "LTG"]
         # Snow in various forms
@@ -229,7 +228,6 @@ class UpdateLEDs:
         # Fog
         self.wx_fog_ck = ["BR", "MIFG", "VCFG", "BCFG", "PRFG", "FG", "FZFG"]
 
-
         # FIXME: Needs to tie to the list of disabled LEDs
         self.nullpins = []
 
@@ -239,17 +237,17 @@ class UpdateLEDs:
                            self.cycle3_wait, self.cycle4_wait, self.cycle5_wait]
         self.cycles = [0, 1, 2, 3, 4, 5]  # Used as a index for the cycle loop.
         self.legend_pins = [self.conf.get_int("lights", "leg_pin_vfr"),
-                self.conf.get_int("lights", "leg_pin_mvfr"),
-                self.conf.get_int("lights", "leg_pin_ifr"),
-                self.conf.get_int("lights", "leg_pin_lifr"),
-                self.conf.get_int("lights", "leg_pin_nowx"),
-                self.conf.get_int("lights", "leg_pin_hiwinds"),
-                self.conf.get_int("lights", "leg_pin_lghtn"),
-                self.conf.get_int("lights", "leg_pin_snow"),
-                self.conf.get_int("lights", "leg_pin_rain"),
-                self.conf.get_int("lights", "leg_pin_frrain"),
-                self.conf.get_int("lights", "leg_pin_dustsandash"),
-                self.conf.get_int("lights", "leg_pin_fog")]  # Used to build legend display
+                            self.conf.get_int("lights", "leg_pin_mvfr"),
+                            self.conf.get_int("lights", "leg_pin_ifr"),
+                            self.conf.get_int("lights", "leg_pin_lifr"),
+                            self.conf.get_int("lights", "leg_pin_nowx"),
+                            self.conf.get_int("lights", "leg_pin_hiwinds"),
+                            self.conf.get_int("lights", "leg_pin_lghtn"),
+                            self.conf.get_int("lights", "leg_pin_snow"),
+                            self.conf.get_int("lights", "leg_pin_rain"),
+                            self.conf.get_int("lights", "leg_pin_frrain"),
+                            self.conf.get_int("lights", "leg_pin_dustsandash"),
+                            self.conf.get_int("lights", "leg_pin_fog")]  # Used to build legend display
 
         # Setup for IC238 Light Sensor for LED Dimming, does not need to be commented out if sensor is not used, map will remain at full brightness.
         # For more info on the sensor visit; http://www.uugear.com/portfolio/using-light-sensor-module-with-raspberry-pi/
@@ -288,7 +286,7 @@ class UpdateLEDs:
         # set pin 7 to ground for TAF + 11 hours
         GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        # LED strip configuration:
+        # LED self.strip configuration:
         self.LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
         # LED signal frequency in hertz (usually 800khz)
         self.LED_FREQ_HZ = 800000
@@ -297,7 +295,7 @@ class UpdateLEDs:
         self.LED_INVERT = False
         self.LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
         self.LED_STRIP = ws.WS2811_STRIP_GRB  # Strip type and color ordering
-        # 255    #starting brightness. It will be changed below.
+        # 255    # starting brightness. It will be changed below.
         self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
 
         # Setup paths for restart on change routine. Routine from;
@@ -305,9 +303,9 @@ class UpdateLEDs:
         # self.LOCAL_CONFIG_FILE_PATH = '/NeoSectional/config.py'
         # self.WATCHED_FILES = [self.LOCAL_CONFIG_FILE_PATH, __file__]
         # self.WATCHED_FILES_MTIMES = [(f, getmtime(f))
-        #                              for f in self.WATCHED_FILES]
+        #     for f in self.WATCHED_FILES]
         # debugging.info(
-        #     'Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
+        # 'Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
 
         # Timer calculations
         self.lights_out = time_(self.conf.get_int("schedule", "offhour"),
@@ -340,7 +338,7 @@ class UpdateLEDs:
         self.high_visits = (255, 0, 0)
         self.fadehome = -1  # start with neg number
         self.homeap = self.conf.get_string("colors", "color_vfr")  # If 100, then home airport - designate with Green
-        # color_fog2                     #(10, 10, 10)        #dk grey to denote airports never visited
+        # color_fog2  # (10, 10, 10) # dk grey to denote airports never visited
         self.no_visits = (20, 20, 20)
 
         # Misc Settings
@@ -349,9 +347,24 @@ class UpdateLEDs:
 
         self.apid = ""
 
+        # Morse Code Dictionary
+        self.CODE = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..',
+                     'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
+                     'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+                     'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-',
+                     'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-',
+                     'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..',
+                     '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+                     '5': '.....', '6': '-....', '7': '--...', '8': '---..',
+                     '9': '----.', '0': '-----', ', ': '--..--', '.': '.-.-.-',
+                     '?': '..--..', '/': '-..-.', '-': '-....-',
+                     '(': '-.--.', ')': '-.--.-'
+                     }
+
         debugging.info("metar-v4.py Settings Loaded")
 
         # Create an instance of NeoPixel
+        # FIXME: MOVE THIS FROM HERE TO LEDSTRIP for one INIT action
         self.strip = Adafruit_NeoPixel(self.LED_COUNT,
                                        self.LED_PIN,
                                        self.LED_FREQ_HZ,
@@ -363,9 +376,10 @@ class UpdateLEDs:
         self.strip.begin()
 
     # Functions
-
     def setLedColor(self, led_id, hexcolor):
         """ Convert color from HEX to RGB or GRB and apply to LED String """
+        # TODO: Add capability here to manage 'nullpins' and remove any mention of it from the code
+        # This function should do all the color conversions, and exclude NULL or Legend PINS
         rgb_color = colors.RGB(self.conf, hexcolor)
         color_ord = self.rgbtogrb(led_id, rgb_color, self.rgb_grb)
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
@@ -376,7 +390,6 @@ class UpdateLEDs:
         for i in range(self.strip.numPixels()):
             self.setLedColor(i, colors.black(self.conf))
         self.strip.show()
-
 
     def dim(self, color_data, value):
         """
@@ -402,11 +415,11 @@ class UpdateLEDs:
         return data
 
     def rgbtogrb(self, pin, data, order=0):
-        """ Change colorcode to match strip RGB / GRB style """
-        # Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
-        # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB strip.
+        """ Change colorcode to match self.strip RGB / GRB style """
+        # Change color code to work with various led self.strips. For instance, WS2812 model self.strip uses RGB where WS2811 model uses GRB
+        # Set the "rgb_grb" user setting above. 1 for RGB LED self.strip, and 0 for GRB self.strip.
         # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
-        # rev_rgb_grb #list of pins that need to use the reverse of the normal order setting.
+        # rev_rgb_grb # list of pins that need to use the reverse of the normal order setting.
         # This accommodates the use of both models of LED strings on one map.
         if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"):
             order = not order
@@ -423,10 +436,10 @@ class UpdateLEDs:
             data = [grn, red, blu]
         return data
 
-    # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
-    # FIXME: Move to update_airports.py
-    """    def set_data(self):
-    #        FIXME: Needs reworking for MOS data
+        # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
+        # FIXME: Move to update_airports.py
+        """    def set_data(self):
+        # FIXME: Needs reworking for MOS data
 
         # Clean up line of MOS data.
         # this check is unneeded. Put here to vary length of list to clean up.
@@ -434,31 +447,31 @@ class UpdateLEDs:
             temp1 = []
             tmp_sw = 0
 
-            for val in self.temp:  # Check each item in the list
-                val = val.lstrip()  # remove leading white space
-                val = val.rstrip('/')  # remove trailing /
+            for val in self.temp: # Check each item in the list
+                val = val.lstrip() # remove leading white space
+                val = val.rstrip('/') # remove trailing /
 
-                if len(val) == 6:  # this is for T06 to build appropriate length list
-                    # add a '0' to the front of the list. T06 doesn't report data in first 3 hours.
+                if len(val) == 6: # this is for T06 to build appropriate length list
+                   # add a '0' to the front of the list. T06 doesn't report data in first 3 hours.
                     temp1.append('0')
-                    # add back the original value taken from T06
+                   # add back the original value taken from T06
                     temp1.append(val)
-                    # Turn on switch so we don't go through it again.
+                   # Turn on switch so we don't go through it again.
                     tmp_sw = 1
 
-                # and tmp_sw == 0: #if item is 1 or 2 chars long, then bypass. Otherwise fix.
+               # and tmp_sw == 0: # if item is 1 or 2 chars long, then bypass. Otherwise fix.
                 elif len(val) > 2 and tmp_sw == 0:
-                    pos = val.find('100')  # locate first 100
-                    # capture the first value which is not a 100
+                    pos = val.find('100') # locate first 100
+                   # capture the first value which is not a 100
                     tmp = val[0:pos]
-                    temp1.append(tmp)  # and store it in temp list.
+                    temp1.append(tmp) # and store it in temp list.
 
                     k = 0
-                    for j in range(pos, len(val), 3):  # now iterate through remainder
-                        temp1.append(val[j:j+3])  # and capture all the 100's
+                    for j in range(pos, len(val), 3): # now iterate through remainder
+                        temp1.append(val[j:j+3]) # and capture all the 100's
                         k += 1
                 else:
-                    temp1.append(val)  # Store the normal values too.
+                    temp1.append(val) # Store the normal values too.
 
             self.temp = temp1
 
@@ -484,7 +497,7 @@ class UpdateLEDs:
         self.dat7.append(self.temp7[0])
 
         j = 0
-        for key in self.keys:  # add cat data to the hour_dict by hour
+        for key in self.keys: # add cat data to the hour_dict by hour
 
             if j == 0:
                 self.hour_dict[key] = self.dat0
@@ -504,10 +517,10 @@ class UpdateLEDs:
                 self.hour_dict[key] = self.dat7
             j += 1
 
-            # marry the hour_dict to the proper key in mos_dict
+           # marry the hour_dict to the proper key in mos_dict
             self.mos_dict[self.apid] = self.hour_dict
 
-    """
+        """
 
     # For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
     # Can choose to display binary colors with homeap.
@@ -544,10 +557,8 @@ class UpdateLEDs:
             color = colors.black(self.conf)
         return color
 
-
     def check_heat_map(self, stationiddict, windsdict, wxstringdict):
         # FIXME: This still uses the old fields - needs cleanup
-        #
         """
         # MOS decode routine
         # MOS data is downloaded daily from; https://www.weather.gov/mdl/mos_gfsmos_mav to the local drive by crontab scheduling.
@@ -645,13 +656,13 @@ class UpdateLEDs:
                                 self.hour_dict = collections.OrderedDict()
 
             # Now grab the data needed to display on map. Key: [airport][hr][j] - using nested dictionaries
-            #   airport = from airport file, 4 character ID. hr = 1 of 8 three-hour periods of time, 00 03 06 09 12 15 18 21
-            #   j = index to weather categories, in this order; 'CLD','WDR','WSP','P06', 'T06', 'POZ', 'POS', 'TYP','CIG','VIS','OBV'.
-            #   See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for description of available data.
+            # airport = from airport file, 4 character ID. hr = 1 of 8 three-hour periods of time, 00 03 06 09 12 15 18 21
+            # j = index to weather categories, in this order; 'CLD','WDR','WSP','P06', 'T06', 'POZ', 'POS', 'TYP','CIG','VIS','OBV'.
+            # See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for description of available data.
             for airport in self.airports:
                 if airport in self.mos_dict:
-                    debugging.debug('\n' + airport)  # debug
-                    debugging.debug(self.categories)  # debug
+                    debugging.debug('\n' + airport)
+                    debugging.debug(self.categories)
 
                     mos_time = utils.current_time_hr_utc(self.conf) + \
                         self.hour_to_display
@@ -676,7 +687,7 @@ class UpdateLEDs:
                             obv = (self.mos_dict[airport][hr][10])
 
                             debugging.debug(
-                                mos_date + hr + cld + wdr + wsp + p06 + t06 + poz + pos + typ + cig + vis + obv)  # debug
+                                mos_date + hr + cld + wdr + wsp + p06 + t06 + poz + pos + typ + cig + vis + obv)
 
                             # decode the weather for each airport to display on the livesectional map
                             flightcategory = "VFR"  # start with VFR as the assumption
@@ -713,34 +724,34 @@ class UpdateLEDs:
                             # decode reported weather using probabilities provided.
                             if typ == '9':  # check to see if rain, freezing rain or snow is reported. If not use obv weather
                                 # Get proper representation for obv designator
-                                wx = self.obv_wx[obv]
+                                wx_info = self.obv_wx[obv]
                             else:
                                 # Get proper representation for typ designator
-                                wx = self.typ_wx[typ]
+                                wx_info = self.typ_wx[typ]
 
-                                if wx == 'RA' and int(p06) < self.conf.get_int("rotaryswitch", "prob"):
+                                if wx_info == 'RA' and int(p06) < self.conf.get_int("rotaryswitch", "prob"):
                                     if obv != 'N':
-                                        wx = self.obv_wx[obv]
+                                        wx_info = self.obv_wx[obv]
                                     else:
-                                        wx = 'NONE'
+                                        wx_info = 'NONE'
 
-                                if wx == 'SN' and int(pos) < self.conf.get_int("rotaryswitch", "prob"):
-                                    wx = 'NONE'
+                                if wx_info == 'SN' and int(pos) < self.conf.get_int("rotaryswitch", "prob"):
+                                    wx_info = 'NONE'
 
-                                if wx == 'FZRA' and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
-                                    wx = 'NONE'
+                                if wx_info == 'FZRA' and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
+                                    wx_info = 'NONE'
 
-                                # print (t06,apid) #debug
+                                # print (t06,apid) # debug
                                 if t06 == '' or t06 is None:
                                     t06 = '0'
 
                                 # check for thunderstorms
                                 if int(t06) > self.conf.get_int("rotaryswitch", "prob"):
-                                    wx = 'TSRA'
+                                    wx_info = 'TSRA'
                                 else:
-                                    wx = 'NONE'
+                                    wx_info = 'NONE'
 
-                            debugging.debug('Reported Weather = ' + wx)
+                            debugging.debug('Reported Weather = ' + wx_info)
 
                     # Connect the information from MOS to the board
                     stationId = airport
@@ -754,10 +765,10 @@ class UpdateLEDs:
                         windspeedkt = int(wsp)
 
                     # grab Weather info from returned FAA data
-                    if wx is None:  # if weather string is blank, then bypass
+                    if wx_info is None:  # if weather string is blank, then bypass
                         wxstring = "NONE"
                     else:
-                        wxstring = wx
+                        wxstring = wx_info
 
                     debugging.debug(
                         stationId + ", " + str(windspeedkt) + ", " + wxstring)  # debug
@@ -786,7 +797,6 @@ class UpdateLEDs:
             debugging.info("Decoded MOS Data for Display")
         return True
 
-
     def wx_display_loop(self, stationiddict, windsdict, wxstringdict, toggle):
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
         debugging.info("\nWX Display")
@@ -794,7 +804,7 @@ class UpdateLEDs:
         color = 0
         xcolor = 0
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
-        # cycle through the strip 6 times, setting the color then displaying to create various effects.
+        # cycle through the self.strip 6 times, setting the color then displaying to create various effects.
 
         airport_list = self.airport_database.get_airport_dict_led()
 
@@ -802,7 +812,7 @@ class UpdateLEDs:
             print(" " + str(cycle_num), end='')
             sys.stdout.flush()
 
-            # Inner Loop. Increments through each LED in the strip setting the appropriate color to each individual LED.
+            # Inner Loop. Increments through each LED in the self.strip setting the appropriate color to each individual LED.
             i = 0
             for airport_key in airport_list:
 
@@ -815,8 +825,6 @@ class UpdateLEDs:
                 # FIXME: Cheating by updating here
                 # airport_record.calculate_wx_from_metar()
 
-
-                #
                 # debugging.info("WX Display Loop : " + airportcode)
                 # Pull the next flight category from dictionary.
                 flightcategory = airport_record.get_wx_category_str()
@@ -847,9 +855,8 @@ class UpdateLEDs:
                     debugging.debug("Heat Map + ")
 
                 debugging.debug((airportcode + " " + str(flightcategory) +
-                    " " + str(airportwinds) +
-                    " " + airportwx + " " + str(cycle_num) + " "))  # debug
-
+                                 " " + str(airportwinds) +
+                                 " " + airportwx + " " + str(cycle_num) + " "))
                 # Check to see if airport code is a NULL and set to black.
                 if airportcode in ("NULL", "LGND"):
                     color = colors.black(self.conf)
@@ -956,9 +963,8 @@ class UpdateLEDs:
                 if self.conf.get_bool("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
                     if int(airportwinds) >= self.conf.get_int("metar", "max_wind_speed") and (cycle_num in (3, 4, 5)):
                         color = colors.black(self.conf)
-                        # debug
                         debugging.debug(("HIGH WINDS-> " + airportcode +
-                               " Winds = " + str(airportwinds) + " "))
+                                         " Winds = " + str(airportwinds) + " "))
 
                 # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
                 if airportwx != "NONE":
@@ -1012,13 +1018,14 @@ class UpdateLEDs:
                 if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport") and toggle:
                     if self.conf.get_int("lights", "homeport_display") == 1:
                         homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
-                        color = self.homeport_colors[cycle_num]
+                        color = homeport_colors[cycle_num]
                     elif self.conf.get_int("lights", "homeport_display") == 2:
                         pass
                     else:
                         color = self.conf.get_color("colors", "color_homeport")
 
-                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport"):  # if this is the home airport, don't dim out the brightness
+                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport"):
+                    # if this is the home airport, don't dim out the brightness
                     norm_color = color
                     # FIXME: This won't work
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
@@ -1030,11 +1037,11 @@ class UpdateLEDs:
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
 
                 self.setLedColor(i, color)
-                i = i + 1  # set next LED pin in strip
+                i = i + 1  # set next LED pin in self.strip
 
             print("/LED.", end='')
             sys.stdout.flush()
-            # Display strip with newly assigned colors for the current cycle_num cycle.
+            # Display self.strip with newly assigned colors for the current cycle_num cycle.
             self.strip.show()
             print(".", end='')
             # cycle_wait time is a user defined value
@@ -1042,11 +1049,9 @@ class UpdateLEDs:
             # pause between cycles. pauses are setup in user definitions.
             time.sleep(wait_time)
 
-
     def calculate_wx_conditions(self, ceiling, visibility):
         wx_conditions = "VFR"
         return wx_conditions
-
 
     def update_gpio_flags(self, toggle_value, time_sw, data_sw):
         self.toggle_sw = toggle_value
@@ -1055,11 +1060,10 @@ class UpdateLEDs:
         self.metar_taf_mos = data_sw  # 0 = Display TAF.
         # debugging.info( 'Switch in position ' )
 
-
     def update_loop(self):
-        ##########################
+        # #########################
         # Start of executed code #
-        ##########################
+        # #########################
         toggle = 0  # used for homeport display
         outerloop = True  # Set to TRUE for infinite outerloop
         display_num = 0
@@ -1080,7 +1084,6 @@ class UpdateLEDs:
             windsdict = {"": ""}
             wxstringdict = {"": ""}
 
-
             # FIXME: These will be empty - need to clean them up
             # self.update_metar_data(stationiddict, windsdict, wxstringdict)
 
@@ -1088,7 +1091,7 @@ class UpdateLEDs:
                 # turn off led before repainting them. If Rainbow stays on, it has hung up before this.
                 self.turnoff()
 
-            if self.check_heat_map(stationiddict, windsdict, wxstringdict) == False:
+            if self.check_heat_map(stationiddict, windsdict, wxstringdict) is False:
                 break
 
             # Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
@@ -1105,12 +1108,12 @@ class UpdateLEDs:
                 # FIXME: Restore functionality
                 # Routine to restart this script if config.py is changed while this script is running.
                 # for f, mtime in self.WATCHED_FILES_MTIMES:
-                #     if getmtime(f) != mtime:
-                #         debugging.info("Restarting from awake" +
-                #                        __file__ + " in 2 sec...")
-                #         time.sleep(2)
-                #         # '/NeoSectional/metar-v4.py'])
-                #         # os.execv(sys.executable, [sys.executable] + [__file__])
+                # if getmtime(f) != mtime:
+                # debugging.info("Restarting from awake" +
+                # __file__ + " in 2 sec...")
+                # time.sleep(2)
+                # # '/NeoSectional/metar-v4.py'])
+                # # os.execv(sys.executable, [sys.executable] + [__file__])
 
                 # Timer routine, used to turn off LED's at night if desired. Use 24 hour time in settings.
                 # check to see if the user wants to use a timer.
@@ -1135,7 +1138,7 @@ class UpdateLEDs:
                             sys.stdout.flush()
                             time.sleep(1)
                             # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
-                            if GPIO.input(22) == False:
+                            if GPIO.input(22) is False:
                                 # Set to turn lights on two seconds ago to make sure we hit the loop next time through
                                 self.end_time = (datetime.now()-timedelta(seconds=2)).time()
                                 self.timeoff = (
@@ -1147,88 +1150,88 @@ class UpdateLEDs:
                             # Routine to restart this script if config.py is changed while this script is running.
                             # FIXME: Restore functionality
                             # for f, mtime in self.WATCHED_FILES_MTIMES:
-                            #     if getmtime(f) != mtime:
-                            #         print("\033[0;0m\n")  # Turn off Blue text.
-                            #         debugging.info(
-                            #             "Restarting from sleep" + __file__ + " in 2 sec...")
-                            #         time.sleep(2)
-                            #         # restart this script.
-                            #         os.execv(sys.executable, [
-                            #                  sys.executable] + [__file__])
+                            # if getmtime(f) != mtime:
+                            # print("\033[0;0m\n") # Turn off Blue text.
+                            # debugging.info(
+                            # "Restarting from sleep" + __file__ + " in 2 sec...")
+                            # time.sleep(2)
+                            # # restart this script.
+                            # os.execv(sys.executable, [
+                            # sys.executable] + [__file__])
 
                         print("\033[0;0m\n")  # Turn off Blue text.
 
                 # Check if rotary switch is used, and what position it is in. This will determine what to display, METAR, TAF and MOS data.
                 # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
                 # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
-                if GPIO.input(0) == False and self.toggle_sw != 0:
+                if GPIO.input(0) is False and self.toggle_sw != 0:
                     self.update_gpio_flags(0, self.conf.get_int("rotaryswitch", "time_sw0"),
-                            self.conf.get_int("rotaryswitch", "data_sw0"))
+                                           self.conf.get_int("rotaryswitch", "data_sw0"))
                     break
 
-                elif GPIO.input(5) == False and self.toggle_sw != 1:
+                elif GPIO.input(5) is False and self.toggle_sw != 1:
                     self.update_gpio_flags(1, self.conf.get_int("rotaryswitch", "time_sw1"),
-                        self.conf.get_int("rotaryswitch", "data_sw1"))
+                                           self.conf.get_int("rotaryswitch", "data_sw1"))
                     break
 
-                elif GPIO.input(6) == False and self.toggle_sw != 2:
+                elif GPIO.input(6) is False and self.toggle_sw != 2:
                     self.update_gpio_flags(2, self.conf.get_int("rotaryswitch", "time_sw2"),
-                        self.conf.get_int("rotaryswitch", "data_sw2"))
+                                           self.conf.get_int("rotaryswitch", "data_sw2"))
                     break
 
-                elif GPIO.input(13) == False and self.toggle_sw != 3:
+                elif GPIO.input(13) is False and self.toggle_sw != 3:
                     self.update_gpio_flags(3, self.conf.get_int("rotaryswitch", "time_sw3"),
-                        self.conf.get_int("rotaryswitch", "data_sw3"))
+                                           self.conf.get_int("rotaryswitch", "data_sw3"))
                     break
 
-                elif GPIO.input(19) == False and self.toggle_sw != 4:
+                elif GPIO.input(19) is False and self.toggle_sw != 4:
                     self.update_gpio_flags(4, self.conf.get_int("rotaryswitch", "time_sw4"),
-                        self.conf.get_int("rotaryswitch", "data_sw4"))
+                                           self.conf.get_int("rotaryswitch", "data_sw4"))
                     break
 
-                elif GPIO.input(26) == False and self.toggle_sw != 5:
+                elif GPIO.input(26) is False and self.toggle_sw != 5:
                     self.update_gpio_flags(5, self.conf.get_int("rotaryswitch", "time_sw5"),
-                        self.conf.get_int("rotaryswitch", "data_sw5"))
+                                           self.conf.get_int("rotaryswitch", "data_sw5"))
                     break
 
-                elif GPIO.input(21) == False and self.toggle_sw != 6:
+                elif GPIO.input(21) is False and self.toggle_sw != 6:
                     self.update_gpio_flags(6, self.conf.get_int("rotaryswitch", "time_sw6"),
-                        self.conf.get_int("rotaryswitch", "data_sw6"))
+                                           self.conf.get_int("rotaryswitch", "data_sw6"))
                     break
 
-                elif GPIO.input(20) == False and self.toggle_sw != 7:
+                elif GPIO.input(20) is False and self.toggle_sw != 7:
                     self.update_gpio_flags(7, self.conf.get_int("rotaryswitch", "time_sw7"),
-                        self.conf.get_int("rotaryswitch", "data_sw7"))
+                                           self.conf.get_int("rotaryswitch", "data_sw7"))
                     break
 
-                elif GPIO.input(16) == False and self.toggle_sw != 8:
+                elif GPIO.input(16) is False and self.toggle_sw != 8:
                     self.update_gpio_flags(8, self.conf.get_int("rotaryswitch", "time_sw8"),
-                        self.conf.get_int("rotaryswitch", "data_sw8"))
+                                           self.conf.get_int("rotaryswitch", "data_sw8"))
                     break
 
-                elif GPIO.input(12) == False and self.toggle_sw != 9:
+                elif GPIO.input(12) is False and self.toggle_sw != 9:
                     self.update_gpio_flags(9, self.conf.get_int("rotaryswitch", "time_sw9"),
-                        self.conf.get_int("rotaryswitch", "data_sw9"))
+                                           self.conf.get_int("rotaryswitch", "data_sw9"))
                     break
 
-                elif GPIO.input(1) == False and self.toggle_sw != 10:
+                elif GPIO.input(1) is False and self.toggle_sw != 10:
                     self.update_gpio_flags(10, self.conf.get_int("rotaryswitch", "time_sw10"),
-                        self.conf.get_int("rotaryswitch", "data_sw10"))
+                                           self.conf.get_int("rotaryswitch", "data_sw10"))
                     break
 
-                elif GPIO.input(7) == False and self.toggle_sw != 11:
+                elif GPIO.input(7) is False and self.toggle_sw != 11:
                     self.update_gpio_flags(11, self.conf.get_int("rotaryswitch", "time_sw11"),
-                        self.conf.get_int("rotaryswitch", "data_sw11"))
+                                           self.conf.get_int("rotaryswitch", "data_sw11"))
                     break
 
                 elif self.toggle_sw == -1:  # used if no Rotary Switch is installed
                     self.update_gpio_flags(12, self.conf.get_int("rotaryswitch", "time_sw0"),
-                        self.conf.get_int("rotaryswitch", "data_sw0"))
+                                           self.conf.get_int("rotaryswitch", "data_sw0"))
                     break
 
                 # Check to see if pushbutton is pressed to force an update of FAA Weather
                 # If no button is connected, then this is bypassed and will only update when 'update_interval' is met
-                if GPIO.input(22) == False:
+                if GPIO.input(22) is False:
                     debugging.info(
                         'Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data')
                     break
@@ -1255,7 +1258,6 @@ class UpdateLEDs:
 
                 self.wx_display_loop(stationiddict, windsdict, wxstringdict, toggle)
 
-
     def wheel(self, pos):
         """Generate RGB tuple rainbow colors across 0-255 positions."""
         if pos < 85:
@@ -1268,37 +1270,36 @@ class UpdateLEDs:
             color_tuple = (0, pos * 3, 255 - pos * 3)
         return color_tuple
 
-
     def rainbowCycle(self, iterations, wait=.1):
         """Draw rainbow that uniformly distributes itself across all pixels."""
         for j in range(256*iterations):
             for led_pin in range(self.strip.numPixels()):
                 if str(led_pin) in self.nullpins:
-                    #exclude NULL and LGND pins from wipe
+                    # exclude NULL and LGND pins from wipe
                     self.setLedColor(led_pin, colors.black(self.conf))
                 else:
                     self.setLedColor(led_pin, self.wheel((int(led_pin * 256 / self.strip.numPixels()) + j) & 255))
             self.strip.show()
             time.sleep(wait/100)
 
-
     def randcolor(self):
         """ Generate random RGB color tuple """
-        r = int(random.randint(0,255))
-        g = int(random.randint(0,255))
-        b = int(random.randint(0,255))
-        return (r,g,b)
-
+        r = int(random.randint(0, 255))
+        g = int(random.randint(0, 255))
+        b = int(random.randint(0, 255))
+        return (r, g, b)
 
     def rabbit(self, color1, color2, wait):
         """
         Rabbit Chase
         Chase the rabbit through string.
         """
-        for led_pin in range(self.strip.numPixels()):    #turn LED's on
+        for led_pin in range(self.strip.numPixels()):
+            # turn LED's on
             rabbit = led_pin + 1
 
-            if str(led_pin) in self.nullpins or str(rabbit) in self.nullpins: #exclude NULL and LGND pins from wipe
+            if str(led_pin) in self.nullpins or str(rabbit) in self.nullpins:
+                # exclude NULL and LGND pins from wipe
                 self.setLedColor(led_pin, colors.black(self.conf))
                 self.setLedColor(rabbit, colors.black(self.conf))
             else:
@@ -1307,13 +1308,16 @@ class UpdateLEDs:
                 self.setLedColor(led_pin, color1)
 
             self.strip.show()
-            time.sleep(wait)
 
-        for led_pin in range(self.strip.numPixels(),-1,-1): #turn led's off
+        time.sleep(wait)
+
+        for led_pin in range(self.strip.numPixels(), -1, -1):
+            # turn led's off
             rabbit = led_pin + 1
             erase_pin = led_pin + 2
 
-            if str(rabbit) in self.nullpins or str(erase_pin) in self.nullpins: #exclude NULL and LGND pins from wipe
+            if str(rabbit) in self.nullpins or str(erase_pin) in self.nullpins:
+                # exclude NULL and LGND pins from wipe
                 self.setLedColor(rabbit, colors.black(self.conf))
                 self.setLedColor(erase_pin, colors.black(self.conf))
             else:
@@ -1324,24 +1328,20 @@ class UpdateLEDs:
                     self.setLedColor(erase_pin, colors.black(self.conf))
 
             self.strip.show()
-            time.sleep(wait)
-
 
     def shuffle(self, color1, color2, wait):
         """ Shuffle LED Strip """
-        l = list(range(self.strip.numPixels()))
-        random.shuffle(l)
-        for led_pin in l:
+        led_list = list(range(self.strip.numPixels()))
+        random.shuffle(led_list)
+        for led_pin in led_list:
             if str(led_pin) in self.nullpins:
-                #exclude NULL and LGND pins from wipe
+                # exclude NULL and LGND pins from wipe
                 self.setLedColor(led_pin, colors.black(self.conf))
             else:
                 self.setLedColor(led_pin, color1)
             self.strip.show()
-            time.sleep(wait*1)
 
-
-    #Dim LED's
+    # Dim LED's
     def dimwipe(self, hex_col, value):
         """ Return DIM color as HEX """
 
@@ -1353,28 +1353,200 @@ class UpdateLEDs:
 
         return colors.HEX(red, grn, blu)
 
-
     def fade(self, color1, wait):
         """ Cycle UP and DOWN through LEDs dimming colors """
-        for val in range(0,self.LED_BRIGHTNESS,1):
-            for led_pin in range(self.strip.numPixels()): #LED_BRIGHTNESS,0,-1):
+        for val in range(0, self.LED_BRIGHTNESS, 1):
+            for led_pin in range(self.strip.numPixels()):
+                # LED_BRIGHTNESS,0,-1):
                 if str(led_pin) in self.nullpins:
-                    #exclude NULL and LGND pins from wipe
+                    # exclude NULL and LGND pins from wipe
                     self.setLedColor(led_pin, colors.black(self.conf))
                 else:
-                    color2 = self.dimwipe(color1,val)
+                    color2 = self.dimwipe(color1, val)
                     self.setLedColor(led_pin, color2)
             self.strip.show()
             time.sleep(wait*.5)
 
-        for val in range(self.LED_BRIGHTNESS,0,-1):
-            for led_pin in range(self.strip.numPixels()): #0,LED_BRIGHTNESS,1):
+        for val in range(self.LED_BRIGHTNESS, 0, -1):
+            for led_pin in range(self.strip.numPixels()):
+                # 0,LED_BRIGHTNESS,1):
                 if str(led_pin) in self.nullpins:
-                    #exclude NULL and LGND pins from wipe
+                    # exclude NULL and LGND pins from wipe
                     self.setLedColor(led_pin, colors.black(self.conf))
                 else:
-                    color2 = self.dimwipe(color1,val)
+                    color2 = self.dimwipe(color1, val)
                     self.setLedColor(led_pin, color2)
             self.strip.show()
             time.sleep(wait*.5)
         time.sleep(wait*1)
+
+    def findpoint(self, x1, y1, x2, y2, x, y):
+        # Square wipe
+        # findpoint in a given rectangle or not.   Example -114.87, 37.07, -109.07, 31.42, -114.4, 32.87
+        if (x > x1 and x < x2 and y > y1 and y < y2):
+            return True
+        else:
+            return False
+
+    def area(self, x1, y1, x2, y2, x3, y3):
+        # radar wipe - Needs area calc routines to determine areas of triangles
+        return abs((x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2.0)
+
+    def isInside(self, x1, y1, x2, y2, x3, y3, x, y):
+        # Calculate area of triangle ABC
+        A = self.area(x1, y1, x2, y2, x3, y3)
+        # Calculate area of triangle PBC
+        A1 = self.area(x, y, x2, y2, x3, y3)
+        # Calculate area of triangle PAC
+        A2 = self.area(x1, y1, x, y, x3, y3)
+        # Calculate area of triangle PAB
+        A3 = self.area(x1, y1, x2, y2, x, y)
+        # Check if sum of A1, A2 and A3 is same as A
+
+        area_total = A1 + A2 + A3
+        if((area_total-1) >= A <= (area_total+1)):
+            return True
+        else:
+            return False
+
+    def center(self, val_max, val_min):
+        """ Work out center of two numbers """
+        z = ((val_max-val_min)/2) + val_min
+        return round(z, 2)
+
+    def checkerwipe(self, minlon, minlat, maxlon, maxlat, iter_index, color1, color2, cwccw=0, wait_mult=100):
+        """ FIXME: Imported """
+        centlon = self.center(maxlon, minlon)
+        centlat = self.center(maxlat, minlat)
+
+        # Example square: lon1, lat1, lon2, lat2  [x1, y1, x2, y2]  -114.87, 37.07, -109.07, 31.42
+        # +-----+-----+
+        # |  1  |  2  |
+        # |-----+-----|
+        # |  3  |  4  |
+        # +-----+-----+
+        square1 = [minlon, centlat, centlon, maxlat]
+        square2 = [centlon, centlat, maxlon, maxlat]
+        square3 = [minlon, minlat, centlon, centlat]
+        square4 = [centlon, minlat, maxlon, centlat]
+        squarelist = [square1, square2, square4, square3]
+
+        if cwccw == 1:
+            # clockwise = 0, counter-clockwise = 1
+            squarelist.reverse()
+
+        for j in range(iter_index):
+            for box in squarelist:
+                for key in apinfodict:
+                    px1 = float(apinfodict[key][2])  # Lon
+                    py1 = float(apinfodict[key][1])  # Lat
+                    led_pin = int(apinfodict[key][0])  # LED Pin Num
+
+                    if findpoint(*box, px1, py1):
+                        # Asterisk allows unpacking of list in function call.
+                        color = rgbtogrb_wipes(led_pin, color1, rgb_grb)
+                    else:
+                        color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
+
+                    self.setLedColor(led_pin, color)
+                self.strip.show()
+                time.sleep(wait*wait_mult)
+        self.allonoff_wipes((0, 0, 0), .1)
+
+    # Turn on or off all the lights using the same color.
+    def allonoff_wipes(self, color, wait):
+        for led_pin in range(self.strip.numPixels()):
+            if str(led_pin) in self.nullpins:
+                # exclude NULL and LGND pins from wipe
+                self.setLedColor(led_pin, colors.black(self.conf))
+            else:
+                self.setLedColor(led_pin, color)
+        self.strip.show()
+        time.sleep(wait)
+
+    def morse(self, color1, color2, morse_msg, wait):
+        # Morse Code Wipe
+        # There are rules to help people distinguish dots from dashes in Morse code.
+        # The length of a dot is 1 time unit.
+        # A dash is 3 time units.
+        # The space between symbols (dots and dashes) of the same letter is 1 time unit.
+        # The space between letters is 3 time units.
+        # The space between words is 7 time units.
+        dot_length = wait * 1
+        dash_length = wait * 3
+        bet_symb_length = wait * 1
+        bet_let_length = wait * 3
+        bet_word_length = wait * 4
+        # logic will add bet_let_length + bet_word_length = 7
+
+        for char in morse_msg:
+            letter = []
+            if char.upper() in self.CODE:
+                letter = list(self.CODE[char.upper()])
+                debugging.debug(letter)
+
+                for val in letter:
+                    # display individual dot/dash with proper timing
+                    if val == '.':
+                        delay = dot_length
+                    else:
+                        delay = dash_length
+
+                    for led_pin in range(self.strip.numPixels()):
+                        # turn LED's on
+                        if str(led_pin) in self.nullpins:
+                            # exclude NULL and LGND pins from wipe
+                            self.setLedColor(led_pin, colors.black(self.conf))
+                        else:
+                            color = rgbtogrb_wipes(led_pin, color1, rgb_grb)
+                            self.setLedColor(led_pin, color)
+                    self.strip.show()
+                    time.sleep(delay)  # time on depending on dot or dash
+
+                    for led_pin in range(self.strip.numPixels()):  # turn LED's off
+                        if str(led_pin) in self.nullpins:  # exclude NULL and LGND pins from wipe
+                            self.setLedColor(led_pin, colors.black(self.conf))
+                        else:
+                            color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
+                            self.setLedColor(led_pin, color)
+                    self.strip.show()
+                    time.sleep(bet_symb_length)  # timing between symbols
+                time.sleep(bet_let_length)  # timing between letters
+
+            else:  # if character in morse_msg is not part of the Morse Code Alphabet, substitute a '/'
+                if char == ' ':
+                    time.sleep(bet_word_length)
+
+                else:
+                    char = '/'
+                    letter = list(self.CODE[char.upper()])
+
+                    for val in letter:  # display individual dot/dash with proper timing
+                        if val == '.':
+                            delay = dot_length
+                        else:
+                            delay = dash_length
+
+                        for led_pin in range(self.strip.numPixels()):  # turn LED's on
+                            if str(led_pin) in self.nullpins:
+                                # exclude NULL and LGND pins from wipe
+                                self.setLedColor(led_pin, colors.black(self.conf))
+                            else:
+                                color = rgbtogrb_wipes(led_pin, color1, rgb_grb)
+                                self.setLedColor(led_pin, color)
+                        self.strip.show()
+                        time.sleep(delay)  #time on depending on dot or dash
+
+                        for led_pin in range(strip.numPixels()):  #turn LED's off
+                            if str(led_pin) in self.nullpins:
+                                # exclude NULL and LGND pins from wipe
+                               self.setLedColor(led_pin, colors.black(self.conf))
+                            else:
+                                color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
+                                self.setLedColor(led_pin, color)
+                        self.strip.show()
+                        time.sleep(bet_symb_length)   # timing between symbols
+
+                    time.sleep(bet_let_length)        # timing between letters
+
+        time.sleep(bet_word_length)

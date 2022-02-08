@@ -153,10 +153,12 @@ class Airport:
 
     def get_ca_metar(self):
         """ Try get Fresh METAR data for Canadian Airports """
+        # TODO: Stub for now
         return False
 
     def get_airport_wx_xml(self):
         """ Pull Airport XML data from ADDS XML """
+        # TODO: Stub
 
     def set_led_index(self, led_index):
         """ Update LED ID """
@@ -323,9 +325,11 @@ class Airport:
                 return
             self.calculate_wx_from_metar()
         elif self.wxsrc == "ca-metar":
-            # FIXME: Handle ca-metar data source
             debugging.info("Update CA Metar: " + self.icao + " and skip")
             freshness = self.get_ca_metar()
+            if freshness:
+                # get_*_metar() returned true, so weather is still fresh
+                return
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
             return

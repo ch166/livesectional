@@ -92,7 +92,8 @@ import logging
 import logzero
 from logzero import logger
 # import config                                   #User settings stored in file config.py, used by other scripts
-import admin
+# Moved to config data
+# import admin
 
 #LCD Libraries - Only needed if an LCD Display is to be used. Comment out if you would like.
 #Visit; http://www.circuitbasics.com/raspberry-pi-lcd-set-up-and-programming-in-python/ and follow info for 4-bit mode.

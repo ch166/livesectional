@@ -410,7 +410,7 @@ class UpdateLEDs:
         grn = max(data[1] - ((value * data[1])/100), 0)
         blu = max(data[2] - ((value * data[2])/100), 0)
 
-        data = [red, grn, blu]
+        data = (red, grn, blu)
 
         return data
 
@@ -803,6 +803,7 @@ class UpdateLEDs:
 
         color = 0
         xcolor = 0
+
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
         # cycle through the self.strip 6 times, setting the color then displaying to create various effects.
 
@@ -1030,7 +1031,7 @@ class UpdateLEDs:
                     # FIXME: This won't work
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
                 elif self.conf.get_bool("lights", "homeport"):  # if this is not the home airport, dim out the brightness
-                    dim_color = self.dim(xcolor, self.conf.get_int("lights", "dim_value"))
+                    dim_color = self.dim(color, self.conf.get_int("lights", "dim_value"))
                     color = colors.HEX(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness
                     norm_color = color

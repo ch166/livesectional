@@ -25,6 +25,9 @@ def black(conf):
     return "#000000"
 
 
+def HEX_tuple(col_tuple):
+    return HEX(col_tuple[0], col_tuple[1], col_tuple[2])
+
 def HEX(red_value, green_value, blue_value):
     """ Return HEX values from RGB string """
     hexval = '#%02x%02x%02x' % (red_value, green_value, blue_value)

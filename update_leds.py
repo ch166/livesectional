@@ -401,7 +401,7 @@ class UpdateLEDs:
         # dimming is 50%, then the color returned will be (128,128,128),
         # or half as bright. The dim_value is set in the user defined area.
         """
-        if isinstance("String", value):
+        if isinstance(value, str):
             value = int(value)
 
         data = colors.RGB(self.conf, color_data)

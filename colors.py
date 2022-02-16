@@ -15,6 +15,7 @@ def rgb2hex(rgb):
 
 def hex2rgb(conf, value):
     """Hex to RGB"""
+    # TODO: Add checks here to error if we get a non HEX value
     value = value.lstrip('#')
     length_v = len(value)
     return tuple(int(value[i:i+length_v//3], 16)

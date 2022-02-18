@@ -3,7 +3,7 @@
 
 Adafruit-BBIO==1.2.0                      #
 Adafruit-Blinka==6.20.4                    #
-adafruit-circuitpython-busdevice==5.1.4   #
+adafruit-circuitpython-busdevice==5.1.6   #
 adafruit-circuitpython-framebuf==1.4.9    #
 adafruit-circuitpython-ssd1306==2.12.4     #
 Adafruit-GPIO==1.0.3                      #

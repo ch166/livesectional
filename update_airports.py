@@ -56,7 +56,6 @@ import ledstrip
 import utils
 
 
-
 class WxConditions(Enum):
     '''
     ENUM Identifying Weather Conditions
@@ -356,7 +355,7 @@ class Airport:
             return
 
         if not self.observation:
-            debugging.warn("Have no observations for " + self.icao )
+            debugging.warn("Have no observations for " + self.icao)
             return False
 
         if self.observation.wind_gust:
@@ -395,7 +394,7 @@ class Airport:
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
         debugging.info("Airport: Ceiling " + str(self.wx_ceiling) +
-                   " Visibility " + str(self.wx_visibility))
+                       " Visibility " + str(self.wx_visibility))
         debugging.info("Airport " + self.icao + " - " + self.wx_category_str)
         return
 
@@ -485,8 +484,7 @@ class Airport:
                                 try:
                                     # get cloud base AGL from XML
                                     cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl']
-                                    debugging.info(
-                                        cld_base_ft_agl)  # debug
+                                    debugging.info(cld_base_ft_agl)  # debug
                                 except:
                                     # get cloud base AGL from XML
                                     cld_base_ft_agl = forecast.find('vert_vis_ft').text
@@ -634,7 +632,6 @@ class Airport:
                             if sky_cvr in ("OVC", "BKN", "OVX"):
                                 break
 
-
                     # If the layer is OVC, BKN or OVX, set Flight category based on height AGL
                     if sky_cvr in ("OVC", "BKN", "OVX"):
                         try:
@@ -728,7 +725,6 @@ class Airport:
             debugging.info("Decoded METAR Data for Display")
 
 
-
 class AirportDB:
     """ Airport Database - Keeping track of interesting sets of airport data """
 
@@ -770,7 +766,6 @@ class AirportDB:
         self.mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
         self.mos18_file = conf.get_string("filenames", "mos18_xml_data")
 
-
         debugging.info("AirportDB : init")
         utils.download_newer_gz_file(self.metar_xml_url, self.metar_file)
         # TODO: Not sure if we want to try load/save on init
@@ -779,18 +774,15 @@ class AirportDB:
         self.save_airport_db()
         debugging.info("AirportDB : init complete")
 
-
     def get_airport_dict_led(self):
         """ Return Airport LED dict """
         return self.airport_led_dict
-
 
     def update_airport_wx(self):
         """ Update airport WX data for each known Airport """
         for icao, arpt in self.airport_master_dict.items():
             debugging.info("Updating WX for " + arpt.icao)
             arpt.update_wx(self.metar_xml_dict)
-
 
     def load_airport_db(self):
         """ Load Airport Data file """
@@ -810,7 +802,7 @@ class AirportDB:
         # On update ; some records will already exist, but may have updates
         for json_airport in new_airport_json_dict['airports']:
             debugging.info("Merging Airport List")
-            #print(json_airport, flush = True)
+            # print(json_airport, flush = True)
             json_airport_icao = json_airport['icao']
             json_airport_icao = json_airport_icao.lower()
             if json_airport_icao == 'null':
@@ -825,7 +817,7 @@ class AirportDB:
                 # FIXME: Do something useful
                 self.airport_master_list.append(json_airport)
                 continue
-            #print(json_airport_icao, flush = True)
+            # print(json_airport_icao, flush = True)
             if json_airport_icao in self.airport_master_dict:
                 #  Airport exists already - need to update rather than  create new
                 # This will need to handle changes in LED and STATE for airports
@@ -833,7 +825,7 @@ class AirportDB:
                 # perhaps change the sequence of this to do an optional create first, and then
                 # do all the insertions every time regardless.
                 print("Updating existing airport on list")
-                print(self.airport_master_dict[json_airport_icao], flush = True)
+                print(self.airport_master_dict[json_airport_icao], flush=True)
                 self.airport_master_dict[json_airport_icao].set_led_index(json_airport['led'])
                 self.airport_master_dict[json_airport_icao].set_wxsrc(json_airport['wxsrc'])
                 if json_airport['active']:
@@ -849,19 +841,18 @@ class AirportDB:
                 airport_led = json_airport['led']
                 airport_wxsrc = json_airport['wxsrc']
                 airport_active = json_airport['active']
-                new_airport_obj = Airport(airport_icao,\
-                    airport_icao,\
-                    airport_wxsrc,\
-                    airport_active,\
-                    airport_led,\
-                    self.conf)
+                new_airport_obj = Airport(airport_icao,
+                                          airport_icao,
+                                          airport_wxsrc,
+                                          airport_active,
+                                          airport_led,
+                                          self.conf)
                 self.airport_master_dict[airport_icao] = new_airport_obj
                 if json_airport['purpose'] == "led" or json_airport['purpose'] == "all":
                     self.airport_led_dict[airport_icao] = new_airport_obj
                 if json_airport['purpose'] == "web" or json_airport['purpose'] == "all":
                     self.airport_web_dict[airport_icao] = new_airport_obj
         debugging.info("Airport Load and Merge complete")
-
 
     def save_airport_db(self):
         """ Save Airport Data file """
@@ -875,15 +866,13 @@ class AirportDB:
 
         shutil.move(airport_json, airport_json_backup)
 
-
-        json_save_data = {"airports": self.airport_master_list }
+        json_save_data = {"airports": self.airport_master_list}
         # Opening JSON file
         with open(airport_json_new, 'w', encoding="utf8") as json_file:
             json.dump(json_save_data, json_file, sort_keys=True, indent=4)
-        #s FIXME:  Only if write was successful, then we should
-        #   mv airport_json_new over airport_json
+        # FIXME:  Only if write was successful, then we should
+        # mv airport_json_new over airport_json
         shutil.move(airport_json_new, airport_json)
-
 
     def update_airport_metar_xml(self):
         """ Update Airport METAR DICT from XML """
@@ -971,8 +960,7 @@ class AirportDB:
             debugging.info(station_id + " : ")
             debugging.info(airport_metar)
             airport.set_metar(airport_metar)
-        #print(self.metar_xml_list)
-
+        # print(self.metar_xml_list)
 
     def update_loop(self, conf):
         """ Master loop for keeping the airport data set current
@@ -1001,7 +989,7 @@ class AirportDB:
                 print(self.metar_xml_list)
             elif ret == 3:
                 debugging.info("Server side METAR older")
-                
+
             ret = utils.download_newer_gz_file(self.tafs_xml_url, self.tafs_file)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")

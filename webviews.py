@@ -26,6 +26,7 @@ import sysinfo
 
 class WebViews:
     """ Class to contain all the Flask WEB functionality """
+
     def __init__(self, config, sysdata, airport_database, appinfo):
         self.conf = config
         self.sysdata = sysdata
@@ -33,20 +34,20 @@ class WebViews:
         self.appinfo = appinfo
         self.app = Flask(__name__)
         self.app.secret_key = secrets.token_hex(16)
-        self.app.add_url_rule('/', view_func= self.yindex, methods=["GET"])
-        self.app.add_url_rule('/qrcode', view_func= self.qrcode, methods=["GET"])
-        self.app.add_url_rule('/tzset', view_func= self.tzset, methods=["GET", "POST"])
-        self.app.add_url_rule('/led_map', view_func= self.led_map, methods=["GET", "POST"])
-        self.app.add_url_rule('/map1', view_func= self.map1, methods=["GET", "POST"])
-        self.app.add_url_rule('/touchscr', view_func= self.touchscr, methods=["GET", "POST"])
-        self.app.add_url_rule('/open_console', view_func= self.open_console, methods=["GET", "POST"])
-        self.app.add_url_rule('/stream_log', view_func= self.stream_log, methods=["GET", "POST"])
-        self.app.add_url_rule('/stream_log1', view_func= self.stream_log1, methods=["GET", "POST"])
-        self.app.add_url_rule('/download_ap', view_func= self.downloadairports, methods=["GET", "POST"])
-        self.app.add_url_rule('/download_cf', view_func= self.downloadconfig, methods=["GET", "POST"])
-        self.app.add_url_rule('/download_log', view_func= self.downloadlog, methods=["GET", "POST"])
-        self.app.add_url_rule('/confedit', view_func= self.confedit, methods=["GET", "POST"])
-        self.app.add_url_rule('/post', view_func= self.handle_post_request, methods=["GET", "POST"])
+        self.app.add_url_rule('/', view_func=self.yindex, methods=["GET"])
+        self.app.add_url_rule('/qrcode', view_func=self.qrcode, methods=["GET"])
+        self.app.add_url_rule('/tzset', view_func=self.tzset, methods=["GET", "POST"])
+        self.app.add_url_rule('/led_map', view_func=self.led_map, methods=["GET", "POST"])
+        self.app.add_url_rule('/map1', view_func=self.map1, methods=["GET", "POST"])
+        self.app.add_url_rule('/touchscr', view_func=self.touchscr, methods=["GET", "POST"])
+        self.app.add_url_rule('/open_console', view_func=self.open_console, methods=["GET", "POST"])
+        self.app.add_url_rule('/stream_log', view_func=self.stream_log, methods=["GET", "POST"])
+        self.app.add_url_rule('/stream_log1', view_func=self.stream_log1, methods=["GET", "POST"])
+        self.app.add_url_rule('/download_ap', view_func=self.downloadairports, methods=["GET", "POST"])
+        self.app.add_url_rule('/download_cf', view_func=self.downloadconfig, methods=["GET", "POST"])
+        self.app.add_url_rule('/download_log', view_func=self.downloadlog, methods=["GET", "POST"])
+        self.app.add_url_rule('/confedit', view_func=self.confedit, methods=["GET", "POST"])
+        self.app.add_url_rule('/post', view_func=self.handle_post_request, methods=["GET", "POST"])
 
         self.max_lat = 0
         self.min_lat = 0
@@ -66,13 +67,11 @@ class WebViews:
         self.strip = None
         self.led_map_dict = []
 
-
     def run(self):
         """ Run Flask Application
         If debug is True, we need to make sure that auto-reload is disabled in threads
         """
         self.app.run(debug=False, host='0.0.0.0')
-
 
     def standardtemplate_data(self):
         """ Generate a standardized template_data """
@@ -93,10 +92,9 @@ class WebViews:
                 'update_available': self.update_available,
                 'update_vers': self.update_vers,
                 'machines': self.machines,
-                'sysinfo' : self.sysdata.query_system_information()
+                'sysinfo': self.sysdata.query_system_information()
                 }
         return template_data
-
 
     def yindex(self):
         """Flask Route: /yield - Display System Info"""
@@ -107,7 +105,6 @@ class WebViews:
         debugging.info("Opening System Information page")
         return render_template('sysinfo.html', **template_data)
         # text/html is required for most browsers to show this info.
-
 
     def tzset(self):
         """Flask Route: /tzset - Display and Set Timezone Information"""
@@ -137,12 +134,12 @@ class WebViews:
         """Flask Route: /map1"""
         start_coords = (35.1738, -111.6541)
         folium_map = folium.Map(location=start_coords,
-                            zoom_start=6,
-                            height='80%',
-                            width='100%',
-                            control_scale=True,
-                            zoom_control=True,
-                            tiles='OpenStreetMap')
+                                zoom_start=6,
+                                height='80%',
+                                width='100%',
+                                control_scale=True,
+                                zoom_control=True,
+                                tiles='OpenStreetMap')
 
         folium_map.add_child(folium.LatLngPopup())
         folium_map.add_child(folium.ClickForMarker(popup='Marker'))
@@ -165,8 +162,6 @@ class WebViews:
         return render_template('mapedit.html', title='Map', num=5)
         # return folium_map._repr_html_()
 
-
-
     # FIXME: Integrate into Class
     # @app.route('/touchscr', methods=["GET", "POST"])
     def touchscr(self):
@@ -178,8 +173,7 @@ class WebViews:
                                machines=self.machines,
                                ipadd=ipadd)
 
-
-    # This streams off to seashells.io .. 
+    # This streams off to seashells.io ..
     # This works except that we're not currently pumping things to seashells.io
     # @app.route('/open_console', methods=["GET", "POST"])
     def open_console(self):
@@ -1110,7 +1104,7 @@ class WebViews:
         temp = url.split('/')
         # flash("Rebooting Map ")
         debugging.info("Rebooting Map from " + url)
-        # FIXME: 
+        # FIXME:
         # os.system('sudo shutdown -r now')
         return redirect('/')
         # temp[3] holds name of page that called this route.
@@ -1129,7 +1123,7 @@ class WebViews:
 
         temp = url.split('/')
         debugging.info("Startup Map from " + url)
-        # FIXME: 
+        # FIXME:
         # os.system('sudo python3 /NeoSectional/startup.py run &')
         flash("Map Turned On ")
         time.sleep(1)
@@ -1150,7 +1144,7 @@ class WebViews:
 
         temp = url.split('/')
         debugging.info("Shutoff Map from " + url)
-        # FIXME: 
+        # FIXME:
         # os.system("ps -ef | grep '/NeoSectional/metar-display-v4.py' | awk '{print $2}' | xargs sudo kill")
         # os.system("ps -ef | grep '/NeoSectional/metar-v4.py' | awk '{print $2}' | xargs sudo kill")
         # os.system("ps -ef | grep '/NeoSectional/check-display.py' | awk '{print $2}' | xargs sudo kill")

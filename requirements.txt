@@ -36,3 +36,4 @@ pytz
 metar
 pypng
 pyqrcode
+python-dateutil

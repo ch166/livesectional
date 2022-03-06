@@ -802,7 +802,6 @@ class UpdateLEDs:
         debugging.info("\nWX Display")
 
         color = 0
-        xcolor = 0
 
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
         # cycle through the self.strip 6 times, setting the color then displaying to create various effects.
@@ -1536,9 +1535,9 @@ class UpdateLEDs:
                                 color = rgbtogrb_wipes(led_pin, color1, rgb_grb)
                                 self.setLedColor(led_pin, color)
                         self.strip.show()
-                        time.sleep(delay)  #time on depending on dot or dash
+                        time.sleep(delay)  # time on depending on dot or dash
 
-                        for led_pin in range(strip.numPixels()):  #turn LED's off
+                        for led_pin in range(strip.numPixels()):  # turn LED's off
                             if str(led_pin) in self.nullpins:
                                 # exclude NULL and LGND pins from wipe
                                self.setLedColor(led_pin, colors.black(self.conf))

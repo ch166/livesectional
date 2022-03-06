@@ -9,7 +9,7 @@ Created on Oct 28 - 2021
 import re
 import configparser
 
-# This configuration parser provides access to the key/value data stored in 
+# This configuration parser provides access to the key/value data stored in
 # the config.ini file. It currently uses configparser as the backend for managing ini files.
 # .ini files are useful for swapping data with humans
 # Future work in this space should look at storing the config as either
@@ -17,14 +17,15 @@ import configparser
 #        - harder to handle random external generated configs through the export/import process
 # - toml - more rigid .ini file equivalent
 #
-# What would be really useful ; 
-#   - a config file format that supports persistance of comments across load - parse - save cycles.  
+# What would be really useful ;
+#   - a config file format that supports persistance of comments across load - parse - save cycles.
 #   - a config file format that allows file imports
 #
 # There are snippets of the configuration that are site hardware implementation specific, and
 # snippets of the configuration that are 'end user' airport / settings specific. It would be useful
-# to be able to swap out / reset the 'end user' pieces of the configuration without losing the 
+# to be able to swap out / reset the 'end user' pieces of the configuration without losing the
 # configuration state for the hardware (LED , OLED , Switch setup )
+
 
 class Conf:
     """ Configuration Class"""
@@ -40,11 +41,9 @@ class Conf:
         ''' Read Setting '''
         return self.configfile.get(section, key)
 
-
     def get_color(self, section, key):
         ''' Pull out color value in hex '''
-        return self.configfile.get(section,key)
-
+        return self.configfile.get(section, key)
 
     def get_color_decimal(self, section, key):
         ''' Read three tuple string, Return as tuple of integers'''
@@ -66,38 +65,31 @@ class Conf:
 
         return tuple([rgb_r, rgb_g, rgb_b])
 
-
     def get_string(self, section, key):
         ''' Read Setting '''
         return self.configfile.get(section, key)
-
 
     def set_string(self, section, key, value):
         """ Set String Value """
         self.configfile.set(section, key, value)
 
-
     def get_bool(self, section, key):
         ''' Read Setting '''
         return self.configfile.getboolean(section, key)
-
 
     def get_float(self, section, key):
         ''' Read Setting '''
         return self.configfile.getfloat(section, key)
 
-
     def get_int(self, section, key):
         ''' Read Setting '''
         return self.configfile.getint(section, key)
 
-
     def save_config(self):
         ''' Save configuration file '''
-        cfgfile = open(self.config_filename,'w', encoding="utf8")
+        cfgfile = open(self.config_filename, 'w', encoding="utf8")
         self.configfile.write(cfgfile)
         cfgfile.close()
-
 
     def gen_settings_dict(self):
         ''' Generate settings template to pass to flask '''
@@ -244,10 +236,8 @@ class Conf:
         settings['checker_color2'] = self.get_string("colors", "checker_color2")
         return settings
 
-
     def parse_config_input(self, form_data):
         ''' Parse settings data input '''
-
         # FIXME - Change to boolean here and in HTML Templates
         self.set_string("default", "autorun", form_data['autorun'])
         self.set_string("default", "led_count", form_data['LED_COUNT'])

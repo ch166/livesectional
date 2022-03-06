@@ -72,10 +72,11 @@ if __name__ == '__main__':
     # Almost Setup
     debugging.info('Livemap Startup - IP: ' + ipaddr)
     debugging.info('Base Directory :' +
-            conf.get_string("filenames", "basedir"))
+                   conf.get_string("filenames", "basedir"))
 
-
+    #
     # Setup Threads
+    #
 
     # Load Airports
     debugging.info('Starting Airport data management thread')
@@ -90,12 +91,13 @@ if __name__ == '__main__':
     debugging.info('Starting OLED updating thread')
     # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop, args=(conf,))
 
-    # Create Flask Thread
+    # Flask Thread
     debugging.info('Creating Flask Thread')
     flask_thread = threading.Thread(target=web_app.run, args=())
 
-
+    #
     # Start Executing Threads
+    #
     debugging.info('Starting threads')
     airport_thread.start()
     led_thread.start()
@@ -104,4 +106,6 @@ if __name__ == '__main__':
     while True:
         MSG = "In Main Loop - Threadcount ({})"
         print(MSG.format(threading.active_count()))
+        # TODO: We should get around to generating and reporting health
+        # metrics in this loop.
         time.sleep(300)

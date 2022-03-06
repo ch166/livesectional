@@ -20,6 +20,7 @@ import debugging
 
 # import conf
 
+
 def is_connected():
     ''' Check to see if we can reach an endpoint on the Internet '''
     try:
@@ -222,8 +223,7 @@ def comp_time(zulu_time, taf_time):
     date_time_format = ('%Y-%m-%dT%H:%M:%SZ')
     date1 = taf_time
     date2 = zulu_time
-    diff = datetime.strptime(date1, date_time_format) - \
-    datetime.strptime(date2, date_time_format)
+    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(date2, date_time_format)
     diff_minutes = int(diff.seconds/60)
     diff_hours = int(diff_minutes/60)
     return diff.seconds, diff_minutes, diff_hours, diff.days
@@ -239,20 +239,18 @@ def reboot_if_time(conf):
     if use_reboot and use_autorun:
         now = datetime.now()
         rb_time = now.strftime("%H:%M")
-        debugging.info("**Current Time=" + str(rb_time) +
-            " - **Reboot Time=" + str(reboot_time))
-        print("**Current Time=" + str(rb_time) +
-            " - **Reboot Time=" + str(reboot_time))  # debug
+        debugging.info("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))
+        print("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))  # debug
 
         # FIXME: Reference to 'self' here
         # if rb_time == self.time_reboot:
         #    debugging.info("Rebooting at " + self.time_reboot)
         #    time.sleep(1)
-            # FIXME: This should use a more secure mechanism,
-            # and have some sanity checks - that we aren't in a reboot loop.
-            # Also should handle daylight savings time changes (avoid double reboot)
-            # If using sudo - need to make sure that install scripts
-            # set sudo perms for this command only
+        # FIXME: This should use a more secure mechanism,
+        # and have some sanity checks - that we aren't in a reboot loop.
+        # Also should handle daylight savings time changes (avoid double reboot)
+        # If using sudo - need to make sure that install scripts
+        # set sudo perms for this command only
         #    os.system("sudo reboot now")
 
 
@@ -291,7 +289,7 @@ def current_time_taf_offset(conf):
     """ Get time for TAF period selected (UTC) """
     UTC = pytz.utc
     offset = conf.get_int("rotaryswitch", "hour_to_display")
-    curr_time = datetime.now(UTC) +  timedelta(hours=offset)
+    curr_time = datetime.now(UTC) + timedelta(hours=offset)
     return curr_time
 
 

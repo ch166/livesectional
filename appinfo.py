@@ -1,8 +1,6 @@
-from urllib.request import urlopen
-import json
-from time import sleep
 
 import conf
+
 
 class AppInfo:
     ''' Class to store information and data about the install environment.
@@ -14,8 +12,9 @@ class AppInfo:
     - Version Information
     - Update Information
     '''
+
     def __init__(self):
-        self.cur_version_info =  "4.4"
+        self.cur_version_info = "4.4"
         self.available_version = "3.0"
         self.refresh()
 

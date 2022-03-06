@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """ Use psutil to query system information """
 
-import os
 import sys
-import time
 import socket
-import json
 import psutil
 import platform
 import flask
-import conf
 
-from datetime import datetime
 
 class SystemData:
 
@@ -134,4 +129,3 @@ class SystemData:
         sysinfo_text += f"Total Bytes Sent: {self.get_size(net_io.bytes_sent)}" + "<br> \n"
         sysinfo_text += f"Total Bytes Received: {self.get_size(net_io.bytes_recv)}" + "<br> \n"
         return sysinfo_text
-

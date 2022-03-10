@@ -331,7 +331,7 @@ class Airport:
                 return
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
-            return
+        return
 
     def calculate_wx_from_metar(self):
         # Should have Good METAR data in self.metar
@@ -782,7 +782,13 @@ class AirportDB:
         """ Update airport WX data for each known Airport """
         for icao, arpt in self.airport_master_dict.items():
             debugging.info("Updating WX for " + arpt.icao)
-            arpt.update_wx(self.metar_xml_dict)
+            try:
+                arpt.update_wx(self.metar_xml_dict)
+            except Exception as e:
+                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
+                debugging.error(debug_string)
+                debugging.crash(e)
+
 
     def load_airport_db(self):
         """ Load Airport Data file """

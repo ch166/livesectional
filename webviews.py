@@ -47,7 +47,11 @@ class WebViews:
         self.app.add_url_rule('/download_cf', view_func=self.downloadconfig, methods=["GET", "POST"])
         self.app.add_url_rule('/download_log', view_func=self.downloadlog, methods=["GET", "POST"])
         self.app.add_url_rule('/confedit', view_func=self.confedit, methods=["GET", "POST"])
+        self.app.add_url_rule('/apedit', view_func=self.apedit, methods=["GET", "POST"])
         self.app.add_url_rule('/post', view_func=self.handle_post_request, methods=["GET", "POST"])
+
+        # self.app.jinja_env.auto_reload = True
+        self.app.config['TEMPLATES_AUTO_RELOAD'] = True
 
         self.max_lat = 0
         self.min_lat = 0
@@ -55,12 +59,11 @@ class WebViews:
         self.min_lon = 0
 
         # Replace These with real data
-        self.airports = airport_database.get_airport_dict_led()
+        self.airports = []
         self.hmdata = None
         self.update_vers = None
         self.machines = []
         self.num = None
-        self.apinfo_dict = []
         self.update_available = None
         self.ap_info = None
         self.settings = None
@@ -76,10 +79,11 @@ class WebViews:
     def standardtemplate_data(self):
         """ Generate a standardized template_data """
 
+
         template_data = {
                 'title': 'NOT SET - '+self.appinfo.current_version(),
                 'hmdata': self.hmdata,
-                'airports': self.airports,
+                'airports': self.airport_database.get_airport_dict_led(),
                 'settings': self.conf.gen_settings_dict(),
                 'ipadd': self.sysdata.local_ip(),
                 'strip': self.strip,
@@ -87,7 +91,6 @@ class WebViews:
                 'timestrutc': utils.time_format(utils.current_time_utc(self.conf)),
                 'current_timezone': self.conf.get_string("default", "timezone"),
                 'num': self.num,
-                'apinfo_dict': self.apinfo_dict,
                 'version': self.appinfo.current_version(),
                 'update_available': self.update_available,
                 'update_vers': self.update_vers,
@@ -230,7 +233,8 @@ class WebViews:
         """ Scan airport lat/lon data and work out Airport Map boundaries """
         lat_list = []
         lon_list = []
-        for icao, arpt in self.airports.items():
+        airports = self.airport_database.get_airport_dict_led()
+        for icao, arpt in airports.items():
             if not arpt.active():
                 continue
             lat = float(arpt.get_latitude())
@@ -244,10 +248,10 @@ class WebViews:
         return
 
 
-    # Route to display map's self.airports on a digital map.
+    # Route to display map's airports on a digital map.
     # @app.route('/led_map', methods=["GET", "POST"])
     def led_map(self):
-        """Flask Route: /led_map - Display LED Map with existing self.airports"""
+        """Flask Route: /led_map - Display LED Map with existing airports"""
 
         # Update Airport Boundary data based on set of airports
         self.airport_boundary_calc()
@@ -270,7 +274,8 @@ class WebViews:
         folium_map.fit_bounds([[self.min_lat, self.min_lon], [self.max_lat, self.max_lon]])
 
         # Set Marker Color by Flight Category
-        for icao, arpt in self.airports.items():
+        airports = self.airport_database.get_airport_dict_led()
+        for icao, arpt in airports.items():
             if not arpt.active():
                 continue
             if arpt.get_wx_category_str() == "VFR":
@@ -325,11 +330,12 @@ class WebViews:
 
     #    folium_map.add_child(marker)
 
-        for icao, arpt in self.airports.items():
+        airports = self.airport_database.get_airport_dict_led()
+        for icao, arpt in airports.items():
             if not arpt.active():
                 # Inactive airports likely don't have valid lat/lon data
                 continue
-            # Add lines between self.airports. Must make lat/lons
+            # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(arpt.get_led_index())
             points.insert(pin_index,
@@ -421,10 +427,10 @@ class WebViews:
         return render_template('index.html', **template_data)
 
 
-    # Routes to download self.airports, logfile.log and config.py to local computer
+    # Routes to download airports, logfile.log and config.py to local computer
     # @app.route('/download_ap', methods=["GET", "POST"])
     def downloadairports(self):
-        """Flask Route: /download_ap - Export self.airports file"""
+        """Flask Route: /download_ap - Export airports file"""
         debugging.info("Downloaded Airport File")
         path = self.conf.get_string("filenames", "airports_json")
         return send_file(path, as_attachment=True)
@@ -489,19 +495,19 @@ class WebViews:
                 if value == '':
                     value = '0'
 
-                loc_newlist.append(self.airports[j] + " " + value)
+                # FIXME: self.airports doesn't exist any more.
+                # loc_newlist.append(self.airports[j] + " " + value)
                 j += 1
 
             self.writehmdata(loc_newlist,
                         self.conf.get_string("filenames", "heatmap_file"))
-            self.get_apinfo()
 
         flash('Heat Map Data Successfully Saved')
         return redirect("hmedit")
 
 
     # FIXME: Integrate into Class
-    # Import a file to populate Heat Map Data. Must Save self.airports to keep
+    # Import a file to populate Heat Map Data. Must Save airports to keep
     # @app.route("/importhm", methods=["GET", "POST"])
     def importhm(self):
         """Flask Route: /importhm - Importing Heat Map"""
@@ -538,8 +544,7 @@ class WebViews:
         """Flask Route: /apedit - Airport Editor"""
         debugging.info("Opening apedit.html")
 
-        self.readairports(self.conf.get_string("filenames",
-                                             "airports_file"))
+        # self.readairports(self.conf.get_string("filenames", "airports_file"))
         template_data = self.standardtemplate_data()
         template_data['title'] = "Airports Editor"
         return render_template('apedit.html', **template_data)
@@ -549,14 +554,15 @@ class WebViews:
     # @app.route("/numap", methods=["GET", "POST"])
     def numap(self):
         """Flask Route: /numap"""
-        debugging.info("Updating Number of self.airports in airport file")
+        debugging.info("Updating Number of airports in airport file")
 
         if request.method == "POST":
             loc_numap = int(request.form["numofap"])
             debugging.dprint(loc_numap)
 
-        self.readairports(self.conf.get_string("filenames", "airports_file"))
+        # self.readairports(self.conf.get_string("filenames", "airports_file"))
 
+        # FIXME: self.airports is retired
         newnum = loc_numap - int(len(self.airports))
         if newnum < 0:
             self.airports = self.airports[:newnum]
@@ -567,7 +573,7 @@ class WebViews:
         template_data = self.standardtemplate_data()
         template_data['title'] = "Airports Editor"
 
-        flash('Number of LEDs Updated - Click "Save self.airports" to save.')
+        flash('Number of LEDs Updated - Click "Save airports" to save.')
         return render_template('apedit.html', **template_data)
 
 
@@ -580,22 +586,21 @@ class WebViews:
         if request.method == "POST":
             data = request.form.to_dict()
             debugging.debug(data)  # debug
-            self.writeairports(data, self.conf.get_string("filenames",
-                                                        "airports_file"))
+            self.writeairports(data, self.conf.get_string("filenames", "airports_file"))
 
-            self.readairports(self.conf.get_string("filenames", "airports_file"))
-            self.get_apinfo()  # decode self.airports to get city and state to display
+            # self.readairports(self.conf.get_string("filenames", "airports_file"))
 
-            # update size and data of hmdata based on saved self.airports file.
+            # update size and data of hmdata based on saved airports file.
             self.readhmdata(self.conf.get_string("filenames", "heatmap_file"))
-            # get heat map data to update with newly edited self.airports file
+            # get heat map data to update with newly edited airports file
+            # FIXME: self.airports retired
             if len(self.hmdata) > len(self.airports):
-                # adjust size of hmdata list if length is larger than self.airports
+                # adjust size of hmdata list if length is larger than airports
                 num = len(self.hmdata) - len(self.airports)
                 hmdata = hmdata[:-num]
 
             elif len(hmdata) < len(self.airports):
-                # adjust size of hmdata list if length is smaller than self.airports
+                # adjust size of hmdata list if length is smaller than airports
                 for n in range(len(hmdata), len(self.airports)):
                     hmdata.append('NULL 0')
 
@@ -621,7 +626,7 @@ class WebViews:
 
         if request.method == "POST":
 
-            self.readairports(self.conf.get_string("filenames", "airports_file"))
+            # self.readairports(self.conf.get_string("filenames", "airports_file"))
 
             if "buton" in request.form:
                 num = int(request.form['lednum'])
@@ -643,6 +648,7 @@ class WebViews:
                 self.strip.setPixelColor(num, Color(0, 0, 0))
                 num = num + 1
 
+                # FIXME: self.airports retired
                 if num > len(self.airports):
                     num = len(self.airports)
 
@@ -666,6 +672,7 @@ class WebViews:
                 debugging.info("LED All ON")
                 num = int(request.form['lednum'])
 
+                # FIXME: self.airports retired
                 for num in range(len(self.airports)):
                     self.strip.setPixelColor(num, Color(155, 155, 155))
                 self.strip.show()
@@ -676,6 +683,7 @@ class WebViews:
                 debugging.info("LED All OFF")
                 num = int(request.form['lednum'])
 
+                # FIXME: self.airports retired
                 for num in range(len(self.airports)):
                     self.strip.setPixelColor(num, Color(0, 0, 0))
                 self.strip.show()
@@ -694,11 +702,11 @@ class WebViews:
 
 
     # FIXME: Integrate into Class
-    # Import a file to populate self.airports. Must Save self.airports to keep
+    # Import a file to populate airports. Must Save self.airports to keep
     # @app.route("/importap", methods=["GET", "POST"])
     def importap(self):
-        """Flask Route: /importap - Import self.airports File"""
-        debugging.info("Importing self.airports File")
+        """Flask Route: /importap - Import airports File"""
+        debugging.info("Importing airports File")
 
         if 'file' not in request.files:
             flash('No File Selected')

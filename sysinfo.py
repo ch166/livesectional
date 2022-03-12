@@ -3,19 +3,20 @@
 
 import sys
 import socket
-import psutil
 import platform
+import psutil
 import flask
 
 
 class SystemData:
+    """ Gather useful information about this system """
 
     def __init__(self):
         self.sysinfo = ""
         self.ipaddr = ""
         self.uptime = ""
 
-    def get_local_ip(self):
+    def update_local_ip(self):
         ''' Create Socket to the Internet, Query Local IP '''
         ipaddr = "UNKN"
         try:
@@ -26,20 +27,23 @@ class SystemData:
                 ipaddr = sock.getsockname()[0]
                 print('Closing socket')
                 sock.close()
+            self.ipaddr = ipaddr
             return ipaddr
         except OSError:
             pass
         return "0.0.0.0"
 
     def local_ip(self):
+        """ Return IP addr """
         return self.ipaddr
 
     def refresh(self):
+        """ Update data """
         self.sysinfo = self.query_system_information()
-        self.ipaddr = self.get_local_ip()
+        self.update_local_ip()
         self.uptime = "UNK"
 
-    def get_size(self, bytes, suffix="B"):
+    def get_size(self, bytes_size, suffix="B"):
         """
         Scale bytes to its proper format
         e.g:
@@ -48,9 +52,10 @@ class SystemData:
         """
         factor = 1024
         for unit in ["", "K", "M", "G", "T", "P"]:
-            if bytes < factor:
+            if bytes_size < factor:
                 return f"{bytes:.2f}{unit}{suffix}"
-            bytes /= factor
+            bytes_size /= factor
+        return "ERR"
 
     def query_system_information(self):
         """ Generate useful system description """

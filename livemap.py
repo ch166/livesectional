@@ -19,25 +19,29 @@ Start individual threads
 # import sys
 import threading
 import time
+
 # import logging
 import debugging
-import conf                                   # Config.py holds user settings used by the various scripts
+import conf  # Config.py holds user settings used by the various scripts
+
 # import admin
 
 from flask import Flask
 
 import utils
 import sysinfo
+
 # import appinfo
 
 import update_airports
 import update_leds
 import appinfo
 import webviews
+
 # import update_oled
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Startup and run the threads to operate the LEDs, Displays etc.
 
     # Initialize configuration
@@ -70,35 +74,34 @@ if __name__ == '__main__':
     web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo)
 
     # Almost Setup
-    debugging.info('Livemap Startup - IP: ' + ipaddr)
-    debugging.info('Base Directory :' +
-                   conf.get_string("filenames", "basedir"))
+    debugging.info("Livemap Startup - IP: " + ipaddr)
+    debugging.info("Base Directory :" + conf.get_string("filenames", "basedir"))
 
     #
     # Setup Threads
     #
 
     # Load Airports
-    debugging.info('Starting Airport data management thread')
+    debugging.info("Starting Airport data management thread")
     airport_thread = threading.Thread(target=airport_database.update_loop, args=(conf,))
 
     # Updating LEDs
-    debugging.info('Starting LED updating thread')
+    debugging.info("Starting LED updating thread")
     # LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
     led_thread = threading.Thread(target=LEDmgmt.update_loop, args=())
 
     # Updating OLEDs
-    debugging.info('Starting OLED updating thread')
+    debugging.info("Starting OLED updating thread")
     # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop, args=(conf,))
 
     # Flask Thread
-    debugging.info('Creating Flask Thread')
+    debugging.info("Creating Flask Thread")
     flask_thread = threading.Thread(target=web_app.run, args=())
 
     #
     # Start Executing Threads
     #
-    debugging.info('Starting threads')
+    debugging.info("Starting threads")
     airport_thread.start()
     led_thread.start()
     flask_thread.start()

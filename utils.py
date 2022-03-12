@@ -150,6 +150,10 @@ def download_newer_file(url, filename):
         file_time = datetime.fromtimestamp(os.path.getmtime(filename))
         if url_date.timestamp() > file_time.timestamp():
             download = True
+        else:
+            # Server side file is older
+            msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
+            debugging.info(msg)
 
     if download:
         # Download archive
@@ -189,6 +193,10 @@ def download_newer_gz_file(url, filename):
         file_time = datetime.fromtimestamp(os.path.getmtime(filename))
         if url_date.timestamp() > file_time.timestamp():
             download = True
+        else:
+            # Server side file is older
+            msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
+            debugging.info(msg)
 
     if download:
         # Download archive

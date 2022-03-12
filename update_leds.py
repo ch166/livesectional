@@ -799,7 +799,7 @@ class UpdateLEDs:
 
     def wx_display_loop(self, stationiddict, windsdict, wxstringdict, toggle):
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
-        debugging.info("\nWX Display")
+        # debugging.info("WX Display")
 
         color = 0
 
@@ -1048,6 +1048,7 @@ class UpdateLEDs:
             wait_time = self.cycle_wait[cycle_num]
             # pause between cycles. pauses are setup in user definitions.
             time.sleep(wait_time)
+        print("//")
 
     def calculate_wx_conditions(self, ceiling, visibility):
         wx_conditions = "VFR"

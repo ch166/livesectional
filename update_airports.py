@@ -992,7 +992,7 @@ class AirportDB:
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
-                print(self.metar_xml_list)
+                # print(self.metar_xml_list)
             elif ret == 3:
                 debugging.info("Server side METAR older")
 

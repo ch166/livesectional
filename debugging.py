@@ -1,4 +1,4 @@
-''' Support Debugging Printing '''
+""" Support Debugging Printing """
 
 # -*- coding: utf-8 -*-
 
@@ -17,24 +17,24 @@ ERR_MSGS = True
 
 
 def loginit():
-    ''' Init logging data '''
+    """Init logging data"""
     # FIXME: Move filename to config
     # logging.basicConfig(filename="logs/debugging.log", level=logging.DEBUG)
     loghandler = logging.handlers.WatchedFileHandler("logs/debugging.log")
-    formatter = logging.Formatter('%(asctime)s program_name [%(process)d]: %(message)s',
-        '%b %d %H:%M:%S')
+    formatter = logging.Formatter(
+        "%(asctime)s program_name [%(process)d]: %(message)s", "%b %d %H:%M:%S"
+    )
     formatter.converter = time.gmtime
     logger = logging.getLogger()
     logger.addHandler(loghandler)
     logger.setLevel(logging.DEBUG)
 
 
-
 def crash(args):
-    ''' Handle Crash Data - Append to crash.log '''
+    """Handle Crash Data - Append to crash.log"""
     # FIXME: Move filename to config
     appname = "LIVEMAP:"
-    logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logging.debug(args)
 
     with open("logs/crash.log", "w+", encoding="utf8") as log_file:
@@ -47,52 +47,52 @@ def crash(args):
 
 
 def dprint(args):
-    ''' Passthrough call to print() if DEBUG_MSGS is enabled '''
+    """Passthrough call to print() if DEBUG_MSGS is enabled"""
     if PRINT_MSGS:
         appname = "LIVEMAP:"
-        logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(logtime, appname, "PRINT:", args, flush=True )
+        logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(logtime, appname, "PRINT:", args, flush=True)
     else:
         return
 
 
 def info(args):
-    ''' Passthrough call to print() if DEBUG_MSGS is enabled '''
+    """Passthrough call to print() if DEBUG_MSGS is enabled"""
     if INFO_MSGS:
         appname = "LIVEMAP:"
-        logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(logtime, appname, "INFO:", args, flush=True )
+        logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(logtime, appname, "INFO:", args, flush=True)
     else:
         return
 
 
 def warn(args):
-    ''' Passthrough call to print() if WARN_MSGS is enabled '''
+    """Passthrough call to print() if WARN_MSGS is enabled"""
     if WARN_MSGS:
         appname = "LIVEMAP:"
-        logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(logtime, appname, "WARN:", args, flush=True )
+        logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(logtime, appname, "WARN:", args, flush=True)
     else:
         return
 
 
 def error(args):
-    ''' Passthrough call to print() if ERR_MSGS is enabled '''
+    """Passthrough call to print() if ERR_MSGS is enabled"""
     if ERR_MSGS:
         appname = "LIVEMAP:"
-        logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         logging.error(args)
-        print(logtime, appname, "ERROR:", args, flush=True )
+        print(logtime, appname, "ERROR:", args, flush=True)
     else:
         return
 
 
 def debug(args):
-    ''' Passthrough call to print() if ERR_MSGS is enabled '''
+    """Passthrough call to print() if ERR_MSGS is enabled"""
     if DEBUG_MSGS:
         appname = "LIVEMAP:"
-        logtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         logging.debug(args)
-        print(logtime, appname, "DEBUG:", args, flush=True )
+        print(logtime, appname, "DEBUG:", args, flush=True)
     else:
         return

@@ -48,15 +48,16 @@ if __name__ == "__main__":
     conf = conf.Conf()
     appinfo = appinfo.AppInfo()
 
+
+    # Setup Logging
+    debugging.loginit()
+
     # Check for working Internet
     if utils.wait_for_internet():
         # Check for working Internet access
         debugging.info("Internet Available")
     else:
         debugging.warn("Internet NOT Available")
-
-    # Setup Logging
-    debugging.loginit()
 
     # Generate System Data
     sysdata = sysinfo.SystemData()

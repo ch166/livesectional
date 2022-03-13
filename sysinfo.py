@@ -53,7 +53,7 @@ class SystemData:
         factor = 1024
         for unit in ["", "K", "M", "G", "T", "P"]:
             if bytes_size < factor:
-                return f"{bytes:.2f}{unit}{suffix}"
+                return f"{bytes_size:.2f}{unit}{suffix}"
             bytes_size /= factor
         return "ERR"
 

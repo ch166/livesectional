@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     while True:
         MSG = "In Main Loop - Threadcount ({})"
-        print(MSG.format(threading.active_count()))
+        debugging.info(MSG.format(threading.active_count()))
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
         time.sleep(300)

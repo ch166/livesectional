@@ -323,8 +323,11 @@ class Airport:
         """Update Weather Data - Get fresh METAR"""
         freshness = False
         if self.wxsrc == "adds":
-            debugging.info("Update USA Metar: ADDS " + self.icao)
-            freshness = self.get_adds_metar(metar_xml_dict)
+            try:
+                debugging.info("Update USA Metar: ADDS " + self.icao)
+                freshness = self.get_adds_metar(metar_xml_dict)
+            except Exception as err:
+                debugging.error(err)
         elif self.wxsrc == "usa-metar":
             debugging.info(
                 "Update USA Metar: " + self.icao + " - " + self.wx_category_str
@@ -1104,3 +1107,4 @@ class AirportDB:
 
             self.update_airport_wx()
             time.sleep(aviation_weather_adds_timer)
+        debugging.error("Hit the exit of the airport update loop")

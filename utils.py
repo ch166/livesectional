@@ -174,7 +174,14 @@ def download_newer_gz_file(url, filename):
     """
 
     # Do a HTTP GET to pull headers so we can check timestamps
-    req = requests.head(url)
+    try:
+        req = requests.head(url)
+    except Exception as e:
+        msg = "Problem requesting " + url
+        debugging.info(msg)
+        debugging.error(e)
+        return 1
+
 
     # Technically this isn't the same timestamp as our filename
     # there is a race condition where the server updates the

@@ -803,6 +803,13 @@ class AirportDB:
     def __init__(self, conf):
         """Create a database of Airports to be tracked"""
 
+        # TODO: 
+        # A lot of the class local variables are extras, 
+        # left over from the restructuring of the code. 
+        # for example: Some are just copies of config file data, and it
+        # should be remove them as class-local variables and access the
+        # config file directly as needed
+
         # Reference to Global Configuration Data
         self.conf = conf
 
@@ -1064,7 +1071,6 @@ class AirportDB:
 
         # aviation_weather_adds_timer = 5 * 60
         aviation_weather_adds_timer = 300
-        self.update_airport_wx()
 
         https_session = requests.Session()
 
@@ -1114,6 +1120,10 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side MOS18 older")
 
-            self.update_airport_wx()
+            try:
+                self.update_airport_wx()
+            except Exception as e:
+                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
+                debugging.error(e)
             time.sleep(aviation_weather_adds_timer)
         debugging.error("Hit the exit of the airport update loop")

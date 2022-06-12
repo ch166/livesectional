@@ -3,10 +3,12 @@
 
 import os
 import time
+import shutil
 import socket
 import json
 import urllib
 import gzip
+import tempfile
 
 from datetime import datetime
 from datetime import timedelta
@@ -91,15 +93,20 @@ def get_loc():
 
 
 def delete_file(target_path, filename):
-    """Delete File"""  # FIXME - Check to make sure filename is not relative
-    try:
-        os.remove(target_path + filename)
-        debugging.info('Deleted ' + filename)
-    except OSError as error:
-        debugging.error("Error " + error.__str__() +
+    """Delete File"""  
+    # TODO: - Check to make sure filename is not relative
+    if(os.path.isfile(filename)):
+        try:
+            os.remove(target_path + filename)
+            debugging.info('Deleted ' + filename)
+            return True
+        except OSError as error:
+            debugging.error("Error " + error.__str__() +
                         " while deleting file " +
                         target_path +
                         filename)
+    else:
+        return False
 
 
 def rgb2hex(rgb):
@@ -118,110 +125,85 @@ def hex2rgb(value):
                  for i in range(0, length_v, length_v//3))
 
 
-def download_file(url, filename):
-    """ Download a file """
-    wget.download(url, filename)
-    debugging.info('Downloaded ' + filename + ' from neoupdate')
-
-
-def download_newer_file(url, filename):
+def download_newer_file(session, url, filename, newer=True, decompress=False):
     """
     Download a file from URL if the
     last-modified header is newer than our timestamp
+
+    Return Values:
+    0 - Download completed
+    1 - Download didn't happen 
+    2 - strangely not used
+    3 - Download not attempted
+
     """
-
-    # Do a HTTP GET to pull headers so we can check timestamps
-    req = requests.head(url)
-
-    # Technically this isn't the same timestamp as our filename
-    # there is a race condition where the server updates the
-    # file as we're in the middle of downloading it. When we
-    # finish downloading we then save the file. That new local
-    # file has a time stamp based on the file save time, which
-    # could happen after the server side file is updated. Our
-    # next update check will be wrong. We will remain
-    # wrong until the server side file is updated.
-    url_time = req.headers['last-modified']
-    url_date = parsedate(url_time)
-    download = False
-    if not os.path.exists(filename):
-        download = True
-    else:
-        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
-        if url_date.timestamp() > file_time.timestamp():
-            download = True
-        else:
-            # Server side file is older
-            msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
-            debugging.info(msg)
-
-    if download:
-        # Download archive
-        try:
-            # Read the file inside the .gz archive located at url
-            urllib.request.urlretrieve(url, filename)
-            return 0
-        except Exception as e:
-            debugging.error(e)
-            return 1
-    return 3
-
-
-def download_newer_gz_file(url, filename):
-    """
-    Download a gzip compressed file from URL if the
-    last-modified header is newer than our timestamp
-    """
+    debugging.info("Starting download_newer_file" + filename)
 
     # Do a HTTP GET to pull headers so we can check timestamps
     try:
-        req = requests.head(url)
+        req = session.head(url, allow_redirects=True, timeout=5)
     except Exception as e:
         msg = "Problem requesting " + url
         debugging.info(msg)
         debugging.error(e)
         return 1
 
-
-    # Technically this isn't the same timestamp as our filename
-    # there is a race condition where the server updates the
-    # file as we're in the middle of downloading it. When we
-    # finish downloading we then save the file. That new local
-    # file has a time stamp based on the file save time, which
-    # could happen after the server side file is updated. Our
-    # next update check will be wrong. We will remain
-    # wrong until the server side file is updated.
     url_time = req.headers['last-modified']
     url_date = parsedate(url_time)
+
     download = False
-    if not os.path.exists(filename):
+
+    if not os.path.isfile(filename):
+        # File doesn't exist, so we need to download it
         download = True
     else:
         file_time = datetime.fromtimestamp(os.path.getmtime(filename))
         if url_date.timestamp() > file_time.timestamp():
+            # Time stamp of local file is older than timestamp on server
             download = True
         else:
-            # Server side file is older
+            # Server side file is same or older, our file is up to date
             msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
             debugging.info(msg)
 
     if download:
-        # Download archive
+        # Need to trigger a file download
+        debugging.info("Need to Download file")
         try:
-            # Read the file inside the .gz archive located at url
-            with urllib.request.urlopen(url) as response:
-                with gzip.GzipFile(fileobj=response) as uncompressed:
-                    file_content = uncompressed.read()
-                # write to file in binary mode 'wb'
-            with open(filename, 'wb') as f:
-                f.write(file_content)
-                f.close()
-                return 0
+            # Download file to temporary object
+            # 
+            download_object = tempfile.NamedTemporaryFile(delete=False)
+            urllib.request.urlretrieve(url, download_object.name)
 
+            if decompress:
+                uncompress_object = tempfile.NamedTemporaryFile(delete=False)
+                decompress_file_gz(download_object.name, uncompress_object.name)
+                os.remove(download_object.name)
+                download_object = uncompress_object
+
+            shutil.copyfile(download_object.name,filename)
+            os.remove(download_object.name)
+            # Set the timestamp of the downloaded file to match
+            # match the HEAD date stamp
+            os.utime(filename,(datetime.timestamp(url_date), datetime.timestamp(url_date)))
         except Exception as e:
             debugging.error(e)
             return 1
     return 3
+
+
+def decompress_file_gz(srcfile, dstfile):
+    try:
+        # Decompress the file
+        with gzip.open(srcfile, 'rb') as f_in:
+            with open(dstfile, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        return 0
+    except Exception as e:
+        # Something went wrong
+        debugging.error("File gzip decompress error")
+        debugging.error(e)
+        return 1
 
 
 def time_in_range(start, end, x_time):

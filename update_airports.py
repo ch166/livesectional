@@ -45,7 +45,8 @@ import shutil
 # import gzip
 import json
 
-# import requests
+# Moving to use requests instead of urllib
+import requests
 # from dateutil.parser import parse as parsedate
 
 
@@ -351,11 +352,12 @@ class Airport:
         # Should have Good METAR data in self.metar
         # Need to Figure out Airport State
         try:
-            if self.observation is None:
-                debugging.warn("Observation data for " + self.icao + " Missing")
-                self.observation = Metar.Metar(self.metar)
-            else:
-                self.observation = Metar.Metar(self.metar)
+            self.observation = Metar.Metar(self.metar)
+            # if self.observation is None:
+            #     debugging.warn("Observation data for " + self.icao + " Missing")
+            #     self.observation = Metar.Metar(self.metar)
+            # else:
+            #     self.observation = Metar.Metar(self.metar)
         except Metar.ParserError as exc:
             debugging.info("Parse Error for METAR code: " + self.metar)
             self.wx_category = AirportFlightCategory.UNKNOWN
@@ -385,8 +387,11 @@ class Airport:
         else:
             # Set visiblity to -1 to flag as unknown
             self.wx_visibility = -1
-
-        self.wx_ceiling = self.cloud_height()
+        try:
+            self.wx_ceiling = self.cloud_height()
+        except Exception as err:
+            msg = "self.cloud_height() failed for " + self.icao
+            debugging.error(msg)
 
         # Calculate Flight Category
         if self.wx_ceiling == -1 or self.wx_visibility == -1:
@@ -407,7 +412,7 @@ class Airport:
         else:
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
-        debugging.info(
+        debugging.debug(
             "Airport: Ceiling "
             + str(self.wx_ceiling)
             + " Visibility "
@@ -834,7 +839,9 @@ class AirportDB:
         self.mos18_file = conf.get_string("filenames", "mos18_xml_data")
 
         debugging.info("AirportDB : init")
-        utils.download_newer_gz_file(self.metar_xml_url, self.metar_file)
+
+        https_session = requests.Session()
+        utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
         # TODO: Not sure if we want to try load/save on init
         self.load_airport_db()
         self.update_airport_metar_xml()
@@ -1059,6 +1066,8 @@ class AirportDB:
         aviation_weather_adds_timer = 300
         self.update_airport_wx()
 
+        https_session = requests.Session()
+
         while True:
             debugging.info(
                 "Updating Airport Data .. every aviation_weather_adds_timer ("
@@ -1066,7 +1075,7 @@ class AirportDB:
                 + "s)"
             )
 
-            ret = utils.download_newer_gz_file(self.metar_xml_url, self.metar_file)
+            ret = utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
@@ -1074,32 +1083,32 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_gz_file(self.tafs_xml_url, self.tafs_file)
+            ret = utils.download_newer_file(https_session, self.tafs_xml_url, self.tafs_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
-            ret = utils.download_newer_file(self.mos00_xml_url, self.mos00_file)
+            ret = utils.download_newer_file(https_session, self.mos00_xml_url, self.mos00_file)
             if ret == 0:
                 debugging.info("Downloaded MOS00 file")
             elif ret == 3:
                 debugging.info("Server side MOS00 older")
 
-            ret = utils.download_newer_file(self.mos06_xml_url, self.mos06_file)
+            ret = utils.download_newer_file(https_session, self.mos06_xml_url, self.mos06_file)
             if ret == 0:
                 debugging.info("Downloaded MOS06 file")
             elif ret == 3:
                 debugging.info("Server side MOS06 older")
 
-            ret = utils.download_newer_file(self.mos12_xml_url, self.mos12_file)
+            ret = utils.download_newer_file(https_session, self.mos12_xml_url, self.mos12_file)
             if ret == 0:
                 debugging.info("Downloaded MOS12 file")
             elif ret == 3:
                 debugging.info("Server side MOS12 older")
 
-            ret = utils.download_newer_file(self.mos18_xml_url, self.mos18_file)
+            ret = utils.download_newer_file(https_session, self.mos18_xml_url, self.mos18_file)
             if ret == 0:
                 debugging.info("Downloaded MOS18 file")
             elif ret == 3:

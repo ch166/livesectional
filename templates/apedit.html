@@ -1,11 +1,11 @@
 {% extends "base_lite.html" %}
 {% block content %}
 
-<div class="sticky">    
+<div class="sticky">
+<form action="ledonoff" name="ledonoff" id="ledonoff" method="POST">
 <table>
   <tr>
     <td class="submitbuttons">
-      <form action="ledonoff" name="ledonoff" id="ledonoff" method="POST">
       Enter LED to Control <input onchange="document.form[0].submit()" type="number" name="lednum" size="5" min="0" max="{{ airports|length }}" value="{{num}}">
     </td>
 
@@ -22,26 +22,25 @@
     <td class="submitbuttons">
       <input type="submit" class="button1" name="butall" value="All On">
       <input type="submit" class="button1" name="butnone" value="All Off">
-      </form>
     </td>
 
     <td class="submitbuttons"><a href="https://www.rocketroute.com/airports" target="aplookup">
       <input type="button" class="button" id="lookupap" value="Lookup Airports"></a>
-      <a href="./apedit"> <input type="button" class="button" value="Restore Airports" id="restoreaps"></a> 
+      <a href="./apedit"> <input type="button" class="button" value="Restore Airports" id="restoreaps"></a>
     </td>
   </tr>
 </table>
+</form>
 </div>
 <br>
 <div>
+<form action="numap" method="POST">
 <table>
   <tr>
     <td width='33%' class="submitbuttons">
-      <form action="numap" method="POST">
         <b>Number of LEDs </b>
           <input type="text" name="numofap" size="4" value = "{{ airports|length }}">
           <input type="submit" class="button1" value="Update Number">
-      </form>
     </td>
 
     <td width='33%' class="submitbuttons"><center>
@@ -58,6 +57,7 @@
     </center>
     </div>
     </td>
+</form>
 
     <td width='33%' class="submitbuttons">
       <form action="importap" method="POST" enctype="multipart/form-data">
@@ -66,7 +66,7 @@
         <input type="submit" class="button1" value="Submit">
       </form>
     </td>
-  </tr> 
+  </tr>
 </table>
 </div>
 
@@ -75,8 +75,8 @@
 <table style="width=100%">
     <tr bgcolor="#ffffff">
         <td colspan=4 style="font-size:small">
-    <b>Note:</b> Enter the appropriate 4 character airport identifier. If identifier is only 3 characters, precede it with proper country code, 
-    i.e. 'K' for US. If the LED position will not be used, enter <font color="red">'NULL'</font>. Enter <font color="red">'LGND'</font> for LED's used as a legend. <b><font color="red">'Enter' will save airport change. 'Tab' will not. Save each airport change if using LED on/off</color></b></p>
+    <b>NOTE:</b> Enter the appropriate 4 character airport identifier. If identifier is only 3 characters, precede it with proper country code,
+    i.e. 'K' for US. If the LED position will not be used, enter <font color="red">'NULL'</font>. Enter <font color="red">'LGND'</font> for LED's used as a legend. <b><font color="red">'Enter' will save airport change. 'Tab' will not. Save each airport change if using LED on/off</font></b></p>
 
     </tr>
     <tr>
@@ -86,64 +86,56 @@
         <th style="text-align:center">Flight Category and Raw METAR
     </tr>
 
-{% for ap in airports %}
-	{% if ap in apinfo_dict  %}
-		{% set apinfo = apinfo_dict[ap] %}
-	{% else %}
-		{% set apinfo = '' %}
-        {% endif %}
+{% for aprt_icao, aprt_data in airports.items() %}
     <tr id="{{ loop.index - 1 }}">
         <td width="5%" style="text-align:center"><b>{{ loop.index - 1 }}</b></td>
 
         <td width="10%" style="text-align:center">
-		<input title="{{ apinfo|join(", ") }}" onkeydown="upperCaseF(this)" type="text" minlength="4" maxlength="4" onfocus="fillinledonoff(this)"
-		id="ap{{loop.index-1}}" name="{{loop.index-1}}/ap{{loop.index-1}}/msg{{loop.index-1}}" size="5" onchange="myFunction(this)" value = "{{ap}}">
-        <!--onfocus="this.value=''"-->       	
+	<input title="{{ aprt_icao|join(", ") }}" onkeydown="upperCaseF(this)" type="text" minlength="4" maxlength="4" onfocus="fillinledonoff(this)" id="ap{{loop.index-1}}" name="{{loop.index-1}}/ap{{loop.index-1}}/msg{{loop.index-1}}" size="5" onchange="myFunction(this)" value = "{{aprt_icao}}">
+        <!--onfocus="this.value=''"-->
         </td>
-        
+
         <td width="25%" id="msg{{loop.index-1}}">
-	    {% if ap == 'LGND' %}
+	    {% if aprt_icao == 'LGND' %}
              <font color="red">LED at pin {{ loop.index -1 }} will be used as a <b>Legend</b> item.</font><td></td><td></td>
-            {% elif ap == 'NULL' %}
+            {% elif aprt_icao == 'NULL' %}
              <font color="red">LED at pin {{ loop.index -1 }} will remain <b>OFF</b>.</font><td></td><td></td>
             {% else %}
 
              <!--Display airport name and city, region and link to info page-->
-             <!--<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={{ ap }} target="_blank"><b>{{ apinfo|join(", ") }} -->
-             <a href=http://www.fltplan.com/Airport.cgi?{{ ap }} target="_blank"><b>{{ apinfo|join(", ") }}
+             <!--<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={{ aprt_icao }} target="_blank"><b>{{ ap|join(", ") }} -->
+             <a href=http://www.fltplan.com/Airport.cgi?{{ aprt_icao }} target="_blank"><b>{{ aprt_icao }}</b></a>
 
-             </b></a>
-             
         </td>
         <td width="60%" style="text-align:left">
              <!--Grab Flight Category and raw METAR from api.weather.gov and display badge-->
              <span id="fcloc{{ loop.index-1 }}">
-             </span> 
-             <script>get_badge('{{ ap }}','fcloc{{ loop.index-1 }}');</script>
+             </span>
+             <script>get_badge('{{ aprt_icao }}','fcloc{{ loop.index-1 }}');</script>
         </td>
 
 
              <!--METAR Widget from https://widget.checkwx.com/. Thank you Henry-->
-             <!--<span id="loc{{ loop.index-1 }}" class="checkwx-container" data-type="METAR" data-station="{{ ap }}"></span>-->
+             <!--<span id="loc{{ loop.index-1 }}" class="checkwx-container" data-type="METAR" data-station="{{ aprt_icao }}"></span>-->
 
              <!--<td width="50%">
              <span id="rawloc{{ loop.index-1 }}">
              </span>
-             <script>get_raw('{{ ap }}','rawloc{{ loop.index-1 }}');</script>-->
+             <script>get_raw('{{ aprt_icao }}','rawloc{{ loop.index-1 }}');</script>-->
 
              <!--Backup METAR Retrieve from https://www.navlost.eu/metar/about/
               <a id="loc{{ loop.index-1 }}">
                 <img src="./static/button1.png" height="23" width="126"
-                 onclick="get_metar('{{ ap }}', 'loc{{ loop.index-1 }}')">
+                 onclick="get_metar('{{ aprt_icao }}', 'loc{{ loop.index-1 }}')">
               </a>-->
 
              <!--Widget from metar-taf.com. Works but slows page load dramatically. Commented out for now.-->
-             <!--<iframe src="https://metar-taf.com/embed/{{ ap }}?bg_color=0057a3&raw=0" frameBorder="0" width="180" height="50"></iframe>-->
+             <!--<iframe src="https://metar-taf.com/embed/{{ aprt_icao }}?bg_color=0057a3&raw=0" frameBorder="0" width="180" height="50"></iframe>-->
             {% endif %}
     </td>
     </tr>
 {% endfor %}
 
 </table>
-
+</form>
 {% endblock %}

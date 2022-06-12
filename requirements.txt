@@ -3,7 +3,7 @@
 
 Adafruit-BBIO==1.2.0                      #
 Adafruit-Blinka==8.0.2                    #
-adafruit-circuitpython-busdevice==5.1.8   #
+adafruit-circuitpython-busdevice==5.1.10   #
 adafruit-circuitpython-framebuf==1.4.9    #
 adafruit-circuitpython-ssd1306==2.12.4     #
 Adafruit-GPIO==1.0.3                      #
@@ -17,7 +17,7 @@ gpiozero==1.6.2                           #
 html5lib==1.1                           #
 Jinja2==3.1.2                            #
 logzero==1.7.0                            #
-lxml==4.8.0                               #
+lxml==4.9.0                               #
 numpy                             #
 Pillow==9.1.1                             #
 pysftp==0.2.9                             #

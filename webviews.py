@@ -36,6 +36,7 @@ class WebViews:
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule('/', view_func=self.yindex, methods=["GET"])
         self.app.add_url_rule('/qrcode', view_func=self.qrcode, methods=["GET"])
+        self.app.add_url_rule('/metar', view_func=self.getmetar, methods=["GET"])
         self.app.add_url_rule('/tzset', view_func=self.tzset, methods=["GET", "POST"])
         self.app.add_url_rule('/led_map', view_func=self.led_map, methods=["GET", "POST"])
         self.app.add_url_rule('/map1', view_func=self.map1, methods=["GET", "POST"])
@@ -411,6 +412,15 @@ class WebViews:
         myQR.png(qrcode_file, scale=8)
 
         return render_template('qrcode.html', qraddress=qraddress, qrimage=qrcode_url)
+
+
+    def getmetar(self):
+        """Flask Route: /metar - Get METAR for Airport"""
+        # Generates qrcode that maps to the mobileconfedit version of
+        # the configuration generator
+        template_data = self.standardtemplate_data()
+
+        return render_template('metar.html', **template_data)
 
 
     # FIXME: Figure out what the home page will look like.

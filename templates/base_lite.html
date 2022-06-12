@@ -1,26 +1,20 @@
 <!DOCTYPE html>
+<html lang="en" xml:lang="en" xmlns= "http://www.w3.org/1999/xhtml">
 <head>
     <link rel="shortcut icon" href="static/tab.ico">
-    <html lang="en" xml:lang="en" xmlns= "http://www.w3.org/1999/xhtml">
     <meta http-equiv="Content-Language" content="en">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-    <link href="/static/fontawesome/css/all.css" rel="stylesheet" />
-    {% if update_available == 3 %}
-    <script>
-    $(document).ready(function(){
-        $("#myModal").modal('show');
-    });
-    </script>
-    {% endif %}
-    <link rel="stylesheet" href='/static/style-v4.css' />
     <title>{{ title }}</title>
-
-
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<link href="/static/fontawesome/css/all.css" rel="stylesheet" />
+{% if update_available == 3 %}
+    <script> $(document).ready(function(){ $("#myModal").modal('show'); }); </script>
+{% endif %}
+<link rel="stylesheet" href='/static/style-v4.css' />
 <script src="/static/base_scripts.js"></script>
 
 </head>
@@ -201,6 +195,8 @@
 {% if enable != 0 %}<div class="stickydn">{% else %}<div>{% endif %}
 <table>
     <tr>
+	<!-- FIXME: This form action was missing ; need to validate the correct destination -->
+        <form action="post" method="POST">
         <td class="submitbuttons"><input type="submit" class="button" value="Save Settings"><!-- style="display: none;>-->
         </td>
         </form>

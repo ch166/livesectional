@@ -36,7 +36,7 @@ class WebViews:
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule('/', view_func=self.yindex, methods=["GET"])
         self.app.add_url_rule('/qrcode', view_func=self.qrcode, methods=["GET"])
-        self.app.add_url_rule('/metar', view_func=self.getmetar, methods=["GET"])
+        self.app.add_url_rule('/metar/<airport>', view_func=self.getmetar, methods=["GET"])
         self.app.add_url_rule('/tzset', view_func=self.tzset, methods=["GET", "POST"])
         self.app.add_url_rule('/led_map', view_func=self.led_map, methods=["GET", "POST"])
         self.app.add_url_rule('/map1', view_func=self.map1, methods=["GET", "POST"])
@@ -414,12 +414,21 @@ class WebViews:
         return render_template('qrcode.html', qraddress=qraddress, qrimage=qrcode_url)
 
 
-    def getmetar(self):
+    def getmetar(self, airport):
         """Flask Route: /metar - Get METAR for Airport"""
-        # Generates qrcode that maps to the mobileconfedit version of
-        # the configuration generator
         template_data = self.standardtemplate_data()
 
+        debugging.info("getmetar: airport = " + airport)
+        template_data['airport'] = airport
+
+        try:
+            airport_entry = self.airport_database.get_airport(airport)
+            template_data['metar'] = airport_entry.get_raw_metar()
+        except Exception as e:
+            debugging.error("Attempt to get metar for failed for " + airport)
+            debugging.error(e)
+            template_data['metar'] = "ERR - Not found"
+        
         return render_template('metar.html', **template_data)
 
 

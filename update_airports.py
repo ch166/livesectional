@@ -152,6 +152,10 @@ class Airport:
         self.metar = metartext
         self.metar_date = datetime.now()
 
+    def get_raw_metar(self):
+        """Return raw METAR data"""
+        return self.metar
+
     def get_metarage(self):
         """Return Timestamp of METAR"""
         return self.metar_date
@@ -854,6 +858,10 @@ class AirportDB:
         self.update_airport_metar_xml()
         self.save_airport_db()
         debugging.info("AirportDB : init complete")
+
+    def get_airport(self, airport_icao):
+        """Return a single Airport"""
+        return self.airport_master_dict[airport_icao]
 
     def get_airport_dict_led(self):
         """Return Airport LED dict"""

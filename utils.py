@@ -186,6 +186,7 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
             # Set the timestamp of the downloaded file to match
             # match the HEAD date stamp
             os.utime(filename,(datetime.timestamp(url_date), datetime.timestamp(url_date)))
+            return 0
         except Exception as e:
             debugging.error(e)
             return 1

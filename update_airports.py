@@ -1059,10 +1059,13 @@ class AirportDB:
             else:
                 print("Airport metar missing for :" + station_id + ": ", flush=True)
                 airport_metar = ""
-            debugging.info(station_id + " : ")
+            # TODO:
+            # Setup airport to allow us to call
+            # airport.set(self.metar_xml_dict[key])
+            # and have the airport update all the values appropriately
             debugging.info(airport_metar)
             airport.set_metar(airport_metar)
-        # print(self.metar_xml_list)
+        return True
 
     def update_loop(self, conf):
         """Master loop for keeping the airport data set current

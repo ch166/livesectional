@@ -168,7 +168,7 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
 
     if download:
         # Need to trigger a file download
-        debugging.info("Need to Download file")
+        debugging.info("Starting download_newer_file" + filename)
         try:
             # Download file to temporary object
             # 
@@ -177,7 +177,11 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
 
             if decompress:
                 uncompress_object = tempfile.NamedTemporaryFile(delete=False)
-                decompress_file_gz(download_object.name, uncompress_object.name)
+                try:
+                    decompress_file_gz(download_object.name, uncompress_object.name)
+                except Exception as e:
+                    debugging.error("File decompression failed for : " + filename)
+                    debugging.error(e)
                 os.remove(download_object.name)
                 download_object = uncompress_object
 

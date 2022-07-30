@@ -1080,8 +1080,8 @@ class AirportDB:
         Triggered Update
         """
 
-        # aviation_weather_adds_timer = 5 * 60
-        aviation_weather_adds_timer = 300
+        # TODO: Move to config
+        aviation_weather_adds_timer = 8
 
         https_session = requests.Session()
 
@@ -1089,7 +1089,7 @@ class AirportDB:
             debugging.info(
                 "Updating Airport Data .. every aviation_weather_adds_timer ("
                 + str(aviation_weather_adds_timer)
-                + "s)"
+                + "m)"
             )
 
             ret = utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
@@ -1136,5 +1136,5 @@ class AirportDB:
             except Exception as e:
                 debugging.error("Update Weather Loop: self.update_airport_wx() exception")
                 debugging.error(e)
-            time.sleep(aviation_weather_adds_timer)
+            time.sleep(aviation_weather_adds_timer*60)
         debugging.error("Hit the exit of the airport update loop")

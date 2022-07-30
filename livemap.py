@@ -107,9 +107,12 @@ if __name__ == "__main__":
     led_thread.start()
     flask_thread.start()
 
+    main_loop_sleep = 5
+
     while True:
-        MSG = "In Main Loop - Threadcount ({})"
-        debugging.info(MSG.format(threading.active_count()))
+        MSG = "In Main Loop - Threadcount ({}), Sleep for {}m"
+        active_thread_count = threading.active_count()
+        debugging.info(MSG.format(active_thread_count, main_loop_sleep))
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
-        time.sleep(300)
+        time.sleep(main_loop_sleep*60)

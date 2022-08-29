@@ -23,7 +23,7 @@ Pillow==9.1.1                             #
 pysftp==0.2.9                             #
 python-nmap==0.7.1                        #
 # requests==2.21.0                          #
-rpi-ws281x==4.3.3                         #
+rpi-ws281x==4.3.4                         #
 RPi.GPIO==0.7.1                           #
 RPLCD==1.3.0                              #
 seashells==0.1.2                          #

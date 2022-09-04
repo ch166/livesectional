@@ -47,6 +47,7 @@ import json
 
 # Moving to use requests instead of urllib
 import requests
+
 # from dateutil.parser import parse as parsedate
 
 
@@ -803,9 +804,9 @@ class AirportDB:
     def __init__(self, conf):
         """Create a database of Airports to be tracked"""
 
-        # TODO: 
-        # A lot of the class local variables are extras, 
-        # left over from the restructuring of the code. 
+        # TODO:
+        # A lot of the class local variables are extras,
+        # left over from the restructuring of the code.
         # for example: Some are just copies of config file data, and it
         # should be remove them as class-local variables and access the
         # config file directly as needed
@@ -848,7 +849,9 @@ class AirportDB:
         debugging.info("AirportDB : init")
 
         https_session = requests.Session()
-        utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
+        utils.download_newer_file(
+            https_session, self.metar_xml_url, self.metar_file, decompress=True
+        )
         # TODO: Not sure if we want to try load/save on init
         self.load_airport_db()
         self.update_airport_metar_xml()
@@ -1088,7 +1091,9 @@ class AirportDB:
                 + "m)"
             )
 
-            ret = utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
+            ret = utils.download_newer_file(
+                https_session, self.metar_xml_url, self.metar_file, decompress=True
+            )
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
@@ -1096,32 +1101,42 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(https_session, self.tafs_xml_url, self.tafs_file, decompress=True)
+            ret = utils.download_newer_file(
+                https_session, self.tafs_xml_url, self.tafs_file, decompress=True
+            )
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
-            ret = utils.download_newer_file(https_session, self.mos00_xml_url, self.mos00_file)
+            ret = utils.download_newer_file(
+                https_session, self.mos00_xml_url, self.mos00_file
+            )
             if ret == 0:
                 debugging.info("Downloaded MOS00 file")
             elif ret == 3:
                 debugging.info("Server side MOS00 older")
 
-            ret = utils.download_newer_file(https_session, self.mos06_xml_url, self.mos06_file)
+            ret = utils.download_newer_file(
+                https_session, self.mos06_xml_url, self.mos06_file
+            )
             if ret == 0:
                 debugging.info("Downloaded MOS06 file")
             elif ret == 3:
                 debugging.info("Server side MOS06 older")
 
-            ret = utils.download_newer_file(https_session, self.mos12_xml_url, self.mos12_file)
+            ret = utils.download_newer_file(
+                https_session, self.mos12_xml_url, self.mos12_file
+            )
             if ret == 0:
                 debugging.info("Downloaded MOS12 file")
             elif ret == 3:
                 debugging.info("Server side MOS12 older")
 
-            ret = utils.download_newer_file(https_session, self.mos18_xml_url, self.mos18_file)
+            ret = utils.download_newer_file(
+                https_session, self.mos18_xml_url, self.mos18_file
+            )
             if ret == 0:
                 debugging.info("Downloaded MOS18 file")
             elif ret == 3:
@@ -1130,7 +1145,9 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as e:
-                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
+                debugging.error(
+                    "Update Weather Loop: self.update_airport_wx() exception"
+                )
                 debugging.error(e)
-            time.sleep(aviation_weather_adds_timer*60)
+            time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

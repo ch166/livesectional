@@ -48,7 +48,6 @@ if __name__ == "__main__":
     conf = conf.Conf()
     appinfo = appinfo.AppInfo()
 
-
     # Setup Logging
     debugging.loginit()
 
@@ -115,4 +114,4 @@ if __name__ == "__main__":
         debugging.info(MSG.format(active_thread_count, main_loop_sleep))
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
-        time.sleep(main_loop_sleep*60)
+        time.sleep(main_loop_sleep * 60)

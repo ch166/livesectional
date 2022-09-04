@@ -101,6 +101,7 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import time as time_
 import sys
+
 # import os
 # from os.path import getmtime
 
@@ -127,7 +128,7 @@ import colors
 
 
 class UpdateLEDs:
-    """ Class to manage LSD self.strips """
+    """Class to manage LSD self.strips"""
 
     def __init__(self, conf, airport_database):
         # ****************************************************************************
@@ -165,10 +166,18 @@ class UpdateLEDs:
         # Specific settings for on/off timer. Used to turn off LED's at night if desired.
         # Verify Raspberry Pi is set to the correct time zone, otherwise the timer will be off.
         # self.usetimer = self.conf.usetimer              # 0 = No, 1 = Yes. Turn the timer on or off with this setting
-        self.offhour = self.conf.get_int("schedule", "offhour")  # Use 24 hour time. Set hour to turn off display
-        self.offminutes = self.conf.get_int("schedule", "offminutes")  # Set minutes to turn off display
-        self.onhour = self.conf.get_int("schedule", "onhour")  # Use 24 hour time. Set hour to turn on display
-        self.onminutes = self.conf.get_int("schedule", "onminutes")  # Set minutes to on display
+        self.offhour = self.conf.get_int(
+            "schedule", "offhour"
+        )  # Use 24 hour time. Set hour to turn off display
+        self.offminutes = self.conf.get_int(
+            "schedule", "offminutes"
+        )  # Set minutes to turn off display
+        self.onhour = self.conf.get_int(
+            "schedule", "onhour"
+        )  # Use 24 hour time. Set hour to turn on display
+        self.onminutes = self.conf.get_int(
+            "schedule", "onminutes"
+        )  # Set minutes to on display
         # Set number of MINUTES to turn map on temporarily during sleep mode
         self.tempsleepon = self.conf.get_int("schedule", "tempsleepon")
 
@@ -185,7 +194,9 @@ class UpdateLEDs:
 
         self.time_reboot = self.conf.get_string("default", "nightly_reboot_hr")
 
-        self.homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
+        self.homeport_colors = ast.literal_eval(
+            self.conf.get_string("colors", "homeport_colors")
+        )
         # ************************************************************
         # * End of User defined settings. Normally shouldn't change  *
         # * any thing under here unless you are confident in change. *
@@ -196,35 +207,87 @@ class UpdateLEDs:
 
         # LED Cycle times - Can change if necessary.
         # These cycle times all added together will equal the total amount of time the LED takes to finish displaying one cycle.
-        self.cycle0_wait = .9
+        self.cycle0_wait = 0.9
         # Each  cycle, depending on flight category, winds and weather reported will have various colors assigned.
-        self.cycle1_wait = .9
+        self.cycle1_wait = 0.9
         # For instance, VFR with 20 kts winds will have the first 3 cycles assigned Green and the last 3 Black for blink effect.
-        self.cycle2_wait = .08
+        self.cycle2_wait = 0.08
         # The cycle times then reflect how long each color cycle will stay on, producing blinking or flashing effects.
-        self.cycle3_wait = .1
+        self.cycle3_wait = 0.1
         # Lightning effect uses the short intervals at cycle 2 and cycle 4 to create the quick flash. So be careful if you change them.
-        self.cycle4_wait = .08
-        self.cycle5_wait = .5
+        self.cycle4_wait = 0.08
+        self.cycle5_wait = 0.5
 
         # List of METAR weather categories to designate weather in area. Many Metars will report multiple conditions, i.e. '-RA BR'.
         # The code pulls the first/main weather reported to compare against the lists below. In this example it uses the '-RA' and ignores the 'BR'.
         # See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
         # Thunderstorm and lightning
-        self.wx_lghtn_ck = ["TS", "TSRA", "TSGR", "+TSRA",
-                            "TSRG", "FC", "SQ", "VCTS", "VCTSRA", "VCTSDZ", "LTG"]
+        self.wx_lghtn_ck = [
+            "TS",
+            "TSRA",
+            "TSGR",
+            "+TSRA",
+            "TSRG",
+            "FC",
+            "SQ",
+            "VCTS",
+            "VCTSRA",
+            "VCTSDZ",
+            "LTG",
+        ]
         # Snow in various forms
-        self.wx_snow_ck = ["BLSN", "DRSN", "-RASN", "RASN", "+RASN", "-SN", "SN", "+SN",
-                           "SG", "IC", "PE", "PL", "-SHRASN", "SHRASN", "+SHRASN", "-SHSN", "SHSN", "+SHSN"]
+        self.wx_snow_ck = [
+            "BLSN",
+            "DRSN",
+            "-RASN",
+            "RASN",
+            "+RASN",
+            "-SN",
+            "SN",
+            "+SN",
+            "SG",
+            "IC",
+            "PE",
+            "PL",
+            "-SHRASN",
+            "SHRASN",
+            "+SHRASN",
+            "-SHSN",
+            "SHSN",
+            "+SHSN",
+        ]
         # Rain in various forms
-        self.wx_rain_ck = ["-DZ", "DZ", "+DZ", "-DZRA", "DZRA", "-RA",
-                           "RA", "+RA", "-SHRA", "SHRA", "+SHRA", "VIRGA", "VCSH"]
+        self.wx_rain_ck = [
+            "-DZ",
+            "DZ",
+            "+DZ",
+            "-DZRA",
+            "DZRA",
+            "-RA",
+            "RA",
+            "+RA",
+            "-SHRA",
+            "SHRA",
+            "+SHRA",
+            "VIRGA",
+            "VCSH",
+        ]
         # Freezing Rain
-        self.wx_frrain_ck = ["-FZDZ", "FZDZ",
-                             "+FZDZ", "-FZRA", "FZRA", "+FZRA"]
+        self.wx_frrain_ck = ["-FZDZ", "FZDZ", "+FZDZ", "-FZRA", "FZRA", "+FZRA"]
         # Dust Sand and/or Ash
-        self.wx_dustsandash_ck = ["DU", "SA", "HZ", "FU",
-                                  "VA", "BLDU", "BLSA", "PO", "VCSS", "SS", "+SS", ]
+        self.wx_dustsandash_ck = [
+            "DU",
+            "SA",
+            "HZ",
+            "FU",
+            "VA",
+            "BLDU",
+            "BLSA",
+            "PO",
+            "VCSS",
+            "SS",
+            "+SS",
+        ]
         # Fog
         self.wx_fog_ck = ["BR", "MIFG", "VCFG", "BCFG", "PRFG", "FG", "FZFG"]
 
@@ -233,21 +296,29 @@ class UpdateLEDs:
 
         # list definitions
         # Used to create weather designation effects.
-        self.cycle_wait = [self.cycle0_wait, self.cycle1_wait, self.cycle2_wait,
-                           self.cycle3_wait, self.cycle4_wait, self.cycle5_wait]
+        self.cycle_wait = [
+            self.cycle0_wait,
+            self.cycle1_wait,
+            self.cycle2_wait,
+            self.cycle3_wait,
+            self.cycle4_wait,
+            self.cycle5_wait,
+        ]
         self.cycles = [0, 1, 2, 3, 4, 5]  # Used as a index for the cycle loop.
-        self.legend_pins = [self.conf.get_int("lights", "leg_pin_vfr"),
-                            self.conf.get_int("lights", "leg_pin_mvfr"),
-                            self.conf.get_int("lights", "leg_pin_ifr"),
-                            self.conf.get_int("lights", "leg_pin_lifr"),
-                            self.conf.get_int("lights", "leg_pin_nowx"),
-                            self.conf.get_int("lights", "leg_pin_hiwinds"),
-                            self.conf.get_int("lights", "leg_pin_lghtn"),
-                            self.conf.get_int("lights", "leg_pin_snow"),
-                            self.conf.get_int("lights", "leg_pin_rain"),
-                            self.conf.get_int("lights", "leg_pin_frrain"),
-                            self.conf.get_int("lights", "leg_pin_dustsandash"),
-                            self.conf.get_int("lights", "leg_pin_fog")]  # Used to build legend display
+        self.legend_pins = [
+            self.conf.get_int("lights", "leg_pin_vfr"),
+            self.conf.get_int("lights", "leg_pin_mvfr"),
+            self.conf.get_int("lights", "leg_pin_ifr"),
+            self.conf.get_int("lights", "leg_pin_lifr"),
+            self.conf.get_int("lights", "leg_pin_nowx"),
+            self.conf.get_int("lights", "leg_pin_hiwinds"),
+            self.conf.get_int("lights", "leg_pin_lghtn"),
+            self.conf.get_int("lights", "leg_pin_snow"),
+            self.conf.get_int("lights", "leg_pin_rain"),
+            self.conf.get_int("lights", "leg_pin_frrain"),
+            self.conf.get_int("lights", "leg_pin_dustsandash"),
+            self.conf.get_int("lights", "leg_pin_fog"),
+        ]  # Used to build legend display
 
         # Setup for IC238 Light Sensor for LED Dimming, does not need to be commented out if sensor is not used, map will remain at full brightness.
         # For more info on the sensor visit; http://www.uugear.com/portfolio/using-light-sensor-module-with-raspberry-pi/
@@ -308,8 +379,11 @@ class UpdateLEDs:
         # 'Watching ' + self.LOCAL_CONFIG_FILE_PATH + ' For Change')
 
         # Timer calculations
-        self.lights_out = time_(self.conf.get_int("schedule", "offhour"),
-                                self.conf.get_int("schedule", "offminutes"), 0)
+        self.lights_out = time_(
+            self.conf.get_int("schedule", "offhour"),
+            self.conf.get_int("schedule", "offminutes"),
+            0,
+        )
         self.timeoff = self.lights_out
         self.lights_on = time_(self.onhour, self.onminutes, 0)
         self.end_time = self.lights_on
@@ -318,13 +392,30 @@ class UpdateLEDs:
 
         # MOS Data Settings
         # location of the downloaded local MOS file.
-        self.mos_filepath = '/NeoSectional/data/GFSMAV'
-        self.categories = ['HR', 'CLD', 'WDR', 'WSP', 'P06',
-                           'T06', 'POZ', 'POS', 'TYP', 'CIG', 'VIS', 'OBV']
-        self.obv_wx = {'N': 'None', 'HZ': 'HZ', 'BR': 'RA',
-                       'FG': 'FG', 'BL': 'HZ'}  # Decode from MOS to TAF/METAR
+        self.mos_filepath = "/NeoSectional/data/GFSMAV"
+        self.categories = [
+            "HR",
+            "CLD",
+            "WDR",
+            "WSP",
+            "P06",
+            "T06",
+            "POZ",
+            "POS",
+            "TYP",
+            "CIG",
+            "VIS",
+            "OBV",
+        ]
+        self.obv_wx = {
+            "N": "None",
+            "HZ": "HZ",
+            "BR": "RA",
+            "FG": "FG",
+            "BL": "HZ",
+        }  # Decode from MOS to TAF/METAR
         # Decode from MOS to TAF/METAR
-        self.typ_wx = {'S': 'SN', 'Z': 'FZRA', 'R': 'RA'}
+        self.typ_wx = {"S": "SN", "Z": "FZRA", "R": "RA"}
         # Outer Dictionary, keyed by airport ID
         self.mos_dict = collections.OrderedDict()
         # Middle Dictionary, keyed by hour of forcast. Will contain a list of data for categories.
@@ -337,7 +428,9 @@ class UpdateLEDs:
         # Increment to Red as visits get closer to 100 - Do Not Change
         self.high_visits = (255, 0, 0)
         self.fadehome = -1  # start with neg number
-        self.homeap = self.conf.get_string("colors", "color_vfr")  # If 100, then home airport - designate with Green
+        self.homeap = self.conf.get_string(
+            "colors", "color_vfr"
+        )  # If 100, then home airport - designate with Green
         # color_fog2  # (10, 10, 10) # dk grey to denote airports never visited
         self.no_visits = (20, 20, 20)
 
@@ -348,36 +441,71 @@ class UpdateLEDs:
         self.apid = ""
 
         # Morse Code Dictionary
-        self.CODE = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..',
-                     'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
-                     'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
-                     'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-',
-                     'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-',
-                     'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..',
-                     '1': '.----', '2': '..---', '3': '...--', '4': '....-',
-                     '5': '.....', '6': '-....', '7': '--...', '8': '---..',
-                     '9': '----.', '0': '-----', ', ': '--..--', '.': '.-.-.-',
-                     '?': '..--..', '/': '-..-.', '-': '-....-',
-                     '(': '-.--.', ')': '-.--.-'
-                     }
+        self.CODE = {
+            "A": ".-",
+            "B": "-...",
+            "C": "-.-.",
+            "D": "-..",
+            "E": ".",
+            "F": "..-.",
+            "G": "--.",
+            "H": "....",
+            "I": "..",
+            "J": ".---",
+            "K": "-.-",
+            "L": ".-..",
+            "M": "--",
+            "N": "-.",
+            "O": "---",
+            "P": ".--.",
+            "Q": "--.-",
+            "R": ".-.",
+            "S": "...",
+            "T": "-",
+            "U": "..-",
+            "V": "...-",
+            "W": ".--",
+            "X": "-..-",
+            "Y": "-.--",
+            "Z": "--..",
+            "1": ".----",
+            "2": "..---",
+            "3": "...--",
+            "4": "....-",
+            "5": ".....",
+            "6": "-....",
+            "7": "--...",
+            "8": "---..",
+            "9": "----.",
+            "0": "-----",
+            ", ": "--..--",
+            ".": ".-.-.-",
+            "?": "..--..",
+            "/": "-..-.",
+            "-": "-....-",
+            "(": "-.--.",
+            ")": "-.--.-",
+        }
 
         debugging.info("metar-v4.py Settings Loaded")
 
         # Create an instance of NeoPixel
         # FIXME: MOVE THIS FROM HERE TO LEDSTRIP for one INIT action
-        self.strip = Adafruit_NeoPixel(self.LED_COUNT,
-                                       self.LED_PIN,
-                                       self.LED_FREQ_HZ,
-                                       self.LED_DMA,
-                                       self.LED_INVERT,
-                                       self.LED_BRIGHTNESS,
-                                       self.LED_CHANNEL,
-                                       self.LED_STRIP)
+        self.strip = Adafruit_NeoPixel(
+            self.LED_COUNT,
+            self.LED_PIN,
+            self.LED_FREQ_HZ,
+            self.LED_DMA,
+            self.LED_INVERT,
+            self.LED_BRIGHTNESS,
+            self.LED_CHANNEL,
+            self.LED_STRIP,
+        )
         self.strip.begin()
 
     # Functions
     def setLedColor(self, led_id, hexcolor):
-        """ Convert color from HEX to RGB or GRB and apply to LED String """
+        """Convert color from HEX to RGB or GRB and apply to LED String"""
         # TODO: Add capability here to manage 'nullpins' and remove any mention of it from the code
         # This function should do all the color conversions, and exclude NULL or Legend PINS
         rgb_color = colors.RGB(self.conf, hexcolor)
@@ -386,7 +514,7 @@ class UpdateLEDs:
         self.strip.setPixelColor(led_id, pixel_data)
 
     def turnoff(self):
-        """ Set color to 0,0,0  - turning off LED """
+        """Set color to 0,0,0  - turning off LED"""
         for i in range(self.strip.numPixels()):
             self.setLedColor(i, colors.black(self.conf))
         self.strip.show()
@@ -406,16 +534,16 @@ class UpdateLEDs:
 
         data = colors.RGB(self.conf, color_data)
 
-        red = max(data[0] - ((value * data[0])/100), 0)
-        grn = max(data[1] - ((value * data[1])/100), 0)
-        blu = max(data[2] - ((value * data[2])/100), 0)
+        red = max(data[0] - ((value * data[0]) / 100), 0)
+        grn = max(data[1] - ((value * data[1]) / 100), 0)
+        blu = max(data[2] - ((value * data[2]) / 100), 0)
 
         data = (red, grn, blu)
 
         return data
 
     def rgbtogrb(self, pin, data, order=0):
-        """ Change colorcode to match self.strip RGB / GRB style """
+        """Change colorcode to match self.strip RGB / GRB style"""
         # Change color code to work with various led self.strips. For instance, WS2812 model self.strip uses RGB where WS2811 model uses GRB
         # Set the "rgb_grb" user setting above. 1 for RGB LED self.strip, and 0 for GRB self.strip.
         # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
@@ -423,8 +551,7 @@ class UpdateLEDs:
         # This accommodates the use of both models of LED strings on one map.
         if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"):
             order = not order
-            debugging.info(
-                'Reversing rgb2grb Routine Output for PIN ' + str(pin))
+            debugging.info("Reversing rgb2grb Routine Output for PIN " + str(pin))
 
         red = data[0]
         grn = data[1]
@@ -525,17 +652,19 @@ class UpdateLEDs:
     # For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
     # Can choose to display binary colors with homeap.
     def assign_color(self, visits):
-        """ Color codes assigned with heatmap """
-        if visits == '0':
+        """Color codes assigned with heatmap"""
+        if visits == "0":
             color = self.no_visits
-        elif visits == '100':
-            if self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool("rotaryswitch", "bin_grad"):
+        elif visits == "100":
+            if self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool(
+                "rotaryswitch", "bin_grad"
+            ):
                 color = colors.black(self.conf)
             elif not self.conf.get_bool("rotaryswitch", "use_homeap"):
                 color = self.high_visits
             else:
                 color = self.homeap
-        elif '1' <= visits <= '50':  # Working
+        elif "1" <= visits <= "50":  # Working
             if self.conf.get_bool("rotaryswitch", "bin_grad"):
                 red = self.low_visits[0]
                 grn = self.low_visits[1]
@@ -544,12 +673,12 @@ class UpdateLEDs:
                 color = (red, grn, blu)
             else:
                 color = self.high_visits
-        elif '51' <= visits <= '99':  # Working
+        elif "51" <= visits <= "99":  # Working
             if self.conf.get_bool("rotaryswitch", "bin_grad"):
                 red = self.high_visits[0]
                 grn = self.high_visits[1]
                 blu = self.high_visits[2]
-                blu = (255 - int((int(visits)-50) * 5.1))
+                blu = 255 - int((int(visits) - 50) * 5.1)
                 color = (red, grn, blu)
             else:
                 color = self.high_visits
@@ -571,26 +700,27 @@ class UpdateLEDs:
             debugging.info("Starting MOS Data Display")
             # Read current MOS text file
             try:
-                file = open(self.mos_filepath, 'r', encoding="utf8")
+                file = open(self.mos_filepath, "r", encoding="utf8")
                 lines = file.readlines()
             except IOError as error:
-                debugging.error('MOS data file could not be loaded.')
+                debugging.error("MOS data file could not be loaded.")
                 debugging.error(error)
                 return error
 
             for line in lines:  # read the MOS data file line by line0
                 line = str(line)
                 # Ignore blank lines of MOS airport
-                if line.startswith('     '):
+                if line.startswith("     "):
                     ap_flag = 0
                     continue
                 # Check for and grab date of MOS
-                if 'DT /' in line:
+                if "DT /" in line:
                     unused1, dt_cat, month, unused2, unused3, day, unused4 = line.split(
-                        " ", 6)
+                        " ", 6
+                    )
                     continue
                 # Check for and grab the Airport ID of the current MOS
-                if 'MOS' in line:
+                if "MOS" in line:
                     unused, loc_apid, mos_date = line.split(" ", 2)
                     self.apid = loc_apid
                     # If this Airport ID is in the airports file then grab all the info needed from this MOS
@@ -598,8 +728,18 @@ class UpdateLEDs:
                         ap_flag = 1
                         # used to determine if a category is being reported in MOS or not. If not, need to inject it.
                         cat_counter = 0
-                        self.dat0, self.dat1, self.dat2, self.dat3, self.dat4, self.dat5, self.dat6, self.dat7 = (
-                            [] for i in range(8))  # Clear lists
+                        (
+                            self.dat0,
+                            self.dat1,
+                            self.dat2,
+                            self.dat3,
+                            self.dat4,
+                            self.dat5,
+                            self.dat6,
+                            self.dat7,
+                        ) = (
+                            [] for i in range(8)
+                        )  # Clear lists
                     continue
                 # If we just found an airport that is in our airports file, then grab the appropriate weather data from it's MOS
                 if ap_flag:
@@ -608,30 +748,50 @@ class UpdateLEDs:
                     # Check if the needed categories are being read and if so, grab its data
                     if cat in self.categories:
                         cat_counter += 1  # used to check if a category is not in mos report for airport
-                        if cat == 'HR':  # hour designation
+                        if cat == "HR":  # hour designation
                             # grab all the hours from line read
-                            temp = (re.findall(
-                                r'\s?(\s*\S+)', value.rstrip()))
+                            temp = re.findall(r"\s?(\s*\S+)", value.rstrip())
                             for j in range(8):
                                 tmp = temp[j].strip()
                                 # create hour dictionary based on mos data
-                                self.hour_dict[tmp] = ''
+                                self.hour_dict[tmp] = ""
                             # Get the hours which are the keys in this dict, so they can be properly poplulated
                             self.keys = list(self.hour_dict.keys())
                         else:
                             # Checking for missing lines of data and x out if necessary.
-                            if (cat_counter == 5 and cat != 'P06')\
-                                    or (cat_counter == 6 and cat != 'T06')\
-                                    or (cat_counter == 7 and cat != 'POZ')\
-                                    or (cat_counter == 8 and cat != 'POS')\
-                                    or (cat_counter == 9 and cat != 'TYP'):
+                            if (
+                                (cat_counter == 5 and cat != "P06")
+                                or (cat_counter == 6 and cat != "T06")
+                                or (cat_counter == 7 and cat != "POZ")
+                                or (cat_counter == 8 and cat != "POS")
+                                or (cat_counter == 9 and cat != "TYP")
+                            ):
                                 # calculate the number of consecutive missing cats and inject 9's into those positions
-                                a = self.categories.index(self.last_cat)+1
-                                b = self.categories.index(cat)+1
+                                a = self.categories.index(self.last_cat) + 1
+                                b = self.categories.index(cat) + 1
                                 c = b - a - 1
                                 for j in range(c):
-                                    temp = ['9', '9', '9', '9', '9', '9', '9', '9', '9',
-                                            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9']
+                                    temp = [
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                        "9",
+                                    ]
                                     self.set_data()
                                     cat_counter += 1
                                 # Now write the orignal cat data read from the line in the mos file
@@ -640,8 +800,7 @@ class UpdateLEDs:
                                 self.hour_dict = collections.OrderedDict()
                                 self.last_cat = cat
                                 # add the actual line of data read
-                                temp = (re.findall(
-                                    r'\s?(\s*\S+)', value.rstrip()))
+                                temp = re.findall(r"\s?(\s*\S+)", value.rstrip())
                                 self.set_data()
                                 # clear out hour_dict for next airport
                                 self.hour_dict = collections.OrderedDict()
@@ -649,8 +808,7 @@ class UpdateLEDs:
                                 # continue to decode the next category data that was read.
                                 # store what the last read cat was.
                                 self.last_cat = cat
-                                temp = (re.findall(
-                                    r'\s?(\s*\S+)', value.rstrip()))
+                                temp = re.findall(r"\s?(\s*\S+)", value.rstrip())
                                 self.set_data()
                                 # clear out hour_dict for next airport
                                 self.hour_dict = collections.OrderedDict()
@@ -661,97 +819,123 @@ class UpdateLEDs:
             # See; https://www.weather.gov/mdl/mos_gfsmos_mavcard for description of available data.
             for airport in self.airports:
                 if airport in self.mos_dict:
-                    debugging.debug('\n' + airport)
+                    debugging.debug("\n" + airport)
                     debugging.debug(self.categories)
 
-                    mos_time = utils.current_time_hr_utc(self.conf) + \
-                        self.hour_to_display
+                    mos_time = (
+                        utils.current_time_hr_utc(self.conf) + self.hour_to_display
+                    )
                     if mos_time >= 24:  # check for reset at 00z
                         mos_time = mos_time - 24
 
                     for hr in self.keys:
-                        if int(hr) <= mos_time <= int(hr)+2.99:
+                        if int(hr) <= mos_time <= int(hr) + 2.99:
 
-                            cld = (self.mos_dict[airport][hr][0])
+                            cld = self.mos_dict[airport][hr][0]
                             # make wind direction end in zero
-                            wdr = (
-                                self.mos_dict[airport][hr][1]) + '0'
-                            wsp = (self.mos_dict[airport][hr][2])
-                            p06 = (self.mos_dict[airport][hr][3])
-                            t06 = (self.mos_dict[airport][hr][4])
-                            poz = (self.mos_dict[airport][hr][5])
-                            pos = (self.mos_dict[airport][hr][6])
-                            typ = (self.mos_dict[airport][hr][7])
-                            cig = (self.mos_dict[airport][hr][8])
-                            vis = (self.mos_dict[airport][hr][9])
-                            obv = (self.mos_dict[airport][hr][10])
+                            wdr = (self.mos_dict[airport][hr][1]) + "0"
+                            wsp = self.mos_dict[airport][hr][2]
+                            p06 = self.mos_dict[airport][hr][3]
+                            t06 = self.mos_dict[airport][hr][4]
+                            poz = self.mos_dict[airport][hr][5]
+                            pos = self.mos_dict[airport][hr][6]
+                            typ = self.mos_dict[airport][hr][7]
+                            cig = self.mos_dict[airport][hr][8]
+                            vis = self.mos_dict[airport][hr][9]
+                            obv = self.mos_dict[airport][hr][10]
 
                             debugging.debug(
-                                mos_date + hr + cld + wdr + wsp + p06 + t06 + poz + pos + typ + cig + vis + obv)
+                                mos_date
+                                + hr
+                                + cld
+                                + wdr
+                                + wsp
+                                + p06
+                                + t06
+                                + poz
+                                + pos
+                                + typ
+                                + cig
+                                + vis
+                                + obv
+                            )
 
                             # decode the weather for each airport to display on the livesectional map
                             flightcategory = "VFR"  # start with VFR as the assumption
                             # If the layer is OVC, BKN, set Flight category based on height of layer
                             if cld in ("OV", "BK"):
 
-                                if cig <= '2':  # AGL is less than 500:
+                                if cig <= "2":  # AGL is less than 500:
                                     flightcategory = "LIFR"
 
-                                elif cig == '3':  # AGL is between 500 and 1000
+                                elif cig == "3":  # AGL is between 500 and 1000
                                     flightcategory = "IFR"
-                                elif '4' <= cig <= '5':  # AGL is between 1000 and 3000:
+                                elif "4" <= cig <= "5":  # AGL is between 1000 and 3000:
                                     flightcategory = "MVFR"
 
-                                elif cig >= '6':  # AGL is above 3000
+                                elif cig >= "6":  # AGL is above 3000
                                     flightcategory = "VFR"
 
                             # Check visability too.
-                            if flightcategory != "LIFR":  # if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
+                            if (
+                                flightcategory != "LIFR"
+                            ):  # if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
 
-                                if vis <= '2':  # vis < 1.0 mile:
+                                if vis <= "2":  # vis < 1.0 mile:
                                     flightcategory = "LIFR"
 
-                                elif '3' <= vis < '4':  # 1.0 <= vis < 3.0 miles:
+                                elif "3" <= vis < "4":  # 1.0 <= vis < 3.0 miles:
                                     flightcategory = "IFR"
 
-                                elif vis == '5' and flightcategory != "IFR":  # 3.0 <= vis <= 5.0 miles
+                                elif (
+                                    vis == "5" and flightcategory != "IFR"
+                                ):  # 3.0 <= vis <= 5.0 miles
                                     flightcategory = "MVFR"
 
                             debugging.debug(flightcategory + " |")
                             debugging.debug(
-                                'Windspeed = ' + wsp + ' | Wind dir = ' + wdr + ' |')
+                                "Windspeed = " + wsp + " | Wind dir = " + wdr + " |"
+                            )
 
                             # decode reported weather using probabilities provided.
-                            if typ == '9':  # check to see if rain, freezing rain or snow is reported. If not use obv weather
+                            if (
+                                typ == "9"
+                            ):  # check to see if rain, freezing rain or snow is reported. If not use obv weather
                                 # Get proper representation for obv designator
                                 wx_info = self.obv_wx[obv]
                             else:
                                 # Get proper representation for typ designator
                                 wx_info = self.typ_wx[typ]
 
-                                if wx_info == 'RA' and int(p06) < self.conf.get_int("rotaryswitch", "prob"):
-                                    if obv != 'N':
+                                if wx_info == "RA" and int(p06) < self.conf.get_int(
+                                    "rotaryswitch", "prob"
+                                ):
+                                    if obv != "N":
                                         wx_info = self.obv_wx[obv]
                                     else:
-                                        wx_info = 'NONE'
+                                        wx_info = "NONE"
 
-                                if wx_info == 'SN' and int(pos) < self.conf.get_int("rotaryswitch", "prob"):
-                                    wx_info = 'NONE'
+                                if wx_info == "SN" and int(pos) < self.conf.get_int(
+                                    "rotaryswitch", "prob"
+                                ):
+                                    wx_info = "NONE"
 
-                                if wx_info == 'FZRA' and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
-                                    wx_info = 'NONE'
+                                if wx_info == "FZRA" and int(poz) < self.conf.get_int(
+                                    "rotaryswitch", "prob"
+                                ):
+                                    wx_info = "NONE"
 
                                 # print (t06,apid) # debug
-                                if t06 == '' or t06 is None:
-                                    t06 = '0'
+                                if t06 == "" or t06 is None:
+                                    t06 = "0"
 
                                 # check for thunderstorms
                                 if int(t06) > self.conf.get_int("rotaryswitch", "prob"):
-                                    wx_info = 'TSRA'
+                                    wx_info = "TSRA"
                                 else:
-                                    wx_info = 'NONE'
+                                    wx_info = "NONE"
 
-                            debugging.debug('Reported Weather = ' + wx_info)
+                            debugging.debug("Reported Weather = " + wx_info)
 
                     # Connect the information from MOS to the board
                     stationId = airport
@@ -759,7 +943,9 @@ class UpdateLEDs:
                     # grab wind speeds from returned MOS data
                     if wsp is None:  # if wind speed is blank, then bypass
                         windspeedkt = 0
-                    elif wsp == '99':  # Check to see if MOS data is not reporting windspeed for this airport
+                    elif (
+                        wsp == "99"
+                    ):  # Check to see if MOS data is not reporting windspeed for this airport
                         windspeedkt = 0
                     else:
                         windspeedkt = int(wsp)
@@ -771,26 +957,30 @@ class UpdateLEDs:
                         wxstring = wx_info
 
                     debugging.debug(
-                        stationId + ", " + str(windspeedkt) + ", " + wxstring)  # debug
+                        stationId + ", " + str(windspeedkt) + ", " + wxstring
+                    )  # debug
 
                     # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
                     if stationId in stationiddict:
                         debugging.info(
-                            stationId + " Duplicate, only saved first metar category")
+                            stationId + " Duplicate, only saved first metar category"
+                        )
                     else:
                         # build category dictionary
                         stationiddict[stationId] = flightcategory
 
                     if stationId in windsdict:
                         debugging.info(
-                            stationId + " Duplicate, only saved the first winds")
+                            stationId + " Duplicate, only saved the first winds"
+                        )
                     else:
                         # build windspeed dictionary
                         windsdict[stationId] = windspeedkt
 
                     if stationId in wxstringdict:
                         debugging.info(
-                            stationId + " Duplicate, only saved the first weather")
+                            stationId + " Duplicate, only saved the first weather"
+                        )
                     else:
                         # build weather dictionary
                         wxstringdict[stationId] = wxstring
@@ -809,7 +999,7 @@ class UpdateLEDs:
         airport_list = self.airport_database.get_airport_dict_led()
 
         for cycle_num in self.cycles:
-            print(" " + str(cycle_num), end='')
+            print(" " + str(cycle_num), end="")
             sys.stdout.flush()
 
             # Inner Loop. Increments through each LED in the self.strip setting the appropriate color to each individual LED.
@@ -844,25 +1034,38 @@ class UpdateLEDs:
 
                 # debug print out
                 if self.metar_taf_mos == 0:
-                    debugging.debug(
-                        "TAF Time +" + str(self.hour_to_display) + " Hour")
+                    debugging.debug("TAF Time +" + str(self.hour_to_display) + " Hour")
                 elif self.metar_taf_mos == 1:
                     debugging.debug("METAR")
                 elif self.metar_taf_mos == 2:
-                    debugging.debug(
-                        "MOS Time +" + str(self.hour_to_display) + " Hour")
+                    debugging.debug("MOS Time +" + str(self.hour_to_display) + " Hour")
                 elif self.metar_taf_mos == 3:
                     debugging.debug("Heat Map + ")
 
-                debugging.debug((airportcode + " " + str(flightcategory) +
-                                 " " + str(airportwinds) +
-                                 " " + airportwx + " " + str(cycle_num) + " "))
+                debugging.debug(
+                    (
+                        airportcode
+                        + " "
+                        + str(flightcategory)
+                        + " "
+                        + str(airportwinds)
+                        + " "
+                        + airportwx
+                        + " "
+                        + str(cycle_num)
+                        + " "
+                    )
+                )
                 # Check to see if airport code is a NULL and set to black.
                 if airportcode in ("NULL", "LGND"):
                     color = colors.black(self.conf)
 
                 # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
-                if self.conf.get_bool("default", "legend") and airportcode == "LGND" and (i in self.legend_pins):
+                if (
+                    self.conf.get_bool("default", "legend")
+                    and airportcode == "LGND"
+                    and (i in self.legend_pins)
+                ):
                     if i == self.conf.get_int("lights", "leg_pin_vfr"):
                         color = colors.VFR(self.conf)
 
@@ -878,20 +1081,26 @@ class UpdateLEDs:
                     if i == self.conf.get_int("lights", "leg_pin_nowx"):
                         color = colors.NOWEATHER(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_hiwinds") and self.conf.get_int("lights", "legend_hiwinds"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_hiwinds"
+                    ) and self.conf.get_int("lights", "legend_hiwinds"):
                         if cycle_num in (3, 4, 5):
                             color = colors.black(self.conf)
                         else:
                             color = colors.IFR(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_lghtn") and self.conf.get_int("lights", "legend_lghtn"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_lghtn"
+                    ) and self.conf.get_int("lights", "legend_lghtn"):
                         if cycle_num in (2, 4):  # Check for Thunderstorms
                             color = colors.LIGHTNING(self.conf)
 
                         elif cycle_num in (0, 1, 3, 5):
                             color = colors.MVFR(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_snow") and self.conf.get_int("lights", "legend_snow"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_snow"
+                    ) and self.conf.get_int("lights", "legend_snow"):
                         if cycle_num in (3, 5):  # Check for Snow
                             color = colors.SNOW(self.conf, 1)
 
@@ -901,7 +1110,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.LIFR(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_rain") and self.conf.get_int("lights", "legend_rain"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_rain"
+                    ) and self.conf.get_int("lights", "legend_rain"):
                         if cycle_num in (3, 5):  # Check for Rain
                             color = colors.RAIN(self.conf, 1)
 
@@ -911,7 +1122,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.VFR(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_frrain") and self.conf.get_int("lights", "legend_frrain"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_frrain"
+                    ) and self.conf.get_int("lights", "legend_frrain"):
                         if cycle_num in (3, 5):  # Check for Freezing Rain
                             color = colors.FRZRAIN(self.conf, 1)
 
@@ -921,7 +1134,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.MVFR(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_dustsandash") and self.conf.get_int("lights", "legend_dustsandash"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_dustsandash"
+                    ) and self.conf.get_int("lights", "legend_dustsandash"):
                         if cycle_num in (3, 5):  # Check for Dust, Sand or Ash
                             color = colors.DUST_SAND_ASH(self.conf, 1)
 
@@ -931,7 +1146,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.VFR(self.conf)
 
-                    if i == self.conf.get_int("lights", "leg_pin_fog") and self.conf.get_int("lights", "legend_fog"):
+                    if i == self.conf.get_int(
+                        "lights", "leg_pin_fog"
+                    ) and self.conf.get_int("lights", "legend_fog"):
                         if cycle_num in (3, 5):  # Check for Fog
                             color = colors.FOG(self.conf, 1)
 
@@ -956,15 +1173,30 @@ class UpdateLEDs:
                         color = colors.NOWEATHER(self.conf)
 
                 # 3.01 bug fix by adding "LGND" test
-                elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL":
+                elif (
+                    flightcategory == "NONE"
+                    and airportcode != "LGND"
+                    and airportcode != "NULL"
+                ):
                     color = colors.NOWEATHER(self.conf)
 
                 # Check winds and set the 2nd half of cycles to black to create blink effect
-                if self.conf.get_bool("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
-                    if int(airportwinds) >= self.conf.get_int("metar", "max_wind_speed") and (cycle_num in (3, 4, 5)):
+                if self.conf.get_bool(
+                    "lights", "hiwindblink"
+                ):  # bypass if "hiwindblink" is set to 0
+                    if int(airportwinds) >= self.conf.get_int(
+                        "metar", "max_wind_speed"
+                    ) and (cycle_num in (3, 4, 5)):
                         color = colors.black(self.conf)
-                        debugging.debug(("HIGH WINDS-> " + airportcode +
-                                         " Winds = " + str(airportwinds) + " "))
+                        debugging.debug(
+                            (
+                                "HIGH WINDS-> "
+                                + airportcode
+                                + " Winds = "
+                                + str(airportwinds)
+                                + " "
+                            )
+                        )
 
                 # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
                 if airportwx != "NONE":
@@ -978,60 +1210,76 @@ class UpdateLEDs:
                         if airportwx in self.wx_snow_ck and (cycle_num in (3, 5)):
                             color = colors.SNOW(self.conf, 1)
 
-                        if (airportwx in self.wx_snow_ck and cycle_num == 4):
+                        if airportwx in self.wx_snow_ck and cycle_num == 4:
                             color = colors.SNOW(self.conf, 2)
 
                     if self.conf.get_bool("lights", "rainshow"):
                         # Check for Rain
-                        if (airportwx in self.wx_rain_ck and (cycle_num in (3, 4))):
+                        if airportwx in self.wx_rain_ck and (cycle_num in (3, 4)):
                             color = colors.RAIN(self.conf, 1)
 
-                        if (airportwx in self.wx_rain_ck and cycle_num == 5):
+                        if airportwx in self.wx_rain_ck and cycle_num == 5:
                             color = colors.RAIN(self.conf, 2)
 
                     if self.conf.get_bool("lights", "frrainshow"):
                         # Check for Freezing Rain
-                        if (airportwx in self.wx_frrain_ck and (cycle_num in (3, 5))):
+                        if airportwx in self.wx_frrain_ck and (cycle_num in (3, 5)):
                             color = colors.FRZRAIN(self.conf, 1)
 
-                        if (airportwx in self.wx_frrain_ck and cycle_num == 4):
+                        if airportwx in self.wx_frrain_ck and cycle_num == 4:
                             color = colors.FRZRAIN(self.conf, 2)
 
                     if self.conf.get_bool("lights", "dustsandashshow"):
                         # Check for Dust, Sand or Ash
-                        if (airportwx in self.wx_dustsandash_ck and (cycle_num in (3, 5))):
+                        if airportwx in self.wx_dustsandash_ck and (
+                            cycle_num in (3, 5)
+                        ):
                             color = colors.DUST_SAND_ASH(self.conf, 1)
 
-                        if (airportwx in self.wx_dustsandash_ck and cycle_num == 4):
+                        if airportwx in self.wx_dustsandash_ck and cycle_num == 4:
                             color = colors.DUST_SAND_ASH(self.conf, 2)
 
                     if self.conf.get_bool("lights", "fogshow"):
                         # Check for Fog
-                        if (airportwx in self.wx_fog_ck and (cycle_num in (3, 5))):
+                        if airportwx in self.wx_fog_ck and (cycle_num in (3, 5)):
                             color = colors.FOG(self.conf, 1)
 
-                        if (airportwx in self.wx_fog_ck and cycle_num == 4):
+                        if airportwx in self.wx_fog_ck and cycle_num == 4:
                             color = colors.FOG(self.conf, 2)
 
                 # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
                 # so that every other time through, the color will display the proper weather, then homeport color(s).
-                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport") and toggle:
+                if (
+                    i == self.conf.get_int("lights", "homeport_pin")
+                    and self.conf.get_bool("lights", "homeport")
+                    and toggle
+                ):
                     if self.conf.get_int("lights", "homeport_display") == 1:
-                        homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
+                        homeport_colors = ast.literal_eval(
+                            self.conf.get_string("colors", "homeport_colors")
+                        )
                         color = homeport_colors[cycle_num]
                     elif self.conf.get_int("lights", "homeport_display") == 2:
                         pass
                     else:
                         color = self.conf.get_color("colors", "color_homeport")
 
-                if i == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport"):
+                if i == self.conf.get_int(
+                    "lights", "homeport_pin"
+                ) and self.conf.get_bool("lights", "homeport"):
                     # if this is the home airport, don't dim out the brightness
                     norm_color = color
                     # FIXME: This won't work
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
-                elif self.conf.get_bool("lights", "homeport"):  # if this is not the home airport, dim out the brightness
-                    dim_color = self.dim(color, self.conf.get_int("lights", "dim_value"))
-                    color = colors.HEX(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
+                elif self.conf.get_bool(
+                    "lights", "homeport"
+                ):  # if this is not the home airport, dim out the brightness
+                    dim_color = self.dim(
+                        color, self.conf.get_int("lights", "dim_value")
+                    )
+                    color = colors.HEX(
+                        int(dim_color[0]), int(dim_color[1]), int(dim_color[2])
+                    )
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness
                     norm_color = color
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
@@ -1039,11 +1287,11 @@ class UpdateLEDs:
                 self.setLedColor(i, color)
                 i = i + 1  # set next LED pin in self.strip
 
-            print("/LED.", end='')
+            print("/LED.", end="")
             sys.stdout.flush()
             # Display self.strip with newly assigned colors for the current cycle_num cycle.
             self.strip.show()
-            print(".", end='')
+            print(".", end="")
             # cycle_wait time is a user defined value
             wait_time = self.cycle_wait[cycle_num]
             # pause between cycles. pauses are setup in user definitions.
@@ -1097,7 +1345,9 @@ class UpdateLEDs:
 
             # Setup timed loop for updating FAA Weather that will run based on the value of 'update_interval' which is a user setting
             # Start the timer. When timer hits user-defined value, go back to outer loop to update FAA Weather.
-            timeout_end = time.time() + (self.conf.get_int("metar", "update_interval") * 60)
+            timeout_end = time.time() + (
+                self.conf.get_int("metar", "update_interval") * 60
+            )
             loopcount = 0
             # take 'update_interval' which is in minutes and turn into seconds
             while time.time() < timeout_end:
@@ -1120,7 +1370,9 @@ class UpdateLEDs:
                 # check to see if the user wants to use a timer.
                 if self.conf.get_bool("schedule", "usetimer"):
 
-                    if utils.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
+                    if utils.time_in_range(
+                        self.timeoff, self.end_time, datetime.now().time()
+                    ):
 
                         # If temporary lights-on period from refresh button has expired, restore the original light schedule
                         if self.temp_lights_on == 1:
@@ -1134,19 +1386,25 @@ class UpdateLEDs:
                         self.turnoff()
                         debugging.info("Map Going to Sleep")
 
-                        while utils.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
+                        while utils.time_in_range(
+                            self.timeoff, self.end_time, datetime.now().time()
+                        ):
                             sys.stdout.write("z")
                             sys.stdout.flush()
                             time.sleep(1)
                             # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
                             if GPIO.input(22) is False:
                                 # Set to turn lights on two seconds ago to make sure we hit the loop next time through
-                                self.end_time = (datetime.now()-timedelta(seconds=2)).time()
+                                self.end_time = (
+                                    datetime.now() - timedelta(seconds=2)
+                                ).time()
                                 self.timeoff = (
-                                    datetime.now()+timedelta(minutes=self.tempsleepon)).time()
-                                self.temp_lights_on = 1  # Set this to 1 if button is pressed
-                                debugging.info(
-                                    "Sleep interrupted by button push")
+                                    datetime.now() + timedelta(minutes=self.tempsleepon)
+                                ).time()
+                                self.temp_lights_on = (
+                                    1  # Set this to 1 if button is pressed
+                                )
+                                debugging.info("Sleep interrupted by button push")
 
                             # Routine to restart this script if config.py is changed while this script is running.
                             # FIXME: Restore functionality
@@ -1166,75 +1424,115 @@ class UpdateLEDs:
                 # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
                 # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
                 if GPIO.input(0) is False and self.toggle_sw != 0:
-                    self.update_gpio_flags(0, self.conf.get_int("rotaryswitch", "time_sw0"),
-                                           self.conf.get_int("rotaryswitch", "data_sw0"))
+                    self.update_gpio_flags(
+                        0,
+                        self.conf.get_int("rotaryswitch", "time_sw0"),
+                        self.conf.get_int("rotaryswitch", "data_sw0"),
+                    )
                     break
 
                 elif GPIO.input(5) is False and self.toggle_sw != 1:
-                    self.update_gpio_flags(1, self.conf.get_int("rotaryswitch", "time_sw1"),
-                                           self.conf.get_int("rotaryswitch", "data_sw1"))
+                    self.update_gpio_flags(
+                        1,
+                        self.conf.get_int("rotaryswitch", "time_sw1"),
+                        self.conf.get_int("rotaryswitch", "data_sw1"),
+                    )
                     break
 
                 elif GPIO.input(6) is False and self.toggle_sw != 2:
-                    self.update_gpio_flags(2, self.conf.get_int("rotaryswitch", "time_sw2"),
-                                           self.conf.get_int("rotaryswitch", "data_sw2"))
+                    self.update_gpio_flags(
+                        2,
+                        self.conf.get_int("rotaryswitch", "time_sw2"),
+                        self.conf.get_int("rotaryswitch", "data_sw2"),
+                    )
                     break
 
                 elif GPIO.input(13) is False and self.toggle_sw != 3:
-                    self.update_gpio_flags(3, self.conf.get_int("rotaryswitch", "time_sw3"),
-                                           self.conf.get_int("rotaryswitch", "data_sw3"))
+                    self.update_gpio_flags(
+                        3,
+                        self.conf.get_int("rotaryswitch", "time_sw3"),
+                        self.conf.get_int("rotaryswitch", "data_sw3"),
+                    )
                     break
 
                 elif GPIO.input(19) is False and self.toggle_sw != 4:
-                    self.update_gpio_flags(4, self.conf.get_int("rotaryswitch", "time_sw4"),
-                                           self.conf.get_int("rotaryswitch", "data_sw4"))
+                    self.update_gpio_flags(
+                        4,
+                        self.conf.get_int("rotaryswitch", "time_sw4"),
+                        self.conf.get_int("rotaryswitch", "data_sw4"),
+                    )
                     break
 
                 elif GPIO.input(26) is False and self.toggle_sw != 5:
-                    self.update_gpio_flags(5, self.conf.get_int("rotaryswitch", "time_sw5"),
-                                           self.conf.get_int("rotaryswitch", "data_sw5"))
+                    self.update_gpio_flags(
+                        5,
+                        self.conf.get_int("rotaryswitch", "time_sw5"),
+                        self.conf.get_int("rotaryswitch", "data_sw5"),
+                    )
                     break
 
                 elif GPIO.input(21) is False and self.toggle_sw != 6:
-                    self.update_gpio_flags(6, self.conf.get_int("rotaryswitch", "time_sw6"),
-                                           self.conf.get_int("rotaryswitch", "data_sw6"))
+                    self.update_gpio_flags(
+                        6,
+                        self.conf.get_int("rotaryswitch", "time_sw6"),
+                        self.conf.get_int("rotaryswitch", "data_sw6"),
+                    )
                     break
 
                 elif GPIO.input(20) is False and self.toggle_sw != 7:
-                    self.update_gpio_flags(7, self.conf.get_int("rotaryswitch", "time_sw7"),
-                                           self.conf.get_int("rotaryswitch", "data_sw7"))
+                    self.update_gpio_flags(
+                        7,
+                        self.conf.get_int("rotaryswitch", "time_sw7"),
+                        self.conf.get_int("rotaryswitch", "data_sw7"),
+                    )
                     break
 
                 elif GPIO.input(16) is False and self.toggle_sw != 8:
-                    self.update_gpio_flags(8, self.conf.get_int("rotaryswitch", "time_sw8"),
-                                           self.conf.get_int("rotaryswitch", "data_sw8"))
+                    self.update_gpio_flags(
+                        8,
+                        self.conf.get_int("rotaryswitch", "time_sw8"),
+                        self.conf.get_int("rotaryswitch", "data_sw8"),
+                    )
                     break
 
                 elif GPIO.input(12) is False and self.toggle_sw != 9:
-                    self.update_gpio_flags(9, self.conf.get_int("rotaryswitch", "time_sw9"),
-                                           self.conf.get_int("rotaryswitch", "data_sw9"))
+                    self.update_gpio_flags(
+                        9,
+                        self.conf.get_int("rotaryswitch", "time_sw9"),
+                        self.conf.get_int("rotaryswitch", "data_sw9"),
+                    )
                     break
 
                 elif GPIO.input(1) is False and self.toggle_sw != 10:
-                    self.update_gpio_flags(10, self.conf.get_int("rotaryswitch", "time_sw10"),
-                                           self.conf.get_int("rotaryswitch", "data_sw10"))
+                    self.update_gpio_flags(
+                        10,
+                        self.conf.get_int("rotaryswitch", "time_sw10"),
+                        self.conf.get_int("rotaryswitch", "data_sw10"),
+                    )
                     break
 
                 elif GPIO.input(7) is False and self.toggle_sw != 11:
-                    self.update_gpio_flags(11, self.conf.get_int("rotaryswitch", "time_sw11"),
-                                           self.conf.get_int("rotaryswitch", "data_sw11"))
+                    self.update_gpio_flags(
+                        11,
+                        self.conf.get_int("rotaryswitch", "time_sw11"),
+                        self.conf.get_int("rotaryswitch", "data_sw11"),
+                    )
                     break
 
                 elif self.toggle_sw == -1:  # used if no Rotary Switch is installed
-                    self.update_gpio_flags(12, self.conf.get_int("rotaryswitch", "time_sw0"),
-                                           self.conf.get_int("rotaryswitch", "data_sw0"))
+                    self.update_gpio_flags(
+                        12,
+                        self.conf.get_int("rotaryswitch", "time_sw0"),
+                        self.conf.get_int("rotaryswitch", "data_sw0"),
+                    )
                     break
 
                 # Check to see if pushbutton is pressed to force an update of FAA Weather
                 # If no button is connected, then this is bypassed and will only update when 'update_interval' is met
                 if GPIO.input(22) is False:
                     debugging.info(
-                        'Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data')
+                        "Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data"
+                    )
                     break
 
                 # Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
@@ -1242,14 +1540,12 @@ class UpdateLEDs:
                 if GPIO.input(4) == 1:
                     self.LED_BRIGHTNESS = self.conf.get_int("lights", "dimmed_value")
                     if self.ambient_toggle == 1:
-                        debugging.info(
-                            "Ambient Sensor set brightness to dimmed_value")
+                        debugging.info("Ambient Sensor set brightness to dimmed_value")
                         self.ambient_toggle = 0
                 else:
                     self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
                     if self.ambient_toggle == 0:
-                        debugging.info(
-                            "Ambient Sensor set brightness to bright_value")
+                        debugging.info("Ambient Sensor set brightness to bright_value")
                         self.ambient_toggle = 1
 
                 self.strip.setBrightness(self.LED_BRIGHTNESS)
@@ -1271,20 +1567,25 @@ class UpdateLEDs:
             color_tuple = (0, pos * 3, 255 - pos * 3)
         return color_tuple
 
-    def rainbowCycle(self, iterations, wait=.1):
+    def rainbowCycle(self, iterations, wait=0.1):
         """Draw rainbow that uniformly distributes itself across all pixels."""
-        for j in range(256*iterations):
+        for j in range(256 * iterations):
             for led_pin in range(self.strip.numPixels()):
                 if str(led_pin) in self.nullpins:
                     # exclude NULL and LGND pins from wipe
                     self.setLedColor(led_pin, colors.black(self.conf))
                 else:
-                    self.setLedColor(led_pin, self.wheel((int(led_pin * 256 / self.strip.numPixels()) + j) & 255))
+                    self.setLedColor(
+                        led_pin,
+                        self.wheel(
+                            (int(led_pin * 256 / self.strip.numPixels()) + j) & 255
+                        ),
+                    )
             self.strip.show()
-            time.sleep(wait/100)
+            time.sleep(wait / 100)
 
     def randcolor(self):
-        """ Generate random RGB color tuple """
+        """Generate random RGB color tuple"""
         r = int(random.randint(0, 255))
         g = int(random.randint(0, 255))
         b = int(random.randint(0, 255))
@@ -1331,7 +1632,7 @@ class UpdateLEDs:
             self.strip.show()
 
     def shuffle(self, color1, color2, wait):
-        """ Shuffle LED Strip """
+        """Shuffle LED Strip"""
         led_list = list(range(self.strip.numPixels()))
         random.shuffle(led_list)
         for led_pin in led_list:
@@ -1344,7 +1645,7 @@ class UpdateLEDs:
 
     # Dim LED's
     def dimwipe(self, hex_col, value):
-        """ Return DIM color as HEX """
+        """Return DIM color as HEX"""
 
         data = colors.RGB(self.conf, hex_col)
 
@@ -1355,7 +1656,7 @@ class UpdateLEDs:
         return colors.HEX(red, grn, blu)
 
     def fade(self, color1, wait):
-        """ Cycle UP and DOWN through LEDs dimming colors """
+        """Cycle UP and DOWN through LEDs dimming colors"""
         for val in range(0, self.LED_BRIGHTNESS, 1):
             for led_pin in range(self.strip.numPixels()):
                 # LED_BRIGHTNESS,0,-1):
@@ -1366,7 +1667,7 @@ class UpdateLEDs:
                     color2 = self.dimwipe(color1, val)
                     self.setLedColor(led_pin, color2)
             self.strip.show()
-            time.sleep(wait*.5)
+            time.sleep(wait * 0.5)
 
         for val in range(self.LED_BRIGHTNESS, 0, -1):
             for led_pin in range(self.strip.numPixels()):
@@ -1378,13 +1679,13 @@ class UpdateLEDs:
                     color2 = self.dimwipe(color1, val)
                     self.setLedColor(led_pin, color2)
             self.strip.show()
-            time.sleep(wait*.5)
-        time.sleep(wait*1)
+            time.sleep(wait * 0.5)
+        time.sleep(wait * 1)
 
     def findpoint(self, x1, y1, x2, y2, x, y):
         # Square wipe
         # findpoint in a given rectangle or not.   Example -114.87, 37.07, -109.07, 31.42, -114.4, 32.87
-        if (x > x1 and x < x2 and y > y1 and y < y2):
+        if x > x1 and x < x2 and y > y1 and y < y2:
             return True
         else:
             return False
@@ -1405,18 +1706,29 @@ class UpdateLEDs:
         # Check if sum of A1, A2 and A3 is same as A
 
         area_total = A1 + A2 + A3
-        if((area_total-1) >= A <= (area_total+1)):
+        if (area_total - 1) >= A <= (area_total + 1):
             return True
         else:
             return False
 
     def center(self, val_max, val_min):
-        """ Work out center of two numbers """
-        z = ((val_max-val_min)/2) + val_min
+        """Work out center of two numbers"""
+        z = ((val_max - val_min) / 2) + val_min
         return round(z, 2)
 
-    def checkerwipe(self, minlon, minlat, maxlon, maxlat, iter_index, color1, color2, cwccw=0, wait_mult=100):
-        """ FIXME: Imported """
+    def checkerwipe(
+        self,
+        minlon,
+        minlat,
+        maxlon,
+        maxlat,
+        iter_index,
+        color1,
+        color2,
+        cwccw=0,
+        wait_mult=100,
+    ):
+        """FIXME: Imported"""
         centlon = self.center(maxlon, minlon)
         centlat = self.center(maxlat, minlat)
 
@@ -1451,8 +1763,8 @@ class UpdateLEDs:
 
                     self.setLedColor(led_pin, color)
                 self.strip.show()
-                time.sleep(wait*wait_mult)
-        self.allonoff_wipes((0, 0, 0), .1)
+                time.sleep(wait * wait_mult)
+        self.allonoff_wipes((0, 0, 0), 0.1)
 
     # Turn on or off all the lights using the same color.
     def allonoff_wipes(self, color, wait):
@@ -1488,7 +1800,7 @@ class UpdateLEDs:
 
                 for val in letter:
                     # display individual dot/dash with proper timing
-                    if val == '.':
+                    if val == ".":
                         delay = dot_length
                     else:
                         delay = dash_length
@@ -1505,7 +1817,9 @@ class UpdateLEDs:
                     time.sleep(delay)  # time on depending on dot or dash
 
                     for led_pin in range(self.strip.numPixels()):  # turn LED's off
-                        if str(led_pin) in self.nullpins:  # exclude NULL and LGND pins from wipe
+                        if (
+                            str(led_pin) in self.nullpins
+                        ):  # exclude NULL and LGND pins from wipe
                             self.setLedColor(led_pin, colors.black(self.conf))
                         else:
                             color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
@@ -1515,15 +1829,15 @@ class UpdateLEDs:
                 time.sleep(bet_let_length)  # timing between letters
 
             else:  # if character in morse_msg is not part of the Morse Code Alphabet, substitute a '/'
-                if char == ' ':
+                if char == " ":
                     time.sleep(bet_word_length)
 
                 else:
-                    char = '/'
+                    char = "/"
                     letter = list(self.CODE[char.upper()])
 
                     for val in letter:  # display individual dot/dash with proper timing
-                        if val == '.':
+                        if val == ".":
                             delay = dot_length
                         else:
                             delay = dash_length
@@ -1541,13 +1855,13 @@ class UpdateLEDs:
                         for led_pin in range(strip.numPixels()):  # turn LED's off
                             if str(led_pin) in self.nullpins:
                                 # exclude NULL and LGND pins from wipe
-                               self.setLedColor(led_pin, colors.black(self.conf))
+                                self.setLedColor(led_pin, colors.black(self.conf))
                             else:
                                 color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
                                 self.setLedColor(led_pin, color)
                         self.strip.show()
-                        time.sleep(bet_symb_length)   # timing between symbols
+                        time.sleep(bet_symb_length)  # timing between symbols
 
-                    time.sleep(bet_let_length)        # timing between letters
+                    time.sleep(bet_let_length)  # timing between letters
 
         time.sleep(bet_word_length)

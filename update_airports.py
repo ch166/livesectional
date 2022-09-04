@@ -103,7 +103,6 @@ class Airport:
         self.enabled = True
         self.active_led = util.strtobool(active_led)
         self.led_index = led_index
-        self.create_time = datetime.now()
         self.updated_time = datetime.now()
         self.wxsrc = wxsrc
         self.metar = None
@@ -122,11 +121,7 @@ class Airport:
         self.longitude = 0
         self.metar_returncode = ""
 
-    def created(self):
-        """Get created time"""
-        return self.create_time
-
-    def updated(self):
+    def last_updated(self):
         """Get last updated time"""
         return self.updated_time
 
@@ -151,6 +146,7 @@ class Airport:
         self.metar_prev = self.metar
         self.metar = metartext
         self.metar_date = datetime.now()
+        self.updated_time = datetime.now()
 
     def get_raw_metar(self):
         """Return raw METAR data"""

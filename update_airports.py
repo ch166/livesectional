@@ -59,7 +59,7 @@ import debugging
 import ledstrip
 import utils
 
-import airport.py
+import airport
 
 
 class AirportDB:
@@ -204,7 +204,7 @@ class AirportDB:
                 airport_led = json_airport["led"]
                 airport_wxsrc = json_airport["wxsrc"]
                 airport_active = json_airport["active"]
-                new_airport_obj = Airport(
+                new_airport_obj = airport.Airport(
                     airport_icao,
                     airport_icao,
                     airport_wxsrc,

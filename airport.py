@@ -30,14 +30,10 @@ import urllib.error
 import socket
 import shutil
 
-# import gzip
 import json
 
 # Moving to use requests instead of urllib
 import requests
-
-# from dateutil.parser import parse as parsedate
-
 
 # XML Handling
 import xml.etree.ElementTree as ET
@@ -208,7 +204,12 @@ class Airport:
         self.wx_category_str = metar_dict[self.icao]["flight_category"]
         self.latitude = float(metar_dict[self.icao]["latitude"])
         self.longitude = float(metar_dict[self.icao]["longitude"])
-        self.calculate_wx_from_metar()
+        try:
+            self.calculate_wx_from_metar()
+        except Exception as e:
+            debug_string = ( "Error: get_adds_metar processing " + self.icao + " metar:"+self.get_raw_metar()+":" )
+            debugging.debug(debug_string)
+            debugging.debug(e)
         return False
 
     def get_usa_metar(self):

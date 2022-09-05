@@ -16,7 +16,7 @@ Created on Sat Jun 15 08:01:44 2019
 # - List of airports associated with HDMI displays (future)
 # - List of airports associated with Web Pages (future)
 #
-# Each list is comprised of an Airport object
+# Each list is comprised of an Airport object ( airport.py )
 # The airport object stores all of the interesting data for an airport
 # - Airport ICAO code
 # - Weather Source ( adds , metar URL, future options)
@@ -47,9 +47,6 @@ import json
 
 # Moving to use requests instead of urllib
 import requests
-
-# from dateutil.parser import parse as parsedate
-
 
 # XML Handling
 import xml.etree.ElementTree as ET
@@ -82,6 +79,8 @@ class AirportDB:
         # All lists use lowercase key information to identify airports
         # Full list of interesting Airports loaded from JSON data
         self.airport_master_dict = {}
+
+        # TODO: Looks like this isn't used
         self.airport_json_dict = {}
 
         self.airport_master_list = []
@@ -312,22 +311,6 @@ class AirportDB:
                 metar_dict[station_id]["longitude"] = "Missing"
         self.metar_xml_dict = metar_dict
         debugging.info("Updating Airport METAR from XML")
-        # print(self.airport_master_dict, flush=True)
-        for key in self.airport_master_dict:
-            airport = self.airport_master_dict[key]
-            # update Airport METAR data to matching entry from metar_xml_dict
-            station_id = airport.icaocode()
-            if station_id in self.metar_xml_dict:
-                airport_metar = self.metar_xml_dict[key]["raw_text"]
-            else:
-                print("Airport metar missing for :" + station_id + ": ", flush=True)
-                airport_metar = ""
-            # TODO:
-            # Setup airport to allow us to call
-            # airport.set(self.metar_xml_dict[key])
-            # and have the airport update all the values appropriately
-            debugging.info(airport_metar)
-            airport.set_metar(airport_metar)
         return True
 
     def update_loop(self, conf):

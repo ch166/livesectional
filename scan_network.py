@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- #
 # Original scan-network.py by omiq from https://gist.github.com/omiq/2f3edf2624a72e89ba3a3a009a673a21
 # and https://makerhacks.com/detect-and-list-raspberry-pi-and-other-boards-on-your-network/
 # Altered by Mark Harris for LiveSectional

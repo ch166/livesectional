@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*- #
+
 # check-display.py - v1.0 by Stuart, Thank you for your contribution to LiveSectional.
 # Used to monitor if metar-v4.py is running and metar-display-v4.py is not, if so, restart the metar-display script
 # or visa-versa. If one stops running, this script will start it back up.

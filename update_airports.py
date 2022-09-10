@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- #
 """
 Created on Sat Jun 15 08:01:44 2019
 
@@ -33,13 +32,13 @@ Created on Sat Jun 15 08:01:44 2019
 
 # import os
 import time
-from datetime import datetime
-from datetime import timedelta
-from distutils import util
-from enum import Enum
-from urllib.request import urlopen
-import urllib.error
-import socket
+# from datetime import datetime
+# from datetime import timedelta
+# from distutils import util
+# from enum import Enum
+# from urllib.request import urlopen
+# import urllib.error
+# import socket
 import shutil
 
 # import gzip
@@ -50,10 +49,10 @@ import requests
 
 # XML Handling
 import xml.etree.ElementTree as ET
-from metar import Metar
+# from metar import Metar
 
 import debugging
-import ledstrip
+# import ledstrip
 import utils
 
 import airport

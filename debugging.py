@@ -1,7 +1,5 @@
+# -*- coding: utf-8 -*- #
 """ Support Debugging Printing """
-
-# -*- coding: utf-8 -*-
-
 
 import time
 import sys
@@ -36,7 +34,7 @@ def loginit():
     logconsolehandler = logging.StreamHandler(sys.stdout)
     logconsolehandler.setLevel(logging.INFO)
     logger.addHandler(logconsolehandler)
-    
+
 
     formatter = logging.Formatter(
         "%(asctime)s livemap: %(message)s", "%b %d %H:%M:%S"

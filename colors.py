@@ -2,7 +2,6 @@
 """ Collection of shared color handling functions and constants """
 
 import debugging
-import conf
 
 
 def rgb2hex(rgb):
@@ -13,7 +12,7 @@ def rgb2hex(rgb):
     return hexval
 
 
-def hex2rgb(conf, value):
+def hex2rgb(value):
     """Hex to RGB"""
     # TODO: Add checks here to error if we get a non HEX value
     value = value.lstrip("#")
@@ -23,12 +22,13 @@ def hex2rgb(conf, value):
     )
 
 
-def black(conf):
+def black():
     """Return HEX Color code for Black"""
     return "#000000"
 
 
 def HEX_tuple(col_tuple):
+    """Return HEX values as tuple"""
     return HEX(col_tuple[0], col_tuple[1], col_tuple[2])
 
 
@@ -38,76 +38,76 @@ def HEX(red_value, green_value, blue_value):
     return hexval
 
 
-def RGB(conf, value):
+def RGB(value):
     """Return RGB values from HEX string"""
-    return hex2rgb(conf, value)
+    return hex2rgb(value)
 
 
-def VFR(conf):
+def VFR(confdata):
     """Get VFR Color code from config"""
-    return conf.get_color("colors", "color_vfr")
+    return confdata.get_color("colors", "color_vfr")
 
 
-def MVFR(conf):
+def MVFR(confdata):
     """Get MVFR Color code from config"""
-    return conf.get_color("colors", "color_mvfr")
+    return confdata.get_color("colors", "color_mvfr")
 
 
-def IFR(conf):
+def IFR(confdata):
     """Get IFR Color code from config"""
-    return conf.get_color("colors", "color_ifr")
+    return confdata.get_color("colors", "color_ifr")
 
 
-def LIFR(conf):
+def LIFR(confdata):
     """Get LIFR Color code from config"""
-    return conf.get_color("colors", "color_lifr")
+    return confdata.get_color("colors", "color_lifr")
 
 
-def LIGHTNING(conf):
+def LIGHTNING(confdata):
     """Get Lightning Color code from config"""
-    return conf.get_color("colors", "color_lghtn")
+    return confdata.get_color("colors", "color_lghtn")
 
 
-def SNOW(conf, value):
+def SNOW(confdata, value):
     """Get SNOW Color code from config"""
     if value == 1:
-        return conf.get_color("colors", "color_snow1")
+        return confdata.get_color("colors", "color_snow1")
     else:
-        return conf.get_color("colors", "color_snow2")
+        return confdata.get_color("colors", "color_snow2")
 
 
-def FRZRAIN(conf, value):
+def FRZRAIN(confdata, value):
     """Get Freezing Rain Color code from config"""
     if value == 1:
-        return conf.get_color("colors", "color_frrain1")
+        return confdata.get_color("colors", "color_frrain1")
     else:
-        return conf.get_color("colors", "color_frrain2")
+        return confdata.get_color("colors", "color_frrain2")
 
 
-def DUST_SAND_ASH(conf, value):
+def DUST_SAND_ASH(confdata, value):
     """Get Dust Sand Ash Color (1) code from config"""
     if value == 1:
-        return conf.get_color("colors", "color_dustsandash1")
+        return confdata.get_color("colors", "color_dustsandash1")
     else:
-        return conf.get_color("colors", "color_dustsandash2")
+        return confdata.get_color("colors", "color_dustsandash2")
 
 
-def FOG(conf, value):
+def FOG(confdata, value):
     """Get FOG Color code from config"""
     if value == 1:
-        return conf.get_color("colors", "color_fog1")
+        return confdata.get_color("colors", "color_fog1")
     else:
-        return conf.get_color("colors", "color_fog2")
+        return confdata.get_color("colors", "color_fog2")
 
 
-def RAIN(conf, value):
+def RAIN(confdata, value):
     """Get RAIN Color code from config"""
     if value == 1:
-        return conf.get_color("colors", "color_rain1")
+        return confdata.get_color("colors", "color_rain1")
     else:
-        return conf.get_color("colors", "color_rain2")
+        return confdata.get_color("colors", "color_rain2")
 
 
-def NOWEATHER(conf):
+def NOWEATHER(confdata):
     """Get NOWX Color code from config"""
-    return conf.get_color("colors", "color_nowx")
+    return confdata.get_color("colors", "color_nowx")

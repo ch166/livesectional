@@ -35,10 +35,7 @@ def loginit():
     logconsolehandler.setLevel(logging.INFO)
     logger.addHandler(logconsolehandler)
 
-
-    formatter = logging.Formatter(
-        "%(asctime)s livemap: %(message)s", "%b %d %H:%M:%S"
-    )
+    formatter = logging.Formatter("%(asctime)s livemap: %(message)s", "%b %d %H:%M:%S")
     formatter.converter = time.gmtime
 
     logfilehandler.setFormatter(formatter)

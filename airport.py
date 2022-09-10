@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- #
 """
 Created on Sat Jun 15 08:01:44 2019
 
@@ -18,9 +17,6 @@ Created on Sat Jun 15 08:01:44 2019
 # - Current conditions
 # - etc.
 
-
-# import os
-import time
 from datetime import datetime
 from datetime import timedelta
 from distutils import util
@@ -28,20 +24,17 @@ from enum import Enum
 from urllib.request import urlopen
 import urllib.error
 import socket
-import shutil
 
-import json
-
-# Moving to use requests instead of urllib
-import requests
 
 # XML Handling
-import xml.etree.ElementTree as ET
+# import json
+# import xml.etree.ElementTree as ET
 from metar import Metar
 
 import debugging
 import ledstrip
 import utils
+import wx_utils
 
 
 class WxConditions(Enum):
@@ -77,24 +70,33 @@ class Airport:
     - weather information
     """
 
+    # TODO: Move this to configuration file
     METAR_URL_USA = "https://tgftp.nws.noaa.gov/data/observations/metar/stations"
     METAREXPIRY = 5  # minutes
 
     def __init__(self, icao, iata, wxsrc, active_led, led_index, conf):
         """Init object and set initial values for internals"""
+        # Airport Identity
         self.icao = icao
         self.iata = iata
-        self.conf = conf
-        self.enabled = True
-        self.active_led = util.strtobool(active_led)
-        self.led_index = led_index
-        self.updated_time = datetime.now()
+        self.latitude = 0
+        self.longitude = 0
+
+        # Airport Configuration
         self.wxsrc = wxsrc
         self.metar = None
         self.metar_prev = None
         self.metar_date = datetime.now() - timedelta(days=1)  # Make initial date "old"
         self.observation = None
+
+        # Application Status for Airport
+        self.enabled = True
+        self.active_led = util.strtobool(active_led)
         self.led_active_state = None
+        self.led_index = led_index
+        self.updated_time = datetime.now()
+
+        # Airport Weather Data
         self.wx_conditions = ()
         self.wx_visibility = None
         self.wx_ceiling = None
@@ -102,8 +104,9 @@ class Airport:
         self.wx_windgust = None
         self.wx_category = None
         self.wx_category_str = "UNSET"
-        self.latitude = 0
-        self.longitude = 0
+
+        # Global Data
+        self.conf = conf
         self.metar_returncode = ""
 
     def last_updated(self):
@@ -174,6 +177,20 @@ class Airport:
         """Mark Airport as Inactive"""
         self.active_led = False
 
+    def set_wx_category(self, wx_category_str):
+        """Set WX Category to ENUM based on current wx_category_str"""
+        # Calculate Flight Category
+        if wx_category_str == "UNK":
+            self.wx_category = AirportFlightCategory.UNKNOWN
+        elif wx_category_str == "LIFR":
+            self.wx_category = AirportFlightCategory.LIFR
+        elif wx_category_str == "IFR":
+            self.wx_category = AirportFlightCategory.IFR
+        elif wx_category_str == "VFR":
+            self.wx_category = AirportFlightCategory.VFR
+        elif wx_category_str == "MVFR":
+            self.wx_category = AirportFlightCategory.MVFR
+
     def get_wx_category_str(self):
         """Return string form of airport weather category"""
         return self.wx_category_str
@@ -185,6 +202,8 @@ class Airport:
     def get_adds_metar(self, metar_dict):
         """Try get Fresh METAR data from local Aviation Digital Data Service (ADDS) download"""
         debugging.info("Updating WX from adds for " + self.icao)
+        self.metar_date = datetime.now()
+
         if self.icao not in metar_dict:
             # TODO: If METAR data is missing from the ADDS dataset, then it hasn't been updated
             # We have the option to try a direct query for the data ; but don't have any hint
@@ -192,22 +211,31 @@ class Airport:
             debugging.debug("metar_dict WX for " + self.icao + " missing")
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
-            self.metar_date = datetime.now()
             self.set_metar(None)
             return
+
+        # Don't need to worry about these entries existing
+        # We check for valid data when we create the Airport data
         self.set_metar(metar_dict[self.icao]["raw_text"])
         self.wx_visibility = metar_dict[self.icao]["visibility"]
         self.wx_ceiling = metar_dict[self.icao]["ceiling"]
         self.wx_windspeed = metar_dict[self.icao]["wind_speed_kt"]
         self.wx_windgust = metar_dict[self.icao]["wind_gust_kt"]
-        self.wx_category = metar_dict[self.icao]["flight_category"]
         self.wx_category_str = metar_dict[self.icao]["flight_category"]
         self.latitude = float(metar_dict[self.icao]["latitude"])
         self.longitude = float(metar_dict[self.icao]["longitude"])
+        self.set_wx_category(self.wx_category_str)
+
         try:
             self.calculate_wx_from_metar()
         except Exception as e:
-            debug_string = ( "Error: get_adds_metar processing " + self.icao + " metar:"+self.get_raw_metar()+":" )
+            debug_string = (
+                "Error: get_adds_metar processing "
+                + self.icao
+                + " metar:"
+                + self.get_raw_metar()
+                + ":"
+            )
             debugging.debug(debug_string)
             debugging.debug(e)
         return False
@@ -272,43 +300,6 @@ class Airport:
             self.metar = "Transient Error"
             return True
         return False
-
-    def cloud_height(self):
-        """Calculate Height to Broken Layer"""
-        # debugging.info(self.observation.sky)
-        lowest_ceiling = 100000
-        for cloudlayer in self.observation.sky:
-            key = cloudlayer[0]
-            if key == "VV":
-                debugging.debug("Metar: VV Found")
-                # Vertical Visibilty Code
-            if key in ("CLR", "SKC", "NSC", "NCD"):
-                # python metar codes for clear skies.
-                return lowest_ceiling
-            if not cloudlayer[1]:
-                # Not sure why we are here - should have a cloud layer with altitudes
-                debugging.debug("Cloud Layer without altitude values " + cloudlayer[0])
-                return -1
-            layer_altitude = cloudlayer[1].value()
-            debugging.debug(
-                "LOC: " + self.icao + " Layer: " + key + " Alt: " + str(layer_altitude)
-            )
-            if key in ("OVC", "BKN"):
-                # Overcast or Broken are considered ceiling
-                if layer_altitude < lowest_ceiling:
-                    lowest_ceiling = layer_altitude
-            if key == "VV":
-                # """
-                # From the AIM - Vertical Visibility (indefinite ceilingheight).
-                # The height into an indefinite ceiling is preceded by “VV” and followed
-                # by three digits indicating the vertical visibility in hundreds of feet.
-                # This layer indicates total obscuration
-                # """
-                if layer_altitude < lowest_ceiling:
-                    lowest_ceiling = layer_altitude
-            debugging.debug("Ceiling : " + str(lowest_ceiling))
-
-        return lowest_ceiling
 
     def update_wx(self, metar_xml_dict):
         """Update Weather Data - Get fresh METAR"""
@@ -378,31 +369,34 @@ class Airport:
             # Set visiblity to -1 to flag as unknown
             self.wx_visibility = -1
         try:
-            self.wx_ceiling = self.cloud_height()
+            self.wx_ceiling = wx_utils.cloud_height(self.metar)
         except Exception as err:
-            msg = "self.cloud_height() failed for " + self.icao
+            msg = (
+                "wx_utils.cloud_height() failed for "
+                + self.icao
+                + "metar:"
+                + self.metar
+                + ":"
+            )
             debugging.error(msg)
             debugging.error(err)
 
         # Calculate Flight Category
         if self.wx_ceiling == -1 or self.wx_visibility == -1:
-            self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
         elif self.wx_visibility < 1 or self.wx_ceiling < 500:
-            self.wx_category = AirportFlightCategory.LIFR
             self.wx_category_str = "LIFR"
         elif 1 <= self.wx_visibility < 3 or 500 <= self.wx_ceiling < 1000:
-            self.wx_category = AirportFlightCategory.IFR
             self.wx_category_str = "IFR"
         elif 3 <= self.wx_visibility <= 5 or 1000 <= self.wx_ceiling <= 3000:
-            self.wx_category = AirportFlightCategory.MVFR
             self.wx_category_str = "MVFR"
         elif self.wx_visibility > 5 and self.wx_ceiling > 3000:
-            self.wx_category = AirportFlightCategory.VFR
             self.wx_category_str = "VFR"
         else:
-            self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
+
+        self.set_wx_category(self.wx_category_str)
+
         debugging.debug(
             "Airport: Ceiling "
             + str(self.wx_ceiling)
@@ -690,7 +684,7 @@ class Airport:
                         try:
                             # get cloud base AGL from XML
                             cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
-                        except:
+                        except Exception as err:
                             # get cloud base AGL from XML
                             cld_base_ft_agl = forecast.find("vert_vis_ft").text
 

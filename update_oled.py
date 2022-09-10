@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*- #
+
 #!/usr/bin/python3
 #metar-display-v4.py - by Mark Harris.
 #     Updated to work with Python 3.7

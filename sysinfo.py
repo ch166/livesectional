@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*- #
 """ Use psutil to query system information """
 
 import sys

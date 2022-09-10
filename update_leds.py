@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+# -*- coding: utf-8 -*- #
+
 """
 # update_leds.py
 # Moved all of the airport specific data / metar analysis functions to update_airport.py

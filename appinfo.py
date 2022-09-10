@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 
-import conf
+# import conf
 
 
 class AppInfo:

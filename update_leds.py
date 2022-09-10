@@ -509,7 +509,7 @@ class UpdateLEDs:
         """Convert color from HEX to RGB or GRB and apply to LED String"""
         # TODO: Add capability here to manage 'nullpins' and remove any mention of it from the code
         # This function should do all the color conversions, and exclude NULL or Legend PINS
-        rgb_color = colors.RGB(self.conf, hexcolor)
+        rgb_color = colors.RGB(hexcolor)
         color_ord = self.rgbtogrb(led_id, rgb_color, self.rgb_grb)
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
         self.strip.setPixelColor(led_id, pixel_data)
@@ -517,7 +517,7 @@ class UpdateLEDs:
     def turnoff(self):
         """Set color to 0,0,0  - turning off LED"""
         for i in range(self.strip.numPixels()):
-            self.setLedColor(i, colors.black(self.conf))
+            self.setLedColor(i, colors.black())
         self.strip.show()
 
     def dim(self, color_data, value):
@@ -533,7 +533,7 @@ class UpdateLEDs:
         if isinstance(value, str):
             value = int(value)
 
-        data = colors.RGB(self.conf, color_data)
+        data = colors.RGB(color_data)
 
         red = max(data[0] - ((value * data[0]) / 100), 0)
         grn = max(data[1] - ((value * data[1]) / 100), 0)
@@ -660,7 +660,7 @@ class UpdateLEDs:
             if self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool(
                 "rotaryswitch", "bin_grad"
             ):
-                color = colors.black(self.conf)
+                color = colors.black()
             elif not self.conf.get_bool("rotaryswitch", "use_homeap"):
                 color = self.high_visits
             else:
@@ -684,7 +684,7 @@ class UpdateLEDs:
             else:
                 color = self.high_visits
         else:
-            color = colors.black(self.conf)
+            color = colors.black()
         return color
 
     def check_heat_map(self, stationiddict, windsdict, wxstringdict):
@@ -1059,7 +1059,7 @@ class UpdateLEDs:
                 )
                 # Check to see if airport code is a NULL and set to black.
                 if airportcode in ("NULL", "LGND"):
-                    color = colors.black(self.conf)
+                    color = colors.black()
 
                 # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
                 if (
@@ -1086,7 +1086,7 @@ class UpdateLEDs:
                         "lights", "leg_pin_hiwinds"
                     ) and self.conf.get_int("lights", "legend_hiwinds"):
                         if cycle_num in (3, 4, 5):
-                            color = colors.black(self.conf)
+                            color = colors.black()
                         else:
                             color = colors.IFR(self.conf)
 
@@ -1188,7 +1188,7 @@ class UpdateLEDs:
                     if int(airportwinds) >= self.conf.get_int(
                         "metar", "max_wind_speed"
                     ) and (cycle_num in (3, 4, 5)):
-                        color = colors.black(self.conf)
+                        color = colors.black()
                         debugging.debug(
                             (
                                 "HIGH WINDS-> "
@@ -1574,7 +1574,7 @@ class UpdateLEDs:
             for led_pin in range(self.strip.numPixels()):
                 if str(led_pin) in self.nullpins:
                     # exclude NULL and LGND pins from wipe
-                    self.setLedColor(led_pin, colors.black(self.conf))
+                    self.setLedColor(led_pin, colors.black())
                 else:
                     self.setLedColor(
                         led_pin,
@@ -1603,8 +1603,8 @@ class UpdateLEDs:
 
             if str(led_pin) in self.nullpins or str(rabbit) in self.nullpins:
                 # exclude NULL and LGND pins from wipe
-                self.setLedColor(led_pin, colors.black(self.conf))
-                self.setLedColor(rabbit, colors.black(self.conf))
+                self.setLedColor(led_pin, colors.black())
+                self.setLedColor(rabbit, colors.black())
             else:
                 if 0 < rabbit < self.strip.numPixels():
                     self.setLedColor(rabbit, color2)
@@ -1621,14 +1621,14 @@ class UpdateLEDs:
 
             if str(rabbit) in self.nullpins or str(erase_pin) in self.nullpins:
                 # exclude NULL and LGND pins from wipe
-                self.setLedColor(rabbit, colors.black(self.conf))
-                self.setLedColor(erase_pin, colors.black(self.conf))
+                self.setLedColor(rabbit, colors.black())
+                self.setLedColor(erase_pin, colors.black())
             else:
                 if 0 < rabbit < self.strip.numPixels():
                     self.setLedColor(rabbit, color2)
 
                 if 0 < erase_pin < self.strip.numPixels():
-                    self.setLedColor(erase_pin, colors.black(self.conf))
+                    self.setLedColor(erase_pin, colors.black())
 
             self.strip.show()
 
@@ -1639,7 +1639,7 @@ class UpdateLEDs:
         for led_pin in led_list:
             if str(led_pin) in self.nullpins:
                 # exclude NULL and LGND pins from wipe
-                self.setLedColor(led_pin, colors.black(self.conf))
+                self.setLedColor(led_pin, colors.black())
             else:
                 self.setLedColor(led_pin, color1)
             self.strip.show()
@@ -1648,7 +1648,7 @@ class UpdateLEDs:
     def dimwipe(self, hex_col, value):
         """Return DIM color as HEX"""
 
-        data = colors.RGB(self.conf, hex_col)
+        data = colors.RGB(hex_col)
 
         red = max(int(data[0] - value), 0)
         grn = max(int(data[1] - value), 0)
@@ -1663,7 +1663,7 @@ class UpdateLEDs:
                 # LED_BRIGHTNESS,0,-1):
                 if str(led_pin) in self.nullpins:
                     # exclude NULL and LGND pins from wipe
-                    self.setLedColor(led_pin, colors.black(self.conf))
+                    self.setLedColor(led_pin, colors.black())
                 else:
                     color2 = self.dimwipe(color1, val)
                     self.setLedColor(led_pin, color2)
@@ -1675,7 +1675,7 @@ class UpdateLEDs:
                 # 0,LED_BRIGHTNESS,1):
                 if str(led_pin) in self.nullpins:
                     # exclude NULL and LGND pins from wipe
-                    self.setLedColor(led_pin, colors.black(self.conf))
+                    self.setLedColor(led_pin, colors.black())
                 else:
                     color2 = self.dimwipe(color1, val)
                     self.setLedColor(led_pin, color2)
@@ -1772,7 +1772,7 @@ class UpdateLEDs:
         for led_pin in range(self.strip.numPixels()):
             if str(led_pin) in self.nullpins:
                 # exclude NULL and LGND pins from wipe
-                self.setLedColor(led_pin, colors.black(self.conf))
+                self.setLedColor(led_pin, colors.black())
             else:
                 self.setLedColor(led_pin, color)
         self.strip.show()
@@ -1810,7 +1810,7 @@ class UpdateLEDs:
                         # turn LED's on
                         if str(led_pin) in self.nullpins:
                             # exclude NULL and LGND pins from wipe
-                            self.setLedColor(led_pin, colors.black(self.conf))
+                            self.setLedColor(led_pin, colors.black())
                         else:
                             color = rgbtogrb_wipes(led_pin, color1, rgb_grb)
                             self.setLedColor(led_pin, color)
@@ -1821,7 +1821,7 @@ class UpdateLEDs:
                         if (
                             str(led_pin) in self.nullpins
                         ):  # exclude NULL and LGND pins from wipe
-                            self.setLedColor(led_pin, colors.black(self.conf))
+                            self.setLedColor(led_pin, colors.black())
                         else:
                             color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
                             self.setLedColor(led_pin, color)
@@ -1846,7 +1846,7 @@ class UpdateLEDs:
                         for led_pin in range(self.strip.numPixels()):  # turn LED's on
                             if str(led_pin) in self.nullpins:
                                 # exclude NULL and LGND pins from wipe
-                                self.setLedColor(led_pin, colors.black(self.conf))
+                                self.setLedColor(led_pin, colors.black())
                             else:
                                 color = rgbtogrb_wipes(led_pin, color1, rgb_grb)
                                 self.setLedColor(led_pin, color)
@@ -1856,7 +1856,7 @@ class UpdateLEDs:
                         for led_pin in range(strip.numPixels()):  # turn LED's off
                             if str(led_pin) in self.nullpins:
                                 # exclude NULL and LGND pins from wipe
-                                self.setLedColor(led_pin, colors.black(self.conf))
+                                self.setLedColor(led_pin, colors.black())
                             else:
                                 color = rgbtogrb_wipes(led_pin, color2, rgb_grb)
                                 self.setLedColor(led_pin, color)

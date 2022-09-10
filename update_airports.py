@@ -32,6 +32,7 @@ Created on Sat Jun 15 08:01:44 2019
 
 # import os
 import time
+
 # from datetime import datetime
 # from datetime import timedelta
 # from distutils import util
@@ -49,9 +50,11 @@ import requests
 
 # XML Handling
 import xml.etree.ElementTree as ET
+
 # from metar import Metar
 
 import debugging
+
 # import ledstrip
 import utils
 

@@ -1,0 +1,4 @@
+
+Tracking known depdenencies 
+
+- lxml needs libxslt1

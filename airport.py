@@ -215,7 +215,13 @@ class Airport:
         try:
             wx_utils.calculate_wx_from_metar(self)
         except Exception as e:
-            debug_string = "Error: get_adds_metar processing " + self.icao + " metar:" + self.get_raw_metar() + ":"
+            debug_string = (
+                "Error: get_adds_metar processing "
+                + self.icao
+                + " metar:"
+                + self.get_raw_metar()
+                + ":"
+            )
             debugging.debug(debug_string)
             debugging.debug(e)
         return False
@@ -230,7 +236,9 @@ class Airport:
             except Exception as e:
                 debugging.error(e)
         elif self.wxsrc == "usa-metar":
-            debugging.info("Update USA Metar: " + self.icao + " - " + self.wx_category_str)
+            debugging.info(
+                "Update USA Metar: " + self.icao + " - " + self.wx_category_str
+            )
             freshness = wx_utils.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh

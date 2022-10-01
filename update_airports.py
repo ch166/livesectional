@@ -118,7 +118,9 @@ class AirportDB:
             try:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as e:
-                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
+                debug_string = (
+                    "Error: update_airport_wx Exception handling for " + arpt.icao
+                )
                 debugging.error(debug_string)
                 debugging.crash(e)
 
@@ -164,8 +166,12 @@ class AirportDB:
                 # do all the insertions every time regardless.
                 print("Updating existing airport on list")
                 print(self.airport_master_dict[json_airport_icao], flush=True)
-                self.airport_master_dict[json_airport_icao].set_led_index(json_airport["led"])
-                self.airport_master_dict[json_airport_icao].set_wxsrc(json_airport["wxsrc"])
+                self.airport_master_dict[json_airport_icao].set_led_index(
+                    json_airport["led"]
+                )
+                self.airport_master_dict[json_airport_icao].set_wxsrc(
+                    json_airport["wxsrc"]
+                )
                 if json_airport["active"]:
                     self.airport_master_dict[json_airport_icao].set_active()
                 else:
@@ -230,11 +236,19 @@ class AirportDB:
             debugging.info("Not updating - returning")
             return False
 
+        display_counter = 0
+
         for metar_data in root.iter("METAR"):
             station_id = metar_data.find("station_id").text
             station_id = station_id.lower()
-            msg = "xml:" + station_id
-            debugging.info(msg)
+
+            # Log an update every 20 stations parsed
+            # Want to have some tracking of progress through the data set, but not
+            # burden the log file with a huge volume of data
+            display_counter += 1
+            if display_counter % 20 == 0:
+                msg = "xml:" + str(display_counter) + ":" + station_id
+                debugging.info(msg)
 
             # print(":" + station_id + ": ", end='')
             # FIXME: Move most of this code into an Airport Class function, where it belongs
@@ -312,8 +326,7 @@ class AirportDB:
         Triggered Update
         """
 
-        # TODO: Move to config
-        aviation_weather_adds_timer = 8
+        aviation_weather_adds_timer = conf.get_int("metar", "wx_update_interval")
 
         # TODO: Do we really need these, or can we just do the conf lookup when needed
         metar_xml_url = conf.get_string("urls", "metar_xml_gz")
@@ -332,9 +345,15 @@ class AirportDB:
         https_session = requests.Session()
 
         while True:
-            debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
+            debugging.info(
+                "Updating Airport Data .. every aviation_weather_adds_timer ("
+                + str(aviation_weather_adds_timer)
+                + "m)"
+            )
 
-            ret = utils.download_newer_file(https_session, metar_xml_url, metar_file, decompress=True)
+            ret = utils.download_newer_file(
+                https_session, metar_xml_url, metar_file, decompress=True
+            )
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
@@ -342,7 +361,9 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
+            ret = utils.download_newer_file(
+                https_session, tafs_xml_url, tafs_file, decompress=True
+            )
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
@@ -376,7 +397,9 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as e:
-                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
+                debugging.error(
+                    "Update Weather Loop: self.update_airport_wx() exception"
+                )
                 debugging.error(e)
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

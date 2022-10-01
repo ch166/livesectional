@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
 
+"""
 Main livemap program
 
 Takes care of all of the setup needed for each component in the system
@@ -36,6 +36,7 @@ import sysinfo
 
 import update_airports
 import update_leds
+import update_gpio
 import appinfo
 import webviews
 
@@ -71,6 +72,9 @@ if __name__ == "__main__":
     # Setup LED Management
     LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
 
+    # Setup GPIO Monitoring
+    GPIOmon = update_gpio.UpdateGPIO(conf, airport_database)
+
     # Setup Flask APP
     web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo)
 
@@ -95,6 +99,10 @@ if __name__ == "__main__":
     debugging.info("Starting OLED updating thread")
     # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop, args=(conf,))
 
+    # Monitoring GPIO pins
+    debugging.info("Starting GPIO monitoring thread")
+    gpio_thread = threading.Thread(target=GPIOmon.update_loop, args=())
+
     # Flask Thread
     debugging.info("Creating Flask Thread")
     flask_thread = threading.Thread(target=web_app.run, args=())
@@ -105,6 +113,7 @@ if __name__ == "__main__":
     debugging.info("Starting threads")
     airport_thread.start()
     led_thread.start()
+    gpio_thread.start()
     flask_thread.start()
 
     main_loop_sleep = 5
@@ -113,6 +122,7 @@ if __name__ == "__main__":
         MSG = "In Main Loop - Threadcount ({}), Sleep for {}m"
         active_thread_count = threading.active_count()
         debugging.info(MSG.format(active_thread_count, main_loop_sleep))
+
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
         time.sleep(main_loop_sleep * 60)

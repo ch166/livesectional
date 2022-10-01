@@ -21,19 +21,21 @@ from datetime import datetime
 from datetime import timedelta
 from distutils import util
 from enum import Enum
-from urllib.request import urlopen
-import urllib.error
-import socket
+
+# from urllib.request import urlopen
+# import urllib.error
+# import socket
 
 
 # XML Handling
 # import json
 # import xml.etree.ElementTree as ET
-from metar import Metar
+# from metar import Metar
 
 import debugging
 import ledstrip
-import utils
+
+# import utils
 import wx_utils
 
 
@@ -57,10 +59,6 @@ class Airport:
     - runway information
     - weather information
     """
-
-    # TODO: Move this to configuration file
-    METAR_URL_USA = "https://tgftp.nws.noaa.gov/data/observations/metar/stations"
-    METAREXPIRY = 5  # minutes
 
     def __init__(self, icao, iata, wxsrc, active_led, led_index, conf):
         """Init object and set initial values for internals"""
@@ -215,7 +213,7 @@ class Airport:
         self.set_wx_category(self.wx_category_str)
 
         try:
-            self.calculate_wx_from_metar()
+            wx_utils.calculate_wx_from_metar(self)
         except Exception as e:
             debug_string = "Error: get_adds_metar processing " + self.icao + " metar:" + self.get_raw_metar() + ":"
             debugging.debug(debug_string)
@@ -229,8 +227,8 @@ class Airport:
             try:
                 debugging.info("Update USA Metar: ADDS " + self.icao)
                 freshness = self.get_adds_metar(metar_xml_dict)
-            except Exception as err:
-                debugging.error(err)
+            except Exception as e:
+                debugging.error(e)
         elif self.wxsrc == "usa-metar":
             debugging.info("Update USA Metar: " + self.icao + " - " + self.wx_category_str)
             freshness = wx_utils.get_usa_metar(self)

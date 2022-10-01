@@ -12,7 +12,8 @@ Created on Mon Sept 5 08:01:44 2022
 
 from datetime import datetime
 from datetime import timedelta
-from distutils import util
+
+# from distutils import util
 from enum import Enum
 from urllib.request import urlopen
 import urllib.error
@@ -41,12 +42,16 @@ def get_usa_metar(airport_data):
     timenow = datetime.now()
     if not airport_data.enabled:
         return True
-    expiredtime = timenow - timedelta(minutes=airport_data.METAREXPIRY)
+    # TODO: Move this to config
+    metarexpiry = 5
+    expiredtime = timenow - timedelta(minutes=metarexpiry)
     if airport_data.metar_date > expiredtime:
         # Metar Data still fresh
         debugging.debug("METAR is fresh  : " + airport_data.icao + " - " + airport_data.wx_category_str)
         return True
-    url = "%s/%s.TXT" % (airport_data.METAR_URL_USA, airport_data.icao.upper())
+    # TODO: Move this to config
+    metar_url_usa = "https://tgftp.nws.noaa.gov/data/observations/metar/stations"
+    url = "%s/%s.TXT" % (metar_url_usa, airport_data.icao.upper())
     debugging.info("Retrieving METAR from: " + url)
     urlh = None
     try:
@@ -97,8 +102,8 @@ def get_usa_metar(airport_data):
 
 
 def cloud_height(wx_metar):
-    """Calculate Height to Broken Layer"""
-    """wx_metar - METAR String"""
+    """Calculate Height to Broken Layer
+    wx_metar - METAR String"""
     # debugging.info(wx_data.observation.sky)
     wx_data = Metar.Metar(wx_metar)
     lowest_ceiling = 100000
@@ -141,8 +146,8 @@ def update_wx(airport_data, metar_xml_dict):
         try:
             debugging.info("Update USA Metar: ADDS " + airport_data.icao)
             freshness = airport_data.get_adds_metar(metar_xml_dict)
-        except Exception as err:
-            debugging.error(err)
+        except Exception as e:
+            debugging.error(e)
     elif airport_data.wxsrc == "usa-metar":
         debugging.info("Update USA Metar: " + airport_data.icao + " - " + airport_data.wx_category_str)
         freshness = get_usa_metar(airport_data)
@@ -166,35 +171,36 @@ def calculate_wx_from_metar(airport_data):
     # Need to Figure out Airport State
     try:
         airport_data_observation = Metar.Metar(airport_data.metar)
-    except Metar.ParserError as exc:
+    except Metar.ParserError as e:
         debugging.info("Parse Error for METAR code: " + airport_data.metar)
+        debugging.error(e)
         airport_data.wx_category_str = "UNK"
         airport_data.set_wx_category(airport_data.wx_category_str)
         return
 
-    if not airport_data.observation:
+    if not airport_data_observation:
         debugging.warn("Have no observations for " + airport_data.icao)
         return False
 
-    if airport_data.observation.wind_gust:
-        airport_data.wx_windgust = airport_data.observation.wind_gust.value()
+    if airport_data_observation.wind_gust:
+        airport_data.wx_windgust = airport_data_observation.wind_gust.value()
     else:
         airport_data.wx_windgust = 0
     if airport_data.observation.wind_speed:
-        airport_data.wx_windspeed = airport_data.observation.wind_speed.value()
+        airport_data.wx_windspeed = airport_data_observation.wind_speed.value()
     else:
         airport_data.wx_windspeed = 0
     if airport_data.observation.vis:
-        airport_data.wx_visibility = airport_data.observation.vis.value()
+        airport_data.wx_visibility = airport_data_observation.vis.value()
     else:
         # Set visiblity to -1 to flag as unknown
         airport_data.wx_visibility = -1
     try:
         airport_data.wx_ceiling = cloud_height(airport_data.metar)
-    except Exception as err:
+    except Exception as e:
         msg = "airport_data.cloud_height() failed for " + airport_data.icao
         debugging.error(msg)
-        debugging.error(err)
+        debugging.error(e)
 
     # Calculate Flight Category
     if airport_data.wx_ceiling == -1 or airport_data.wx_visibility == -1:
@@ -299,8 +305,9 @@ def decode_taf_data(wx_data, stationiddict, windsdict, wxstringdict, metar_taf_m
                                 # get cloud base AGL from XML
                                 cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
                                 debugging.info(cld_base_ft_agl)  # debug
-                            except Exception as err:
+                            except Exception as e:
                                 # get cloud base AGL from XML
+                                debugging.error(e)
                                 cld_base_ft_agl = forecast.find("vert_vis_ft").text
 
                             #  cld_base_ft_agl = sky_condition.attrib['cloud_base_ft_agl'] #get cloud base AGL from XML
@@ -439,8 +446,9 @@ def decode_taf_data(wx_data, stationiddict, windsdict, wxstringdict, metar_taf_m
                     try:
                         # get cloud base AGL from XML
                         cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
-                    except Exception as err:
+                    except Exception as e:
                         # get cloud base AGL from XML
+                        debugging.error(e)
                         cld_base_ft_agl = forecast.find("vert_vis_ft").text
 
                     debugging.info("Cloud Base = " + cld_base_ft_agl)

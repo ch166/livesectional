@@ -84,9 +84,6 @@ class AirportDB:
         # Full list of interesting Airports loaded from JSON data
         self.airport_master_dict = {}
 
-        # TODO: Looks like this isn't used
-        self.airport_json_dict = {}
-
         self.airport_master_list = []
 
         # Subset of airport_json_list that is active for live HTML page
@@ -99,25 +96,8 @@ class AirportDB:
         self.metar_xml_dict = {}
         self.metar_xml_list = []
 
-        # TODO: Do we really need these, or can we just do the conf lookup when needed
-        self.metar_xml_url = conf.get_string("urls", "metar_xml_gz")
-        self.metar_file = conf.get_string("filenames", "metar_xml_data")
-        self.tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
-        self.tafs_file = conf.get_string("filenames", "tafs_xml_data")
-        self.mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
-        self.mos00_file = conf.get_string("filenames", "mos00_xml_data")
-        self.mos06_xml_url = conf.get_string("urls", "mos06_data_gz")
-        self.mos06_file = conf.get_string("filenames", "mos06_xml_data")
-        self.mos12_xml_url = conf.get_string("urls", "mos12_data_gz")
-        self.mos12_file = conf.get_string("filenames", "mos12_xml_data")
-        self.mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
-        self.mos18_file = conf.get_string("filenames", "mos18_xml_data")
-
         debugging.info("AirportDB : init")
 
-        https_session = requests.Session()
-        utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
-        # TODO: Not sure if we want to try load/save on init
         self.load_airport_db()
         self.update_airport_metar_xml()
         self.save_airport_db()
@@ -335,12 +315,26 @@ class AirportDB:
         # TODO: Move to config
         aviation_weather_adds_timer = 8
 
+        # TODO: Do we really need these, or can we just do the conf lookup when needed
+        metar_xml_url = conf.get_string("urls", "metar_xml_gz")
+        metar_file = conf.get_string("filenames", "metar_xml_data")
+        tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
+        tafs_file = conf.get_string("filenames", "tafs_xml_data")
+        mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
+        mos00_file = conf.get_string("filenames", "mos00_xml_data")
+        mos06_xml_url = conf.get_string("urls", "mos06_data_gz")
+        mos06_file = conf.get_string("filenames", "mos06_xml_data")
+        mos12_xml_url = conf.get_string("urls", "mos12_data_gz")
+        mos12_file = conf.get_string("filenames", "mos12_xml_data")
+        mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
+        mos18_file = conf.get_string("filenames", "mos18_xml_data")
+
         https_session = requests.Session()
 
         while True:
             debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
 
-            ret = utils.download_newer_file(https_session, self.metar_xml_url, self.metar_file, decompress=True)
+            ret = utils.download_newer_file(https_session, metar_xml_url, metar_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
@@ -348,32 +342,32 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(https_session, self.tafs_xml_url, self.tafs_file, decompress=True)
+            ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
-            ret = utils.download_newer_file(https_session, self.mos00_xml_url, self.mos00_file)
+            ret = utils.download_newer_file(https_session, mos00_xml_url, mos00_file)
             if ret == 0:
                 debugging.info("Downloaded MOS00 file")
             elif ret == 3:
                 debugging.info("Server side MOS00 older")
 
-            ret = utils.download_newer_file(https_session, self.mos06_xml_url, self.mos06_file)
+            ret = utils.download_newer_file(https_session, mos06_xml_url, mos06_file)
             if ret == 0:
                 debugging.info("Downloaded MOS06 file")
             elif ret == 3:
                 debugging.info("Server side MOS06 older")
 
-            ret = utils.download_newer_file(https_session, self.mos12_xml_url, self.mos12_file)
+            ret = utils.download_newer_file(https_session, mos12_xml_url, mos12_file)
             if ret == 0:
                 debugging.info("Downloaded MOS12 file")
             elif ret == 3:
                 debugging.info("Server side MOS12 older")
 
-            ret = utils.download_newer_file(https_session, self.mos18_xml_url, self.mos18_file)
+            ret = utils.download_newer_file(https_session, mos18_xml_url, mos18_file)
             if ret == 0:
                 debugging.info("Downloaded MOS18 file")
             elif ret == 3:

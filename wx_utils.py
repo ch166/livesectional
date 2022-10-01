@@ -24,6 +24,18 @@ import debugging
 import utils
 
 
+class WxConditions(Enum):
+    """
+    ENUM Identifying Weather Conditions
+    """
+
+    HIGHWINDS = 1
+    GUSTS = 2
+    SNOW = 3
+    LIGHTNING = 4
+    FOG = 5
+
+
 def get_usa_metar(airport_data):
     """Try get Fresh METAR Data if current data is more than METAREXPIRY minutes old"""
     timenow = datetime.now()
@@ -32,12 +44,7 @@ def get_usa_metar(airport_data):
     expiredtime = timenow - timedelta(minutes=airport_data.METAREXPIRY)
     if airport_data.metar_date > expiredtime:
         # Metar Data still fresh
-        debugging.debug(
-            "METAR is fresh  : "
-            + airport_data.icao
-            + " - "
-            + airport_data.wx_category_str
-        )
+        debugging.debug("METAR is fresh  : " + airport_data.icao + " - " + airport_data.wx_category_str)
         return True
     url = "%s/%s.TXT" % (airport_data.METAR_URL_USA, airport_data.icao.upper())
     debugging.info("Retrieving METAR from: " + url)
@@ -108,9 +115,7 @@ def cloud_height(wx_metar):
             debugging.debug("Cloud Layer without altitude values " + cloudlayer[0])
             return -1
         layer_altitude = cloudlayer[1].value()
-        debugging.debug(
-            "LOC: " + wx_metar + " Layer: " + key + " Alt: " + str(layer_altitude)
-        )
+        debugging.debug("LOC: " + wx_metar + " Layer: " + key + " Alt: " + str(layer_altitude))
         if key in ("OVC", "BKN"):
             # Overcast or Broken are considered ceiling
             if layer_altitude < lowest_ceiling:
@@ -139,17 +144,12 @@ def update_wx(airport_data, metar_xml_dict):
         except Exception as err:
             debugging.error(err)
     elif airport_data.wxsrc == "usa-metar":
-        debugging.info(
-            "Update USA Metar: "
-            + airport_data.icao
-            + " - "
-            + airport_data.wx_category_str
-        )
-        freshness = airport_data.get_usa_metar()
+        debugging.info("Update USA Metar: " + airport_data.icao + " - " + airport_data.wx_category_str)
+        freshness = get_usa_metar(airport_data)
         if freshness:
             # get_*_metar() returned true, so weather is still fresh
             return
-        airport_data.calculate_wx_from_metar()
+        calculate_wx_from_metar(airport_data)
     elif airport_data.wxsrc == "ca-metar":
         debugging.info("Update CA Metar: " + airport_data.icao + " and skip")
         freshness = airport_data.get_ca_metar()
@@ -203,9 +203,7 @@ def calculate_wx_from_metar(airport_data):
         airport_data.wx_category_str = "LIFR"
     elif 1 <= airport_data.wx_visibility < 3 or 500 <= airport_data.wx_ceiling < 1000:
         airport_data.wx_category_str = "IFR"
-    elif (
-        3 <= airport_data.wx_visibility <= 5 or 1000 <= airport_data.wx_ceiling <= 3000
-    ):
+    elif 3 <= airport_data.wx_visibility <= 5 or 1000 <= airport_data.wx_ceiling <= 3000:
         airport_data.wx_category_str = "MVFR"
     elif airport_data.wx_visibility > 5 and airport_data.wx_ceiling > 3000:
         airport_data.wx_category_str = "VFR"
@@ -214,15 +212,8 @@ def calculate_wx_from_metar(airport_data):
 
     airport_data.set_wx_category(airport_data.wx_category_str)
 
-    debugging.debug(
-        "Airport: Ceiling "
-        + str(airport_data.wx_ceiling)
-        + " Visibility "
-        + str(airport_data.wx_visibility)
-    )
-    debugging.info(
-        "Airport " + airport_data.icao + " - " + airport_data.wx_category_str
-    )
+    debugging.debug("Airport: Ceiling " + str(airport_data.wx_ceiling) + " Visibility " + str(airport_data.wx_visibility))
+    debugging.info("Airport " + airport_data.icao + " - " + airport_data.wx_category_str)
     return
 
 
@@ -240,9 +231,7 @@ def calc_wx_conditions(wx_metar):
     return wx_conditions
 
 
-def decode_taf_data(
-    wx_data, stationiddict, windsdict, wxstringdict, metar_taf_mos, root_data
-):
+def decode_taf_data(wx_data, stationiddict, windsdict, wxstringdict, metar_taf_mos, root_data):
     # FIXME: Moved from update_leds ; fix references to variables over there, that aren't here.
     # TAF decode routine
     # 0 equals display TAF. This routine will decode the TAF, pick the appropriate time frame to display.
@@ -269,50 +258,30 @@ def decode_taf_data(
 
                 # Routine inspired by Nick Cirincione.
                 flightcategory = "VFR"  # intialize flight category
-                taf_time_from = forecast.find(
-                    "fcst_time_from"
-                ).text  # get taf's from time
+                taf_time_from = forecast.find("fcst_time_from").text  # get taf's from time
                 taf_time_to = forecast.find("fcst_time_to").text  # get taf's to time
 
                 if forecast.find("wx_string") is not None:
-                    taf_wx_string = forecast.find(
-                        "wx_string"
-                    ).text  # get weather conditions
+                    taf_wx_string = forecast.find("wx_string").text  # get weather conditions
 
                 if forecast.find("change_indicator") is not None:
-                    taf_change_indicator = forecast.find(
-                        "change_indicator"
-                    ).text  # get change indicator
+                    taf_change_indicator = forecast.find("change_indicator").text  # get change indicator
 
                 if forecast.find("wind_dir_degrees") is not None:
-                    taf_wind_dir_degrees = forecast.find(
-                        "wind_dir_degrees"
-                    ).text  # get wind direction
+                    taf_wind_dir_degrees = forecast.find("wind_dir_degrees").text  # get wind direction
 
                 if forecast.find("wind_speed_kt") is not None:
-                    taf_wind_speed_kt = forecast.find(
-                        "wind_speed_kt"
-                    ).text  # get wind speed
+                    taf_wind_speed_kt = forecast.find("wind_speed_kt").text  # get wind speed
 
                 if forecast.find("wind_gust_kt") is not None:
-                    taf_wind_gust_kt = forecast.find(
-                        "wind_gust_kt"
-                    ).text  # get wind gust speed
+                    taf_wind_gust_kt = forecast.find("wind_gust_kt").text  # get wind gust speed
 
                 # test if current time plus offset falls within taf's timeframe
                 if taf_time_from <= utils.current_time_utc(wx_data.conf) <= taf_time_to:
                     debugging.info("FROM - " + taf_time_from)
-                    debugging.info(
-                        utils.comp_time(
-                            utils.current_time_utc(wx_data.conf), taf_time_from
-                        )
-                    )
+                    debugging.info(utils.comp_time(utils.current_time_utc(wx_data.conf), taf_time_from))
                     debugging.info("TO - " + taf_time_to)
-                    debugging.info(
-                        utils.comp_time(
-                            utils.current_time_utc(wx_data.conf), taf_time_to
-                        )
-                    )
+                    debugging.info(utils.comp_time(utils.current_time_utc(wx_data.conf), taf_time_to))
 
                     # There can be multiple layers of clouds in each taf, but they are always listed lowest AGL first.
                     # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set $
@@ -328,9 +297,7 @@ def decode_taf_data(
 
                             try:
                                 # get cloud base AGL from XML
-                                cld_base_ft_agl = sky_condition.attrib[
-                                    "cloud_base_ft_agl"
-                                ]
+                                cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
                                 debugging.info(cld_base_ft_agl)  # debug
                             except Exception as err:
                                 # get cloud base AGL from XML
@@ -361,9 +328,7 @@ def decode_taf_data(
                     if flightcategory != "LIFR":
                         # check XML if visibility value exists
                         if forecast.find("visibility_statute_mi") is not None:
-                            visibility_statute_mi = forecast.find(
-                                "visibility_statute_mi"
-                            ).text  # get visibility number
+                            visibility_statute_mi = forecast.find("visibility_statute_mi").text  # get visibility number
                             visibility_statute_mi = float(visibility_statute_mi)
                             debugging.info(visibility_statute_mi)
 
@@ -377,10 +342,7 @@ def decode_taf_data(
                                 flightcategory = "IFR"
 
                             # if Flight Category was already set to IFR $
-                            elif (
-                                3.0 <= visibility_statute_mi <= 5.0
-                                and flightcategory != "IFR"
-                            ):
+                            elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":
                                 flightcategory = "MVFR"
 
                     # Print out TAF data to screen for diagnosis only
@@ -410,9 +372,7 @@ def decode_taf_data(
 
             # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
             if stationId in stationiddict:
-                debugging.info(
-                    stationId + " Duplicate, only saved first metar category"
-                )
+                debugging.info(stationId + " Duplicate, only saved first metar category")
             else:
                 # build category dictionary
                 stationiddict[stationId] = flightcategory
@@ -440,24 +400,17 @@ def decode_taf_data(
             # METAR Decode Routine to create flight category via cloud cover and/or visability when flight category is not reported.
             # Routine contributed to project by Nick Cirincione. Thank you for your contribution.
             # if category is blank, then see if there's a sky condition or vis that would dictate flight category
-            if (
-                metar.find("flight_category") is None
-                or metar.find("flight_category") == "NONE"
-            ):
+            if metar.find("flight_category") is None or metar.find("flight_category") == "NONE":
                 flightcategory = "VFR"  # intialize flight category
                 sky_cvr = "SKC"  # Initialize to Sky Clear
-                debugging.info(
-                    stationId + " Not Reporting Flight Category through the API."
-                )
+                debugging.info(stationId + " Not Reporting Flight Category through the API.")
 
                 # There can be multiple layers of clouds in each METAR, but they are always listed lowest AGL first.
                 # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set flight category.
                 # This algorithm basically sets the flight category based on the lowest OVC, BKN or OVX layer.
                 # First check to see if the FAA provided the forecast field, if not get the sky_condition.
                 if metar.find("forecast") is None or metar.find("forecast") == "NONE":
-                    debugging.info(
-                        "FAA xml data is NOT providing the forecast field for this airport"
-                    )
+                    debugging.info("FAA xml data is NOT providing the forecast field for this airport")
                     # for each sky_condition from the XML
                     for sky_condition in metar.findall("./sky_condition"):
                         # get the sky cover (BKN, OVC, SCT, etc)
@@ -469,9 +422,7 @@ def decode_taf_data(
                             break
 
                 else:
-                    debugging.info(
-                        "FAA xml data IS providing the forecast field for this airport"
-                    )
+                    debugging.info("FAA xml data IS providing the forecast field for this airport")
                     # for each sky_condition from the XML
                     for sky_condition in metar.findall("./forecast/sky_condition"):
                         # get the sky cover (BKN, OVC, SCT, etc)
@@ -513,9 +464,7 @@ def decode_taf_data(
                 if flightcategory != "LIFR":
                     # check XML if visibility value exists
                     if metar.find("./forecast/visibility_statute_mi") is not None:
-                        visibility_statute_mi = metar.find(
-                            "./forecast/visibility_statute_mi"
-                        ).text  # get visibility number
+                        visibility_statute_mi = metar.find("./forecast/visibility_statute_mi").text  # get visibility number
                         visibility_statute_mi = float(visibility_statute_mi)
 
                         if visibility_statute_mi < 1.0:
@@ -525,25 +474,13 @@ def decode_taf_data(
                             flightcategory = "IFR"
 
                         # if Flight Category was already set to IFR by clouds, it can't be reduced to MVFR
-                        elif (
-                            3.0 <= visibility_statute_mi <= 5.0
-                            and flightcategory != "IFR"
-                        ):
+                        elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":
                             flightcategory = "MVFR"
 
-                debugging.info(
-                    stationId
-                    + " flight category is Decode script-determined as "
-                    + flightcategory
-                )
+                debugging.info(stationId + " flight category is Decode script-determined as " + flightcategory)
 
             else:
-                debugging.info(
-                    stationId
-                    + ": FAA is reporting "
-                    + metar.find("flight_category").text
-                    + " through their API"
-                )
+                debugging.info(stationId + ": FAA is reporting " + metar.find("flight_category").text + " through their API")
                 # pull flight category if it exists and save all the algoritm above
                 flightcategory = metar.find("flight_category").text
             # End of METAR Decode added routine to create flight category via cloud cover and/or visability when flight category is not reported.
@@ -563,9 +500,7 @@ def decode_taf_data(
 
             # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
             if stationId in stationiddict:
-                debugging.info(
-                    stationId + " Duplicate, only saved first metar category"
-                )
+                debugging.info(stationId + " Duplicate, only saved first metar category")
             else:
                 # build category dictionary
                 stationiddict[stationId] = flightcategory

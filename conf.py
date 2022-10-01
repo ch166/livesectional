@@ -99,7 +99,7 @@ class Conf:
         # FIXME - Change to boolean here and in HTML Templates
         settings["legend"] = self.get_string("default", "legend")
         settings["max_wind_speed"] = self.get_string("metar", "max_wind_speed")
-        settings["update_interval"] = self.get_string("metar", "update_interval")
+        settings["wx_update_interval"] = self.get_string("metar", "wx_update_interval")
         settings["metar_age"] = self.get_string("metar", "metar_age")
         settings["usetimer"] = self.get_string("schedule", "usetimer")
         settings["offhour"] = self.get_string("schedule", "offhour")

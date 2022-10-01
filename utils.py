@@ -100,10 +100,10 @@ def delete_file(target_path, filename):
             os.remove(target_path + filename)
             debugging.info("Deleted " + filename)
             return True
-        except OSError as error:
+        except OSError as e:
             debugging.error(
                 "Error "
-                + error.__str__()
+                + e.__str__()
                 + " while deleting file "
                 + target_path
                 + filename

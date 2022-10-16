@@ -30,6 +30,7 @@ import conf  # Config.py holds user settings used by the various scripts
 # from flask import Flask
 
 import utils
+import utils_i2c
 import sysinfo
 
 # import appinfo
@@ -37,6 +38,7 @@ import sysinfo
 import update_airports
 import update_leds
 import update_gpio
+import update_lightsensor
 import appinfo
 import webviews
 
@@ -65,12 +67,17 @@ if __name__ == "__main__":
     sysdata.refresh()
     ipaddr = sysdata.local_ip()
 
+    i2cbus = utils_i2c.I2CBus(conf)
+
     # Setup Airport DB
     airport_database = update_airports.AirportDB(conf)
     airport_database.load_airport_db()
 
     # Setup LED Management
     LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
+
+    # Setup LightSensor Management
+    LuxSensor = update_lightsensor.LightSensor(conf, i2cbus, LEDmgmt)
 
     # Setup GPIO Monitoring
     GPIOmon = update_gpio.UpdateGPIO(conf, airport_database)
@@ -92,8 +99,11 @@ if __name__ == "__main__":
 
     # Updating LEDs
     debugging.info("Starting LED updating thread")
-    # LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
     led_thread = threading.Thread(target=LEDmgmt.update_loop, args=())
+
+    # Updating LightSensor
+    debugging.info("Starting Light Sensor thread")
+    lightsensor_thread = threading.Thread(target=LuxSensor.update_loop, args=(conf,))
 
     # Updating OLEDs
     debugging.info("Starting OLED updating thread")
@@ -115,6 +125,7 @@ if __name__ == "__main__":
     led_thread.start()
     gpio_thread.start()
     flask_thread.start()
+    lightsensor_thread.start()
 
     main_loop_sleep = 5
 

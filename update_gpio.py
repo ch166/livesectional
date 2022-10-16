@@ -42,12 +42,13 @@ import time
 from datetime import datetime
 from datetime import timedelta
 from datetime import time as time_
-import sys
 
-# import os
-# from os.path import getmtime
+# import sys
 
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    import fakeRPI.GPIO as GPIO
 
 import debugging
 

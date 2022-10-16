@@ -37,3 +37,6 @@ metar
 pypng
 pyqrcode
 python-dateutil
+luma.core
+luma.oled
+python_tsl2591

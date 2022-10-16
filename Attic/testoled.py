@@ -8,9 +8,10 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 import smbus2  # Install smbus2; sudo pip3 install smbus2
-import config
 
-numofdisplays = config.numofdisplays
+# import config
+
+numofdisplays = 2  # config.numofdisplays
 iterations = 5
 dimswitch = 0
 ch = 1
@@ -35,6 +36,9 @@ TCA_ADDR = 0x70  # use cmd i2cdetect -y 1 to ensure multiplexer shows up at addr
 tca = I2C.get_i2c_device(address=TCA_ADDR)
 port = 1  # Default port. set to 0 for original RPi or Orange Pi, etc
 bus = smbus2.SMBus(port)  # From smbus2 set bus number
+
+print("Display BEGIN")
+disp.begin()
 
 # Functions for OLED display
 def tca_select(
@@ -92,9 +96,12 @@ def clearoleddisplays():
         disp.display()
 
 
+print("Starting ...")
+
 # Executed Code
 disp.display()
 
+print("Creating image... ")
 # Create blank image for drawing.
 width = disp.width
 height = disp.height
@@ -102,6 +109,7 @@ image = Image.new(
     "1", (width, height)
 )  # Make sure to create image with mode '1' for 1-bit color.
 
+print("Drawing image... ")
 # Get drawing object to draw on image.
 draw = ImageDraw.Draw(image)
 
@@ -118,7 +126,11 @@ arrows = ImageFont.truetype(
 )
 font = regfont  # initialize font to start
 
+
+print("Clearing displays")
 clearoleddisplays()
+
+print("Looping ...")
 
 while j < iterations:
     for ch in range(numofdisplays):

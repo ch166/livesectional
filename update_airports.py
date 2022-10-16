@@ -99,7 +99,7 @@ class AirportDB:
         debugging.info("AirportDB : init")
 
         self.load_airport_db()
-        self.update_airport_metar_xml()
+        # self.update_airport_metar_xml()
         self.save_airport_db()
         debugging.info("AirportDB : init complete")
 
@@ -343,6 +343,8 @@ class AirportDB:
         mos18_file = conf.get_string("filenames", "mos18_xml_data")
 
         https_session = requests.Session()
+
+        self.update_airport_metar_xml()
 
         while True:
             debugging.info(

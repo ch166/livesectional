@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*- #
+""" Manage TSL2591 i2c Light Sensors """
 
 # Update i2c attached devices
 
@@ -29,14 +30,15 @@
 
 
 import time
-import datetime
 
-
-import debugging
-import utils
-import utils_i2c
+# import datetime
 
 from python_tsl2591 import tsl2591
+
+import debugging
+
+# import utils
+# import utils_i2c
 
 
 class LightSensor:
@@ -55,39 +57,47 @@ class LightSensor:
 
     tsl = None
     found_device = False
-    LEDMgmt = None
+    led_mgmt = None
     conf = None
 
-    def __init__(self, conf, i2cbus, LEDMgmt):
+    def __init__(self, conf, i2cbus, led_mgmt):
         self.conf = conf
         self.found_device = False
+        self.i2cbus = i2cbus
+        self.led_mgmt = led_mgmt
+        self.enable_i2c_device()
 
+    def enable_i2c_device(self):
+        """TSL2591 Device Enable"""
         # FIXME: Very fragile - assumes existance of hardware
-
         # TODO: Get Light Sensor data from config
-        i2cbus.set_always_on(7)  # Enable Channel 7
-        if i2cbus.i2c_exists(0x29):  # Look for device ID hex(29)
+        self.i2cbus.set_always_on(7)  # Enable Channel 7
+        if self.i2cbus.i2c_exists(0x29):
+            # Look for device ID hex(29)
+            # Datasheet suggests this device also occupies addr 0x28
             self.found_device = True
-            self.tsl = tsl2591()  # initialize
-            self.LEDMgmt = LEDMgmt
+            self.tsl = tsl2591(i2c_bus=1)  # initialize
+            self.tsl.set_timing(5)
+            # FIXME: This time interval should align to the thread cycle time
+            # The default interval is 60s
         else:
             self.found_device = False
 
     def update_loop(self, conf):
+        """Thread Main Loop"""
         outerloop = True  # Set to TRUE for infinite outerloop
         while outerloop:
-            if not self.found_device:
+            if self.found_device:
                 current_light = self.tsl.get_current()
                 lux = current_light["lux"]
-                if lux < 20:
-                    lux = 20
-                    if lux > 240:
-                        lux = 240
+                lux = max(lux, 20)
+                lux = min(lux, 240)
                 msg = "Setting light levels: " + str(lux)
                 debugging.info(msg)
-                self.LEDMgmt.set_brightness(lux)
+                self.led_mgmt.set_brightness(lux)
                 time.sleep(5)
             else:
                 # No device found - longer sleeping
-                debugging.info("No light sensor found - sleeping 10m")
+                debugging.info("No light sensor found - trying to activate - then sleeping 10m")
+                self.enable_i2c_device()
                 time.sleep(10 * 60)

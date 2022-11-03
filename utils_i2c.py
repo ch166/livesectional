@@ -14,6 +14,9 @@ import busio
 
 import smbus2
 
+# import threading
+from threading import Lock
+
 import utils
 import debugging
 
@@ -46,33 +49,52 @@ class I2CBus:
     # on the chip. In a complex circuit these addresses can be changed dynamically.
     # Hard coding here for the default A0=A1=A2=0=GND
     # Not sure how valuable moving this to a configurable value would be
-    multiplexer_address = 0x70
+    MUX_DEVICE_ID = 0x70
+    mux_active = False
 
     bus = None
     i2c = None
+
+    lock = None
 
     # Channels that are always on
     always_enabled = 0x0
     current_enabled = 0x0
 
     def __init__(self, conf):
+        """Setup i2c bus - look for default hardware"""
+        self.lock = Lock()
         self.bus = smbus2.SMBus(self.rpi_bus_number)
         self.i2c = busio.I2C(board.SCL, board.SDA)
-        self.i2c_mux_default()
+        if self.i2c_exists(self.MUX_DEVICE_ID):
+            self.mux_active = True
+            self.i2c_mux_default()
         self.i2c_update()
 
+    def select(self, channel_id):
+        if self.mux_active:
+            self.i2c_mux_select(channel_id)
+
     def i2c_exists(self, device_id):
+        found_device = False
+        self.lock.acquire()
         active_devices = self.i2c.scan()
-        if device_id in active_devices:
-            return True
-        return False
+        self.lock.release()
+        length = len(active_devices)
+        debugging.info("i2c: scan device count = " + str(length))
+        for dev_id in active_devices:
+            debugging.info("i2c: device id " + str(dev_id))
+            if dev_id == device_id:
+                debugging.info("i2c: device id match " + str(dev_id))
+                found_device = True
+        return found_device
 
     def set_always_on(self, channel_id):
         self.always_enabled = I2C_ch[channel_id]
         self.i2c_update()
 
     def add_always_on(self, channel_id):
-        self.always_enabled = self.always_enabled & I2C_ch[channel_id]
+        self.always_enabled = self.always_enabled | I2C_ch[channel_id]
         self.i2c_update()
 
     def clear_always_on(self):
@@ -81,20 +103,28 @@ class I2CBus:
 
     def i2c_mux_select(self, channel_id):
         # This switches to channel 1
+        debugging.info("i2c_mux_select(" + str(channel_id) + ")")
         self.current_enabled = I2C_ch[channel_id]
         self.i2c_update()
 
     def i2c_mux_default(self):
         # This switches to channel 1
         # TODO: Need to only do this if we've confirmed a device at 0x70
-        if self.i2c_exists(0x70):
-            self.bus.write_byte(self.multiplexer_address, self.always_enabled)
+        if self.mux_active:
+            self.lock.acquire()
+            self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
+            self.lock.release()
             self.i2c_update()
 
     def i2c_update(self):
-        try:
-            self.bus.write_byte(self.multiplexer_address, self.always_enabled | self.current_enabled)
-        except Exception as e:
-            msg = "Error attempting to execute i2c_update"
-            debugging.error(msg)
-            debugging.error(e)
+        if self.mux_active:
+            try:
+                self.lock.acquire()
+                # self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled | self.current_enabled)
+                self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, self.always_enabled | self.current_enabled)
+                self.lock.release()
+            except Exception as e:
+                self.lock.release()v
+                msg = "Error attempting to execute i2c_update"
+                debugging.error(msg)
+                debugging.error(e)

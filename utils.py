@@ -15,7 +15,8 @@ from datetime import timedelta
 from dateutil.parser import parse as parsedate
 
 import requests
-import wget
+
+# import wget
 import pytz
 
 import debugging
@@ -101,13 +102,7 @@ def delete_file(target_path, filename):
             debugging.info("Deleted " + filename)
             return True
         except OSError as e:
-            debugging.error(
-                "Error "
-                + e.__str__()
-                + " while deleting file "
-                + target_path
-                + filename
-            )
+            debugging.error("Error " + e.__str__() + " while deleting file " + target_path + filename)
     else:
         return False
 
@@ -124,9 +119,7 @@ def hex2rgb(value):
     """Hex to RGB"""
     value = value.lstrip("#")
     length_v = len(value)
-    return tuple(
-        int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3)
-    )
+    return tuple(int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3))
 
 
 def download_newer_file(session, url, filename, newer=True, decompress=False):
@@ -167,12 +160,7 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
             download = True
         else:
             # Server side file is same or older, our file is up to date
-            msg = (
-                "Timestamp check - Server side: "
-                + str(datetime.fromtimestamp(url_date.timestamp()))
-                + " : Local : "
-                + str(datetime.fromtimestamp(file_time.timestamp()))
-            )
+            msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
             debugging.info(msg)
 
     if download:
@@ -198,9 +186,7 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
             os.remove(download_object.name)
             # Set the timestamp of the downloaded file to match
             # match the HEAD date stamp
-            os.utime(
-                filename, (datetime.timestamp(url_date), datetime.timestamp(url_date))
-            )
+            os.utime(filename, (datetime.timestamp(url_date), datetime.timestamp(url_date)))
             return 0
         except Exception as e:
             debugging.error(e)
@@ -236,9 +222,7 @@ def comp_time(zulu_time, taf_time):
     date_time_format = "%Y-%m-%dT%H:%M:%SZ"
     date1 = taf_time
     date2 = zulu_time
-    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(
-        date2, date_time_format
-    )
+    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(date2, date_time_format)
     diff_minutes = int(diff.seconds / 60)
     diff_hours = int(diff_minutes / 60)
     return diff.seconds, diff_minutes, diff_hours, diff.days
@@ -254,12 +238,8 @@ def reboot_if_time(conf):
     if use_reboot and use_autorun:
         now = datetime.now()
         rb_time = now.strftime("%H:%M")
-        debugging.info(
-            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
-        )
-        print(
-            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
-        )  # debug
+        debugging.info("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))
+        print("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))  # debug
 
         # FIXME: Reference to 'self' here
         # if rb_time == self.time_reboot:

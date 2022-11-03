@@ -264,16 +264,21 @@ class UpdateGPIO:
             if GPIO.input(22) is False:
                 debugging.info("Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data")
 
+            # Light sensor has ability to send interrupts..
+            # TODO: Come back to here and figure out if we're handling that code here
+            # or if we should handle it elsewhere
+            #
             # Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
             # Full brightness will be used if no light sensor is installed.
-            if GPIO.input(4) == 1:
-                self.LED_BRIGHTNESS = self.conf.get_int("lights", "dimmed_value")
-                if self.ambient_toggle == 1:
-                    debugging.info("Ambient Sensor set brightness to dimmed_value")
-                    self.ambient_toggle = 0
-            else:
-                self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
-                if self.ambient_toggle == 0:
-                    debugging.info("Ambient Sensor set brightness to bright_value")
-                    self.ambient_toggle = 1
+            #
+            # if GPIO.input(4) == 1:
+            #     self.LED_BRIGHTNESS = self.conf.get_int("lights", "dimmed_value")
+            #    if self.ambient_toggle == 1:
+            #        debugging.info("Ambient Sensor set brightness to dimmed_value")
+            #        self.ambient_toggle = 0
+            # else:
+            #    self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
+            #    if self.ambient_toggle == 0:
+            #        debugging.info("Ambient Sensor set brightness to bright_value")
+            #        self.ambient_toggle = 1
             time.sleep(5)

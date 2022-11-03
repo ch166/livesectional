@@ -38,6 +38,7 @@ import sysinfo
 import update_airports
 import update_leds
 import update_gpio
+import update_oled
 import update_lightsensor
 import appinfo
 import webviews
@@ -82,6 +83,9 @@ if __name__ == "__main__":
     # Setup GPIO Monitoring
     GPIOmon = update_gpio.UpdateGPIO(conf, airport_database)
 
+    # Setup OLED Management
+    OLEDmgmt = update_oled.UpdateOLEDs(conf, airport_database, i2cbus)
+
     # Setup Flask APP
     web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo)
 
@@ -107,7 +111,7 @@ if __name__ == "__main__":
 
     # Updating OLEDs
     debugging.info("Starting OLED updating thread")
-    # threadOLEDs = threading.Thread(target=OLEDmgmt.updateLedLoop, args=(conf,))
+    oled_thread = threading.Thread(target=OLEDmgmt.update_loop, args=())
 
     # Monitoring GPIO pins
     debugging.info("Starting GPIO monitoring thread")
@@ -124,6 +128,7 @@ if __name__ == "__main__":
     airport_thread.start()
     led_thread.start()
     gpio_thread.start()
+    oled_thread.start()
     flask_thread.start()
     lightsensor_thread.start()
 

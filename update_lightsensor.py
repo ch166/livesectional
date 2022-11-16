@@ -76,10 +76,12 @@ class LightSensor:
             # Look for device ID hex(29)
             # Datasheet suggests this device also occupies addr 0x28
             self.found_device = True
+            self.i2cbus.bus_lock()
             self.tsl = tsl2591(i2c_bus=1)  # initialize
             self.tsl.set_timing(5)
+            self.i2cbus.bus_unlock()
             # FIXME: This time interval should align to the thread cycle time
-            # The default interval is 60s
+            # The current default interval is 60s
         else:
             self.found_device = False
 
@@ -88,7 +90,14 @@ class LightSensor:
         outerloop = True  # Set to TRUE for infinite outerloop
         while outerloop:
             if self.found_device:
-                current_light = self.tsl.get_current()
+                try:
+                    self.i2cbus.bus_lock()
+                    current_light = self.tsl.get_current()
+                    self.i2cbus.bus_unlock()
+                except Exception as e:
+                    self.i2cbus.bus_unlock()
+                    self.found_device = False
+                    debugging.error(e)
                 lux = current_light["lux"]
                 lux = max(lux, 20)
                 lux = min(lux, 240)

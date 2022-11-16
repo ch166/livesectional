@@ -118,9 +118,7 @@ class AirportDB:
             try:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as e:
-                debug_string = (
-                    "Error: update_airport_wx Exception handling for " + arpt.icao
-                )
+                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
                 debugging.error(debug_string)
                 debugging.crash(e)
 
@@ -164,14 +162,10 @@ class AirportDB:
                 # FIXME: Need to add handling for changed purpose - remove / delete old object
                 # perhaps change the sequence of this to do an optional create first, and then
                 # do all the insertions every time regardless.
-                print("Updating existing airport on list")
-                print(self.airport_master_dict[json_airport_icao], flush=True)
-                self.airport_master_dict[json_airport_icao].set_led_index(
-                    json_airport["led"]
-                )
-                self.airport_master_dict[json_airport_icao].set_wxsrc(
-                    json_airport["wxsrc"]
-                )
+                debugging.info("Updating existing airport on list")
+                debugging.info(self.airport_master_dict[json_airport_icao])
+                self.airport_master_dict[json_airport_icao].set_led_index(int(json_airport["led"]))
+                self.airport_master_dict[json_airport_icao].set_wxsrc(json_airport["wxsrc"])
                 if json_airport["active"]:
                     self.airport_master_dict[json_airport_icao].set_active()
                 else:
@@ -179,10 +173,9 @@ class AirportDB:
                 break
             else:
                 # New Airport in config - need to create the airport object
-                print("Adding new airport to list :" + json_airport_icao)
                 self.airport_master_list.append(json_airport)
                 airport_icao = json_airport["icao"]
-                airport_led = json_airport["led"]
+                airport_led = int(json_airport["led"])
                 airport_wxsrc = json_airport["wxsrc"]
                 airport_active = json_airport["active"]
                 new_airport_obj = airport.Airport(
@@ -193,6 +186,7 @@ class AirportDB:
                     airport_led,
                     self.conf,
                 )
+                debugging.info(f"Adding airport to list : {airport_icao} led: {airport_led}")
                 self.airport_master_dict[airport_icao] = new_airport_obj
                 if json_airport["purpose"] == "led" or json_airport["purpose"] == "all":
                     self.airport_led_dict[airport_icao] = new_airport_obj
@@ -347,15 +341,9 @@ class AirportDB:
         self.update_airport_metar_xml()
 
         while True:
-            debugging.info(
-                "Updating Airport Data .. every aviation_weather_adds_timer ("
-                + str(aviation_weather_adds_timer)
-                + "m)"
-            )
+            debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
 
-            ret = utils.download_newer_file(
-                https_session, metar_xml_url, metar_file, decompress=True
-            )
+            ret = utils.download_newer_file(https_session, metar_xml_url, metar_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
@@ -363,9 +351,7 @@ class AirportDB:
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(
-                https_session, tafs_xml_url, tafs_file, decompress=True
-            )
+            ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
@@ -399,9 +385,7 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as e:
-                debugging.error(
-                    "Update Weather Loop: self.update_airport_wx() exception"
-                )
+                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
                 debugging.error(e)
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

@@ -1,260 +1,43 @@
 {
     "airports": [
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kuil",
-            "led": "0",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kclm",
-            "led": "1",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "False",
-            "heatmap": 0,
-            "icao": "cywh",
-            "led": "2",
-            "purpose": "all",
-            "wxsrc": "ca-metar"
-        },
-        {
-            "active": "False",
-            "heatmap": 0,
-            "icao": "cyyj",
-            "led": "3",
-            "purpose": "all",
-            "wxsrc": "ca-metar"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kfhr",
-            "led": "4",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kors",
-            "led": "5",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "k0s9",
-            "led": "6",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "null",
-            "led": "7",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kbli",
-            "led": "8",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kbvs",
-            "led": "9",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "knuw",
-            "led": "10",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kawo",
-            "led": "11",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "null",
-            "led": "12",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kpae",
-            "led": "13",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kpwt",
-            "led": "14",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kshn",
-            "led": "15",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "khqm",
-            "led": "16",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kolm",
-            "led": "17",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kcls",
-            "led": "18",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kgrf",
-            "led": "19",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "ktcm",
-            "led": "20",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kplu",
-            "led": "21",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "ktiw",
-            "led": "22",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "ksea",
-            "led": "23",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kbfi",
-            "led": "24",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "krnt",
-            "led": "25",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "ksmp",
-            "led": "26",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "keln",
-            "led": "27",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "keat",
-            "led": "28",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "keph",
-            "led": "29",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "kmwh",
-            "led": "30",
-            "purpose": "all",
-            "wxsrc": "adds"
-        },
-        {
-            "active": "True",
-            "heatmap": 0,
-            "icao": "komk",
-            "led": "31",
-            "purpose": "all",
-            "wxsrc": "adds"
-        }
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "0", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "1", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "2", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "3", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "4", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "5", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kplu", "led": "6", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "ktcm", "led": "7", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kgrf", "led": "8", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kolm", "led": "9", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kshn", "led": "10", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "11", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "ktiw", "led": "12", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "13", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "ksea", "led": "14", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "krnt", "led": "15", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kbfi", "led": "16", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "17", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kpwt", "led": "18", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "19", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kpae", "led": "20", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kawo", "led": "21", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "22", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "0s9", "led": "23", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "knuw", "led": "24", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kbvs", "led": "25", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kbli", "led": "26", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kors", "led": "27", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kfhr", "led": "28", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "29", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kclm", "led": "30", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "31", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "32", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "kuil", "led": "33", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "34", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "35", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "36", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "null", "led": "37", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "khqm", "led": "38", "purpose": "all", "wxsrc": "adds" }
     ]
 }

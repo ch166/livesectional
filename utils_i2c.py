@@ -7,6 +7,13 @@ i2c utils
 @author: chris
 """
 
+
+# Raspberry PI - Increase i2c bus speed
+#
+# /boot/config.txt
+# dtparam=i2c_arm=on,i2c_arm_baudrate=400000
+
+
 import time
 import board
 from board import SCL, SDA
@@ -56,6 +63,7 @@ class I2CBus:
     i2c = None
 
     lock = None
+    lock_count = 0
 
     # Channels that are always on
     always_enabled = 0x0
@@ -69,11 +77,17 @@ class I2CBus:
         if self.i2c_exists(self.MUX_DEVICE_ID):
             self.mux_active = True
             self.i2c_mux_default()
-        self.i2c_update()
+        if not self.i2c_update():
+            debugging.error("OLED: init - error calling i2c_update")
 
     def select(self, channel_id):
         if self.mux_active:
-            self.i2c_mux_select(channel_id)
+            if self.i2c_exists(self.MUX_DEVICE_ID):
+                self.i2c_mux_select(channel_id)
+                return True
+            else:
+                debugging.error("i2c: mux missing")
+        return False
 
     def i2c_exists(self, device_id):
         found_device = False
@@ -81,31 +95,46 @@ class I2CBus:
         active_devices = self.i2c.scan()
         self.lock.release()
         length = len(active_devices)
-        debugging.info("i2c: scan device count = " + str(length))
+        # debugging.info("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
-            debugging.info("i2c: device id " + str(dev_id))
+            # debugging.info("i2c: device id " + hex(dev_id))
             if dev_id == device_id:
-                debugging.info("i2c: device id match " + str(dev_id))
+                # debugging.info("i2c: device id match " + hex(dev_id))
                 found_device = True
         return found_device
 
+    def bus_lock(self):
+        """Grab bus lock"""
+        self.lock_count += 1
+        if self.lock.locked():
+            debugging.info("bus_lock: Lock already acquired")
+        self.lock.acquire()
+
+    def bus_unlock(self):
+        """Release bus lock"""
+        self.lock.release()
+
     def set_always_on(self, channel_id):
         self.always_enabled = I2C_ch[channel_id]
-        self.i2c_update()
+        if not self.i2c_update():
+            debugging.error("OLED: set_always_on - error calling i2c_update")
 
     def add_always_on(self, channel_id):
         self.always_enabled = self.always_enabled | I2C_ch[channel_id]
-        self.i2c_update()
+        if not self.i2c_update():
+            debugging.error("OLED: add_always_on - error calling i2c_update")
 
     def clear_always_on(self):
         self.always_enabled = 0x0
-        self.i2c_update()
+        if not self.i2c_update():
+            debugging.error("OLED: clear_always_on - error calling i2c_update")
 
     def i2c_mux_select(self, channel_id):
         # This switches to channel 1
         debugging.info("i2c_mux_select(" + str(channel_id) + ")")
         self.current_enabled = I2C_ch[channel_id]
-        self.i2c_update()
+        if not self.i2c_update():
+            debugging.error("OLED: i2c_mux_select - error calling i2c_update")
 
     def i2c_mux_default(self):
         # This switches to channel 1
@@ -114,17 +143,18 @@ class I2CBus:
             self.lock.acquire()
             self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
             self.lock.release()
-            self.i2c_update()
+            if not self.i2c_update():
+                debugging.error("OLED: i2c_mux_default - error calling i2c_update")
 
     def i2c_update(self):
         if self.mux_active:
             try:
+                mux_select_flags = self.always_enabled | self.current_enabled
                 self.lock.acquire()
-                # self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled | self.current_enabled)
-                self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, self.always_enabled | self.current_enabled)
+                self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, mux_select_flags)
                 self.lock.release()
+                return True
             except Exception as e:
-                self.lock.release()v
-                msg = "Error attempting to execute i2c_update"
-                debugging.error(msg)
+                self.lock.release()
                 debugging.error(e)
+        return False

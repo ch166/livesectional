@@ -21,12 +21,15 @@ OLED Display devices can be used to share
 
 import time
 
+import math
+import cmath
+import random
+
 from enum import Enum, auto
 
 # import datetime
 
-from luma.core.interface.serial import i2c, spi, pcf8574
-from luma.core.interface.parallel import bitbang_6800
+from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106, ws0010
 
@@ -56,7 +59,9 @@ class UpdateOLEDs:
     # There are a few different hardware configuration options that could be used.
     # Writing code to automatically handle all of them would make the code very complex, as the
     # code would need to do discovery and verification - and handle different IDs for
-    # the devices
+    # the devices.
+    # TODO: It's not even clear that we could query an i2c display and deduce the correct driver to use.
+    #
     # The initial versions of this code are going to make some simplifying hardware assumptions.
     # More work can happen later to support multiple and mixed configuration options.
     # Inital data structures are going to assume that each OLED gets its own configuration data
@@ -127,37 +132,41 @@ class UpdateOLEDs:
     airport_database = None
     i2cbus = None
 
+    device_count = 0
+
     oled_list = []
-    oled_dict_default = {"size": OLED_128x64, "mode": MONOCHROME, "chipset": "sh1106", "device": None, "active": False}
+    oled_dict_default = {
+        "size": OLED_128x64,
+        "mode": MONOCHROME,
+        "chipset": "sh1106",
+        "device": None,
+        "active": False,
+        "devid": 0,
+    }
 
     def __init__(self, conf, airport_database, i2cbus):
 
-        if self.reentry_check:
-            debugging.error("OLED: reentry check failed")
-        self.reentry_check = True
         self.conf = conf
         self.airport_database = airport_database
         self.i2cbus = i2cbus
-
-        # rev.1 users set port=0
-        # substitute spi(device=0, port=0) below if using that interface
-        # substitute bitbang_6800(RS=7, E=8, PINS=[25,24,23,27]) below if using that interface
-
         self.device_count = self.conf.get_int("oled", "oled_count")
 
-        debugging.info("OLED: Config setup for " + str(self.device_count) + " devices")
+        debugging.info("OLED: Config setup for {self.device_count} devices")
 
         for device_idnum in range(0, (self.device_count)):
-            debugging.info("OLED: Trying to add device :" + str(device_idnum))
-            self.oled_list.insert(device_idnum, self.oled_init(device_idnum))
+            debugging.info(f"OLED: Polling for device: {device_idnum}")
+            self.oled_list.insert(device_idnum, self.oled_device_init(device_idnum))
+            self.oled_text(device_idnum, f"Init {device_idnum}")
 
-    def oled_init(self, device_idnum):
+        debugging.info(f"OLED: Init complete : oled_list len {len(self.oled_list)}")
+
+    def oled_device_init(self, device_idnum):
         """Initialize individual OLED devices"""
         # Initial version just assumes all OLED devices are the same.
-        oled_dev = self.oled_dict_default
+        oled_dev = self.oled_dict_default.copy()
         oled_dev["active"] = False
+        oled_dev["devid"] = device_idnum
         device = None
-        # TODO: Store OLED model information in configuration data, and use that data
         self.oled_select(device_idnum)
         if self.i2cbus.i2c_exists(self.OLEDI2CID):
             serial = i2c(port=1, address=self.OLEDI2CID)
@@ -167,7 +176,7 @@ class UpdateOLEDs:
                 device = ssd1306(serial)
             oled_dev["device"] = device
             oled_dev["active"] = True
-            debugging.info("OLED: Set device active : " + str(device_idnum))
+            debugging.info("OLED: Activating: {device_idnum}")
         return oled_dev
 
     def oled_select(self, oled_id):
@@ -179,36 +188,72 @@ class UpdateOLEDs:
     def oled_text(self, oled_id, txt):
         """Update oled_id with the message from txt"""
         if oled_id > len(self.oled_list):
-            debugging.info("OLED: Attempt to access index beyond list length" + str(oled_id))
+            debugging.info("OLED: Attempt to access index beyond list length {oled_id}")
             return
         oled_dev = self.oled_list[oled_id]
         if oled_dev["active"] is False:
-            debugging.info("OLED: Attempting to update disabled OLED : " + str(oled_id))
+            debugging.info(f"OLED: Attempting to update disabled OLED : {oled_id}")
             return
         width = oled_dev["size"]["w"]
         height = oled_dev["size"]["h"]
 
         fnt = ImageFont.load_default()
-        image = Image.new(oled_dev["mode"], (width, height))  # Make sure to create image with mode '1' for 1-bit color.
+        # image = Image.new(oled_dev["mode"], (width, height))  # Make sure to create image with mode '1' for 1-bit color.
         # draw = ImageDraw.Draw(image)
         # txt_w, txt_h = draw.textsize(txt, fnt)
         device = oled_dev["device"]
+        debugging.info(f"OLED: Writing to device: {oled_id} : Msg : {txt}")
         self.oled_select(oled_id)
+        self.i2cbus.bus_lock()
         with canvas(device) as draw:
             draw.rectangle(device.bounding_box, outline="white", fill="black")
-            draw.text((30, 40), txt, fill="white")
+            draw.text((30, 40), txt, font=fnt, fill="white")
+        self.i2cbus.bus_unlock()
+
+    def draw_wind(self, oled_id, airport, runway, winddir, windspeed):
+        """Draw Wind Direction"""
+        if oled_id > len(self.oled_list):
+            debugging.info("OLED: Attempt to access index beyond list length {oled_id}")
+            return
+        oled_dev = self.oled_list[oled_id]
+        if oled_dev["active"] is False:
+            debugging.info(f"OLED: Attempting to update disabled OLED : {oled_id}")
+            return
+        width = oled_dev["size"]["w"]
+        height = oled_dev["size"]["h"]
+
+        # Setup Image
+        afont = ImageFont.load_default()
+        # image = Image.new(oled_dev["mode"], (width, height))
+        debugging.info(f"OLED: Writing to device: {oled_id} : Airport : {airport}")
+        device = oled_dev["device"]
+
+        boundingbox = [(0, 20), (width, height)]
+        airport_details = f"{airport} {winddir}@{windspeed}"
+        pie_dir = (winddir + 270) % 360
+
+        self.oled_select(oled_id)
+        self.i2cbus.bus_lock()
+        with canvas(device) as draw:
+            draw.text((1, 1), airport_details, font=afont, fill="white")
+            draw.pieslice(boundingbox, pie_dir - 6, pie_dir + 6, fill="white", outline="white", width=1)
+        self.i2cbus.bus_unlock()
 
     def update_loop(self):
         """Continuous Loop for Thread"""
         debugging.info("OLED: Entering Update Loop")
-        for oled_id in range(0, (self.device_count)):
-            debugging.info("OLED: Init message " + str(oled_id))
-            self.oled_text(oled_id, "booting " + str(oled_id))
         outerloop = True  # Set to TRUE for infinite outerloop
         count = 0
         while outerloop:
             count += 1
             debugging.info("OLED: Updating OLEDs")
             for oled_id in range(0, (self.device_count)):
-                self.oled_text(oled_id, "run(" + str(count) + "):" + str(oled_id))
+                self.oled_text(oled_id, f"run({count}): {oled_id}")
+                if oled_id == 3:
+                    airportcode = "kbfi"
+                    airport_list = self.airport_database.get_airport_dict_led()
+                    airport_record = airport_list[airportcode]
+                    windspeed = airport_record.get_wx_windspeed()
+                    winddir = random.randrange(360)
+                    self.draw_wind(oled_id, airportcode, 140, winddir, windspeed)
             time.sleep(180)

@@ -90,8 +90,8 @@ if __name__ == "__main__":
     web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo)
 
     # Almost Setup
-    debugging.info("Livemap Startup - IP: " + ipaddr)
-    debugging.info("Base Directory :" + conf.get_string("filenames", "basedir"))
+    debugging.info(f"Livemap Startup - IP: {ipaddr}")
+    debugging.info(f'Base Directory : {conf.get_string("filenames", "basedir")}')
 
     #
     # Setup Threads

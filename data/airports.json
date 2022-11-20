@@ -23,7 +23,7 @@
         { "active": "True", "heatmap": 0, "icao": "kpae", "led": "20", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 0, "icao": "kawo", "led": "21", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 0, "icao": "null", "led": "22", "purpose": "all", "wxsrc": "adds" },
-        { "active": "True", "heatmap": 0, "icao": "0s9", "led": "23", "purpose": "all", "wxsrc": "adds" },
+        { "active": "True", "heatmap": 0, "icao": "k0s9", "led": "23", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 0, "icao": "knuw", "led": "24", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 0, "icao": "kbvs", "led": "25", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 0, "icao": "kbli", "led": "26", "purpose": "all", "wxsrc": "adds" },

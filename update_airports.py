@@ -94,18 +94,29 @@ class AirportDB:
 
         self.tafs_xml_data = []
         self.metar_xml_dict = {}
-        self.metar_xml_list = []
 
         debugging.info("AirportDB : init")
 
         self.load_airport_db()
         # self.update_airport_metar_xml()
-        self.save_airport_db()
+        # self.save_airport_db()
         debugging.info("AirportDB : init complete")
 
     def get_airport(self, airport_icao):
         """Return a single Airport"""
         return self.airport_master_dict[airport_icao]
+
+    def get_airportdb(self):
+        """Return a single Airport"""
+        return self.airport_master_dict
+
+    def get_airportxml(self, airport_icao):
+        """Return a single Airport"""
+        return self.metar_xml_dict[airport_icao]
+
+    def get_airportxmldb(self):
+        """Return a single Airport"""
+        return self.metar_xml_dict
 
     def get_airport_dict_led(self):
         """Return Airport LED dict"""
@@ -347,7 +358,6 @@ class AirportDB:
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
-                # print(self.metar_xml_list)
             elif ret == 3:
                 debugging.info("Server side METAR older")
 

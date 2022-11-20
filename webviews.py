@@ -29,6 +29,8 @@ from werkzeug.utils import secure_filename
 
 from pyqrcode import QRCode
 
+import json
+
 import utils
 import conf
 import debugging
@@ -471,15 +473,26 @@ class WebViews:
         """Flask Route: /metar - Get METAR for Airport"""
         template_data = self.standardtemplate_data()
 
-        debugging.info("getmetar: airport = " + airport)
+        debugging.info(f"getmetar: airport = {airport}")
         template_data["airport"] = airport
 
+        airport = airport.lower()
+
+        if airport == "debug":
+            """Debug request - dumping DB info"""
+            with open("logs/airport_database.txt", "w") as outfile:
+                airportdb = self.airport_database.get_airportxmldb()
+                counter = 0
+                for icao, airport in airportdb.items():
+                    outfile.write(f"{icao}: {airport} :\n")
+                    counter = counter + 1
+                outfile.write(f"stats: {counter}\n")
         try:
-            airport_entry = self.airport_database.get_airport(airport)
-            template_data["metar"] = airport_entry.get_raw_metar()
+            airport_entry = self.airport_database.get_airportxml(airport)
+            debugging.info(airport_entry)
+            template_data["metar"] = airport_entry["raw_text"]
         except Exception as e:
-            debugging.error("Attempt to get metar for failed for " + airport)
-            debugging.error(e)
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")
             template_data["metar"] = "ERR - Not found"
 
         return render_template("metar.html", **template_data)

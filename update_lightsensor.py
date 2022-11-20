@@ -99,7 +99,7 @@ class LightSensor:
                     self.found_device = False
                     debugging.error(e)
                 lux = current_light["lux"]
-                lux = max(lux, 20)
+                lux = max(lux, 50)
                 lux = min(lux, 240)
                 msg = "Setting light levels: " + str(lux)
                 debugging.info(msg)

@@ -235,6 +235,10 @@ class Airport:
                 freshness = self.get_adds_metar(metar_xml_dict)
             except Exception as e:
                 debugging.error(e)
+        elif self.wxsrc.startswith("neigh"):
+            """ Get METAR data from alternative Airport"""
+            strparts = self.wxsrc.split(":")
+            debugging.info(f"{self.icao} needs metar for {strparts[1]}")
         elif self.wxsrc == "usa-metar":
             debugging.info(
                 "Update USA Metar: " + self.icao + " - " + self.wx_category_str

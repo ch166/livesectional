@@ -75,19 +75,20 @@
 # import xml.etree.ElementTree as ET
 import time
 from datetime import datetime
-from datetime import timedelta
+
+# from datetime import timedelta
 from datetime import time as time_
 import sys
 
 # import os
 # from os.path import getmtime
 
-import random
+# import random
 import collections
 import re
 import ast
 
-from rpi_ws281x import *  # works with python 3.7. sudo pip3 install rpi_ws281x
+from rpi_ws281x import Color, PixelStrip, ws  # works with python 3.7. sudo pip3 install rpi_ws281x
 
 import debugging
 import utils
@@ -397,7 +398,7 @@ class UpdateLEDs:
 
         # Create an instance of NeoPixel
         # FIXME: MOVE THIS FROM HERE TO LEDSTRIP for one INIT action
-        self.strip = Adafruit_NeoPixel(
+        self.strip = PixelStrip(
             self.LED_COUNT,
             self.LED_PIN,
             self.LED_FREQ_HZ,
@@ -474,7 +475,8 @@ class UpdateLEDs:
 
         # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
         # FIXME: Move to update_airports.py
-        """    def set_data(self):
+        """
+        def set_data(self):
         # FIXME: Needs reworking for MOS data
 
         # Clean up line of MOS data.
@@ -622,7 +624,8 @@ class UpdateLEDs:
                     continue
                 # Check for and grab date of MOS
                 if "DT /" in line:
-                    unused1, dt_cat, month, unused2, unused3, day, unused4 = line.split(" ", 6)
+                    # Don't do anything if we're just going to the next line..
+                    # unused1, dt_cat, month, unused2, unused3, day, unused4 = line.split(" ", 6)
                     continue
                 # Check for and grab the Airport ID of the current MOS
                 if "MOS" in line:
@@ -1109,7 +1112,7 @@ class UpdateLEDs:
             # check to see if the user wants to use a timer.
             # Need thread checking for button pushes ; to set temp_lights_on for a time interval.
             # If temp_lights_on is set ; then we will ignore the deep sleep lights off function
-            if self.conf.get_bool("schedule", "usetimer") and self.temp_lights_on == False:
+            if self.conf.get_bool("schedule", "usetimer") and self.temp_lights_on is False:
                 if utils.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
                     self.turnoff()
                     debugging.info("Deep Sleeping")

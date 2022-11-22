@@ -104,7 +104,7 @@ class WebViews:
         self.ap_info = None
         self.settings = None
         self.strip = None
-        self.led_map_dict = []
+        self.led_map_dict = {}
 
     def run(self):
         """Run Flask Application
@@ -115,10 +115,19 @@ class WebViews:
     def standardtemplate_data(self):
         """Generate a standardized template_data"""
 
+        airport_dict_data = {}
+        for airport_icao, airport_object in self.airport_database.get_airport_dict_led().items():
+            airport_record = {}
+            airport_record['icaocode'] = airport_icao
+            airport_record['metarsrc'] = airport_object.get_wxsrc()
+            airport_record['ledindex'] = airport_object.get_led_index()
+            airport_record['rawmetar'] = airport_object.get_raw_metar()
+            airport_dict_data[airport_icao] = airport_record
+
         template_data = {
             "title": "NOT SET - " + self.appinfo.current_version(),
             "hmdata": self.hmdata,
-            "airports": self.airport_database.get_airport_dict_led(),
+            "airports": airport_dict_data,
             "settings": self.conf.gen_settings_dict(),
             "ipadd": self.sysdata.local_ip(),
             "strip": self.strip,

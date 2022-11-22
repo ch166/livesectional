@@ -82,20 +82,22 @@
     <tr>
         <th style="text-align:center">Pin #
         <th style="text-align:center">Airport ID
+        <th style="text-align:center">Metar SRC
         <th style="text-align:center">Description
         <th style="text-align:center">Flight Category and Raw METAR
     </tr>
 
 {% for aprt_icao, aprt_data in airports.items() %}
     <tr id="{{ loop.index - 1 }}">
-        <td width="5%" style="text-align:center"><b>{{ loop.index - 1 }}</b></td>
+        <td width="5%" style="text-align:center"><b>{{ aprt_data['ledindex'] }}</b></td>
 
         <td width="10%" style="text-align:center">
 	<input title="{{ aprt_icao|join(", ") }}" onkeydown="upperCaseF(this)" type="text" minlength="4" maxlength="4" onfocus="fillinledonoff(this)" id="ap{{loop.index-1}}" name="{{loop.index-1}}/ap{{loop.index-1}}/msg{{loop.index-1}}" size="5" onchange="myFunction(this)" value = "{{aprt_icao}}">
         <!--onfocus="this.value=''"-->
         </td>
 
-        <td width="25%" id="msg{{loop.index-1}}">
+        <td width="10%" style="text-align:center"><b>{{ aprt_data['metarsrc'] }}</b></td>
+        <td width="15%" id="msg{{loop.index-1}}">
 	    {% if aprt_icao == 'LGND' %}
              <font color="red">LED at pin {{ loop.index -1 }} will be used as a <b>Legend</b> item.</font><td></td><td></td>
             {% elif aprt_icao == 'NULL' %}
@@ -105,8 +107,8 @@
              <!--Display airport name and city, region and link to info page-->
              <!--<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={{ aprt_icao }} target="_blank"><b>{{ ap|join(", ") }} -->
              <a href=http://www.fltplan.com/Airport.cgi?{{ aprt_icao }} target="_blank"><b>{{ aprt_icao }}</b></a>
-
         </td>
+
         <td width="60%" style="text-align:left">
              <!--Grab Flight Category and raw METAR from api.weather.gov and display badge-->
              <span id="fcloc{{ loop.index-1 }}">
@@ -114,24 +116,20 @@
              <script>get_badge('{{ aprt_icao }}','fcloc{{ loop.index-1 }}');</script>
         </td>
 
+        <!--METAR Widget from https://widget.checkwx.com/. Thank you Henry-->
+        <!--<span id="loc{{ loop.index-1 }}" class="checkwx-container" data-type="METAR" data-station="{{ aprt_icao }}"></span>-->
 
-             <!--METAR Widget from https://widget.checkwx.com/. Thank you Henry-->
-             <!--<span id="loc{{ loop.index-1 }}" class="checkwx-container" data-type="METAR" data-station="{{ aprt_icao }}"></span>-->
+        <!--<td width="50%">
+        <span id="rawloc{{ loop.index-1 }}">
+        </span>
+        <script>get_raw('{{ aprt_icao }}','rawloc{{ loop.index-1 }}');</script>-->
 
-             <!--<td width="50%">
-             <span id="rawloc{{ loop.index-1 }}">
-             </span>
-             <script>get_raw('{{ aprt_icao }}','rawloc{{ loop.index-1 }}');</script>-->
+        <!--Backup METAR Retrieve from https://www.navlost.eu/metar/about/
+        <a id="loc{{ loop.index-1 }}"> <img src="./static/button1.png" height="23" width="126" onclick="get_metar('{{ aprt_icao }}', 'loc{{ loop.index-1 }}')"> </a>-->
 
-             <!--Backup METAR Retrieve from https://www.navlost.eu/metar/about/
-              <a id="loc{{ loop.index-1 }}">
-                <img src="./static/button1.png" height="23" width="126"
-                 onclick="get_metar('{{ aprt_icao }}', 'loc{{ loop.index-1 }}')">
-              </a>-->
-
-             <!--Widget from metar-taf.com. Works but slows page load dramatically. Commented out for now.-->
-             <!--<iframe src="https://metar-taf.com/embed/{{ aprt_icao }}?bg_color=0057a3&raw=0" frameBorder="0" width="180" height="50"></iframe>-->
-            {% endif %}
+        <!--Widget from metar-taf.com. Works but slows page load dramatically. Commented out for now.-->
+        <!--<iframe src="https://metar-taf.com/embed/{{ aprt_icao }}?bg_color=0057a3&raw=0" frameBorder="0" width="180" height="50"></iframe>-->
+        {% endif %}
     </td>
     </tr>
 {% endfor %}

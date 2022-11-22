@@ -147,6 +147,10 @@ class Airport:
         """Return LED ID"""
         return self.led_index
 
+    def get_wxsrc(self):
+        """Set Weather source"""
+        return self.wxsrc
+
     def set_wxsrc(self, wxsrc):
         """Set Weather source"""
         self.wxsrc = wxsrc

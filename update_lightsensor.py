@@ -107,6 +107,8 @@ class LightSensor:
                 time.sleep(5)
             else:
                 # No device found - longer sleeping
-                debugging.info("No light sensor found - trying to activate - then sleeping 10m")
+                debugging.info(
+                    "No light sensor found - trying to activate - then sleeping 10m"
+                )
                 self.enable_i2c_device()
                 time.sleep(10 * 60)

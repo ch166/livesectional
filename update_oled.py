@@ -236,7 +236,14 @@ class UpdateOLEDs:
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
             draw.text((1, 1), airport_details, font=afont, fill="white")
-            draw.pieslice(boundingbox, pie_dir - 6, pie_dir + 6, fill="white", outline="white", width=1)
+            draw.pieslice(
+                boundingbox,
+                pie_dir - 6,
+                pie_dir + 6,
+                fill="white",
+                outline="white",
+                width=1,
+            )
         self.i2cbus.bus_unlock()
 
     def update_loop(self):

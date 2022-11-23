@@ -262,7 +262,9 @@ class UpdateGPIO:
                 # Check to see if pushbutton is pressed to force an update of FAA Weather
                 # If no button is connected, then this is bypassed and will only update when 'update_interval' is met
             if GPIO.input(22) is False:
-                debugging.info("Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data")
+                debugging.info(
+                    "Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data"
+                )
 
             # Light sensor has ability to send interrupts..
             # TODO: Come back to here and figure out if we're handling that code here

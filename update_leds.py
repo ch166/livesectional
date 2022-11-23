@@ -88,7 +88,11 @@ import collections
 import re
 import ast
 
-from rpi_ws281x import Color, PixelStrip, ws  # works with python 3.7. sudo pip3 install rpi_ws281x
+from rpi_ws281x import (
+    Color,
+    PixelStrip,
+    ws,
+)  # works with python 3.7. sudo pip3 install rpi_ws281x
 
 import debugging
 import utils
@@ -131,10 +135,18 @@ class UpdateLEDs:
         # Specific settings for on/off timer. Used to turn off LED's at night if desired.
         # Verify Raspberry Pi is set to the correct time zone, otherwise the timer will be off.
         # self.usetimer = self.conf.usetimer              # 0 = No, 1 = Yes. Turn the timer on or off with this setting
-        self.offhour = self.conf.get_int("schedule", "offhour")  # Use 24 hour time. Set hour to turn off display
-        self.offminutes = self.conf.get_int("schedule", "offminutes")  # Set minutes to turn off display
-        self.onhour = self.conf.get_int("schedule", "onhour")  # Use 24 hour time. Set hour to turn on display
-        self.onminutes = self.conf.get_int("schedule", "onminutes")  # Set minutes to on display
+        self.offhour = self.conf.get_int(
+            "schedule", "offhour"
+        )  # Use 24 hour time. Set hour to turn off display
+        self.offminutes = self.conf.get_int(
+            "schedule", "offminutes"
+        )  # Set minutes to turn off display
+        self.onhour = self.conf.get_int(
+            "schedule", "onhour"
+        )  # Use 24 hour time. Set hour to turn on display
+        self.onminutes = self.conf.get_int(
+            "schedule", "onminutes"
+        )  # Set minutes to on display
         # Set number of MINUTES to turn map on temporarily during sleep mode
         self.tempsleepon = self.conf.get_int("schedule", "tempsleepon")
 
@@ -151,7 +163,9 @@ class UpdateLEDs:
 
         self.time_reboot = self.conf.get_string("default", "nightly_reboot_hr")
 
-        self.homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
+        self.homeport_colors = ast.literal_eval(
+            self.conf.get_string("colors", "homeport_colors")
+        )
         # ************************************************************
         # * End of User defined settings. Normally shouldn't change  *
         # * any thing under here unless you are confident in change. *
@@ -337,7 +351,9 @@ class UpdateLEDs:
         # Increment to Red as visits get closer to 100 - Do Not Change
         self.high_visits = (255, 0, 0)
         self.fadehome = -1  # start with neg number
-        self.homeap = self.conf.get_string("colors", "color_vfr")  # If 100, then home airport - designate with Green
+        self.homeap = self.conf.get_string(
+            "colors", "color_vfr"
+        )  # If 100, then home airport - designate with Green
         # color_fog2  # (10, 10, 10) # dk grey to denote airports never visited
         self.no_visits = (20, 20, 20)
 
@@ -567,7 +583,9 @@ class UpdateLEDs:
         if visits == "0":
             color = self.no_visits
         elif visits == "100":
-            if self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool("rotaryswitch", "bin_grad"):
+            if self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool(
+                "rotaryswitch", "bin_grad"
+            ):
                 color = colors.black()
             elif not self.conf.get_bool("rotaryswitch", "use_homeap"):
                 color = self.high_visits
@@ -636,7 +654,16 @@ class UpdateLEDs:
                         ap_flag = 1
                         # used to determine if a category is being reported in MOS or not. If not, need to inject it.
                         cat_counter = 0
-                        (self.dat0, self.dat1, self.dat2, self.dat3, self.dat4, self.dat5, self.dat6, self.dat7,) = (
+                        (
+                            self.dat0,
+                            self.dat1,
+                            self.dat2,
+                            self.dat3,
+                            self.dat4,
+                            self.dat5,
+                            self.dat6,
+                            self.dat7,
+                        ) = (
                             [] for i in range(8)
                         )  # Clear lists
                     continue
@@ -721,7 +748,9 @@ class UpdateLEDs:
                     debugging.debug("\n" + airport)
                     debugging.debug(self.categories)
 
-                    mos_time = utils.current_time_hr_utc(self.conf) + self.hour_to_display
+                    mos_time = (
+                        utils.current_time_hr_utc(self.conf) + self.hour_to_display
+                    )
                     if mos_time >= 24:  # check for reset at 00z
                         mos_time = mos_time - 24
 
@@ -741,7 +770,21 @@ class UpdateLEDs:
                             vis = self.mos_dict[airport][hr][9]
                             obv = self.mos_dict[airport][hr][10]
 
-                            debugging.debug(mos_date + hr + cld + wdr + wsp + p06 + t06 + poz + pos + typ + cig + vis + obv)
+                            debugging.debug(
+                                mos_date
+                                + hr
+                                + cld
+                                + wdr
+                                + wsp
+                                + p06
+                                + t06
+                                + poz
+                                + pos
+                                + typ
+                                + cig
+                                + vis
+                                + obv
+                            )
 
                             # decode the weather for each airport to display on the livesectional map
                             flightcategory = "VFR"  # start with VFR as the assumption
@@ -760,7 +803,9 @@ class UpdateLEDs:
                                     flightcategory = "VFR"
 
                             # Check visability too.
-                            if flightcategory != "LIFR":  # if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
+                            if (
+                                flightcategory != "LIFR"
+                            ):  # if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
 
                                 if vis <= "2":  # vis < 1.0 mile:
                                     flightcategory = "LIFR"
@@ -768,30 +813,40 @@ class UpdateLEDs:
                                 elif "3" <= vis < "4":  # 1.0 <= vis < 3.0 miles:
                                     flightcategory = "IFR"
 
-                                elif vis == "5" and flightcategory != "IFR":  # 3.0 <= vis <= 5.0 miles
+                                elif (
+                                    vis == "5" and flightcategory != "IFR"
+                                ):  # 3.0 <= vis <= 5.0 miles
                                     flightcategory = "MVFR"
 
                             debugging.debug(flightcategory + " |")
                             debugging.debug(f"Windspeed = {wsp} | Wind dir = {wdr} |")
 
                             # decode reported weather using probabilities provided.
-                            if typ == "9":  # check to see if rain, freezing rain or snow is reported. If not use obv weather
+                            if (
+                                typ == "9"
+                            ):  # check to see if rain, freezing rain or snow is reported. If not use obv weather
                                 # Get proper representation for obv designator
                                 wx_info = self.obv_wx[obv]
                             else:
                                 # Get proper representation for typ designator
                                 wx_info = self.typ_wx[typ]
 
-                                if wx_info == "RA" and int(p06) < self.conf.get_int("rotaryswitch", "prob"):
+                                if wx_info == "RA" and int(p06) < self.conf.get_int(
+                                    "rotaryswitch", "prob"
+                                ):
                                     if obv != "N":
                                         wx_info = self.obv_wx[obv]
                                     else:
                                         wx_info = "NONE"
 
-                                if wx_info == "SN" and int(pos) < self.conf.get_int("rotaryswitch", "prob"):
+                                if wx_info == "SN" and int(pos) < self.conf.get_int(
+                                    "rotaryswitch", "prob"
+                                ):
                                     wx_info = "NONE"
 
-                                if wx_info == "FZRA" and int(poz) < self.conf.get_int("rotaryswitch", "prob"):
+                                if wx_info == "FZRA" and int(poz) < self.conf.get_int(
+                                    "rotaryswitch", "prob"
+                                ):
                                     wx_info = "NONE"
 
                                 # print (t06,apid) # debug
@@ -812,7 +867,9 @@ class UpdateLEDs:
                     # grab wind speeds from returned MOS data
                     if wsp is None:  # if wind speed is blank, then bypass
                         windspeedkt = 0
-                    elif wsp == "99":  # Check to see if MOS data is not reporting windspeed for this airport
+                    elif (
+                        wsp == "99"
+                    ):  # Check to see if MOS data is not reporting windspeed for this airport
                         windspeedkt = 0
                     else:
                         windspeedkt = int(wsp)
@@ -827,19 +884,25 @@ class UpdateLEDs:
 
                     # Check for duplicate airport identifier and skip if found, otherwise store in dictionary. covers for dups in "airports" file
                     if stationId in stationiddict:
-                        debugging.info(f"{stationId} Duplicate, only saved first metar category")
+                        debugging.info(
+                            f"{stationId} Duplicate, only saved first metar category"
+                        )
                     else:
                         # build category dictionary
                         stationiddict[stationId] = flightcategory
 
                     if stationId in windsdict:
-                        debugging.info(f"{stationId} Duplicate, only saved the first winds")
+                        debugging.info(
+                            f"{stationId} Duplicate, only saved the first winds"
+                        )
                     else:
                         # build windspeed dictionary
                         windsdict[stationId] = windspeedkt
 
                     if stationId in wxstringdict:
-                        debugging.info(f"{stationId} Duplicate, only saved the first weather")
+                        debugging.info(
+                            f"{stationId} Duplicate, only saved the first weather"
+                        )
                     else:
                         # build weather dictionary
                         wxstringdict[stationId] = wxstring
@@ -899,13 +962,30 @@ class UpdateLEDs:
                 elif self.metar_taf_mos == 3:
                     debugging.debug("Heat Map + ")
 
-                debugging.debug((airportcode + " " + str(flightcategory) + " " + str(airportwinds) + " " + airportwx + " " + str(cycle_num) + " "))
+                debugging.debug(
+                    (
+                        airportcode
+                        + " "
+                        + str(flightcategory)
+                        + " "
+                        + str(airportwinds)
+                        + " "
+                        + airportwx
+                        + " "
+                        + str(cycle_num)
+                        + " "
+                    )
+                )
                 # Check to see if airport code is a NULL and set to black.
                 if airportcode in ("NULL", "LGND"):
                     color = colors.black()
 
                 # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
-                if self.conf.get_bool("default", "legend") and airportcode == "LGND" and (airportled in self.legend_pins):
+                if (
+                    self.conf.get_bool("default", "legend")
+                    and airportcode == "LGND"
+                    and (airportled in self.legend_pins)
+                ):
                     if airportled == self.conf.get_int("lights", "leg_pin_vfr"):
                         color = colors.VFR(self.conf)
 
@@ -921,20 +1001,26 @@ class UpdateLEDs:
                     if airportled == self.conf.get_int("lights", "leg_pin_nowx"):
                         color = colors.NOWEATHER(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_hiwinds") and self.conf.get_int("lights", "legend_hiwinds"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_hiwinds"
+                    ) and self.conf.get_int("lights", "legend_hiwinds"):
                         if cycle_num in (3, 4, 5):
                             color = colors.black()
                         else:
                             color = colors.IFR(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_lghtn") and self.conf.get_int("lights", "legend_lghtn"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_lghtn"
+                    ) and self.conf.get_int("lights", "legend_lghtn"):
                         if cycle_num in (2, 4):  # Check for Thunderstorms
                             color = colors.LIGHTNING(self.conf)
 
                         elif cycle_num in (0, 1, 3, 5):
                             color = colors.MVFR(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_snow") and self.conf.get_int("lights", "legend_snow"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_snow"
+                    ) and self.conf.get_int("lights", "legend_snow"):
                         if cycle_num in (3, 5):  # Check for Snow
                             color = colors.SNOW(self.conf, 1)
 
@@ -944,7 +1030,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.LIFR(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_rain") and self.conf.get_int("lights", "legend_rain"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_rain"
+                    ) and self.conf.get_int("lights", "legend_rain"):
                         if cycle_num in (3, 5):  # Check for Rain
                             color = colors.RAIN(self.conf, 1)
 
@@ -954,7 +1042,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.VFR(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_frrain") and self.conf.get_int("lights", "legend_frrain"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_frrain"
+                    ) and self.conf.get_int("lights", "legend_frrain"):
                         if cycle_num in (3, 5):  # Check for Freezing Rain
                             color = colors.FRZRAIN(self.conf, 1)
 
@@ -964,7 +1054,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.MVFR(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_dustsandash") and self.conf.get_int("lights", "legend_dustsandash"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_dustsandash"
+                    ) and self.conf.get_int("lights", "legend_dustsandash"):
                         if cycle_num in (3, 5):  # Check for Dust, Sand or Ash
                             color = colors.DUST_SAND_ASH(self.conf, 1)
 
@@ -974,7 +1066,9 @@ class UpdateLEDs:
                         elif cycle_num in (0, 1, 2):
                             color = colors.VFR(self.conf)
 
-                    if airportled == self.conf.get_int("lights", "leg_pin_fog") and self.conf.get_int("lights", "legend_fog"):
+                    if airportled == self.conf.get_int(
+                        "lights", "leg_pin_fog"
+                    ) and self.conf.get_int("lights", "legend_fog"):
                         if cycle_num in (3, 5):  # Check for Fog
                             color = colors.FOG(self.conf, 1)
 
@@ -999,14 +1093,30 @@ class UpdateLEDs:
                         color = colors.NOWEATHER(self.conf)
 
                 # 3.01 bug fix by adding "LGND" test
-                elif flightcategory == "NONE" and airportcode != "LGND" and airportcode != "NULL":
+                elif (
+                    flightcategory == "NONE"
+                    and airportcode != "LGND"
+                    and airportcode != "NULL"
+                ):
                     color = colors.NOWEATHER(self.conf)
 
                 # Check winds and set the 2nd half of cycles to black to create blink effect
-                if self.conf.get_bool("lights", "hiwindblink"):  # bypass if "hiwindblink" is set to 0
-                    if int(airportwinds) >= self.conf.get_int("metar", "max_wind_speed") and (cycle_num in (3, 4, 5)):
+                if self.conf.get_bool(
+                    "lights", "hiwindblink"
+                ):  # bypass if "hiwindblink" is set to 0
+                    if int(airportwinds) >= self.conf.get_int(
+                        "metar", "max_wind_speed"
+                    ) and (cycle_num in (3, 4, 5)):
                         color = colors.black()
-                        debugging.debug(("HIGH WINDS-> " + airportcode + " Winds = " + str(airportwinds) + " "))
+                        debugging.debug(
+                            (
+                                "HIGH WINDS-> "
+                                + airportcode
+                                + " Winds = "
+                                + str(airportwinds)
+                                + " "
+                            )
+                        )
 
                 # Check the wxstring from FAA for reported weather and create color changes in LED for weather effect.
                 if airportwx != "NONE":
@@ -1041,7 +1151,9 @@ class UpdateLEDs:
 
                     if self.conf.get_bool("lights", "dustsandashshow"):
                         # Check for Dust, Sand or Ash
-                        if airportwx in self.wx_dustsandash_ck and (cycle_num in (3, 5)):
+                        if airportwx in self.wx_dustsandash_ck and (
+                            cycle_num in (3, 5)
+                        ):
                             color = colors.DUST_SAND_ASH(self.conf, 1)
 
                         if airportwx in self.wx_dustsandash_ck and cycle_num == 4:
@@ -1057,23 +1169,37 @@ class UpdateLEDs:
 
                 # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
                 # so that every other time through, the color will display the proper weather, then homeport color(s).
-                if airportled == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport") and toggle:
+                if (
+                    airportled == self.conf.get_int("lights", "homeport_pin")
+                    and self.conf.get_bool("lights", "homeport")
+                    and toggle
+                ):
                     if self.conf.get_int("lights", "homeport_display") == 1:
-                        homeport_colors = ast.literal_eval(self.conf.get_string("colors", "homeport_colors"))
+                        homeport_colors = ast.literal_eval(
+                            self.conf.get_string("colors", "homeport_colors")
+                        )
                         color = homeport_colors[cycle_num]
                     elif self.conf.get_int("lights", "homeport_display") == 2:
                         pass
                     else:
                         color = self.conf.get_color("colors", "color_homeport")
 
-                if airportled == self.conf.get_int("lights", "homeport_pin") and self.conf.get_bool("lights", "homeport"):
+                if airportled == self.conf.get_int(
+                    "lights", "homeport_pin"
+                ) and self.conf.get_bool("lights", "homeport"):
                     # if this is the home airport, don't dim out the brightness
                     norm_color = color
                     # FIXME: This won't work
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
-                elif self.conf.get_bool("lights", "homeport"):  # if this is not the home airport, dim out the brightness
-                    dim_color = self.dim(color, self.conf.get_int("lights", "dim_value"))
-                    color = colors.HEX(int(dim_color[0]), int(dim_color[1]), int(dim_color[2]))
+                elif self.conf.get_bool(
+                    "lights", "homeport"
+                ):  # if this is not the home airport, dim out the brightness
+                    dim_color = self.dim(
+                        color, self.conf.get_int("lights", "dim_value")
+                    )
+                    color = colors.HEX(
+                        int(dim_color[0]), int(dim_color[1]), int(dim_color[2])
+                    )
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness
                     norm_color = color
                     color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
@@ -1112,8 +1238,13 @@ class UpdateLEDs:
             # check to see if the user wants to use a timer.
             # Need thread checking for button pushes ; to set temp_lights_on for a time interval.
             # If temp_lights_on is set ; then we will ignore the deep sleep lights off function
-            if self.conf.get_bool("schedule", "usetimer") and self.temp_lights_on is False:
-                if utils.time_in_range(self.timeoff, self.end_time, datetime.now().time()):
+            if (
+                self.conf.get_bool("schedule", "usetimer")
+                and self.temp_lights_on is False
+            ):
+                if utils.time_in_range(
+                    self.timeoff, self.end_time, datetime.now().time()
+                ):
                     self.turnoff()
                     debugging.info("Deep Sleeping")
                     time.sleep(self.conf.get_int("schedule", "deep_sleep_interval"))

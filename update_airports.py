@@ -134,7 +134,9 @@ class AirportDB:
             try:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as e:
-                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
+                debug_string = (
+                    "Error: update_airport_wx Exception handling for " + arpt.icao
+                )
                 debugging.error(debug_string)
                 debugging.crash(e)
 
@@ -362,16 +364,24 @@ class AirportDB:
         self.update_airport_metar_xml()
 
         while True:
-            debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
+            debugging.info(
+                "Updating Airport Data .. every aviation_weather_adds_timer ("
+                + str(aviation_weather_adds_timer)
+                + "m)"
+            )
 
-            ret = utils.download_newer_file(https_session, metar_xml_url, metar_file, decompress=True)
+            ret = utils.download_newer_file(
+                https_session, metar_xml_url, metar_file, decompress=True
+            )
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
+            ret = utils.download_newer_file(
+                https_session, tafs_xml_url, tafs_file, decompress=True
+            )
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
@@ -405,7 +415,9 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as e:
-                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
+                debugging.error(
+                    "Update Weather Loop: self.update_airport_wx() exception"
+                )
                 debugging.error(e)
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

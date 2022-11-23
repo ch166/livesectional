@@ -240,7 +240,7 @@ class Airport:
             except Exception as e:
                 debugging.error(e)
         elif self.wxsrc.startswith("neigh"):
-            """ Get METAR data from alternative Airport"""
+            """Get METAR data from alternative Airport"""
             strparts = self.wxsrc.split(":")
             debugging.info(f"{self.icao} needs metar for {strparts[1]}")
         elif self.wxsrc == "usa-metar":

@@ -116,13 +116,17 @@ class WebViews:
         """Generate a standardized template_data"""
 
         airport_dict_data = {}
-        for airport_icao, airportdb_row in self.airport_database.get_airport_dict_led().items():
+        for (
+            airport_icao,
+            airportdb_row,
+        ) in self.airport_database.get_airport_dict_led().items():
             airport_object = airportdb_row["airport"]
             airport_record = {}
-            airport_record['icaocode'] = airport_icao
-            airport_record['metarsrc'] = airport_object.get_wxsrc()
-            airport_record['ledindex'] = airport_object.get_led_index()
-            airport_record['rawmetar'] = airport_object.get_raw_metar()
+            airport_record["active"] = airport_object["active"]
+            airport_record["icaocode"] = airport_icao
+            airport_record["metarsrc"] = airport_object.get_wxsrc()
+            airport_record["ledindex"] = airport_object.get_led_index()
+            airport_record["rawmetar"] = airport_object.get_raw_metar()
             airport_dict_data[airport_icao] = airport_record
 
         template_data = {

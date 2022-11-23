@@ -252,7 +252,7 @@ class UpdateOLEDs:
                 if oled_id == 3:
                     airportcode = "kbfi"
                     airport_list = self.airport_database.get_airport_dict_led()
-                    airport_record = airport_list[airportcode]
+                    airport_record = airport_list[airportcode]["airport"]
                     windspeed = airport_record.get_wx_windspeed()
                     winddir = random.randrange(360)
                     self.draw_wind(oled_id, airportcode, 140, winddir, windspeed)

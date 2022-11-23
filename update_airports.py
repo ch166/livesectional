@@ -84,15 +84,19 @@ class AirportDB:
         # Full list of interesting Airports loaded from JSON data
         self.airport_master_dict = {}
 
-        self.airport_master_list = []
-
         # Subset of airport_json_list that is active for live HTML page
         self.airport_web_dict = {}
 
         # Subset of airport_json_list that is active for LEDs
         self.airport_led_dict = {}
 
+        # Copy of raw json entries loaded from config
+        self.airport_master_list = []
+
+        # TODO: UNUSED FOR NOW
         self.tafs_xml_data = []
+
+        # Live RAW XML Data
         self.metar_xml_dict = {}
 
         debugging.info("AirportDB : init")
@@ -104,7 +108,7 @@ class AirportDB:
 
     def get_airport(self, airport_icao):
         """Return a single Airport"""
-        return self.airport_master_dict[airport_icao]
+        return self.airport_master_dict[airport_icao]["airport"]
 
     def get_airportdb(self):
         """Return a single Airport"""
@@ -124,7 +128,8 @@ class AirportDB:
 
     def update_airport_wx(self):
         """Update airport WX data for each known Airport"""
-        for icao, arpt in self.airport_master_dict.items():
+        for icao, arptdb_row in self.airport_master_dict.items():
+            arpt = arptdb_row["airport"]
             debugging.info("Updating WX for " + arpt.icao)
             try:
                 arpt.update_wx(self.metar_xml_dict)
@@ -132,6 +137,59 @@ class AirportDB:
                 debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
                 debugging.error(debug_string)
                 debugging.crash(e)
+
+    def airport_dict_from_json(self, airport_jsondb):
+        """Create Airport List from json src"""
+        # Airport dict Entry
+        #
+        # Dictionary of Airport Entries
+        # icao = Airport ICAO Code | NULL | LGND
+        # ledindex = Index of LED on LED String
+        # active = True / False
+        # purpose = all | web | led
+
+        airportdb_dict = {}
+
+        for json_airport in airport_jsondb["airports"]:
+            self.airport_master_list.append(json_airport)
+            airportdb_row = {}
+            airport_icao = json_airport["icao"]
+            airport_icao = airport_icao.lower()
+            debugging.info(f"Parsing Json Airport List : {airport_icao}")
+            # Need a Unique Key
+            airportdb_row["icao"] = airport_icao
+            airportdb_row["ledindex"] = int(json_airport["led"])
+            airportdb_row["active"] = json_airport["active"]
+            airportdb_row["purpose"] = json_airport["purpose"]
+            airport_db_id = airport_icao
+            if airport_icao in ("null", "lgnd"):
+                # Need a Unique Key if icao code is null or lgnd
+                ledindex = airportdb_row["ledindex"]
+                airport_db_id = f"{airport_icao}:{ledindex}"
+            airport_obj = airport.Airport(
+                airport_icao,
+                airport_icao,
+                json_airport["wxsrc"],
+                airportdb_row["active"],
+                airportdb_row["ledindex"],
+                self.conf,
+            )
+            airportdb_row["airport"] = airport_obj
+            airportdb_dict[airport_db_id] = airportdb_row
+        return airportdb_dict
+
+    def airport_dicts_update(self):
+        """Update master database sub-lists from master list"""
+        # LED List ( purpose: LED / NULL / LGND )
+        # WEB List ( purpose: WEB / LGND )
+        for airport_db_id, airportdb_row in self.airport_master_dict.items():
+            airport_icao = airportdb_row["icao"]
+            airport_purpose = airportdb_row["purpose"]
+            if airportdb_row["purpose"] in ("led", "all"):
+                self.airport_led_dict[airport_db_id] = airportdb_row
+            if airportdb_row["purpose"] in ("web", "all"):
+                self.airport_web_dict[airport_db_id] = airportdb_row
+        return
 
     def load_airport_db(self):
         """Load Airport Data file"""
@@ -149,60 +207,12 @@ class AirportDB:
         # On initial boot ; the saved data set could be empty
         # - This will need to create all the objects
         # On update ; some records will already exist, but may have updates
-        for json_airport in new_airport_json_dict["airports"]:
-            debugging.info("Merging Airport List")
-            # print(json_airport, flush = True)
-            json_airport_icao = json_airport["icao"]
-            json_airport_icao = json_airport_icao.lower()
-            if json_airport_icao == "null":
-                # Null entry in config file
-                # Need to add entry into master airport list and into LED list
-                # FIXME: Do something useful
-                self.airport_master_list.append(json_airport)
-                continue
-            if json_airport_icao == "lgnd":
-                # Legend entry in config file
-                # Need to add entry into master airport list and into LED list
-                # FIXME: Do something useful
-                self.airport_master_list.append(json_airport)
-                continue
-            # print(json_airport_icao, flush = True)
-            if json_airport_icao in self.airport_master_dict:
-                #  Airport exists already - need to update rather than  create new
-                # This will need to handle changes in LED and STATE for airports
-                # FIXME: Need to add handling for changed purpose - remove / delete old object
-                # perhaps change the sequence of this to do an optional create first, and then
-                # do all the insertions every time regardless.
-                debugging.info("Updating existing airport on list")
-                debugging.info(self.airport_master_dict[json_airport_icao])
-                self.airport_master_dict[json_airport_icao].set_led_index(int(json_airport["led"]))
-                self.airport_master_dict[json_airport_icao].set_wxsrc(json_airport["wxsrc"])
-                if json_airport["active"]:
-                    self.airport_master_dict[json_airport_icao].set_active()
-                else:
-                    self.airport_master_dict[json_airport_icao].set_inactive()
-                break
-            else:
-                # New Airport in config - need to create the airport object
-                self.airport_master_list.append(json_airport)
-                airport_icao = json_airport["icao"]
-                airport_led = int(json_airport["led"])
-                airport_wxsrc = json_airport["wxsrc"]
-                airport_active = json_airport["active"]
-                new_airport_obj = airport.Airport(
-                    airport_icao,
-                    airport_icao,
-                    airport_wxsrc,
-                    airport_active,
-                    airport_led,
-                    self.conf,
-                )
-                debugging.info(f"Adding airport to list : {airport_icao} led: {airport_led}")
-                self.airport_master_dict[airport_icao] = new_airport_obj
-                if json_airport["purpose"] == "led" or json_airport["purpose"] == "all":
-                    self.airport_led_dict[airport_icao] = new_airport_obj
-                if json_airport["purpose"] == "web" or json_airport["purpose"] == "all":
-                    self.airport_web_dict[airport_icao] = new_airport_obj
+
+        airport_dict_new = self.airport_dict_from_json(new_airport_json_dict)
+        # Update the master dictionary ; overwrite existing keys with new keys
+        self.airport_master_dict.update(airport_dict_new)
+        self.airport_dicts_update()
+
         debugging.info("Airport Load and Merge complete")
 
     def save_airport_db(self):

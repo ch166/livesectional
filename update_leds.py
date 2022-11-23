@@ -865,7 +865,7 @@ class UpdateLEDs:
             i = 0
             for airport_key in airport_list:
 
-                airport_record = airport_list[airport_key]
+                airport_record = airport_list[airport_key]["airport"]
                 airportcode = airport_record.icaocode()
                 airportled = airport_record.get_led_index()
 

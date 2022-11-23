@@ -13,4 +13,7 @@ cp data/airports.json /NeoSectional/data/
 mkdir -p /NeoSectional/templates
 cp templates/*.html /NeoSectional/templates/
 
+mkdir -p /NeoSectional/static
+rsync -rav --relative static/ /NeoSectional/
+
 mkdir -p /NeoSectional/logs/

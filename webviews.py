@@ -116,7 +116,8 @@ class WebViews:
         """Generate a standardized template_data"""
 
         airport_dict_data = {}
-        for airport_icao, airport_object in self.airport_database.get_airport_dict_led().items():
+        for airport_icao, airportdb_row in self.airport_database.get_airport_dict_led().items():
+            airport_object = airportdb_row["airport"]
             airport_record = {}
             airport_record['icaocode'] = airport_icao
             airport_record['metarsrc'] = airport_object.get_wxsrc()
@@ -286,7 +287,9 @@ class WebViews:
         lat_list = []
         lon_list = []
         airports = self.airport_database.get_airport_dict_led()
-        for icao, arpt in airports.items():
+        for icao, airportdb_row in airports.items():
+            arpt = airportdb_row["airport"]
+
             if not arpt.active():
                 continue
             lat = float(arpt.get_latitude())
@@ -332,7 +335,8 @@ class WebViews:
 
         # Set Marker Color by Flight Category
         airports = self.airport_database.get_airport_dict_led()
-        for icao, arpt in airports.items():
+        for icao, arptdb_row in airports.items():
+            arpt = arptdb_row["airport"]
             if not arpt.active():
                 continue
             if arpt.get_wx_category_str() == "VFR":
@@ -399,7 +403,8 @@ class WebViews:
         #    folium_map.add_child(marker)
 
         airports = self.airport_database.get_airport_dict_led()
-        for icao, arpt in airports.items():
+        for icao, arptdb_row in airports.items():
+            arpt = arptdb_row["airport"]
             if not arpt.active():
                 # Inactive airports likely don't have valid lat/lon data
                 continue

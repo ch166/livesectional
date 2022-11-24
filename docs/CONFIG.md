@@ -2,7 +2,7 @@
 
 The original design allows for multiple different hardware configurations, airport usage heatmaps, neighboring livesectional devices, LED assignments etc.
 
-Configuration management for these should be predictavle
+Configuration management for these should be predictable
 
 ## Airports: airport data file
 This is a mapping of LED positions to purpose, where the purpose is either
@@ -36,6 +36,14 @@ There are two set of problems in this space
 - Specific network local setup configuration
 
 This space has a bootstrap problem for initial setup - which might need it's own specific solution
+There is also the 'how to reset the networking to some defaults'. 
+In the scenario where someone is hand building the image for the Raspberry PI, it's probably reasonable to assume they can take care of network configuration,
+For the non-technical end user - the configuration management for the raspberry pi probably shouldn't be baked into this system.
+Should the base image for this include webmin to take care of general raspberry pi administration 
+ - users
+ - partitions
+ - packages
+ - network configuration
 
 ### External Data Sources
 There are a number of external data sources used for map, airport and weather data.

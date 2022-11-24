@@ -97,7 +97,7 @@ from rpi_ws281x import (
 import debugging
 import utils
 
-import colors
+import utils_colors
 
 
 class UpdateLEDs:
@@ -431,7 +431,7 @@ class UpdateLEDs:
         """Convert color from HEX to RGB or GRB and apply to LED String"""
         # TODO: Add capability here to manage 'nullpins' and remove any mention of it from the code
         # This function should do all the color conversions, and exclude NULL or Legend PINS
-        rgb_color = colors.RGB(hexcolor)
+        rgb_color = utils_colors.RGB(hexcolor)
         color_ord = self.rgbtogrb(led_id, rgb_color, self.rgb_grb)
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
         self.strip.setPixelColor(led_id, pixel_data)
@@ -439,7 +439,7 @@ class UpdateLEDs:
     def turnoff(self):
         """Set color to 0,0,0  - turning off LED"""
         for i in range(self.strip.numPixels()):
-            self.setLedColor(i, colors.black())
+            self.setLedColor(i, utils_colors.black())
         self.strip.show()
 
     def set_brightness(self, lux):
@@ -458,7 +458,7 @@ class UpdateLEDs:
         if isinstance(value, str):
             value = int(value)
 
-        data = colors.RGB(color_data)
+        data = utils_colors.RGB(color_data)
 
         red = max(data[0] - ((value * data[0]) / 100), 0)
         grn = max(data[1] - ((value * data[1]) / 100), 0)
@@ -586,7 +586,7 @@ class UpdateLEDs:
             if self.conf.get_bool("rotaryswitch", "fade_yesno") and self.conf.get_bool(
                 "rotaryswitch", "bin_grad"
             ):
-                color = colors.black()
+                color = utils_colors.black()
             elif not self.conf.get_bool("rotaryswitch", "use_homeap"):
                 color = self.high_visits
             else:
@@ -610,7 +610,7 @@ class UpdateLEDs:
             else:
                 color = self.high_visits
         else:
-            color = colors.black()
+            color = utils_colors.black()
         return color
 
     def check_heat_map(self, stationiddict, windsdict, wxstringdict):
@@ -978,7 +978,7 @@ class UpdateLEDs:
                 )
                 # Check to see if airport code is a NULL and set to black.
                 if airportcode in ("NULL", "LGND"):
-                    color = colors.black()
+                    color = utils_colors.black()
 
                 # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
                 if (
@@ -987,110 +987,110 @@ class UpdateLEDs:
                     and (airportled in self.legend_pins)
                 ):
                     if airportled == self.conf.get_int("lights", "leg_pin_vfr"):
-                        color = colors.VFR(self.conf)
+                        color = utils_colors.VFR(self.conf)
 
                     if airportled == self.conf.get_int("lights", "leg_pin_mvfr"):
-                        color = colors.MVFR(self.conf)
+                        color = utils_colors.MVFR(self.conf)
 
                     if airportled == self.conf.get_int("lights", "leg_pin_ifr"):
-                        color = colors.IFR(self.conf)
+                        color = utils_colors.IFR(self.conf)
 
                     if airportled == self.conf.get_int("lights", "leg_pin_lifr"):
-                        color = colors.LIFR(self.conf)
+                        color = utils_colors.LIFR(self.conf)
 
                     if airportled == self.conf.get_int("lights", "leg_pin_nowx"):
-                        color = colors.NOWEATHER(self.conf)
+                        color = utils_colors.NOWEATHER(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_hiwinds"
                     ) and self.conf.get_int("lights", "legend_hiwinds"):
                         if cycle_num in (3, 4, 5):
-                            color = colors.black()
+                            color = utils_colors.black()
                         else:
-                            color = colors.IFR(self.conf)
+                            color = utils_colors.IFR(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_lghtn"
                     ) and self.conf.get_int("lights", "legend_lghtn"):
                         if cycle_num in (2, 4):  # Check for Thunderstorms
-                            color = colors.LIGHTNING(self.conf)
+                            color = utils_colors.LIGHTNING(self.conf)
 
                         elif cycle_num in (0, 1, 3, 5):
-                            color = colors.MVFR(self.conf)
+                            color = utils_colors.MVFR(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_snow"
                     ) and self.conf.get_int("lights", "legend_snow"):
                         if cycle_num in (3, 5):  # Check for Snow
-                            color = colors.SNOW(self.conf, 1)
+                            color = utils_colors.SNOW(self.conf, 1)
 
                         if cycle_num == 4:
-                            color = colors.SNOW(self.conf, 2)
+                            color = utils_colors.SNOW(self.conf, 2)
 
                         elif cycle_num in (0, 1, 2):
-                            color = colors.LIFR(self.conf)
+                            color = utils_colors.LIFR(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_rain"
                     ) and self.conf.get_int("lights", "legend_rain"):
                         if cycle_num in (3, 5):  # Check for Rain
-                            color = colors.RAIN(self.conf, 1)
+                            color = utils_colors.RAIN(self.conf, 1)
 
                         if cycle_num == 4:
-                            color = colors.RAIN(self.conf, 2)
+                            color = utils_colors.RAIN(self.conf, 2)
 
                         elif cycle_num in (0, 1, 2):
-                            color = colors.VFR(self.conf)
+                            color = utils_colors.VFR(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_frrain"
                     ) and self.conf.get_int("lights", "legend_frrain"):
                         if cycle_num in (3, 5):  # Check for Freezing Rain
-                            color = colors.FRZRAIN(self.conf, 1)
+                            color = utils_colors.FRZRAIN(self.conf, 1)
 
                         if cycle_num == 4:
-                            color = colors.FRZRAIN(self.conf, 2)
+                            color = utils_colors.FRZRAIN(self.conf, 2)
 
                         elif cycle_num in (0, 1, 2):
-                            color = colors.MVFR(self.conf)
+                            color = utils_colors.MVFR(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_dustsandash"
                     ) and self.conf.get_int("lights", "legend_dustsandash"):
                         if cycle_num in (3, 5):  # Check for Dust, Sand or Ash
-                            color = colors.DUST_SAND_ASH(self.conf, 1)
+                            color = utils_colors.DUST_SAND_ASH(self.conf, 1)
 
                         if cycle_num == 4:
-                            color = colors.DUST_SAND_ASH(self.conf, 2)
+                            color = utils_colors.DUST_SAND_ASH(self.conf, 2)
 
                         elif cycle_num in (0, 1, 2):
-                            color = colors.VFR(self.conf)
+                            color = utils_colors.VFR(self.conf)
 
                     if airportled == self.conf.get_int(
                         "lights", "leg_pin_fog"
                     ) and self.conf.get_int("lights", "legend_fog"):
                         if cycle_num in (3, 5):  # Check for Fog
-                            color = colors.FOG(self.conf, 1)
+                            color = utils_colors.FOG(self.conf, 1)
 
                         if cycle_num == 4:
-                            color = colors.FOG(self.conf, 2)
+                            color = utils_colors.FOG(self.conf, 2)
 
                         elif cycle_num in (0, 1, 2):
-                            color = colors.IFR(self.conf)
+                            color = utils_colors.IFR(self.conf)
 
                 # Start of weather display code for each airport in the "airports" file
                 # Check flight category and set the appropriate color to display
                 if flightcategory != "NONE":
                     if flightcategory == "VFR":  # Visual Flight Rules
-                        color = colors.VFR(self.conf)
+                        color = utils_colors.VFR(self.conf)
                     elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
-                        color = colors.MVFR(self.conf)
+                        color = utils_colors.MVFR(self.conf)
                     elif flightcategory == "IFR":  # Instrument Flight Rules
-                        color = colors.IFR(self.conf)
+                        color = utils_colors.IFR(self.conf)
                     elif flightcategory == "LIFR":  # Low Instrument Flight Rules
-                        color = colors.LIFR(self.conf)
+                        color = utils_colors.LIFR(self.conf)
                     else:
-                        color = colors.NOWEATHER(self.conf)
+                        color = utils_colors.NOWEATHER(self.conf)
 
                 # 3.01 bug fix by adding "LGND" test
                 elif (
@@ -1098,7 +1098,7 @@ class UpdateLEDs:
                     and airportcode != "LGND"
                     and airportcode != "NULL"
                 ):
-                    color = colors.NOWEATHER(self.conf)
+                    color = utils_colors.NOWEATHER(self.conf)
 
                 # Check winds and set the 2nd half of cycles to black to create blink effect
                 if self.conf.get_bool(
@@ -1107,7 +1107,7 @@ class UpdateLEDs:
                     if int(airportwinds) >= self.conf.get_int(
                         "metar", "max_wind_speed"
                     ) and (cycle_num in (3, 4, 5)):
-                        color = colors.black()
+                        color = utils_colors.black()
                         debugging.debug(
                             (
                                 "HIGH WINDS-> "
@@ -1123,49 +1123,49 @@ class UpdateLEDs:
                     if self.conf.get_bool("lights", "lghtnflash"):
                         # Check for Thunderstorms
                         if airportwx in self.wx_lghtn_ck and (cycle_num in (2, 4)):
-                            color = colors.LIGHTNING(self.conf)
+                            color = utils_colors.LIGHTNING(self.conf)
 
                     if self.conf.get_bool("lights", "snowshow"):
                         # Check for Snow
                         if airportwx in self.wx_snow_ck and (cycle_num in (3, 5)):
-                            color = colors.SNOW(self.conf, 1)
+                            color = utils_colors.SNOW(self.conf, 1)
 
                         if airportwx in self.wx_snow_ck and cycle_num == 4:
-                            color = colors.SNOW(self.conf, 2)
+                            color = utils_colors.SNOW(self.conf, 2)
 
                     if self.conf.get_bool("lights", "rainshow"):
                         # Check for Rain
                         if airportwx in self.wx_rain_ck and (cycle_num in (3, 4)):
-                            color = colors.RAIN(self.conf, 1)
+                            color = utils_colors.RAIN(self.conf, 1)
 
                         if airportwx in self.wx_rain_ck and cycle_num == 5:
-                            color = colors.RAIN(self.conf, 2)
+                            color = utils_colors.RAIN(self.conf, 2)
 
                     if self.conf.get_bool("lights", "frrainshow"):
                         # Check for Freezing Rain
                         if airportwx in self.wx_frrain_ck and (cycle_num in (3, 5)):
-                            color = colors.FRZRAIN(self.conf, 1)
+                            color = utils_colors.FRZRAIN(self.conf, 1)
 
                         if airportwx in self.wx_frrain_ck and cycle_num == 4:
-                            color = colors.FRZRAIN(self.conf, 2)
+                            color = utils_colors.FRZRAIN(self.conf, 2)
 
                     if self.conf.get_bool("lights", "dustsandashshow"):
                         # Check for Dust, Sand or Ash
                         if airportwx in self.wx_dustsandash_ck and (
                             cycle_num in (3, 5)
                         ):
-                            color = colors.DUST_SAND_ASH(self.conf, 1)
+                            color = utils_colors.DUST_SAND_ASH(self.conf, 1)
 
                         if airportwx in self.wx_dustsandash_ck and cycle_num == 4:
-                            color = colors.DUST_SAND_ASH(self.conf, 2)
+                            color = utils_colors.DUST_SAND_ASH(self.conf, 2)
 
                     if self.conf.get_bool("lights", "fogshow"):
                         # Check for Fog
                         if airportwx in self.wx_fog_ck and (cycle_num in (3, 5)):
-                            color = colors.FOG(self.conf, 1)
+                            color = utils_colors.FOG(self.conf, 1)
 
                         if airportwx in self.wx_fog_ck and cycle_num == 4:
-                            color = colors.FOG(self.conf, 2)
+                            color = utils_colors.FOG(self.conf, 2)
 
                 # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
                 # so that every other time through, the color will display the proper weather, then homeport color(s).
@@ -1190,19 +1190,19 @@ class UpdateLEDs:
                     # if this is the home airport, don't dim out the brightness
                     norm_color = color
                     # FIXME: This won't work
-                    color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
+                    color = utils_colors.HEX(norm_color[0], norm_color[1], norm_color[2])
                 elif self.conf.get_bool(
                     "lights", "homeport"
                 ):  # if this is not the home airport, dim out the brightness
                     dim_color = self.dim(
                         color, self.conf.get_int("lights", "dim_value")
                     )
-                    color = colors.HEX(
+                    color = utils_colors.HEX(
                         int(dim_color[0]), int(dim_color[1]), int(dim_color[2])
                     )
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness
                     norm_color = color
-                    color = colors.HEX(norm_color[0], norm_color[1], norm_color[2])
+                    color = utils_colors.HEX(norm_color[0], norm_color[1], norm_color[2])
 
                 # debugging.info(f"LED:{i}, Code:{airportcode}")
                 self.setLedColor(airportled, color)
@@ -1271,7 +1271,7 @@ class UpdateLEDs:
         for led_pin in range(self.strip.numPixels()):
             if str(led_pin) in self.nullpins:
                 # exclude NULL and LGND pins from wipe
-                self.setLedColor(led_pin, colors.black())
+                self.setLedColor(led_pin, utils_colors.black())
             else:
                 self.setLedColor(led_pin, color)
         self.strip.show()

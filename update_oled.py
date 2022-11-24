@@ -228,7 +228,12 @@ class UpdateOLEDs:
         debugging.info(f"OLED: Writing to device: {oled_id} : Airport : {airport}")
         device = oled_dev["device"]
 
-        boundingbox = [(0, 20), (width, height)]
+        border = 2
+        x1 = 0 + border
+        y1 = 10 + border
+        x2 = width - border
+        y2 = height - border
+        boundingbox = [(x1,y1),(x2,y2)]
         airport_details = f"{airport} {winddir}@{windspeed}"
         pie_dir = (winddir + 270) % 360
 
@@ -236,6 +241,7 @@ class UpdateOLEDs:
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
             draw.text((1, 1), airport_details, font=afont, fill="white")
+
             draw.pieslice(
                 boundingbox,
                 pie_dir - 6,

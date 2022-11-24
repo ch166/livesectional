@@ -95,7 +95,7 @@ function get_badge(ap,loc) {
 
   }
       
-  outp = '<a href="https://www.aviationweather.gov/metar/data?ids='+ap+'&format=decoded&hours=0&taf=on&layout=on" target="_blank">';
+  outp = '<a href="https://www.aviationweather.gov/metar/data?ids='+ap+'&format=decoded&hours=0&taf=on&layout=on" rel="noopener noreferrer" target="_blank">';
   if (flightcategory == 'VFR') {
     var outp = outp + '<h6><span class="badge badge-success">';
     } else if (flightcategory == 'MVFR') {
@@ -132,13 +132,13 @@ function get_fc(ap,loc) {
     obj = JSON.parse(xhttp.responseText);
 
       if (obj.data[0].flight_category == 'VFR') {
-        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" target="_blank"><h5><p class="badge badge-success">'
+        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-success">'
         } else if (obj.data[0].flight_category == 'MVFR') {
-        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" target="_blank"><h5><p class="badge badge-primary">'
+        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-primary">'
         } else if (obj.data[0].flight_category == 'IFR') {
-        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" target="_blank"><h5><p class="badge badge-danger">'
+        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-danger">'
         } else if (obj.data[0].flight_category == 'LIFR') {
-        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" target="_blank"><h5><p class="badge badge-warning">'
+        var outp = '<a href="https://www.checkwx.com/weather/'+ap+'/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-warning">'
         }
       outp = outp + '&nbsp'+obj.data[0].flight_category+'&nbsp</p></h5></a>'
     document.getElementById(loc).innerHTML = outp
@@ -223,7 +223,7 @@ xhttp.send();
         <div class="dropdown-menu">
           <a class="dropdown-item" href="/apedit">Editor <i class='far fa-edit'></i></a>
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="https://www.rocketroute.com/airports" target="aplookup">Lookup Airports <i class='fas fa-external-link-alt'></i></a>
+          <a class="dropdown-item" href="https://www.rocketroute.com/airports" rel="noopener noreferrer" target="aplookup">Lookup Airports <i class='fas fa-external-link-alt'></i></a>
           <a class="dropdown-item {% if enable != 2 %} {{ 'disabled' }} {% endif %}" href="/apedit">Restore Airports from File<i class='far fa-window-restore'></i></a>
           <a class="dropdown-item {% if enable != 2 %} {{ 'disabled' }} {% endif %}" href="javascript:{}" onclick="document.getElementById('appost').submit(); return false;">Save Airport File <i class='far fa-save'></i></a>
         </div>
@@ -260,7 +260,7 @@ xhttp.send();
           <a class="dropdown-item" href="/update_page"><b>Click to Update to v{{ update_vers }}</b> <i class='far fa-check-square'></i></a>
           {% endif %}
           {% if update_available == 2 %}
-          <a class="dropdown-item" href="https://www.livesectional.com/downloads/" target="_blank"><b>Click to Download Latest Image</b> <i class='far fa-check-square'></i></a>
+          <a class="dropdown-item" href="https://www.livesectional.com/downloads/" rel="noopener noreferrer" target="_blank"><b>Click to Download Latest Image</b> <i class='far fa-check-square'></i></a>
           {% endif %}
 
           <a class="dropdown-item" href="/index">Homepage <i class='fas fa-home'></i></a>
@@ -283,8 +283,8 @@ xhttp.send();
           <a class="dropdown-item" href="/stream_log" target="stream_log">Display Log File <i class='fab fa-wpforms'></i></a>
           <a class="dropdown-item" href="/yield" target="lssysinfo">System Information <i class='fas fa-code'></i></a>
           <a class="dropdown-item" href="/update_info">Update History <i class='fa fa-history'></i></a>
-          <a class="dropdown-item" href="https://www.livesectional.com/community/ls-schematics/" target="_blank">View Schematics <i class='fas fa-external-link-alt'></i></a>
-          <a class="dropdown-item" href="http://www.livesectional.com/community/main-forum/" target="_blank">Help <i class='fas fa-external-link-alt'></i></a>
+          <a class="dropdown-item" href="https://www.livesectional.com/community/ls-schematics/" rel="noopener noreferrer" target="_blank">View Schematics <i class='fas fa-external-link-alt'></i></a>
+          <a class="dropdown-item" href="http://www.livesectional.com/community/main-forum/" rel="noopener noreferrer" target="_blank">Help <i class='fas fa-external-link-alt'></i></a>
         </div>
       </li>
 
@@ -294,7 +294,7 @@ xhttp.send();
         <div class="dropdown-menu">
           {% for i in range(machines|length) %}
             {% set ip_add = machines[i].split(' ') %}
-            <a class="dropdown-item" href="http://{{ ip_add[0] }}:5000" target="_blank">{{ machines[i] }} <i class='fas fa-external-link-alt'></i></a>
+            <a class="dropdown-item" href="http://{{ ip_add[0] }}:5000" rel="noopener noreferrer" target="_blank">{{ machines[i] }} <i class='fas fa-external-link-alt'></i></a>
           {% endfor %}
         </div>
       </li>
@@ -381,7 +381,7 @@ xhttp.send();
     </tr>
     <tr>
 
-        <td class="submitbuttons"><a href="http://www.livesectional.com/community/main-forum/" target="_blank">
+        <td class="submitbuttons"><a href="http://www.livesectional.com/community/main-forum/" rel="noopener noreferrer" target="_blank">
         <input type="button" class="button" value="Help"></a>
         </td>
 
@@ -414,7 +414,7 @@ xhttp.send();
      <td colspan="6">
       <center>
        <span style="font-size:12px">
-        Copyright 2021, 2022 - Bill Bryson III,  Mark Harris - <a href="http://www.livesectional.com" target="_blank">www.livesectional.com</a>
+        Copyright 2021, 2022 - Bill Bryson III,  Mark Harris - <a href="http://www.livesectional.com" rel="noopener noreferrer" target="_blank">www.livesectional.com</a>
        </span>
       </center>
      </td>
@@ -488,7 +488,7 @@ function myFunction(selectObject) {
     } else if (x == 'LGND') {
         document.getElementById(field).innerHTML = "LED will be used as a Legend, set to; " + x;
     } else {
-        document.getElementById(field).innerHTML = "<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId="+x+" target="+"_blank"+">You entered: "+x+". Click for more info.</a>";
+        document.getElementById(field).innerHTML = "<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId="+x+" rel="noopener noreferrer" target="+"_blank"+">You entered: "+x+". Click for more info.</a>";
     }
 
     document.getElementsByName("lednum")[0].value = num;

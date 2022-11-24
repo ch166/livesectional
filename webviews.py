@@ -122,7 +122,7 @@ class WebViews:
         ) in self.airport_database.get_airport_dict_led().items():
             airport_object = airportdb_row["airport"]
             airport_record = {}
-            airport_record["active"] = airport_object["active"]
+            airport_record["active"] = airport_object.active()
             airport_record["icaocode"] = airport_icao
             airport_record["metarsrc"] = airport_object.get_wxsrc()
             airport_record["ledindex"] = airport_object.get_led_index()

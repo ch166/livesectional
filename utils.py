@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*- #
 """ Collection of shared utility functions for all of the modules """
 
+
+import contextlib
 import os
 import time
 import shutil
@@ -26,7 +28,7 @@ import debugging
 
 def is_connected():
     """Check to see if we can reach an endpoint on the Internet"""
-    try:
+    with contextlib.suppress(OSError):
         # connect to the host -- tells us if the host is actually
         # reachable
         sock = socket.create_connection(("ipv4.google.com", 80))
@@ -34,8 +36,6 @@ def is_connected():
             print("Closing socket")
             sock.close()
         return True
-    except OSError:
-        pass
     return False
 
 
@@ -54,7 +54,7 @@ def wait_for_internet():
 def get_local_ip():
     """Create Socket to the Internet, Query Local IP"""
     ipaddr = "UNKN"
-    try:
+    with contextlib.suppress(OSError):
         # connect to the host -- tells us if the host is actually
         # reachable
         sock = socket.create_connection(("ipv4.google.com", 80))
@@ -63,8 +63,6 @@ def get_local_ip():
             print("Closing socket")
             sock.close()
         return ipaddr
-    except OSError:
-        pass
     return "0.0.0.0"
 
 
@@ -78,7 +76,6 @@ def get_local_ip():
 # Going to look at python-geoip as a data source
 def get_loc():
     """Try figure out approximate location from IP data"""
-    loc_data = {}
     loc = {}
 
     url_loc = "https://extreme-ip-lookup.com/json/"
@@ -86,31 +83,21 @@ def get_loc():
     data = json.loads(geo_json_data.content.decode())
 
     ip_data = data["query"]
-    loc_data["city"] = data["city"]
-    loc_data["region"] = data["region"]
-    loc_data["lat"] = data["lat"]
-    loc_data["lon"] = data["lon"]
+    loc_data = {"city": data["city"], "region": data["region"], "lat": data["lat"], "lon": data["lon"]}
+
     loc[ip_data] = loc_data
 
 
 def delete_file(target_path, filename):
     """Delete File"""
-    # TODO: - Check to make sure filename is not relative
-    if os.path.isfile(filename):
-        try:
-            os.remove(target_path + filename)
-            debugging.info("Deleted " + filename)
-            return True
-        except OSError as e:
-            debugging.error(
-                "Error "
-                + e.__str__()
-                + " while deleting file "
-                + target_path
-                + filename
-            )
-    else:
+    if not os.path.isfile(filename):
         return False
+    try:
+        os.remove(target_path + filename)
+        debugging.info(f"Deleted {filename}")
+        return True
+    except OSError as e:
+        debugging.error(f"Error {e.__str__()} while deleting file {target_path}{filename}")
 
 
 def rgb2hex(rgb):
@@ -142,20 +129,20 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
     3 - Download not attempted
 
     """
-    debugging.info("Starting download_newer_file" + filename)
+    debugging.info(f"Starting download_newer_file{filename}")
 
     # Do a HTTP GET to pull headers so we can check timestamps
     try:
         req = session.head(url, allow_redirects=True, timeout=5)
     except Exception as e:
-        msg = "Problem requesting " + url
+        msg = f"Problem requesting {url}"
         debugging.info(msg)
         debugging.error(e)
         return 1
 
     url_time = req.headers["last-modified"]
     url_date = parsedate(url_time)
-
+    # Default is to assume we won't download the file
     download = False
 
     if not os.path.isfile(filename):
@@ -178,7 +165,7 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
 
     if download:
         # Need to trigger a file download
-        debugging.info("Starting download_newer_file" + filename)
+        debugging.info(f"Starting download_newer_file{filename}")
         try:
             # Download file to temporary object
             #
@@ -190,7 +177,7 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
                 try:
                     decompress_file_gz(download_object.name, uncompress_object.name)
                 except Exception as e:
-                    debugging.error("File decompression failed for : " + filename)
+                    debugging.error(f"File decompression failed for : {filename}")
                     debugging.error(e)
                 os.remove(download_object.name)
                 download_object = uncompress_object
@@ -255,12 +242,9 @@ def reboot_if_time(conf):
     if use_reboot and use_autorun:
         now = datetime.now()
         rb_time = now.strftime("%H:%M")
-        debugging.info(
-            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
-        )
-        print(
-            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
-        )  # debug
+        debugging.info(f"**Current Time={str(rb_time)} - **Reboot Time={str(reboot_time)}")
+
+        print(f"**Current Time={str(rb_time)} - **Reboot Time={str(reboot_time)}")
 
         # FIXME: Reference to 'self' here
         # if rb_time == self.time_reboot:
@@ -294,23 +278,20 @@ def current_time_hr_utc(conf):
 def current_time_utc(conf):
     """Get time in UTC"""
     UTC = pytz.utc
-    curr_time = datetime.now(UTC)
-    return curr_time
+    return datetime.now(UTC)
 
 
 def current_time(conf):
     """Get time Now"""
     TMZONE = pytz.timezone(conf.get_string("default", "timezone"))
-    curr_time = datetime.now(TMZONE)
-    return curr_time
+    return datetime.now(TMZONE)
 
 
 def current_time_taf_offset(conf):
     """Get time for TAF period selected (UTC)"""
     UTC = pytz.utc
     offset = conf.get_int("rotaryswitch", "hour_to_display")
-    curr_time = datetime.now(UTC) + timedelta(hours=offset)
-    return curr_time
+    return datetime.now(UTC) + timedelta(hours=offset)
 
 
 def set_timezone(conf, newtimezone):

@@ -281,6 +281,11 @@ class AirportDB:
                 metar_dict[station_id]["observation_time"] = next_object.text
             else:
                 metar_dict[station_id]["observation_time"] = "Missing"
+            next_object = metar_data.find("wind_dir_degrees")
+            if next_object is not None:
+                metar_dict[station_id]["wind_dir_degrees"] = int(next_object.text)
+            else:
+                metar_dict[station_id]["wind_dir_degrees"] = 0
             next_object = metar_data.find("wind_speed_kt")
             if next_object is not None:
                 metar_dict[station_id]["wind_speed_kt"] = int(next_object.text)

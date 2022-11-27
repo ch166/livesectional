@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 # Update i2c attached devices
 """
-Manage OLED Devices
+Manage OLED Devices.
 
 Support a discrete thread that updates OLED display devices
 
@@ -36,6 +36,7 @@ from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106, ws0010
 import debugging
 import utils
 import utils_i2c
+import utils_gfx
 
 from PIL import Image
 from PIL import ImageDraw
@@ -43,7 +44,7 @@ from PIL import ImageFont
 
 
 class OLEDCHIPSET(Enum):
-    """Support a range of chipsets ; with different features"""
+    """Support a range of chipsets ; with different features."""
 
     SSD1306 = auto()  # SSD1306, 128x64/128x32, Monochrome
     SSD1309 = auto()  # SSD1309, 128x64, Monochrome
@@ -54,7 +55,7 @@ class OLEDCHIPSET(Enum):
 
 
 class UpdateOLEDs:
-    """Class to manage OLED panels"""
+    """Class to manage OLED panels."""
 
     # There are a few different hardware configuration options that could be used.
     # Writing code to automatically handle all of them would make the code very complex, as the
@@ -124,8 +125,8 @@ class UpdateOLEDs:
     OLEDI2CID = 0x3C
     MONOCHROME = "1"  # Single bit color mode for ssd1306 / sh1106
 
-    OLED_128x64 = {"h": 128, "w": 64}
-    OLED_128x32 = {"h": 128, "w": 32}
+    OLED_128x64 = {"w": 128, "h": 64}
+    OLED_128x32 = {"w": 128, "h": 32}
 
     reentry_check = False
     conf = None
@@ -161,7 +162,7 @@ class UpdateOLEDs:
         debugging.info(f"OLED: Init complete : oled_list len {len(self.oled_list)}")
 
     def oled_device_init(self, device_idnum):
-        """Initialize individual OLED devices"""
+        """Initialize individual OLED devices."""
         # Initial version just assumes all OLED devices are the same.
         oled_dev = self.oled_dict_default.copy()
         oled_dev["active"] = False
@@ -186,7 +187,7 @@ class UpdateOLEDs:
         self.i2cbus.select(oled_id)
 
     def oled_text(self, oled_id, txt):
-        """Update oled_id with the message from txt"""
+        """Update oled_id with the message from txt."""
         if oled_id > len(self.oled_list):
             debugging.info("OLED: Attempt to access index beyond list length {oled_id}")
             return
@@ -194,8 +195,6 @@ class UpdateOLEDs:
         if oled_dev["active"] is False:
             debugging.info(f"OLED: Attempting to update disabled OLED : {oled_id}")
             return
-        width = oled_dev["size"]["w"]
-        height = oled_dev["size"]["h"]
 
         fnt = ImageFont.load_default()
         # image = Image.new(oled_dev["mode"], (width, height))  # Make sure to create image with mode '1' for 1-bit color.
@@ -210,8 +209,8 @@ class UpdateOLEDs:
             draw.text((30, 40), txt, font=fnt, fill="white")
         self.i2cbus.bus_unlock()
 
-    def draw_wind(self, oled_id, airport, runway, winddir, windspeed):
-        """Draw Wind Direction"""
+    def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
+        """Draw Wind Arrow and Runway."""
         if oled_id > len(self.oled_list):
             debugging.info("OLED: Attempt to access index beyond list length {oled_id}")
             return
@@ -219,41 +218,43 @@ class UpdateOLEDs:
         if oled_dev["active"] is False:
             debugging.info(f"OLED: Attempting to update disabled OLED : {oled_id}")
             return
+
+        device = oled_dev["device"]
         width = oled_dev["size"]["w"]
         height = oled_dev["size"]["h"]
 
-        # Setup Image
-        afont = ImageFont.load_default()
-        # image = Image.new(oled_dev["mode"], (width, height))
-        debugging.info(f"OLED: Writing to device: {oled_id} : Airport : {airport}")
-        device = oled_dev["device"]
-
-        border = 2
-        x1 = 0 + border
-        y1 = 10 + border
-        x2 = width - border
-        y2 = height - border
-        boundingbox = [(x1,y1),(x2,y2)]
+        # Runway Dimensions
+        rway_width = 6
+        rway_X = 5  # 5 pixel border
+        rway_Y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport} {winddir}@{windspeed}"
-        pie_dir = (winddir + 270) % 360
+        wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
+        runway_poly = utils_gfx.create_runway(rway_X, rway_Y, rway_width, rway_angle, width, height)
 
-        self.oled_select(oled_id)
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
-            draw.text((1, 1), airport_details, font=afont, fill="white")
-
-            draw.pieslice(
-                boundingbox,
-                pie_dir - 6,
-                pie_dir + 6,
-                fill="white",
-                outline="white",
-                width=1,
-            )
+            draw.text((1, 1), airport_details, font=ImageFont.load_default(), fill="white")
+            draw.polygon(wind_poly, fill="white", outline="white")
+            draw.polygon(runway_poly, fill=None, outline="white")
         self.i2cbus.bus_unlock()
 
+    def update_oled_wind(self, oled_id, airportcode, airportrwy):
+        """Draw WIND Info on designated OLED."""
+        # FIXME: Hardcoded data
+        airport_list = self.airport_database.get_airport_dict_led()
+        airport_record = airport_list[airportcode]["airport"]
+        if airport_record is None:
+            debugging.info(f"Skipping OLED update {airportcode} lookup returns :None:")
+            return
+        windspeed = airport_record.get_wx_windspeed()
+        if windspeed is None:
+            windspeed = 0
+        winddir = airport_record.get_wx_dir_degrees()
+        if winddir is not None:
+            self.draw_wind(oled_id, airportcode, airportrwy, winddir, windspeed)
+
     def update_loop(self):
-        """Continuous Loop for Thread"""
+        """Continuous Loop for Thread."""
         debugging.info("OLED: Entering Update Loop")
         outerloop = True  # Set to TRUE for infinite outerloop
         count = 0
@@ -262,11 +263,11 @@ class UpdateOLEDs:
             debugging.info("OLED: Updating OLEDs")
             for oled_id in range(0, (self.device_count)):
                 self.oled_text(oled_id, f"run({count}): {oled_id}")
+                # FIXME: This is hardcoded
                 if oled_id == 3:
-                    airportcode = "kbfi"
-                    airport_list = self.airport_database.get_airport_dict_led()
-                    airport_record = airport_list[airportcode]["airport"]
-                    windspeed = airport_record.get_wx_windspeed()
-                    winddir = random.randrange(360)
-                    self.draw_wind(oled_id, airportcode, 140, winddir, windspeed)
+                    self.update_oled_wind(oled_id, "kbfi", 140)
+                if oled_id == 4:
+                    self.update_oled_wind(oled_id, "kpwt", 200)
+                if oled_id == 5:
+                    self.update_oled_wind(oled_id, "kfhr", 340)
             time.sleep(180)

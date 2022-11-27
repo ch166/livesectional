@@ -86,6 +86,7 @@ class Airport:
         self.wx_conditions = ()
         self.wx_visibility = None
         self.wx_ceiling = None
+        self.wx_dir_degrees = None
         self.wx_windspeed = None
         self.wx_windgust = None
         self.wx_category = None
@@ -185,6 +186,10 @@ class Airport:
         """Return string form of airport weather category"""
         return self.wx_category_str
 
+    def get_wx_dir_degrees(self):
+        """Return reported windspeed"""
+        return self.wx_dir_degrees
+
     def get_wx_windspeed(self):
         """Return reported windspeed"""
         return self.wx_windspeed
@@ -210,6 +215,7 @@ class Airport:
         self.wx_visibility = metar_dict[self.icao]["visibility"]
         self.wx_ceiling = metar_dict[self.icao]["ceiling"]
         self.wx_windspeed = metar_dict[self.icao]["wind_speed_kt"]
+        self.wx_dir_degrees = metar_dict[self.icao]["wind_dir_degrees"]
         self.wx_windgust = metar_dict[self.icao]["wind_gust_kt"]
         self.wx_category_str = metar_dict[self.icao]["flight_category"]
         self.latitude = float(metar_dict[self.icao]["latitude"])

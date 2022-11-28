@@ -152,14 +152,14 @@ class UpdateOLEDs:
         self.i2cbus = i2cbus
         self.device_count = self.conf.get_int("oled", "oled_count")
 
-        debugging.info("OLED: Config setup for {self.device_count} devices")
+        debugging.debug("OLED: Config setup for {self.device_count} devices")
 
         for device_idnum in range(0, (self.device_count)):
-            debugging.info(f"OLED: Polling for device: {device_idnum}")
+            debugging.debug(f"OLED: Polling for device: {device_idnum}")
             self.oled_list.insert(device_idnum, self.oled_device_init(device_idnum))
             self.oled_text(device_idnum, f"Init {device_idnum}")
 
-        debugging.info(f"OLED: Init complete : oled_list len {len(self.oled_list)}")
+        debugging.debug(f"OLED: Init complete : oled_list len {len(self.oled_list)}")
 
     def oled_device_init(self, device_idnum):
         """Initialize individual OLED devices."""
@@ -177,7 +177,7 @@ class UpdateOLEDs:
                 device = ssd1306(serial)
             oled_dev["device"] = device
             oled_dev["active"] = True
-            debugging.info("OLED: Activating: {device_idnum}")
+            debugging.debug("OLED: Activating: {device_idnum}")
         return oled_dev
 
     def oled_select(self, oled_id):
@@ -189,11 +189,11 @@ class UpdateOLEDs:
     def oled_text(self, oled_id, txt):
         """Update oled_id with the message from txt."""
         if oled_id > len(self.oled_list):
-            debugging.info("OLED: Attempt to access index beyond list length {oled_id}")
+            debugging.warn("OLED: Attempt to access index beyond list length {oled_id}")
             return
         oled_dev = self.oled_list[oled_id]
         if oled_dev["active"] is False:
-            debugging.info(f"OLED: Attempting to update disabled OLED : {oled_id}")
+            debugging.warn(f"OLED: Attempting to update disabled OLED : {oled_id}")
             return
 
         fnt = ImageFont.load_default()
@@ -201,7 +201,7 @@ class UpdateOLEDs:
         # draw = ImageDraw.Draw(image)
         # txt_w, txt_h = draw.textsize(txt, fnt)
         device = oled_dev["device"]
-        debugging.info(f"OLED: Writing to device: {oled_id} : Msg : {txt}")
+        debugging.debug(f"OLED: Writing to device: {oled_id} : Msg : {txt}")
         self.oled_select(oled_id)
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
@@ -212,11 +212,11 @@ class UpdateOLEDs:
     def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
         """Draw Wind Arrow and Runway."""
         if oled_id > len(self.oled_list):
-            debugging.info("OLED: Attempt to access index beyond list length {oled_id}")
+            debugging.warn("OLED: Attempt to access index beyond list length {oled_id}")
             return
         oled_dev = self.oled_list[oled_id]
         if oled_dev["active"] is False:
-            debugging.info(f"OLED: Attempting to update disabled OLED : {oled_id}")
+            debugging.warn(f"OLED: Attempting to update disabled OLED : {oled_id}")
             return
 
         device = oled_dev["device"]
@@ -244,7 +244,7 @@ class UpdateOLEDs:
         airport_list = self.airport_database.get_airport_dict_led()
         airport_record = airport_list[airportcode]["airport"]
         if airport_record is None:
-            debugging.info(f"Skipping OLED update {airportcode} lookup returns :None:")
+            debugging.debug(f"Skipping OLED update {airportcode} lookup returns :None:")
             return
         windspeed = airport_record.get_wx_windspeed()
         if windspeed is None:
@@ -255,7 +255,7 @@ class UpdateOLEDs:
 
     def update_loop(self):
         """Continuous Loop for Thread."""
-        debugging.info("OLED: Entering Update Loop")
+        debugging.debug("OLED: Entering Update Loop")
         outerloop = True  # Set to TRUE for infinite outerloop
         count = 0
         while outerloop:

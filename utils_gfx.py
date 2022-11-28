@@ -70,7 +70,7 @@ def create_wind_arrow(windangle, width, height):
     seqR = rotate_polygon(seqOffset, math.radians((windangle + 270) % 360))
     seqOffset2 = poly_offset(seqR, offX, offY)
     seqDraw = poly_offset(seqOffset2, int((width / 2) - offX), int((height / 2) - offY))
-    debugging.info(f"arrow:{windangle}\n  in:{arrow}\n out:{seqDraw}\n   w:{width} / h:{height}")
+    debugging.debug(f"arrow:{windangle}\n  in:{arrow}\n out:{seqDraw}\n   w:{width} / h:{height}")
     return seqDraw
 
 
@@ -84,6 +84,6 @@ def create_runway(rx, ry, rwidth, rwangle, width, height):
     seqR = rotate_polygon(seqOffset, math.radians((rwangle + 270) % 360))
     seqOffset2 = poly_offset(seqR, offX, offY)
     seqDraw = poly_offset(seqOffset2, int((width / 2) - offX), int((height / 2) - offY))
-    debugging.info(f"runway:{rwangle}\n  in:{runway}\n out:{seqDraw}")
-    debugging.info(f"runway:x-{rx}:y-{ry}:rw-{rwidth}:w-{width}:h-{height}")
+    debugging.debug(f"runway:{rwangle}\n  in:{runway}\n out:{seqDraw}")
+    debugging.debug(f"runway:x-{rx}:y-{ry}:rw-{rwidth}:w-{width}:h-{height}")
     return seqDraw

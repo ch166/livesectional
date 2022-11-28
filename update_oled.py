@@ -127,6 +127,9 @@ class UpdateOLEDs:
 
     OLED_128x64 = {"w": 128, "h": 64}
     OLED_128x32 = {"w": 128, "h": 32}
+    OLED_96x36 = {"w": 96, "h": 36}
+    OLED_96x16 = {"w": 96, "h": 16}
+    OLED_240x320 = {"w": 240, "h": 320}
 
     reentry_check = False
     conf = None

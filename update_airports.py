@@ -32,6 +32,9 @@ Created on Sat Jun 15 08:01:44 2019
 
 # import os
 import time
+from datetime import datetime
+import pytz
+
 
 # from datetime import datetime
 # from datetime import timedelta
@@ -99,6 +102,9 @@ class AirportDB:
         # Live RAW XML Data
         self.metar_xml_dict = {}
 
+        # Metar Update Time
+        self.metar_update_time = None
+
         debugging.info("AirportDB : init")
 
         self.load_airport_db()
@@ -131,12 +137,12 @@ class AirportDB:
         for icao, arptdb_row in self.airport_master_dict.items():
             arpt = arptdb_row["airport"]
             debugging.info("Updating WX for " + arpt.icao)
+            if not arpt.active():
+                continue
             try:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as e:
-                debug_string = (
-                    "Error: update_airport_wx Exception handling for " + arpt.icao
-                )
+                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
                 debugging.error(debug_string)
                 debugging.crash(e)
 
@@ -332,6 +338,8 @@ class AirportDB:
             else:
                 metar_dict[station_id]["longitude"] = "Missing"
         self.metar_xml_dict = metar_dict
+        UTC = pytz.utc
+        self.metar_update_time = datetime.now(UTC)
         debugging.info("Updating Airport METAR from XML")
         return True
 
@@ -369,24 +377,16 @@ class AirportDB:
         self.update_airport_metar_xml()
 
         while True:
-            debugging.info(
-                "Updating Airport Data .. every aviation_weather_adds_timer ("
-                + str(aviation_weather_adds_timer)
-                + "m)"
-            )
+            debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
 
-            ret = utils.download_newer_file(
-                https_session, metar_xml_url, metar_file, decompress=True
-            )
+            ret = utils.download_newer_file(https_session, metar_xml_url, metar_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(
-                https_session, tafs_xml_url, tafs_file, decompress=True
-            )
+            ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 # Need to trigger update of Airport TAFS data
@@ -420,9 +420,7 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as e:
-                debugging.error(
-                    "Update Weather Loop: self.update_airport_wx() exception"
-                )
+                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
                 debugging.error(e)
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

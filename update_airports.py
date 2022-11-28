@@ -132,6 +132,10 @@ class AirportDB:
         """Return Airport LED dict"""
         return self.airport_led_dict
 
+    def get_metar_update_time(self):
+        """Return last update time of metar data."""
+        return self.metar_update_time
+
     def update_airport_wx(self):
         """Update airport WX data for each known Airport"""
         for icao, arptdb_row in self.airport_master_dict.items():

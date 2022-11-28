@@ -95,11 +95,11 @@ class I2CBus:
         active_devices = self.i2c.scan()
         self.lock.release()
         length = len(active_devices)
-        # debugging.info("i2c: scan device count = " + str(length))
+        # debugging.debug("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
-            # debugging.info("i2c: device id " + hex(dev_id))
+            # debugging.debug("i2c: device id " + hex(dev_id))
             if dev_id == device_id:
-                # debugging.info("i2c: device id match " + hex(dev_id))
+                # debugging.debug("i2c: device id match " + hex(dev_id))
                 found_device = True
         return found_device
 
@@ -107,7 +107,7 @@ class I2CBus:
         """Grab bus lock"""
         self.lock_count += 1
         if self.lock.locked():
-            debugging.info("bus_lock: Lock already acquired")
+            debugging.warn("bus_lock: Lock already acquired")
         self.lock.acquire()
 
     def bus_unlock(self):
@@ -131,7 +131,7 @@ class I2CBus:
 
     def i2c_mux_select(self, channel_id):
         # This switches to channel 1
-        debugging.info("i2c_mux_select(" + str(channel_id) + ")")
+        debugging.debug("i2c_mux_select(" + str(channel_id) + ")")
         self.current_enabled = I2C_ch[channel_id]
         if not self.i2c_update():
             debugging.error("OLED: i2c_mux_select - error calling i2c_update")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """
-Created on Oct 28 - 2021
+Created on Oct 28 - 2021.
 
 @author: chris.higgins@alternoc.net
 """
@@ -27,25 +27,25 @@ import configparser
 
 
 class Conf:
-    """Configuration Class"""
+    """Configuration Class."""
 
     def __init__(self):
-        """Initialize and load configuration"""
+        """Initialize and load configuration."""
         self.config_filename = "config.ini"
         self.configfile = configparser.ConfigParser()
         self.configfile._interpolation = configparser.ExtendedInterpolation()
         self.configfile.read(self.config_filename)
 
     def get(self, section, key):
-        """Read Setting"""
+        """Read Setting."""
         return self.configfile.get(section, key)
 
     def get_color(self, section, key):
-        """Pull out color value in hex"""
+        """Pull out color value in hex."""
         return self.configfile.get(section, key)
 
     def get_color_decimal(self, section, key):
-        """Read three tuple string, Return as tuple of integers"""
+        """Read three tuple string, Return as tuple of integers."""
         color_list = []
         tmp_string = self.configfile.get(section, key)
         # print("tmp_string:" + tmp_string + ":--")
@@ -65,33 +65,33 @@ class Conf:
         return tuple([rgb_r, rgb_g, rgb_b])
 
     def get_string(self, section, key):
-        """Read Setting"""
+        """Read Setting."""
         return self.configfile.get(section, key)
 
     def set_string(self, section, key, value):
-        """Set String Value"""
+        """Set String Value."""
         self.configfile.set(section, key, value)
 
     def get_bool(self, section, key):
-        """Read Setting"""
+        """Read Setting."""
         return self.configfile.getboolean(section, key)
 
     def get_float(self, section, key):
-        """Read Setting"""
+        """Read Setting."""
         return self.configfile.getfloat(section, key)
 
     def get_int(self, section, key):
-        """Read Setting"""
+        """Read Setting."""
         return self.configfile.getint(section, key)
 
     def save_config(self):
-        """Save configuration file"""
+        """Save configuration file."""
         cfgfile = open(self.config_filename, "w", encoding="utf8")
         self.configfile.write(cfgfile)
         cfgfile.close()
 
     def gen_settings_dict(self):
-        """Generate settings template to pass to flask"""
+        """Generate settings template to pass to flask."""
         settings = {}
         # FIXME - Change to boolean here and in HTML Templates
         settings["autorun"] = self.get_string("default", "autorun")
@@ -144,9 +144,7 @@ class Conf:
         settings["leg_pin_snow"] = self.get_string("lights", "leg_pin_snow")
         settings["leg_pin_rain"] = self.get_string("lights", "leg_pin_rain")
         settings["leg_pin_frrain"] = self.get_string("lights", "leg_pin_frrain")
-        settings["leg_pin_dustsandash"] = self.get_string(
-            "lights", "leg_pin_dustsandash"
-        )
+        settings["leg_pin_dustsandash"] = self.get_string("lights", "leg_pin_dustsandash")
         settings["leg_pin_fog"] = self.get_string("lights", "leg_pin_fog")
         settings["num2display"] = self.get_string("lights", "num2display")
         settings["exclusive_flag"] = self.get_string("lights", "exclusive_flag")
@@ -238,7 +236,7 @@ class Conf:
         return settings
 
     def parse_config_input(self, form_data):
-        """Parse settings data input"""
+        """Parse settings data input."""
         # FIXME - Change to boolean here and in HTML Templates
         self.set_string("default", "autorun", form_data["autorun"])
         self.set_string("default", "led_count", form_data["LED_COUNT"])
@@ -290,9 +288,7 @@ class Conf:
         self.set_string("lights", "leg_pin_snow", form_data["leg_pin_snow"])
         self.set_string("lights", "leg_pin_rain", form_data["leg_pin_rain"])
         self.set_string("lights", "leg_pin_frrain", form_data["leg_pin_frrain"])
-        self.set_string(
-            "lights", "leg_pin_dustsandash", form_data["leg_pin_dustsandash"]
-        )
+        self.set_string("lights", "leg_pin_dustsandash", form_data["leg_pin_dustsandash"])
         self.set_string("lights", "leg_pin_fog", form_data["leg_pin_fog"])
         self.set_string("lights", "num2display", form_data["num2display"])
         self.set_string("lights", "exclusive_flag", form_data["exclusive_flag"])

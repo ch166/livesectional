@@ -50,6 +50,7 @@ class WebViews:
         self.app.add_url_rule("/", view_func=self.yindex, methods=["GET"])
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
         self.app.add_url_rule("/metar/<airport>", view_func=self.getmetar, methods=["GET"])
+        self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
         self.app.add_url_rule("/led_map", view_func=self.led_map, methods=["GET", "POST"])
         self.app.add_url_rule("/map1", view_func=self.map1, methods=["GET", "POST"])
@@ -481,6 +482,34 @@ class WebViews:
             template_data["metar"] = "ERR - Not found"
 
         return render_template("metar.html", **template_data)
+
+    def gettaf(self, airport):
+        """Flask Route: /taf - Get TAF for Airport"""
+        template_data = self.standardtemplate_data()
+
+        debugging.info(f"getmetar: airport = {airport}")
+        template_data["airport"] = airport
+
+        airport = airport.lower()
+
+        if airport == "debug":
+            """Debug request - dumping DB info"""
+            with open("logs/airport_database.txt", "w") as outfile:
+                airportdb = self.airport_database.get_airportxmldb()
+                counter = 0
+                for icao, airport in airportdb.items():
+                    outfile.write(f"{icao}: {airport} :\n")
+                    counter = counter + 1
+                outfile.write(f"stats: {counter}\n")
+        try:
+            airport_entry = self.airport_database.get_airport_taf(airport)
+            debugging.info(airport_entry)
+            template_data["taf"] = airport_entry["raw_text"]
+        except Exception as e:
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")
+            template_data["taf"] = "ERR - Not found"
+
+        return render_template("taf.html", **template_data)
 
     # FIXME: Figure out what the home page will look like.
     # @app.route('/', methods=["GET", "POST"])

@@ -96,14 +96,13 @@ class AirportDB:
         # Copy of raw json entries loaded from config
         self.airport_master_list = []
 
-        # TODO: UNUSED FOR NOW
-        self.tafs_xml_data = []
-
         # Live RAW XML Data
         self.metar_xml_dict = {}
-
-        # Metar Update Time
         self.metar_update_time = None
+
+        # Live RAW XML Data
+        self.taf_xml_dict = {}
+        self.taf_update_time = None
 
         debugging.info("AirportDB : init")
 
@@ -115,6 +114,13 @@ class AirportDB:
     def get_airport(self, airport_icao):
         """Return a single Airport"""
         return self.airport_master_dict[airport_icao]["airport"]
+
+    def get_airport_taf(self, airport_icao):
+        """Return a single Airport TAF"""
+        result = None
+        if airport_icao in self.taf_xml_dict:
+            result = self.taf_xml_dict[airport_icao]
+        return result
 
     def get_airportdb(self):
         """Return a single Airport"""
@@ -258,7 +264,7 @@ class AirportDB:
         try:
             root = etree.parse(metar_file)
         except etree.ParseError as e:
-            debugging.error("XML Parse Error")
+            debugging.error("XML Parse METAR Error")
             debugging.error(e)
             debugging.info("Not updating - returning")
             return False
@@ -347,6 +353,87 @@ class AirportDB:
         debugging.info("Updating Airport METAR from XML")
         return True
 
+    def update_airport_taf_xml(self):
+        """Update Airport TAF DICT from XML"""
+
+        # Create a DICT containing TAF records per site
+        #
+        # ['site']
+        # issue_time
+        # - ['start time'] - ['end time'] - [conditions VFR/MVFR/IFR/LIFR/UKN]
+        # - ['start time'] - ['end time'] - [conditions VFR/MVFR/IFR/LIFR/UKN]
+        # - ['start time'] - ['end time'] - [conditions VFR/MVFR/IFR/LIFR/UKN]
+        #
+        # A query against an airport TAF record at a point X hours in the future
+        # should return the expected conditions at that time
+        #
+        # TODO: Add file error handling
+
+        debugging.info("Updating Airport TAF DICT")
+
+        taf_dict = {}
+
+        taf_file = self.conf.get_string("filenames", "tafs_xml_data")
+        try:
+            root = etree.parse(taf_file)
+        except etree.ParseError as e:
+            debugging.error("XML Parse TAF Error")
+            debugging.error(e)
+            debugging.info("Not updating - returning")
+            return False
+
+        for taf in root.iter("TAF"):
+            taf_data = {}
+            stationId = taf.find("station_id").text
+            stationId = stationId.lower()
+            issue_time = taf.find("issue_time").text
+            raw_taf = taf.find("raw_text").text
+
+            taf_data["stationId"] = stationId
+            taf_data["issue_time"] = issue_time
+            taf_data["raw_text"] = raw_taf
+
+            debugging.info(f"TAF: {stationId} - {issue_time}")
+            fcast_index = 0
+            taf_forecast = []
+
+            for forecast in taf.findall("forecast"):
+                fcast = {}
+                fcast["start"] = forecast.find("fcst_time_from").text
+                fcast["end"] = forecast.find("fcst_time_to").text
+
+                if forecast.find("wx_string") is not None:
+                    fcast["wx_string"] = forecast.find("wx_string").text
+
+                if forecast.find("change_indicator") is not None:
+                    fcast["change_indicator"] = forecast.find("change_indicator").text
+
+                if forecast.find("wind_dir_degrees") is not None:
+                    fcast["wind_dir_degrees"] = forecast.find("wind_dir_degrees").text
+
+                if forecast.find("wind_speed_kt") is not None:
+                    fcast["wind_speed_kt"] = forecast.find("wind_speed_kt").text
+
+                if forecast.find("visibility_statute_mi") is not None:
+                    fcast["visibility_statute_mi"] = forecast.find("visibility_statute_mi").text
+
+                if forecast.find("wind_gust_kt") is not None:
+                    fcast["wind_gust_kt"] = forecast.find("wind_gust_kt").text
+
+                taf_forecast.append(fcast)
+                fcast_index = fcast_index + 1
+
+            taf_data["forecast"] = taf_forecast
+            taf_dict[stationId] = taf_data
+
+            debugging.info(f"TAF: {stationId} - {issue_time} - {fcast_index - 1}")
+
+        self.taf_xml_dict = taf_dict
+        UTC = pytz.utc
+        self.taf_update_time = datetime.now(UTC)
+        debugging.info("Updating Airport TAF from XML")
+        return True
+
     def update_loop(self, conf):
         """Master loop for keeping the airport data set current
 
@@ -378,7 +465,11 @@ class AirportDB:
 
         https_session = requests.Session()
 
+        # FIXME: This pre-seeds the data sets with whatever data is on disk.
+        # This is great for a quick restart ; but bad for a reload after a period of time offline.
+        # Worth adding logic here to check the age of the files on disk and only load if they are relatively recent.
         self.update_airport_metar_xml()
+        self.update_airport_taf_xml()
 
         while True:
             debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
@@ -393,7 +484,7 @@ class AirportDB:
             ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
-                # Need to trigger update of Airport TAFS data
+                self.update_airport_taf_xml()
             elif ret == 3:
                 debugging.info("Server side TAFS older")
 
@@ -426,5 +517,7 @@ class AirportDB:
             except Exception as e:
                 debugging.error("Update Weather Loop: self.update_airport_wx() exception")
                 debugging.error(e)
+            kbfi_taf = self.get_airport_taf("kbfi")
+            debugging.info(f"TAF Lookup: kbfi {kbfi_taf}")
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

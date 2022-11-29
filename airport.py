@@ -133,7 +133,9 @@ class Airport:
 
     def get_ca_metar(self):
         """Try get Fresh METAR data for Canadian Airports"""
-        # TODO: Stub for now
+        # TODO: 
+        # The ADDS data source appears to have all the data for all the locations.
+        # May be able to delete this entirely
         return False
 
     def get_airport_wx_xml(self):
@@ -203,6 +205,8 @@ class Airport:
             # TODO: If METAR data is missing from the ADDS dataset, then it hasn't been updated
             # We have the option to try a direct query for the data ; but don't have any hint
             # on which alternative source to use.
+            # We also need to wonder if we want to copy over data from the previous record
+            # to this record... so we have some persistance of data rather than losing the airport completely.
             debugging.debug("metar_dict WX for " + self.icao + " missing")
             self.wx_category = AirportFlightCategory.UNKNOWN
             self.wx_category_str = "UNK"
@@ -250,6 +254,10 @@ class Airport:
             strparts = self.wxsrc.split(":")
             debugging.info(f"{self.icao} needs metar for {strparts[1]}")
         elif self.wxsrc == "usa-metar":
+            # This is the scenario where we want to query an individual METAR record
+            # directly. This is unused for now - we may want to use it if the
+            # adds data is missing. 
+            # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geogrpahies
             debugging.info(
                 "Update USA Metar: " + self.icao + " - " + self.wx_category_str
             )
@@ -258,12 +266,4 @@ class Airport:
                 # get_*_metar() returned true, so weather is still fresh
                 return
             wx_utils.calculate_wx_from_metar(self)
-        elif self.wxsrc == "ca-metar":
-            debugging.info("Update CA Metar: " + self.icao + " and skip")
-            freshness = self.get_ca_metar()
-            if freshness:
-                # get_*_metar() returned true, so weather is still fresh
-                return
-            self.wx_category = AirportFlightCategory.UNKNOWN
-            self.wx_category_str = "UNK"
         return

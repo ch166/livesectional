@@ -1190,7 +1190,9 @@ class UpdateLEDs:
                     # if this is the home airport, don't dim out the brightness
                     norm_color = color
                     # FIXME: This won't work
-                    color = utils_colors.HEX(norm_color[0], norm_color[1], norm_color[2])
+                    color = utils_colors.HEX(
+                        norm_color[0], norm_color[1], norm_color[2]
+                    )
                 elif self.conf.get_bool(
                     "lights", "homeport"
                 ):  # if this is not the home airport, dim out the brightness
@@ -1202,7 +1204,9 @@ class UpdateLEDs:
                     )
                 else:  # if home airport feature is disabled, then don't dim out any airports brightness
                     norm_color = color
-                    color = utils_colors.HEX(norm_color[0], norm_color[1], norm_color[2])
+                    color = utils_colors.HEX(
+                        norm_color[0], norm_color[1], norm_color[2]
+                    )
 
                 # debugging.info(f"LED:{i}, Code:{airportcode}")
                 self.setLedColor(airportled, color)

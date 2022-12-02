@@ -16,8 +16,12 @@ def rotate_point(xy, angle):
     """Rotate X,Y around the origin to Angle (radians)."""
     origin_x, origin_y = (0, 0)
     px, py = xy
-    qx = origin_x + math.cos(angle) * (px - origin_x) - math.sin(angle) * (py - origin_x)
-    qy = origin_y + math.sin(angle) * (px - origin_y) + math.cos(angle) * (py - origin_y)
+    qx = (
+        origin_x + math.cos(angle) * (px - origin_x) - math.sin(angle) * (py - origin_x)
+    )
+    qy = (
+        origin_y + math.sin(angle) * (px - origin_y) + math.cos(angle) * (py - origin_y)
+    )
     return (int(qx), int(qy))
 
 
@@ -70,14 +74,21 @@ def create_wind_arrow(windangle, width, height):
     seqR = rotate_polygon(seqOffset, math.radians((windangle + 270) % 360))
     seqOffset2 = poly_offset(seqR, offX, offY)
     seqDraw = poly_offset(seqOffset2, int((width / 2) - offX), int((height / 2) - offY))
-    debugging.debug(f"arrow:{windangle}\n  in:{arrow}\n out:{seqDraw}\n   w:{width} / h:{height}")
+    debugging.debug(
+        f"arrow:{windangle}\n  in:{arrow}\n out:{seqDraw}\n   w:{width} / h:{height}"
+    )
     return seqDraw
 
 
 def create_runway(rx, ry, rwidth, rwangle, width, height):
     """Draw a runway on a canvas."""
     # Runway is centered on X axis, and rwidth high
-    runway = [(rx, ry), (rx + (width - rx), ry), (rx + (width - rx), (ry + rwidth)), (rx, (ry + rwidth))]
+    runway = [
+        (rx, ry),
+        (rx + (width - rx), ry),
+        (rx + (width - rx), (ry + rwidth)),
+        (rx, (ry + rwidth)),
+    ]
     midPoly = poly_center(runway)
     offX, offY = midPoly
     seqOffset = poly_offset(runway, 0 - offX, 0 - offY)

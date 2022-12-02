@@ -14,7 +14,12 @@ import math
 from enum import Enum
 
 import board
-from rpi_ws281x import *
+from rpi_ws281x import (
+    Color,
+    PixelStrip,
+    ws,
+)  # works with python 3.7. sudo pip3 install rpi_ws281x
+
 
 # Application local imports
 import update_airports

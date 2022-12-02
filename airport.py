@@ -133,7 +133,7 @@ class Airport:
 
     def get_ca_metar(self):
         """Try get Fresh METAR data for Canadian Airports"""
-        # TODO: 
+        # TODO:
         # The ADDS data source appears to have all the data for all the locations.
         # May be able to delete this entirely
         return False
@@ -256,7 +256,7 @@ class Airport:
         elif self.wxsrc == "usa-metar":
             # This is the scenario where we want to query an individual METAR record
             # directly. This is unused for now - we may want to use it if the
-            # adds data is missing. 
+            # adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geogrpahies
             debugging.info(
                 "Update USA Metar: " + self.icao + " - " + self.wx_category_str

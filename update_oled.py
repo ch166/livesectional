@@ -232,11 +232,15 @@ class UpdateOLEDs:
         rway_Y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport} {winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
-        runway_poly = utils_gfx.create_runway(rway_X, rway_Y, rway_width, rway_angle, width, height)
+        runway_poly = utils_gfx.create_runway(
+            rway_X, rway_Y, rway_width, rway_angle, width, height
+        )
 
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
-            draw.text((1, 1), airport_details, font=ImageFont.load_default(), fill="white")
+            draw.text(
+                (1, 1), airport_details, font=ImageFont.load_default(), fill="white"
+            )
             draw.polygon(wind_poly, fill="white", outline="white")
             draw.polygon(runway_poly, fill=None, outline="white")
         self.i2cbus.bus_unlock()

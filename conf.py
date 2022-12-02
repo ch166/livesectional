@@ -144,7 +144,9 @@ class Conf:
         settings["leg_pin_snow"] = self.get_string("lights", "leg_pin_snow")
         settings["leg_pin_rain"] = self.get_string("lights", "leg_pin_rain")
         settings["leg_pin_frrain"] = self.get_string("lights", "leg_pin_frrain")
-        settings["leg_pin_dustsandash"] = self.get_string("lights", "leg_pin_dustsandash")
+        settings["leg_pin_dustsandash"] = self.get_string(
+            "lights", "leg_pin_dustsandash"
+        )
         settings["leg_pin_fog"] = self.get_string("lights", "leg_pin_fog")
         settings["num2display"] = self.get_string("lights", "num2display")
         settings["exclusive_flag"] = self.get_string("lights", "exclusive_flag")
@@ -288,7 +290,9 @@ class Conf:
         self.set_string("lights", "leg_pin_snow", form_data["leg_pin_snow"])
         self.set_string("lights", "leg_pin_rain", form_data["leg_pin_rain"])
         self.set_string("lights", "leg_pin_frrain", form_data["leg_pin_frrain"])
-        self.set_string("lights", "leg_pin_dustsandash", form_data["leg_pin_dustsandash"])
+        self.set_string(
+            "lights", "leg_pin_dustsandash", form_data["leg_pin_dustsandash"]
+        )
         self.set_string("lights", "leg_pin_fog", form_data["leg_pin_fog"])
         self.set_string("lights", "num2display", form_data["num2display"])
         self.set_string("lights", "exclusive_flag", form_data["exclusive_flag"])

@@ -10,7 +10,7 @@ from rpi_ws281x import (
     Color,
     PixelStrip,
     ws,
-)  # works with python 3.7. sudo pip3 install rpi_ws281x
+)
 
 
 import secrets
@@ -45,7 +45,7 @@ import sysinfo
 
 
 class WebViews:
-    """Class to contain all the Flask WEB functionality"""
+    """Class to contain all the Flask WEB functionality."""
 
     def __init__(self, config, sysdata, airport_database, appinfo):
         self.conf = config
@@ -60,43 +60,21 @@ class WebViews:
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.yindex, methods=["GET"])
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
-        self.app.add_url_rule(
-            "/metar/<airport>", view_func=self.getmetar, methods=["GET"]
-        )
+        self.app.add_url_rule("/metar/<airport>", view_func=self.getmetar, methods=["GET"])
         self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
-        self.app.add_url_rule(
-            "/led_map", view_func=self.led_map, methods=["GET", "POST"]
-        )
+        self.app.add_url_rule("/led_map", view_func=self.led_map, methods=["GET", "POST"])
         self.app.add_url_rule("/map1", view_func=self.map1, methods=["GET", "POST"])
-        self.app.add_url_rule(
-            "/touchscr", view_func=self.touchscr, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/open_console", view_func=self.open_console, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/stream_log", view_func=self.stream_log, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/stream_log1", view_func=self.stream_log1, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/download_ap", view_func=self.downloadairports, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/download_cf", view_func=self.downloadconfig, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/download_log", view_func=self.downloadlog, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/confedit", view_func=self.confedit, methods=["GET", "POST"]
-        )
+        self.app.add_url_rule("/touchscr", view_func=self.touchscr, methods=["GET", "POST"])
+        self.app.add_url_rule("/open_console", view_func=self.open_console, methods=["GET", "POST"])
+        self.app.add_url_rule("/stream_log", view_func=self.stream_log, methods=["GET", "POST"])
+        self.app.add_url_rule("/stream_log1", view_func=self.stream_log1, methods=["GET", "POST"])
+        self.app.add_url_rule("/download_ap", view_func=self.downloadairports, methods=["GET", "POST"])
+        self.app.add_url_rule("/download_cf", view_func=self.downloadconfig, methods=["GET", "POST"])
+        self.app.add_url_rule("/download_log", view_func=self.downloadlog, methods=["GET", "POST"])
+        self.app.add_url_rule("/confedit", view_func=self.confedit, methods=["GET", "POST"])
         self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET", "POST"])
-        self.app.add_url_rule(
-            "/post", view_func=self.handle_post_request, methods=["GET", "POST"]
-        )
+        self.app.add_url_rule("/post", view_func=self.handle_post_request, methods=["GET", "POST"])
 
         self.max_lat = 0
         self.min_lat = 0
@@ -116,14 +94,14 @@ class WebViews:
         self.led_map_dict = {}
 
     def run(self):
-        """Run Flask Application
+        """Run Flask Application.
+
         If debug is True, we need to make sure that auto-reload is disabled in threads
         """
         self.app.run(debug=False, host="0.0.0.0")
 
     def standardtemplate_data(self):
-        """Generate a standardized template_data"""
-
+        """Generate a standardized template_data."""
         airport_dict_data = {}
         for (
             airport_icao,
@@ -147,9 +125,7 @@ class WebViews:
             "strip": self.strip,
             "timestr": utils.time_format(utils.current_time(self.conf)),
             "timestrutc": utils.time_format(utils.current_time_utc(self.conf)),
-            "timemetarage": utils.time_format(
-                self.airport_database.get_metar_update_time()
-            ),
+            "timemetarage": utils.time_format(self.airport_database.get_metar_update_time()),
             "current_timezone": self.conf.get_string("default", "timezone"),
             "num": self.num,
             "version": self.appinfo.current_version(),
@@ -161,8 +137,7 @@ class WebViews:
         return template_data
 
     def yindex(self):
-        """Flask Route: /yield - Display System Info"""
-
+        """Flask Route: /yield - Display System Info."""
         template_data = self.standardtemplate_data()
         template_data["title"] = "SysInfo"
 
@@ -171,8 +146,7 @@ class WebViews:
         # text/html is required for most browsers to show this info.
 
     def tzset(self):
-        """Flask Route: /tzset - Display and Set Timezone Information"""
-
+        """Flask Route: /tzset - Display and Set Timezone Information."""
         if request.method == "POST":
             timezone = request.form["tzselected"]
 
@@ -195,7 +169,7 @@ class WebViews:
 
     # Routes for Map Display - Testing
     def map1(self):
-        """Flask Route: /map1"""
+        """Flask Route: /map1 ."""
         start_coords = (35.1738, -111.6541)
         folium_map = folium.Map(
             location=start_coords,
@@ -212,12 +186,8 @@ class WebViews:
         folium.plugins.Geocoder().add_to(folium_map)
 
         # FIXME: Move URL to configuration
-        folium_url = (
-            "http://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw"
-        )
-        folium.TileLayer(
-            folium_url, attr="chartbundle.com", name="ChartBundle Sectional"
-        ).add_to(folium_map)
+        folium_url = "http://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw"
+        folium.TileLayer(folium_url, attr="chartbundle.com", name="ChartBundle Sectional").add_to(folium_map)
         folium.TileLayer("Stamen Terrain", name="Stamen Terrain").add_to(folium_map)
         folium.TileLayer("CartoDB positron", name="CartoDB Positron").add_to(folium_map)
         # other mapping code (e.g. lines, markers etc.)
@@ -231,7 +201,7 @@ class WebViews:
     # FIXME: Integrate into Class
     # @app.route('/touchscr', methods=["GET", "POST"])
     def touchscr(self):
-        """Flask Route: /touchscr - Touch Screen template"""
+        """Flask Route: /touchscr - Touch Screen template."""
         ipadd = self.sysdata.local_ip()
         return render_template(
             "touchscr.html",
@@ -245,7 +215,7 @@ class WebViews:
     # This works except that we're not currently pumping things to seashells.io
     # @app.route('/open_console', methods=["GET", "POST"])
     def open_console(self):
-        """Flask Route: /open_console - Launching Console in discrete window"""
+        """Flask Route: /open_console - Launching Console in discrete window."""
         console_ips = []
         loc_timestr = utils.time_format(utils.current_time(self.conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
@@ -271,7 +241,7 @@ class WebViews:
     # @app.route('/stream_log', methods=["GET", "POST"])
     # Works with stream_log1
     def stream_log(self):
-        """Flask Route: /stream_log - Watch logs live"""
+        """Flask Route: /stream_log - Watch logs live."""
         loc_timestr = utils.time_format(utils.current_time(self.conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
         ipadd = self.sysdata.local_ip()
@@ -288,7 +258,7 @@ class WebViews:
 
     # @app.route('/stream_log1', methods=["GET", "POST"])
     def stream_log1(self):
-        """Flask Route: /stream_log1 - UNUSED ALTERNATE LOGS ROUTE"""
+        """Flask Route: /stream_log1 - UNUSED ALTERNATE LOGS ROUTE."""
 
         def generate():
             with open("/NeoSectional/logs/logfile.log", encoding="utf8") as f:
@@ -299,7 +269,7 @@ class WebViews:
         return self.app.response_class(generate(), mimetype="text/plain")
 
     def airport_boundary_calc(self):
-        """Scan airport lat/lon data and work out Airport Map boundaries"""
+        """Scan airport lat/lon data and work out Airport Map boundaries."""
         lat_list = []
         lon_list = []
         airports = self.airport_database.get_airport_dict_led()
@@ -321,8 +291,7 @@ class WebViews:
     # Route to display map's airports on a digital map.
     # @app.route('/led_map', methods=["GET", "POST"])
     def led_map(self):
-        """Flask Route: /led_map - Display LED Map with existing airports"""
-
+        """Flask Route: /led_map - Display LED Map with existing airports."""
         # Update Airport Boundary data based on set of airports
         self.airport_boundary_calc()
 
@@ -345,9 +314,7 @@ class WebViews:
         )
 
         # Place map within bounds of screen
-        folium_map.fit_bounds(
-            [[self.min_lat, self.min_lon], [self.max_lat, self.max_lon]]
-        )
+        folium_map.fit_bounds([[self.min_lat, self.min_lon], [self.max_lat, self.max_lon]])
 
         # Set Marker Color by Flight Category
         airports = self.airport_database.get_airport_dict_led()
@@ -371,7 +338,7 @@ class WebViews:
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = f"{pop_url}<b>{icao}</b><br>{icao},&nbsp{str(arpt.get_latitude())}</a><br>Pin&nbspNumber&nbsp=&nbsp {str(arpt.get_led_index())}<br><b><font size=+2 color={loc_color}>{str(arpt.get_longitude())}</font></b>"
+            popup = f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.get_latitude()},{arpt.get_longitude()}]<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b><font size=+2 color={loc_color}>{loc_color}</font></b>"
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -411,9 +378,7 @@ class WebViews:
             points.insert(pin_index, [arpt.get_latitude(), arpt.get_longitude()])
 
         debugging.debug(points)
-        folium.PolyLine(
-            points, color="grey", weight=2.5, opacity=1, dash_array="10"
-        ).add_to(folium_map)
+        folium.PolyLine(points, color="grey", weight=2.5, opacity=1, dash_array="10").add_to(folium_map)
 
         # Add Title to the top of the map
         folium.map.Marker(
@@ -464,7 +429,7 @@ class WebViews:
         return render_template("led_map.html", **template_data)
 
     def qrcode(self):
-        """Flask Route: /qrcode - Generate QRcode for site URL"""
+        """Flask Route: /qrcode - Generate QRcode for site URL."""
         # Generates qrcode that maps to the mobileconfedit version of
         # the configuration generator
         template_data = self.standardtemplate_data()
@@ -481,7 +446,7 @@ class WebViews:
         return render_template("qrcode.html", qraddress=qraddress, qrimage=qrcode_url)
 
     def getmetar(self, airport):
-        """Flask Route: /metar - Get METAR for Airport"""
+        """Flask Route: /metar - Get METAR for Airport."""
         template_data = self.standardtemplate_data()
 
         debugging.info(f"getmetar: airport = {airport}")
@@ -509,7 +474,7 @@ class WebViews:
         return render_template("metar.html", **template_data)
 
     def gettaf(self, airport):
-        """Flask Route: /taf - Get TAF for Airport"""
+        """Flask Route: /taf - Get TAF for Airport."""
         template_data = self.standardtemplate_data()
 
         debugging.info(f"getmetar: airport = {airport}")
@@ -540,8 +505,7 @@ class WebViews:
     # @app.route('/', methods=["GET", "POST"])
     # @app.route('/index', methods=["GET", "POST"])
     def index(self):
-        """Flask Route: / and /index - Homepage"""
-
+        """Flask Route: / and /index - Homepage."""
         template_data = self.standardtemplate_data()
         template_data["title"] = "ConfEdit"
 
@@ -552,21 +516,21 @@ class WebViews:
     # Routes to download airports, logfile.log and config.py to local computer
     # @app.route('/download_ap', methods=["GET", "POST"])
     def downloadairports(self):
-        """Flask Route: /download_ap - Export airports file"""
+        """Flask Route: /download_ap - Export airports file."""
         debugging.info("Downloaded Airport File")
         path = self.conf.get_string("filenames", "airports_json")
         return send_file(path, as_attachment=True)
 
     # @app.route('/download_cf', methods=["GET", "POST"])
     def downloadconfig(self):
-        """Flask Route: /download_cf - Export configuration file"""
+        """Flask Route: /download_cf - Export configuration file."""
         debugging.info("Downloaded Config File")
         path = self.conf.get_string("filenames", "config_file")
         return send_file(path, as_attachment=True)
 
     # @app.route('/download_log', methods=["GET", "POST"])
     def downloadlog(self):
-        """Flask Route: /download_log - Export log file"""
+        """Flask Route: /download_log - Export log file."""
         debugging.info("Downloaded Logfile")
         path = self.conf.get_string("filenames", "config_file")
         return send_file(path, as_attachment=True)
@@ -574,7 +538,7 @@ class WebViews:
     # FIXME: Integrate into Class
     # @app.route('/download_hm', methods=["GET", "POST"])
     def downloadhm(self):
-        """Flask Route: /download_hm - Export heatmap data file"""
+        """Flask Route: /download_hm - Export heatmap data file."""
         debugging.info("Downloaded Heat Map data file")
         path = "data/hmdata"
         return send_file(path, as_attachment=True)
@@ -583,7 +547,7 @@ class WebViews:
     # Routes for Heat Map Editor
     # @app.route("/hmedit", methods=["GET", "POST"])
     def hmedit(self):
-        """Flask Route: /hmedit - Heat Map Editor"""
+        """Flask Route: /hmedit - Heat Map Editor."""
         debugging.info("Opening hmedit.html")
 
         self.readhmdata(self.conf.get_string("filenames", "heatmap_file"))
@@ -596,7 +560,7 @@ class WebViews:
     # FIXME: Integrate into Class
     # @app.route("/hmpost", methods=["GET", "POST"])
     def handle_hmpost_request(self):
-        """Flask Route: /hmpost - Upload HeatMap Data"""
+        """Flask Route: /hmpost - Upload HeatMap Data."""
         debugging.info("Saving Heat Map Data File")
 
         loc_newlist = []
@@ -616,9 +580,7 @@ class WebViews:
                 # loc_newlist.append(self.airports[j] + " " + value)
                 j += 1
 
-            self.writehmdata(
-                loc_newlist, self.conf.get_string("filenames", "heatmap_file")
-            )
+            self.writehmdata(loc_newlist, self.conf.get_string("filenames", "heatmap_file"))
 
         flash("Heat Map Data Successfully Saved")
         return redirect("hmedit")
@@ -627,7 +589,7 @@ class WebViews:
     # Import a file to populate Heat Map Data. Must Save airports to keep
     # @app.route("/importhm", methods=["GET", "POST"])
     def importhm(self):
-        """Flask Route: /importhm - Importing Heat Map"""
+        """Flask Route: /importhm - Importing Heat Map."""
         debugging.info("Importing Heat Map File")
         hmdata = []
 
@@ -657,7 +619,7 @@ class WebViews:
     # Routes for Airport Editor
     # @app.route("/apedit", methods=["GET", "POST"])
     def apedit(self):
-        """Flask Route: /apedit - Airport Editor"""
+        """Flask Route: /apedit - Airport Editor."""
         debugging.info("Opening apedit.html")
 
         # self.readairports(self.conf.get_string("filenames", "airports_file"))
@@ -668,7 +630,7 @@ class WebViews:
     # FIXME: Integrate into Class
     # @app.route("/numap", methods=["GET", "POST"])
     def numap(self):
-        """Flask Route: /numap"""
+        """Flask Route: /numap."""
         debugging.info("Updating Number of airports in airport file")
 
         if request.method == "POST":
@@ -694,7 +656,7 @@ class WebViews:
     # FIXME: Integrate into Class
     # @app.route("/appost", methods=["GET", "POST"])
     def handle_appost_request(self):
-        """Flask Route: /appost"""
+        """Flask Route: /appost."""
         debugging.info("Saving Airport File")
 
         if request.method == "POST":
@@ -732,7 +694,7 @@ class WebViews:
     # FIXME: Integrate into Class
     # @app.route("/ledonoff", methods=["GET", "POST"])
     def ledonoff(self):
-        """Flask Route: /ledonoff"""
+        """Flask Route: /ledonoff."""
         debugging.info("Controlling LED's on/off")
 
         if request.method == "POST":
@@ -815,7 +777,7 @@ class WebViews:
     # Import a file to populate airports. Must Save self.airports to keep
     # @app.route("/importap", methods=["GET", "POST"])
     def importap(self):
-        """Flask Route: /importap - Import airports File"""
+        """Flask Route: /importap - Import airports File."""
         debugging.info("Importing airports File")
 
         if "file" not in request.files:
@@ -845,7 +807,7 @@ class WebViews:
     # Routes for Config Editor
     # @app.route("/confedit", methods=["GET", "POST"])
     def confedit(self):
-        """Flask Route: /confedit - Configuration Editor"""
+        """Flask Route: /confedit - Configuration Editor."""
         debugging.info("Opening confedit.html")
 
         # debugging.dprint(ipadd)  # debug
@@ -908,81 +870,39 @@ class WebViews:
         template_data["color_snow2_hex"] = self.conf.get_color("colors", "color_snow2")
         template_data["color_rain1_hex"] = self.conf.get_color("colors", "color_rain1")
         template_data["color_rain2_hex"] = self.conf.get_color("colors", "color_rain2")
-        template_data["color_frrain1_hex"] = self.conf.get_color(
-            "colors", "color_frrain1"
-        )
-        template_data["color_frrain2_hex"] = self.conf.get_color(
-            "colors", "color_frrain2"
-        )
-        template_data["color_dustsandash1_hex"] = self.conf.get_color(
-            "colors", "color_dustsandash1"
-        )
-        template_data["color_dustsandash2_hex"] = self.conf.get_color(
-            "colors", "color_dustsandash2"
-        )
+        template_data["color_frrain1_hex"] = self.conf.get_color("colors", "color_frrain1")
+        template_data["color_frrain2_hex"] = self.conf.get_color("colors", "color_frrain2")
+        template_data["color_dustsandash1_hex"] = self.conf.get_color("colors", "color_dustsandash1")
+        template_data["color_dustsandash2_hex"] = self.conf.get_color("colors", "color_dustsandash2")
         template_data["color_fog1_hex"] = self.conf.get_color("colors", "color_fog1")
         template_data["color_fog2_hex"] = self.conf.get_color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self.conf.get_color(
-            "colors", "color_homeport"
-        )
+        template_data["color_homeport_hex"] = self.conf.get_color("colors", "color_homeport")
 
         template_data["fade_color1_hex"] = self.conf.get_color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self.conf.get_color(
-            "colors", "allsame_color1"
-        )
-        template_data["allsame_color2_hex"] = self.conf.get_color(
-            "colors", "allsame_color2"
-        )
-        template_data["shuffle_color1_hex"] = self.conf.get_color(
-            "colors", "shuffle_color1"
-        )
-        template_data["shuffle_color2_hex"] = self.conf.get_color(
-            "colors", "shuffle_color2"
-        )
-        template_data["radar_color1_hex"] = self.conf.get_color(
-            "colors", "radar_color1"
-        )
-        template_data["radar_color2_hex"] = self.conf.get_color(
-            "colors", "radar_color2"
-        )
-        template_data["circle_color1_hex"] = self.conf.get_color(
-            "colors", "circle_color1"
-        )
-        template_data["circle_color2_hex"] = self.conf.get_color(
-            "colors", "circle_color2"
-        )
-        template_data["square_color1_hex"] = self.conf.get_color(
-            "colors", "square_color1"
-        )
-        template_data["square_color2_hex"] = self.conf.get_color(
-            "colors", "square_color2"
-        )
+        template_data["allsame_color1_hex"] = self.conf.get_color("colors", "allsame_color1")
+        template_data["allsame_color2_hex"] = self.conf.get_color("colors", "allsame_color2")
+        template_data["shuffle_color1_hex"] = self.conf.get_color("colors", "shuffle_color1")
+        template_data["shuffle_color2_hex"] = self.conf.get_color("colors", "shuffle_color2")
+        template_data["radar_color1_hex"] = self.conf.get_color("colors", "radar_color1")
+        template_data["radar_color2_hex"] = self.conf.get_color("colors", "radar_color2")
+        template_data["circle_color1_hex"] = self.conf.get_color("colors", "circle_color1")
+        template_data["circle_color2_hex"] = self.conf.get_color("colors", "circle_color2")
+        template_data["square_color1_hex"] = self.conf.get_color("colors", "square_color1")
+        template_data["square_color2_hex"] = self.conf.get_color("colors", "square_color2")
         template_data["updn_color1_hex"] = self.conf.get_color("colors", "updn_color1")
         template_data["updn_color2_hex"] = self.conf.get_color("colors", "updn_color2")
-        template_data["morse_color1_hex"] = self.conf.get_color(
-            "colors", "morse_color1"
-        )
-        template_data["morse_color2_hex"] = self.conf.get_color(
-            "colors", "morse_color2"
-        )
-        template_data["rabbit_color1_hex"] = self.conf.get_color(
-            "colors", "rabbit_color1"
-        )
-        template_data["rabbit_color2_hex"] = self.conf.get_color(
-            "colors", "rabbit_color2"
-        )
-        template_data["checker_color1_hex"] = self.conf.get_color(
-            "colors", "checker_color1"
-        )
-        template_data["checker_color2_hex"] = self.conf.get_color(
-            "colors", "checker_color2"
-        )
+        template_data["morse_color1_hex"] = self.conf.get_color("colors", "morse_color1")
+        template_data["morse_color2_hex"] = self.conf.get_color("colors", "morse_color2")
+        template_data["rabbit_color1_hex"] = self.conf.get_color("colors", "rabbit_color1")
+        template_data["rabbit_color2_hex"] = self.conf.get_color("colors", "rabbit_color2")
+        template_data["checker_color1_hex"] = self.conf.get_color("colors", "checker_color1")
+        template_data["checker_color2_hex"] = self.conf.get_color("colors", "checker_color2")
         return render_template("confedit.html", **template_data)
 
     # FIXME: Integrate into Class
     # @app.route("/post", methods=["GET", "POST"])
     def handle_post_request(self):
-        """Flask Route: /post"""
+        """Flask Route: /post ."""
         debugging.info("Saving Config File")
 
         ipadd = self.sysdata.local_ip()
@@ -1084,68 +1004,34 @@ class WebViews:
         color_snow2_hex = utils.rgb2hex(self.conf.get_color("colors", "color_snow2"))
         color_rain1_hex = utils.rgb2hex(self.conf.get_color("colors", "color_rain1"))
         color_rain2_hex = utils.rgb2hex(self.conf.get_color("colors", "color_rain2"))
-        color_frrain1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "color_frrain1")
-        )
-        color_frrain2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "color_frrain2")
-        )
-        color_dustsandash1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "color_dustsandash1")
-        )
-        color_dustsandash2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "color_dustsandash2")
-        )
+        color_frrain1_hex = utils.rgb2hex(self.conf.get_color("colors", "color_frrain1"))
+        color_frrain2_hex = utils.rgb2hex(self.conf.get_color("colors", "color_frrain2"))
+        color_dustsandash1_hex = utils.rgb2hex(self.conf.get_color("colors", "color_dustsandash1"))
+        color_dustsandash2_hex = utils.rgb2hex(self.conf.get_color("colors", "color_dustsandash2"))
         color_fog1_hex = utils.rgb2hex(self.conf.get_color("colors", "color_fog1"))
         color_fog2_hex = utils.rgb2hex(self.conf.get_color("colors", "color_fog2"))
-        color_homeport_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "color_homeport")
-        )
+        color_homeport_hex = utils.rgb2hex(self.conf.get_color("colors", "color_homeport"))
 
         # color picker for transitional wipes
         fade_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "fade_color1"))
-        allsame_color1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "allsame_color1")
-        )
-        allsame_color2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "allsame_color2")
-        )
-        shuffle_color1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "shuffle_color1")
-        )
-        shuffle_color2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "shuffle_color2")
-        )
+        allsame_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "allsame_color1"))
+        allsame_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "allsame_color2"))
+        shuffle_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "shuffle_color1"))
+        shuffle_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "shuffle_color2"))
         radar_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "radar_color1"))
         radar_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "radar_color2"))
-        circle_color1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "circle_color1")
-        )
-        circle_color2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "circle_color2")
-        )
-        square_color1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "square_color1")
-        )
-        square_color2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "square_color2")
-        )
+        circle_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "circle_color1"))
+        circle_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "circle_color2"))
+        square_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "square_color1"))
+        square_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "square_color2"))
         updn_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "updn_color1"))
         updn_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "updn_color2"))
         morse_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "morse_color1"))
         morse_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "morse_color2"))
-        rabbit_color1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "rabbit_color1")
-        )
-        rabbit_color2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "rabbit_color2")
-        )
-        checker_color1_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "checker_color1")
-        )
-        checker_color2_hex = utils.rgb2hex(
-            self.conf.get_color("colors", "checker_color2")
-        )
+        rabbit_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "rabbit_color1"))
+        rabbit_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "rabbit_color2"))
+        checker_color1_hex = utils.rgb2hex(self.conf.get_color("colors", "checker_color1"))
+        checker_color2_hex = utils.rgb2hex(self.conf.get_color("colors", "checker_color2"))
 
         # Pass data to html document
         template_data = self.standardtemplate_data()
@@ -1271,10 +1157,7 @@ class WebViews:
         tmp_profile = config_profiles[req_profile]
         stored_profile = "/NeoSectional/profiles/" + tmp_profile
 
-        flash(
-            tmp_profile
-            + "Profile Loaded. Review And Tweak The Settings As Desired. Must Be Saved!"
-        )
+        flash(tmp_profile + "Profile Loaded. Review And Tweak The Settings As Desired. Must Be Saved!")
         self.readconf(stored_profile)  # read profile config file
         debugging.info("Loading a Profile into Settings Editor")
         return redirect("confedit")
@@ -1392,9 +1275,7 @@ class WebViews:
             # Use index if called from URL and not page.
 
         temp = url.split("/")
-        if (self.conf.get_int("oled", "displayused") != 1) or (
-            self.conf.get_int("oled", "oledused") != 1
-        ):
+        if (self.conf.get_int("oled", "displayused") != 1) or (self.conf.get_int("oled", "oledused") != 1):
             return redirect("/")
             # temp[3] holds name of page that called this route.
 

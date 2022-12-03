@@ -59,6 +59,8 @@ class I2CBus:
     MUX_DEVICE_ID = 0x70
     mux_active = False
 
+    conf = None
+
     bus = None
     i2c = None
 
@@ -71,6 +73,7 @@ class I2CBus:
 
     def __init__(self, conf):
         """Setup i2c bus - look for default hardware"""
+        self.conf = conf
         self.lock = Lock()
         self.bus = smbus2.SMBus(self.rpi_bus_number)
         self.i2c = busio.I2C(board.SCL, board.SDA)

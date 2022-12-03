@@ -146,15 +146,13 @@ class AirportDB:
         """Update airport WX data for each known Airport"""
         for icao, arptdb_row in self.airport_master_dict.items():
             arpt = arptdb_row["airport"]
-            debugging.info("Updating WX for " + arpt.icao)
+            debugging.debug("Updating WX for " + arpt.icao)
             if not arpt.active():
                 continue
             try:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as e:
-                debug_string = (
-                    "Error: update_airport_wx Exception handling for " + arpt.icao
-                )
+                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
                 debugging.error(debug_string)
                 debugging.crash(e)
 
@@ -175,7 +173,7 @@ class AirportDB:
             airportdb_row = {}
             airport_icao = json_airport["icao"]
             airport_icao = airport_icao.lower()
-            debugging.info(f"Parsing Json Airport List : {airport_icao}")
+            debugging.debug(f"Parsing Json Airport List : {airport_icao}")
             # Need a Unique Key
             airportdb_row["icao"] = airport_icao
             airportdb_row["ledindex"] = int(json_airport["led"])
@@ -285,7 +283,7 @@ class AirportDB:
             display_counter += 1
             if display_counter % 20 == 0:
                 msg = "xml:" + str(display_counter) + ":" + station_id
-                debugging.info(msg)
+                debugging.debug(msg)
 
             # print(":" + station_id + ": ", end='')
             # FIXME: Move most of this code into an Airport Class function, where it belongs
@@ -397,7 +395,7 @@ class AirportDB:
             taf_data["issue_time"] = issue_time
             taf_data["raw_text"] = raw_taf
 
-            debugging.info(f"TAF: {stationId} - {issue_time}")
+            debugging.debug(f"TAF: {stationId} - {issue_time}")
             fcast_index = 0
             taf_forecast = []
 
@@ -419,9 +417,7 @@ class AirportDB:
                     fcast["wind_speed_kt"] = forecast.find("wind_speed_kt").text
 
                 if forecast.find("visibility_statute_mi") is not None:
-                    fcast["visibility_statute_mi"] = forecast.find(
-                        "visibility_statute_mi"
-                    ).text
+                    fcast["visibility_statute_mi"] = forecast.find("visibility_statute_mi").text
 
                 if forecast.find("wind_gust_kt") is not None:
                     fcast["wind_gust_kt"] = forecast.find("wind_gust_kt").text
@@ -434,14 +430,14 @@ class AirportDB:
                 for sky_condition in forecast.findall("sky_condition"):
                     # get the sky cover (BKN, OVC, SCT, etc)
                     sky_cvr = sky_condition.attrib["sky_cover"]
-                    debugging.info(sky_cvr)  # debug
+                    debugging.debug(sky_cvr)  # debug
 
                     # If the layer is OVC, BKN or OVX, set Flight category based on height AGL
                     if sky_cvr in ("OVC", "BKN", "OVX"):
                         try:
                             # get cloud base AGL from XML
                             cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
-                            debugging.info(cld_base_ft_agl)  # debug
+                            debugging.debug(cld_base_ft_agl)  # debug
                         except Exception as e:
                             # get cloud base AGL from XML
                             debugging.error(e)
@@ -471,39 +467,30 @@ class AirportDB:
                     if flightcategory != "LIFR":
                         # check XML if visibility value exists
                         if forecast.find("visibility_statute_mi") is not None:
-                            visibility_statute_mi = forecast.find(
-                                "visibility_statute_mi"
-                            ).text  # get visibility number
+                            visibility_statute_mi = forecast.find("visibility_statute_mi").text  # get visibility number
                             visibility_statute_mi = float(visibility_statute_mi)
-                            debugging.info(visibility_statute_mi)
+                            debugging.debug(visibility_statute_mi)
 
                             if visibility_statute_mi < 1.0:
                                 flightcategory = "LIFR"
                             elif 1.0 <= visibility_statute_mi < 3.0:
                                 flightcategory = "IFR"
                             # if Flight Category was already set to IFR $
-                            elif (
-                                3.0 <= visibility_statute_mi <= 5.0
-                                and flightcategory != "IFR"
-                            ):
+                            elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":
                                 flightcategory = "MVFR"
 
-                    debugging.info("Airport - " + stationId)
-                    debugging.info("Flight Category - " + flightcategory)
+                    debugging.debug("Airport - " + stationId)
+                    debugging.debug("Flight Category - " + flightcategory)
                     if "wind_speed_kt" in fcast:
-                        debugging.info("Wind Speed - " + fcast["wind_speed_kt"])
+                        debugging.debug("Wind Speed - " + fcast["wind_speed_kt"])
                     if "wx_string" in fcast:
-                        debugging.info("WX String - " + fcast["wx_string"])
+                        debugging.debug("WX String - " + fcast["wx_string"])
                     if "change_indicator" in fcast:
-                        debugging.info(
-                            "Change Indicator - " + fcast["change_indicator"]
-                        )
+                        debugging.debug("Change Indicator - " + fcast["change_indicator"])
                     if "wind_dir_degrees" in fcast:
-                        debugging.info(
-                            "Wind Director Degrees - " + fcast["wind_dir_degrees"]
-                        )
+                        debugging.debug("Wind Director Degrees - " + fcast["wind_dir_degrees"])
                     if "wind_gust_kt" in fcast:
-                        debugging.info("Wind Gust - " + fcast["wind_gust_kt"])
+                        debugging.debug("Wind Gust - " + fcast["wind_gust_kt"])
 
                 fcast["flightcategory"] = flightcategory
                 taf_forecast.append(fcast)
@@ -512,12 +499,12 @@ class AirportDB:
             taf_data["forecast"] = taf_forecast
             taf_dict[stationId] = taf_data
 
-            debugging.info(f"TAF: {stationId} - {issue_time} - {fcast_index - 1}")
+            debugging.debug(f"TAF: {stationId} - {issue_time} - {fcast_index - 1}")
 
         self.taf_xml_dict = taf_dict
         UTC = pytz.utc
         self.taf_update_time = datetime.now(UTC)
-        debugging.info("Updating Airport TAF from XML")
+        debugging.debug("Updating Airport TAF from XML")
         return True
 
     def update_loop(self, conf):
@@ -558,24 +545,16 @@ class AirportDB:
         self.update_airport_taf_xml()
 
         while True:
-            debugging.info(
-                "Updating Airport Data .. every aviation_weather_adds_timer ("
-                + str(aviation_weather_adds_timer)
-                + "m)"
-            )
+            debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
 
-            ret = utils.download_newer_file(
-                https_session, metar_xml_url, metar_file, decompress=True
-            )
+            ret = utils.download_newer_file(https_session, metar_xml_url, metar_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
             elif ret == 3:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(
-                https_session, tafs_xml_url, tafs_file, decompress=True
-            )
+            ret = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True)
             if ret == 0:
                 debugging.info("Downloaded TAFS file")
                 self.update_airport_taf_xml()
@@ -609,11 +588,9 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as e:
-                debugging.error(
-                    "Update Weather Loop: self.update_airport_wx() exception"
-                )
+                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
                 debugging.error(e)
             kbfi_taf = self.get_airport_taf("kbfi")
-            debugging.info(f"TAF Lookup: kbfi {kbfi_taf}")
+            debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

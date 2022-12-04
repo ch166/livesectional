@@ -15,7 +15,7 @@ function get_badge(ap,loc) {
   }
 
   if (this.readyState == 4 && this.status == 200) {
-    console.log(xhttp.responseText); 
+    // console.log(xhttp.responseText); 
     
     obj = JSON.parse(xhttp.responseText);
     metar = obj.metar;
@@ -25,8 +25,8 @@ function get_badge(ap,loc) {
       flightcategory = "NOWX";
     }
 
-    console.log(metar);
-    console.log(flightcategory);                         
+    // console.log(metar);
+    // console.log(flightcategory);                         
 
   }
       
@@ -61,7 +61,7 @@ function get_fc(ap,loc) {
 
   xhttp.onreadystatechange = function() {
   if (this.readyState == 4 && this.status == 200) {
-    console.log(xhttp.responseText);
+    // console.log(xhttp.responseText);
     obj = JSON.parse(xhttp.responseText);
 
       if (obj.data[0].flight_category == 'VFR') {
@@ -90,9 +90,9 @@ function get_raw(ap,loc) {
   
   xhttp.onreadystatechange = function() {
   if (this.readyState == 4 && this.status == 200) {
-    console.log(xhttp.responseText);      
+    // console.log(xhttp.responseText);      
     obj = JSON.parse(xhttp.responseText); 
-    console.log(obj.properties.metar);      
+    // console.log(obj.properties.metar);      
     document.getElementById(loc).innerHTML = obj.properties.metar       
   }
 };

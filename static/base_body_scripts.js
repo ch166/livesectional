@@ -95,7 +95,8 @@ function upperCaseF(a){
 }
 
 function scrollto() {
-  var elmnt = document.getElementById("{{ num-5 }}");
+  // Scroll to myNavbar - an ID in base_lite.html
+  var elmnt = document.getElementById("myNavbar");
   elmnt.scrollIntoView();
 }
 

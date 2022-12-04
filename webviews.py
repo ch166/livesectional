@@ -89,7 +89,7 @@ class WebViews:
         self.hmdata = None
         self.update_vers = None
         self.machines = []
-        self.num = None
+        self.num = self.conf.get_int("default", "led_count")
         self.update_available = None
         self.ap_info = None
         self.settings = None

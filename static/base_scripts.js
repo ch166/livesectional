@@ -93,7 +93,7 @@ function get_raw(ap,loc) {
     // console.log(xhttp.responseText);      
     obj = JSON.parse(xhttp.responseText); 
     // console.log(obj.properties.metar);      
-    document.getElementById(loc).innerHTML = obj.properties.metar       
+    document.getElementById(loc).innerHTML = obj.metar       
   }
 };
     

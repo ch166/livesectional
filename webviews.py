@@ -4,6 +4,8 @@
 import datetime
 import time
 
+import json
+
 # import subprocess
 
 from rpi_ws281x import (
@@ -62,6 +64,7 @@ class WebViews:
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
         self.app.add_url_rule("/metar/<airport>", view_func=self.getmetar, methods=["GET"])
         self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
+        self.app.add_url_rule("/wx/<airport>", view_func=self.getwx, methods=["GET"])
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
         self.app.add_url_rule("/led_map", view_func=self.led_map, methods=["GET", "POST"])
         self.app.add_url_rule("/map1", view_func=self.map1, methods=["GET", "POST"])
@@ -444,6 +447,36 @@ class WebViews:
         myQR.png(qrcode_file, scale=8)
 
         return render_template("qrcode.html", qraddress=qraddress, qrimage=qrcode_url)
+
+    def getwx(self, airport):
+        """Flask Route: /wx - Get WX JSON for Airport."""
+        template_data = self.standardtemplate_data()
+
+        debugging.info(f"getmetar: airport = {airport}")
+        template_data["airport"] = airport
+
+        airport = airport.lower()
+
+        if airport == "debug":
+            """Debug request - dumping DB info"""
+            with open("logs/airport_database.txt", "w") as outfile:
+                airportdb = self.airport_database.get_airportxmldb()
+                counter = 0
+                for icao, airport in airportdb.items():
+                    outfile.write(f"{icao}: {airport} :\n")
+                    counter = counter + 1
+                outfile.write(f"stats: {counter}\n")
+        wx_data = {"airport": "Not Set", "metar": "", "flightcategory": "UNKN"}
+        try:
+            airport_entry = self.airport_database.get_airportxml(airport)
+            debugging.info(airport_entry)
+            wx_data["airport"] = airport_entry["station_id"]
+            wx_data["metar"] = airport_entry["raw_text"]
+            wx_data["flightcategory"] = airport_entry["flight_category"]
+        except Exception as e:
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")
+
+        return json.dumps(wx_data)
 
     def getmetar(self, airport):
         """Flask Route: /metar - Get METAR for Airport."""

@@ -114,7 +114,7 @@ function get_badge(ap,loc) {
   document.getElementById(loc).innerHTML = outp;                         
 };
     
-xhttp.open("GET", "https://api.weather.gov/stations/"+ap+"/observations/latest", true);
+xhttp.open("GET", "/wx/"+ap", true);
 xhttp.send();
 }
 </script>   

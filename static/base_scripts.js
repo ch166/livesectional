@@ -5,68 +5,28 @@ function get_badge(ap,loc) {
   var sky_condition = "";
   var sky_ceiling = "";
   var flightcategory = "VFR";
-  var rawMessage = "";
+  var metar = "";
   
   xhttp.onreadystatechange = function() {
   if (this.status == 404) {
     console.log('Undefined Airport');
-    rawMessage = 'The Airport ID entered is Undefined. Please Check ID';
+    metar = 'The Airport ID entered is Undefined. Please Check ID';
     flightcategory = "UNDF";
   }
 
   if (this.readyState == 4 && this.status == 200) {
-    //console.log(xhttp.responseText); 
+    console.log(xhttp.responseText); 
     
- 
     obj = JSON.parse(xhttp.responseText);
-    rawMessage = obj.properties.rawMessage;
-    if (rawMessage == "") {
-      rawMessage = "No METAR Data Returned by FAA API. CLICK for Raw METAR"; 
+    metar = obj.metar;
+    flightcategory = obj.flightcategory;
+    if (metar == "") {
+      metar = "No METAR Data Returned by FAA API. CLICK for Raw METAR"; 
       flightcategory = "NOWX";
     }
 
-    console.log(obj.properties.rawMessage);
-    console.log("Num of Layers "+obj.properties.cloudLayers.length);
-    vis_in_miles = (parseInt(obj.properties.visibility.value)*3.28084/5280).toFixed(2);
-      
-    for (var i = 0; i < obj.properties.cloudLayers.length; i++) {
-      console.log(obj.properties.cloudLayers[i].base.value);      
-      console.log(obj.properties.cloudLayers[i].amount); 
-        sky_condition = obj.properties.cloudLayers[i].amount;
-        sky_ceiling = Math.round(obj.properties.cloudLayers[i].base.value*3.28084);
-
-      if (sky_condition=="OVC" || sky_condition=="BKN" || sky_condition=="OVX" || sky_condition=="VV") {
-          console.log("-->"+sky_condition);
-          console.log("-->"+sky_ceiling);
-                  
-          if (sky_ceiling < 500) {
-              flightcategory = "LIFR";
-          } else if (sky_ceiling >= 500 && sky_ceiling < 1000) {
-              flightcategory = "IFR";
-          } else if (sky_ceiling >= 1000 && sky_ceiling <= 3000) {
-              flightcategory = "MVFR";
-          } else if (sky_ceiling > 3000) {
-              flightcategory = "VFR";
-          }
-
-          if (flightcategory != "VFR") { 
-              break; 
-          }                    
-      }
-    }  
-        
-  if (flightcategory != "LIFR") {
-      if (vis_in_miles < 1) {
-          flightcategory = "LIFR";
-      } else if (vis_in_miles >= 1.0 && vis_in_miles < 3.0) {
-          flightcategory = "IFR";
-      } else if (vis_in_miles >= 3.0 && vis_in_miles <= 5.0) {
-          flightcategory = "MVFR";
-      }                         
-    }
-
+    console.log(metar);
     console.log(flightcategory);                         
-    console.log("Vis = "+vis_in_miles+" miles");      
 
   }
       
@@ -85,11 +45,11 @@ function get_badge(ap,loc) {
     var outp = outp + '<h6><span class="badge-undf">';
     }    
 
-  outp = outp + '&nbsp'+flightcategory+'&nbsp</span>&nbsp-&nbsp'+rawMessage+'</h6></a>';        
+  outp = outp + '&nbsp'+flightcategory+'&nbsp</span>&nbsp-&nbsp'+metar+'</h6></a>';        
   document.getElementById(loc).innerHTML = outp;                         
 };
     
-xhttp.open("GET", "https://api.weather.gov/stations/"+ap+"/observations/latest", true);
+xhttp.open("GET", "/wx/"+ap, true);
 xhttp.send();
 }
 
@@ -118,8 +78,7 @@ function get_fc(ap,loc) {
   }
 };
 
-xhttp.open("GET", "https://api.checkwx.com/metar/"+ap+"/decoded", true);
-xhttp.setRequestHeader('X-API-Key', '106e449c03ae4ec6af47581ff9');
+xhttp.open("GET", "/wx/"+ap, true);
 xhttp.send();
 }
 
@@ -131,14 +90,14 @@ function get_raw(ap,loc) {
   
   xhttp.onreadystatechange = function() {
   if (this.readyState == 4 && this.status == 200) {
-    //console.log(xhttp.responseText);      
+    console.log(xhttp.responseText);      
     obj = JSON.parse(xhttp.responseText); 
-    console.log(obj.properties.rawMessage);      
-    document.getElementById(loc).innerHTML = obj.properties.rawMessage       
+    console.log(obj.properties.metar);      
+    document.getElementById(loc).innerHTML = obj.properties.metar       
   }
 };
     
-xhttp.open("GET", "https://api.weather.gov/stations/"+ap+"/observations/latest", true);
+xhttp.open("GET", "/wx/"+ap, true);
 xhttp.send();
 }
 

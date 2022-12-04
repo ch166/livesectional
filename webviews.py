@@ -452,7 +452,7 @@ class WebViews:
         """Flask Route: /wx - Get WX JSON for Airport."""
         template_data = self.standardtemplate_data()
 
-        debugging.info(f"getmetar: airport = {airport}")
+        # debugging.info(f"getwx: airport = {airport}")
         template_data["airport"] = airport
 
         airport = airport.lower()
@@ -469,12 +469,12 @@ class WebViews:
         wx_data = {"airport": "Not Set", "metar": "", "flightcategory": "UNKN"}
         try:
             airport_entry = self.airport_database.get_airportxml(airport)
-            debugging.info(airport_entry)
+            # debugging.info(airport_entry)
             wx_data["airport"] = airport_entry["station_id"]
             wx_data["metar"] = airport_entry["raw_text"]
             wx_data["flightcategory"] = airport_entry["flight_category"]
         except Exception as e:
-            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")
+            debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{e}")
 
         return json.dumps(wx_data)
 
@@ -498,7 +498,7 @@ class WebViews:
                 outfile.write(f"stats: {counter}\n")
         try:
             airport_entry = self.airport_database.get_airportxml(airport)
-            debugging.info(airport_entry)
+            # debugging.info(airport_entry)
             template_data["metar"] = airport_entry["raw_text"]
         except Exception as e:
             debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")

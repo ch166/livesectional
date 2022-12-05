@@ -21,9 +21,9 @@ OLED Display devices can be used to share
 
 import time
 
-import math
-import cmath
-import random
+# import math
+# import cmath
+# import random
 
 from enum import Enum, auto
 
@@ -34,8 +34,9 @@ from luma.core.render import canvas
 from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106, ws0010
 
 import debugging
-import utils
-import utils_i2c
+
+# import utils
+# import utils_i2c
 import utils_gfx
 
 from PIL import Image
@@ -244,6 +245,7 @@ class UpdateOLEDs:
             draw.polygon(wind_poly, fill="white", outline="white")
             draw.polygon(runway_poly, fill=None, outline="white")
         self.i2cbus.bus_unlock()
+        return
 
     def update_oled_wind(self, oled_id, airportcode, airportrwy):
         """Draw WIND Info on designated OLED."""
@@ -259,6 +261,7 @@ class UpdateOLEDs:
         winddir = airport_record.get_wx_dir_degrees()
         if winddir is not None:
             self.draw_wind(oled_id, airportcode, airportrwy, winddir, windspeed)
+        return
 
     def update_loop(self):
         """Continuous Loop for Thread."""
@@ -270,7 +273,7 @@ class UpdateOLEDs:
             debugging.info("OLED: Updating OLEDs")
             for oled_id in range(0, (self.device_count)):
                 self.oled_text(oled_id, f"run({count}): {oled_id}")
-                # FIXME: This is hardcoded
+                # TODO: This is hardcoded
                 if oled_id == 3:
                     self.update_oled_wind(oled_id, "kbfi", 140)
                 if oled_id == 4:

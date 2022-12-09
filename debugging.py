@@ -73,6 +73,7 @@ def dprint(args):
         return
 
 
+@profile
 def info(args):
     """Passthrough call to print() if DEBUG_MSGS is enabled"""
 
@@ -86,6 +87,7 @@ def info(args):
         return
 
 
+@profile
 def warn(args):
     """Passthrough call to print() if WARN_MSGS is enabled"""
 
@@ -99,6 +101,7 @@ def warn(args):
         return
 
 
+@profile
 def error(args):
     """Passthrough call to print() if ERR_MSGS is enabled"""
 
@@ -113,6 +116,7 @@ def error(args):
         return
 
 
+@profile
 def debug(args):
     """Passthrough call to print() if ERR_MSGS is enabled"""
 

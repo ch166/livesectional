@@ -142,6 +142,7 @@ class AirportDB:
         """Return last update time of metar data."""
         return self.metar_update_time
 
+    @profile
     def update_airport_wx(self):
         """Update airport WX data for each known Airport"""
         for icao, arptdb_row in self.airport_master_dict.items():
@@ -158,6 +159,7 @@ class AirportDB:
                 debugging.error(debug_string)
                 debugging.crash(e)
 
+    @profile
     def airport_dict_from_json(self, airport_jsondb):
         """Create Airport List from json src"""
         # Airport dict Entry
@@ -198,6 +200,7 @@ class AirportDB:
             airportdb_dict[airport_db_id] = airportdb_row
         return airportdb_dict
 
+    @profile
     def airport_dicts_update(self):
         """Update master database sub-lists from master list"""
         # LED List ( purpose: LED / NULL / LGND )
@@ -257,6 +260,7 @@ class AirportDB:
 
         shutil.move(airport_json_new, airport_json)
 
+    @profile
     def update_airport_metar_xml(self):
         """Update Airport METAR DICT from XML"""
         # FIXME: Add file error handling
@@ -357,6 +361,7 @@ class AirportDB:
         debugging.info("Updating Airport METAR from XML")
         return True
 
+    @profile
     def update_airport_taf_xml(self):
         """Update Airport TAF DICT from XML"""
 
@@ -520,6 +525,7 @@ class AirportDB:
         debugging.debug("Updating Airport TAF from XML")
         return True
 
+    @profile
     def update_loop(self, conf):
         """Master loop for keeping the airport data set current
 
@@ -538,6 +544,8 @@ class AirportDB:
         # TODO: Do we really need these, or can we just do the conf lookup when needed
         metar_xml_url = conf.get_string("urls", "metar_xml_gz")
         metar_file = conf.get_string("filenames", "metar_xml_data")
+        runways_csv_url = conf.get_string("urls", "runways_csv_url")
+        runways_file = conf.get_string("filenames", "runways_file")
         tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
         tafs_file = conf.get_string("filenames", "tafs_xml_data")
         mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
@@ -599,6 +607,14 @@ class AirportDB:
                 debugging.info("Downloaded MOS12 file")
             elif ret == 3:
                 debugging.info("Server side MOS12 older")
+
+            ret = utils.download_newer_file(
+                https_session, runways_csv_url, runways_file
+            )
+            if ret == 0:
+                debugging.info("Downloaded runways.csv")
+            elif ret == 3:
+                debugging.info("Server side runways.csv older")
 
             ret = utils.download_newer_file(https_session, mos18_xml_url, mos18_file)
             if ret == 0:

@@ -45,7 +45,6 @@ import conf
 import debugging
 import sysinfo
 
-
 class WebViews:
     """Class to contain all the Flask WEB functionality."""
 
@@ -118,7 +117,6 @@ class WebViews:
         self.strip = None
         self.led_map_dict = {}
 
-    @profile
     def run(self):
         """Run Flask Application.
 
@@ -126,7 +124,6 @@ class WebViews:
         """
         self.app.run(debug=False, host="0.0.0.0")
 
-    @profile
     def standardtemplate_data(self):
         """Generate a standardized template_data."""
         airport_dict_data = {}
@@ -165,7 +162,6 @@ class WebViews:
         }
         return template_data
 
-    @profile
     def yindex(self):
         """Flask Route: /yield - Display System Info."""
         template_data = self.standardtemplate_data()
@@ -175,7 +171,6 @@ class WebViews:
         return render_template("sysinfo.html", **template_data)
         # text/html is required for most browsers to show this info.
 
-    @profile
     def tzset(self):
         """Flask Route: /tzset - Display and Set Timezone Information."""
         if request.method == "POST":
@@ -199,7 +194,6 @@ class WebViews:
         return render_template("tzset.html", **template_data)
 
     # Routes for Map Display - Testing
-    @profile
     def map1(self):
         """Flask Route: /map1 ."""
         start_coords = (35.1738, -111.6541)
@@ -236,7 +230,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route('/touchscr', methods=["GET", "POST"])
-    @profile
     def touchscr(self):
         """Flask Route: /touchscr - Touch Screen template."""
         ipadd = self.sysdata.local_ip()
@@ -251,7 +244,6 @@ class WebViews:
     # This streams off to seashells.io ..
     # This works except that we're not currently pumping things to seashells.io
     # @app.route('/open_console', methods=["GET", "POST"])
-    @profile
     def open_console(self):
         """Flask Route: /open_console - Launching Console in discrete window."""
         console_ips = []
@@ -278,7 +270,6 @@ class WebViews:
     # Routes to display logfile live, and hopefully for a dashboard
     # @app.route('/stream_log', methods=["GET", "POST"])
     # Works with stream_log1
-    @profile
     def stream_log(self):
         """Flask Route: /stream_log - Watch logs live."""
         loc_timestr = utils.time_format(utils.current_time(self.conf))
@@ -296,7 +287,6 @@ class WebViews:
         )
 
     # @app.route('/stream_log1', methods=["GET", "POST"])
-    @profile
     def stream_log1(self):
         """Flask Route: /stream_log1 - UNUSED ALTERNATE LOGS ROUTE."""
 
@@ -308,7 +298,6 @@ class WebViews:
 
         return self.app.response_class(generate(), mimetype="text/plain")
 
-    @profile
     def airport_boundary_calc(self):
         """Scan airport lat/lon data and work out Airport Map boundaries."""
         lat_list = []
@@ -331,7 +320,6 @@ class WebViews:
 
     # Route to display map's airports on a digital map.
     # @app.route('/led_map', methods=["GET", "POST"])
-    @profile
     def led_map(self):
         """Flask Route: /led_map - Display LED Map with existing airports."""
         # Update Airport Boundary data based on set of airports
@@ -474,7 +462,6 @@ class WebViews:
 
         return render_template("led_map.html", **template_data)
 
-    @profile
     def qrcode(self):
         """Flask Route: /qrcode - Generate QRcode for site URL."""
         # Generates qrcode that maps to the mobileconfedit version of
@@ -492,7 +479,6 @@ class WebViews:
 
         return render_template("qrcode.html", qraddress=qraddress, qrimage=qrcode_url)
 
-    @profile
     def getwx(self, airport):
         """Flask Route: /wx - Get WX JSON for Airport."""
         template_data = self.standardtemplate_data()
@@ -518,12 +504,11 @@ class WebViews:
             wx_data["airport"] = airport_entry["station_id"]
             wx_data["metar"] = airport_entry["raw_text"]
             wx_data["flightcategory"] = airport_entry["flight_category"]
-        except Exception as e:
-            debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{e}")
+        except Exception as err:
+            debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
 
         return json.dumps(wx_data)
 
-    @profile
     def getmetar(self, airport):
         """Flask Route: /metar - Get METAR for Airport."""
         template_data = self.standardtemplate_data()
@@ -546,13 +531,12 @@ class WebViews:
             airport_entry = self.airport_database.get_airportxml(airport)
             # debugging.info(airport_entry)
             template_data["metar"] = airport_entry["raw_text"]
-        except Exception as e:
-            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")
+        except Exception as err:
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{err}")
             template_data["metar"] = "ERR - Not found"
 
         return render_template("metar.html", **template_data)
 
-    @profile
     def gettaf(self, airport):
         """Flask Route: /taf - Get TAF for Airport."""
         template_data = self.standardtemplate_data()
@@ -575,8 +559,8 @@ class WebViews:
             airport_entry = self.airport_database.get_airport_taf(airport)
             debugging.info(airport_entry)
             template_data["taf"] = airport_entry["raw_text"]
-        except Exception as e:
-            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{e}")
+        except Exception as err:
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{err}")
             template_data["taf"] = "ERR - Not found"
 
         return render_template("taf.html", **template_data)
@@ -584,7 +568,6 @@ class WebViews:
     # FIXME: Figure out what the home page will look like.
     # @app.route('/', methods=["GET", "POST"])
     # @app.route('/index', methods=["GET", "POST"])
-    @profile
     def index(self):
         """Flask Route: / and /index - Homepage."""
         template_data = self.standardtemplate_data()
@@ -596,7 +579,6 @@ class WebViews:
 
     # Routes to download airports, logfile.log and config.py to local computer
     # @app.route('/download_ap', methods=["GET", "POST"])
-    @profile
     def downloadairports(self):
         """Flask Route: /download_ap - Export airports file."""
         debugging.info("Downloaded Airport File")
@@ -604,7 +586,6 @@ class WebViews:
         return send_file(path, as_attachment=True)
 
     # @app.route('/download_cf', methods=["GET", "POST"])
-    @profile
     def downloadconfig(self):
         """Flask Route: /download_cf - Export configuration file."""
         debugging.info("Downloaded Config File")
@@ -612,7 +593,6 @@ class WebViews:
         return send_file(path, as_attachment=True)
 
     # @app.route('/download_log', methods=["GET", "POST"])
-    @profile
     def downloadlog(self):
         """Flask Route: /download_log - Export log file."""
         debugging.info("Downloaded Logfile")
@@ -621,7 +601,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route('/download_hm', methods=["GET", "POST"])
-    @profile
     def downloadhm(self):
         """Flask Route: /download_hm - Export heatmap data file."""
         debugging.info("Downloaded Heat Map data file")
@@ -631,7 +610,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Routes for Heat Map Editor
     # @app.route("/hmedit", methods=["GET", "POST"])
-    @profile
     def hmedit(self):
         """Flask Route: /hmedit - Heat Map Editor."""
         debugging.info("Opening hmedit.html")
@@ -645,7 +623,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route("/hmpost", methods=["GET", "POST"])
-    @profile
     def handle_hmpost_request(self):
         """Flask Route: /hmpost - Upload HeatMap Data."""
         debugging.info("Saving Heat Map Data File")
@@ -677,7 +654,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Import a file to populate Heat Map Data. Must Save airports to keep
     # @app.route("/importhm", methods=["GET", "POST"])
-    @profile
     def importhm(self):
         """Flask Route: /importhm - Importing Heat Map."""
         debugging.info("Importing Heat Map File")
@@ -708,7 +684,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Routes for Airport Editor
     # @app.route("/apedit", methods=["GET", "POST"])
-    @profile
     def apedit(self):
         """Flask Route: /apedit - Airport Editor."""
         debugging.info("Opening apedit.html")
@@ -720,7 +695,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route("/numap", methods=["GET", "POST"])
-    @profile
     def numap(self):
         """Flask Route: /numap."""
         debugging.info("Updating Number of airports in airport file")
@@ -747,7 +721,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route("/appost", methods=["GET", "POST"])
-    @profile
     def handle_appost_request(self):
         """Flask Route: /appost."""
         debugging.info("Saving Airport File")
@@ -786,7 +759,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route("/ledonoff", methods=["GET", "POST"])
-    @profile
     def ledonoff(self):
         """Flask Route: /ledonoff."""
         debugging.info("Controlling LED's on/off")
@@ -870,7 +842,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Import a file to populate airports. Must Save self.airports to keep
     # @app.route("/importap", methods=["GET", "POST"])
-    @profile
     def importap(self):
         """Flask Route: /importap - Import airports File."""
         debugging.info("Importing airports File")
@@ -901,7 +872,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Routes for Config Editor
     # @app.route("/confedit", methods=["GET", "POST"])
-    @profile
     def confedit(self):
         """Flask Route: /confedit - Configuration Editor."""
         debugging.info("Opening confedit.html")
@@ -1039,7 +1009,6 @@ class WebViews:
 
     # FIXME: Integrate into Class
     # @app.route("/post", methods=["GET", "POST"])
-    @profile
     def handle_post_request(self):
         """Flask Route: /post ."""
         debugging.info("Saving Config File")
@@ -1119,7 +1088,6 @@ class WebViews:
     # Routes for LSREMOTE - Allow Mobile Device Remote. Thank Lance
     # # @app.route('/', methods=["GET", "POST"])
     # @app.route('/lsremote', methods=["GET", "POST"])
-    @profile
     def confeditmobile(self):
         """Flask Route: /lsremote - Mobile Device API"""
         debugging.info("Opening lsremote.html")
@@ -1267,7 +1235,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Import Config file. Must Save Config File to make permenant
     # @app.route("/importconf", methods=["GET", "POST"])
-    @profile
     def importconf(self):
         """Flask Route: /importconf - Flask Config Uploader"""
         debugging.info("Importing Config File")
@@ -1306,7 +1273,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Restore config.py settings
     # @app.route("/restoreconf", methods=["GET", "POST"])
-    @profile
     def restoreconf(self):
         """Flask Route: /restoreconf"""
         debugging.info("Restoring Config Settings")
@@ -1315,7 +1281,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Loads the profile into the Settings Editor, but does not save it.
     # @app.route("/profiles", methods=["GET", "POST"])
-    @profile
     def profiles(self):
         """Flask Route: /profiles - Load from Multiple Config Profiles"""
         config_profiles = {
@@ -1345,7 +1310,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Route for Reboot of RPI
     # @app.route("/reboot1", methods=["GET", "POST"])
-    @profile
     def reboot1(self):
         """Flask Route: /reboot1 - Request host reboot"""
         ipadd = self.sysdata.local_ip()
@@ -1365,7 +1329,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Route to startup map and displays
     # @app.route("/startup1", methods=["GET", "POST"])
-    @profile
     def startup1(self):
         """Flask Route: /startup1 - Trigger process startup"""
         url = request.referrer
@@ -1386,7 +1349,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Route to turn off the map and displays
     # @app.route("/shutdown1", methods=["GET", "POST"])
-    @profile
     def shutdown1(self):
         """Flask Route: /shutdown1 - Trigger process shutdown"""
         url = request.referrer
@@ -1410,7 +1372,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Route to power down the RPI
     # @app.route("/shutoffnow1", methods=["GET", "POST"])
-    @profile
     def shutoffnow1(self):
         """Flask Route: /shutoffnow1 - Turn Off RPI"""
         url = request.referrer
@@ -1430,7 +1391,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Route to run LED test
     # @app.route("/testled", methods=["GET", "POST"])
-    @profile
     def testled(self):
         """Flask Route: /testled - Run LED Test scripts"""
         url = request.referrer
@@ -1451,7 +1411,6 @@ class WebViews:
     # FIXME: Integrate into Class
     # Route to run OLED test
     # @app.route("/testoled", methods=["GET", "POST"])
-    @profile
     def testoled(self):
         """Flask Route: /testoled - Run OLED Test sequence"""
         url = request.referrer

@@ -228,7 +228,7 @@ class Airport:
 
         try:
             wx_utils.calculate_wx_from_metar(self)
-        except Exception as e:
+        except Exception as err:
             debug_string = (
                 "Error: get_adds_metar processing "
                 + self.icao
@@ -237,7 +237,7 @@ class Airport:
                 + ":"
             )
             debugging.debug(debug_string)
-            debugging.debug(e)
+            debugging.debug(err)
         return False
 
     def update_wx(self, metar_xml_dict):
@@ -247,8 +247,8 @@ class Airport:
             try:
                 debugging.info("Update USA Metar: ADDS " + self.icao)
                 freshness = self.get_adds_metar(metar_xml_dict)
-            except Exception as e:
-                debugging.error(e)
+            except Exception as err:
+                debugging.error(err)
         elif self.wxsrc.startswith("neigh"):
             """Get METAR data from alternative Airport"""
             strparts = self.wxsrc.split(":")

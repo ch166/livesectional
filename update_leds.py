@@ -88,6 +88,7 @@ import collections
 import re
 import ast
 
+
 from rpi_ws281x import (
     Color,
     PixelStrip,
@@ -427,7 +428,6 @@ class UpdateLEDs:
         self.strip.begin()
 
     # Functions
-    @profile
     def setLedColor(self, led_id, hexcolor):
         """Convert color from HEX to RGB or GRB and apply to LED String"""
         # TODO: Add capability here to manage 'nullpins' and remove any mention of it from the code
@@ -910,7 +910,6 @@ class UpdateLEDs:
             debugging.info("Decoded MOS Data for Display")
         return True
 
-    @profile
     def wx_display_loop(self, stationiddict, windsdict, wxstringdict, toggle):
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
         # debugging.info("WX Display")
@@ -1225,7 +1224,6 @@ class UpdateLEDs:
             time.sleep(wait_time)
         print("//")
 
-    @profile
     def update_loop(self):
         # #########################
         # Start of executed code #

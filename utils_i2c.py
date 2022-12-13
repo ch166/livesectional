@@ -15,15 +15,14 @@ i2c utils
 
 
 import time
+
+from threading import Lock
+
 import board
 from board import SCL, SDA
 import busio
 
 import smbus2
-
-# import threading
-from threading import Lock
-
 import utils
 import debugging
 
@@ -46,6 +45,8 @@ I2C_ch = [
 
 
 class I2CBus:
+    """Class to manage I2C Bus access."""
+
     # the raspberry pi i2c bus number
     # This code is assuming we're on a raspberry PI ; and that we're using i2c bus 1
     #
@@ -84,6 +85,7 @@ class I2CBus:
             debugging.error("OLED: init - error calling i2c_update")
 
     def select(self, channel_id):
+        """Enable MUX."""
         if self.mux_active:
             if self.i2c_exists(self.MUX_DEVICE_ID):
                 self.i2c_mux_select(channel_id)
@@ -93,11 +95,12 @@ class I2CBus:
         return False
 
     def i2c_exists(self, device_id):
+        """Iterate across the list of i2c devices."""
         found_device = False
         self.lock.acquire()
         active_devices = self.i2c.scan()
         self.lock.release()
-        length = len(active_devices)
+        # length = len(active_devices)
         # debugging.debug("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
             # debugging.debug("i2c: device id " + hex(dev_id))
@@ -107,41 +110,45 @@ class I2CBus:
         return found_device
 
     def bus_lock(self):
-        """Grab bus lock"""
+        """Grab bus lock."""
         self.lock_count += 1
         if self.lock.locked():
             debugging.warn("bus_lock: Lock already acquired")
         self.lock.acquire()
 
     def bus_unlock(self):
-        """Release bus lock"""
+        """Release bus lock."""
         self.lock.release()
 
     def set_always_on(self, channel_id):
+        """Set channel to be always on."""
         self.always_enabled = I2C_ch[channel_id]
         if not self.i2c_update():
             debugging.error("OLED: set_always_on - error calling i2c_update")
 
     def add_always_on(self, channel_id):
+        """Add a channel to the always on flag."""
         self.always_enabled = self.always_enabled | I2C_ch[channel_id]
         if not self.i2c_update():
             debugging.error("OLED: add_always_on - error calling i2c_update")
 
     def clear_always_on(self):
+        """Clear Always On Flag."""
         self.always_enabled = 0x0
         if not self.i2c_update():
             debugging.error("OLED: clear_always_on - error calling i2c_update")
 
     def i2c_mux_select(self, channel_id):
+        """Enable i2c channel."""
         # This switches to channel 1
-        debugging.debug("i2c_mux_select(" + str(channel_id) + ")")
+        debugging.debug(f"i2c_mux_select({channel_id})")
         self.current_enabled = I2C_ch[channel_id]
         if not self.i2c_update():
             debugging.error("OLED: i2c_mux_select - error calling i2c_update")
 
     def i2c_mux_default(self):
+        """Update MUX settings."""
         # This switches to channel 1
-        # TODO: Need to only do this if we've confirmed a device at 0x70
         if self.mux_active:
             self.lock.acquire()
             self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
@@ -150,6 +157,7 @@ class I2CBus:
                 debugging.error("OLED: i2c_mux_default - error calling i2c_update")
 
     def i2c_update(self):
+        """Send message to MUX."""
         if self.mux_active:
             try:
                 mux_select_flags = self.always_enabled | self.current_enabled
@@ -157,7 +165,7 @@ class I2CBus:
                 self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, mux_select_flags)
                 self.lock.release()
                 return True
-            except Exception as e:
+            except Exception as err:
                 self.lock.release()
-                debugging.error(e)
+                debugging.error(err)
         return False

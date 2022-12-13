@@ -101,14 +101,9 @@ def delete_file(target_path, filename):
             os.remove(target_path + filename)
             debugging.debug("Deleted " + filename)
             return True
-        except OSError as e:
-            debugging.error(
-                "Error "
-                + e.__str__()
-                + " while deleting file "
-                + target_path
-                + filename
-            )
+        except OSError as err:
+            debugging.error(f"Error {err} while deleting file {target_path} {filename}")
+            return False
     else:
         return False
 
@@ -125,36 +120,42 @@ def hex2rgb(value):
     """Hex to RGB"""
     value = value.lstrip("#")
     length_v = len(value)
-    return tuple(
-        int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3)
-    )
+    return tuple(int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3))
 
 
-def download_newer_file(session, url, filename, newer=True, decompress=False):
+def download_newer_file(session, url, filename, newer=True, decompress=False, etag=None):
     """
+    Attempt to download a file only if it appears newer / different from the server side copy.
     Download a file from URL if the
     last-modified header is newer than our timestamp
 
-    Return Values:
-    0 - Download completed
-    1 - Download didn't happen
-    2 - strangely not used
-    3 - Download not attempted
+    Return Values: result, etag
+    Result:
+        True - Download completed
+        False - Download not attempted
+    Etag:
+        Etag Header
 
     """
     debugging.debug("Starting download_newer_file" + filename)
+    url_time = None
+    url_date = None
+    url_etag = None
 
     # Do a HTTP GET to pull headers so we can check timestamps
     try:
         req = session.head(url, allow_redirects=True, timeout=5)
-    except Exception as e:
-        msg = "Problem requesting " + url
+    except Exception as err:
+        msg = f"Problem requesting {url}"
         debugging.debug(msg)
-        debugging.error(e)
-        return 1
+        debugging.error(err)
+        return False, url_etag
 
-    url_time = req.headers["last-modified"]
-    url_date = parsedate(url_time)
+    if "last-modified" in req.headers:
+        url_time = req.headers["last-modified"]
+        url_date = parsedate(url_time)
+    if "etag" in req.headers:
+        url_etag = req.headers["etag"]
 
     download = False
 
@@ -162,69 +163,71 @@ def download_newer_file(session, url, filename, newer=True, decompress=False):
         # File doesn't exist, so we need to download it
         download = True
     else:
-        file_time = datetime.fromtimestamp(os.path.getmtime(filename))
-        if url_date.timestamp() > file_time.timestamp():
-            # Time stamp of local file is older than timestamp on server
+        # File exists - we might have a last-modified header
+        # or we might be using etag comparisons to decide if something is newer/different
+        if url_time is not None:
+            file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+            if url_date.timestamp() > file_time.timestamp():
+                # Time stamp of local file is older than timestamp on server
+                download = True
+            else:
+                # Server side file is same or older, our file is up to date
+                msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
+                debugging.debug(msg)
+        if (url_etag is not None) and (etag != url_etag):
+            # Check to see if downloaded etag and value passed in are the same. If not - download is true
             download = True
-        else:
-            # Server side file is same or older, our file is up to date
-            msg = (
-                "Timestamp check - Server side: "
-                + str(datetime.fromtimestamp(url_date.timestamp()))
-                + " : Local : "
-                + str(datetime.fromtimestamp(file_time.timestamp()))
-            )
-            debugging.debug(msg)
 
     if download:
         # Need to trigger a file download
         debugging.debug("Starting download_newer_file" + filename)
         try:
             # Download file to temporary object
-            #
             download_object = tempfile.NamedTemporaryFile(delete=False)
             urllib.request.urlretrieve(url, download_object.name)
-
             if decompress:
                 uncompress_object = tempfile.NamedTemporaryFile(delete=False)
                 try:
                     decompress_file_gz(download_object.name, uncompress_object.name)
-                except Exception as e:
+                except Exception as err:
                     debugging.error("File decompression failed for : " + filename)
-                    debugging.error(e)
+                    debugging.error(err)
                 os.remove(download_object.name)
                 download_object = uncompress_object
 
             shutil.copyfile(download_object.name, filename)
             os.remove(download_object.name)
             # Set the timestamp of the downloaded file to match
-            # match the HEAD date stamp
-            os.utime(
-                filename, (datetime.timestamp(url_date), datetime.timestamp(url_date))
-            )
-            return 0
-        except Exception as e:
-            debugging.error(e)
-            return 1
-    return 3
+            # match the HEAD date stamp / or 'now' for etag headers
+            if url_date is None:
+                file_timestamp = datetime.now()
+            else:
+                file_timestamp = datetime.timestamp(url_date)
+            os.utime(filename, (file_timestamp, file_timestamp))
+            return True, url_etag
+        except Exception as err:
+            debugging.error(err)
+            return False, url_etag
+    return False, url_etag
 
 
 def decompress_file_gz(srcfile, dstfile):
+    """use gzip to decompress a file."""
     try:
         # Decompress the file
         with gzip.open(srcfile, "rb") as f_in:
             with open(dstfile, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
         return 0
-    except Exception as e:
+    except Exception as err:
         # Something went wrong
         debugging.error("File gzip decompress error")
-        debugging.error(e)
+        debugging.error(err)
         return 1
 
 
 def time_in_range(start, end, x_time):
-    """See if a time falls within range"""
+    """See if a time falls within range."""
     if start <= end:
         return start <= x_time <= end
     return end <= x_time <= start
@@ -232,14 +235,12 @@ def time_in_range(start, end, x_time):
 
 # Compare current time plus offset to TAF's time period and return difference
 def comp_time(zulu_time, taf_time):
-    """Compare time plus offset to TAF"""
+    """Compare time plus offset to TAF."""
     # global current_zulu
     date_time_format = "%Y-%m-%dT%H:%M:%SZ"
     date1 = taf_time
     date2 = zulu_time
-    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(
-        date2, date_time_format
-    )
+    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(date2, date_time_format)
     diff_minutes = int(diff.seconds / 60)
     diff_hours = int(diff_minutes / 60)
     return diff.seconds, diff_minutes, diff_hours, diff.days
@@ -255,18 +256,14 @@ def reboot_if_time(conf):
     if use_reboot and use_autorun:
         now = datetime.now()
         rb_time = now.strftime("%H:%M")
-        debugging.debug(
-            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
-        )
-        print(
-            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
-        )  # debug
+        debugging.debug("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))
+        print("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))  # debug
 
         # FIXME: Reference to 'self' here
         # if rb_time == self.time_reboot:
         #    debugging.debug("Rebooting at " + self.time_reboot)
         #    time.sleep(1)
-        # FIXME: This should use a more secure mechanism,
+        # This process should be more secure
         # and have some sanity checks - that we aren't in a reboot loop.
         # Also should handle daylight savings time changes (avoid double reboot)
         # If using sudo - need to make sure that install scripts
@@ -275,42 +272,42 @@ def reboot_if_time(conf):
 
 
 def time_format_taf(raw_time):
-    """Convert raw time into TAF formatted printable string"""
+    """Convert raw time into TAF formatted printable string."""
     if raw_time is None:
         raw_time = datetime(1970, 1, 1)
     return raw_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def time_format(raw_time):
-    """Convert raw time into standardized printable string"""
+    """Convert raw time into standardized printable string."""
     if raw_time is None:
         raw_time = datetime(1970, 1, 1)
     return raw_time.strftime("%H:%M:%S - %b %d, %Y")
 
 
 def current_time_hr_utc(conf):
-    """Get current HR in UTC"""
+    """Get current HR in UTC."""
     UTC = pytz.utc
     curr_time = datetime.now(UTC)
     return int(curr_time.strftime("%H"))
 
 
 def current_time_utc(conf):
-    """Get time in UTC"""
+    """Get time in UTC."""
     UTC = pytz.utc
     curr_time = datetime.now(UTC)
     return curr_time
 
 
 def current_time(conf):
-    """Get time Now"""
+    """Get time Now."""
     TMZONE = pytz.timezone(conf.get_string("default", "timezone"))
     curr_time = datetime.now(TMZONE)
     return curr_time
 
 
 def current_time_taf_offset(conf):
-    """Get time for TAF period selected (UTC)"""
+    """Get time for TAF period selected (UTC)."""
     UTC = pytz.utc
     offset = conf.get_int("rotaryswitch", "hour_to_display")
     curr_time = datetime.now(UTC) + timedelta(hours=offset)
@@ -318,12 +315,12 @@ def current_time_taf_offset(conf):
 
 
 def set_timezone(conf, newtimezone):
-    """Set timezone configuration string"""
+    """Set timezone configuration string."""
     # Doo stuff to set the timezone
     conf.set_string("default", "timezone", newtimezone)
     conf.save_config()
 
 
 def get_timezone(conf):
-    """Return timezone configuration"""
+    """Return timezone configuration."""
     return conf.get_string("default", "timezone")

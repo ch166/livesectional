@@ -94,10 +94,10 @@ class LightSensor:
                     self.i2cbus.bus_lock()
                     current_light = self.tsl.get_current()
                     self.i2cbus.bus_unlock()
-                except Exception as e:
+                except Exception as err:
                     self.i2cbus.bus_unlock()
                     self.found_device = False
-                    debugging.error(e)
+                    debugging.error(err)
                 lux = current_light["lux"]
                 lux = max(lux, 50)
                 lux = min(lux, 240)

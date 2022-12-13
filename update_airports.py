@@ -62,9 +62,7 @@ import debugging
 
 # import ledstrip
 import utils
-
 import airport
-
 
 class AirportDB:
     """Airport Database - Keeping track of interesting sets of airport data"""
@@ -142,7 +140,6 @@ class AirportDB:
         """Return last update time of metar data."""
         return self.metar_update_time
 
-    @profile
     def update_airport_wx(self):
         """Update airport WX data for each known Airport"""
         for icao, arptdb_row in self.airport_master_dict.items():
@@ -152,14 +149,13 @@ class AirportDB:
                 continue
             try:
                 arpt.update_wx(self.metar_xml_dict)
-            except Exception as e:
+            except Exception as err:
                 debug_string = (
                     "Error: update_airport_wx Exception handling for " + arpt.icao
                 )
                 debugging.error(debug_string)
-                debugging.crash(e)
+                debugging.crash(err)
 
-    @profile
     def airport_dict_from_json(self, airport_jsondb):
         """Create Airport List from json src"""
         # Airport dict Entry
@@ -200,7 +196,6 @@ class AirportDB:
             airportdb_dict[airport_db_id] = airportdb_row
         return airportdb_dict
 
-    @profile
     def airport_dicts_update(self):
         """Update master database sub-lists from master list"""
         # LED List ( purpose: LED / NULL / LGND )
@@ -260,7 +255,6 @@ class AirportDB:
 
         shutil.move(airport_json_new, airport_json)
 
-    @profile
     def update_airport_metar_xml(self):
         """Update Airport METAR DICT from XML"""
         # FIXME: Add file error handling
@@ -271,9 +265,9 @@ class AirportDB:
         metar_file = self.conf.get_string("filenames", "metar_xml_data")
         try:
             root = etree.parse(metar_file)
-        except etree.ParseError as e:
+        except etree.ParseError as err:
             debugging.error("XML Parse METAR Error")
-            debugging.error(e)
+            debugging.error(err)
             debugging.info("Not updating - returning")
             return False
 
@@ -361,7 +355,6 @@ class AirportDB:
         debugging.info("Updating Airport METAR from XML")
         return True
 
-    @profile
     def update_airport_taf_xml(self):
         """Update Airport TAF DICT from XML"""
 
@@ -385,9 +378,9 @@ class AirportDB:
         taf_file = self.conf.get_string("filenames", "tafs_xml_data")
         try:
             root = etree.parse(taf_file)
-        except etree.ParseError as e:
+        except etree.ParseError as err:
             debugging.error("XML Parse TAF Error")
-            debugging.error(e)
+            debugging.error(err)
             debugging.info("Not updating - returning")
             return False
 
@@ -446,10 +439,10 @@ class AirportDB:
                         try:
                             # get cloud base AGL from XML
                             cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
-                            debugging.debug(cld_base_ft_agl)  # debug
-                        except Exception as e:
+                            # debugging.debug(cld_base_ft_agl)  # debug
+                        except Exception as err:
                             # get cloud base AGL from XML
-                            debugging.error(e)
+                            debugging.error(err)
                             cld_base_ft_agl = forecast.find("vert_vis_ft")
                             if cld_base_ft_agl is not None:
                                 cld_base_ft_agl = cld_base_ft_agl.text
@@ -525,7 +518,6 @@ class AirportDB:
         debugging.debug("Updating Airport TAF from XML")
         return True
 
-    @profile
     def update_loop(self, conf):
         """Master loop for keeping the airport data set current
 
@@ -565,6 +557,14 @@ class AirportDB:
         self.update_airport_metar_xml()
         self.update_airport_taf_xml()
 
+        etag_metar = None
+        etag_tafs = None
+        etag_mos00 = None
+        etag_mos06 = None
+        etag_mos12 = None
+        etag_mos18 = None
+        etag_runways = None
+
         while True:
             debugging.info(
                 "Updating Airport Data .. every aviation_weather_adds_timer ("
@@ -572,63 +572,61 @@ class AirportDB:
                 + "m)"
             )
 
-            ret = utils.download_newer_file(
-                https_session, metar_xml_url, metar_file, decompress=True
+            ret, etag_metar = utils.download_newer_file(
+                https_session, metar_xml_url, metar_file, decompress=True, etag=etag_metar
             )
-            if ret == 0:
+            if ret == True:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side METAR older")
 
-            ret = utils.download_newer_file(
-                https_session, tafs_xml_url, tafs_file, decompress=True
+            ret, tafs_etag = utils.download_newer_file(
+                https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs
             )
-            if ret == 0:
+            if ret == True:
                 debugging.info("Downloaded TAFS file")
                 self.update_airport_taf_xml()
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side TAFS older")
 
-            ret = utils.download_newer_file(https_session, mos00_xml_url, mos00_file)
-            if ret == 0:
+            ret, etag_mos00 = utils.download_newer_file(https_session, mos00_xml_url, mos00_file, etag=etag_mos00)
+            if ret == True:
                 debugging.info("Downloaded MOS00 file")
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side MOS00 older")
 
-            ret = utils.download_newer_file(https_session, mos06_xml_url, mos06_file)
-            if ret == 0:
+            ret, etag_mos06 = utils.download_newer_file(https_session, mos06_xml_url, mos06_file, etag=etag_mos06)
+            if ret == True:
                 debugging.info("Downloaded MOS06 file")
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side MOS06 older")
 
-            ret = utils.download_newer_file(https_session, mos12_xml_url, mos12_file)
-            if ret == 0:
+            ret, etag_mos12 = utils.download_newer_file(https_session, mos12_xml_url, mos12_file)
+            if ret == True:
                 debugging.info("Downloaded MOS12 file")
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side MOS12 older")
 
-            ret = utils.download_newer_file(
-                https_session, runways_csv_url, runways_file
-            )
-            if ret == 0:
+            ret, etag_runways = utils.download_newer_file( https_session, runways_csv_url, runways_file, etag=etag_runways)
+            if ret == True:
                 debugging.info("Downloaded runways.csv")
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side runways.csv older")
 
-            ret = utils.download_newer_file(https_session, mos18_xml_url, mos18_file)
-            if ret == 0:
+            ret, etag_mos18 = utils.download_newer_file(https_session, mos18_xml_url, mos18_file, etag=etag_mos18)
+            if ret == True:
                 debugging.info("Downloaded MOS18 file")
-            elif ret == 3:
+            elif ret == False:
                 debugging.info("Server side MOS18 older")
 
             try:
                 self.update_airport_wx()
-            except Exception as e:
+            except Exception as err:
                 debugging.error(
                     "Update Weather Loop: self.update_airport_wx() exception"
                 )
-                debugging.error(e)
+                debugging.error(err)
             kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
             time.sleep(aviation_weather_adds_timer * 60)

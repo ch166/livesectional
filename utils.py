@@ -287,23 +287,18 @@ def time_format(raw_time):
 
 def current_time_hr_utc(conf):
     """Get current HR in UTC."""
-    UTC = pytz.utc
-    curr_time = datetime.now(UTC)
+    curr_time = datetime.now(pytz.utc)
     return int(curr_time.strftime("%H"))
 
 
 def current_time_utc(conf):
     """Get time in UTC."""
-    UTC = pytz.utc
-    curr_time = datetime.now(UTC)
-    return curr_time
+    return datetime.now(pytz.utc)
 
 
 def current_time(conf):
     """Get time Now."""
-    TMZONE = pytz.timezone(conf.get_string("default", "timezone"))
-    curr_time = datetime.now(TMZONE)
-    return curr_time
+    return datetime.now(pytz.timezone(conf.get_string("default", "timezone")))
 
 
 def current_time_taf_offset(conf):

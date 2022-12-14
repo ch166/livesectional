@@ -8,7 +8,6 @@ import logging
 import logging.handlers
 
 
-
 # FIXME: Move these flags to configuration
 DEBUG_MSGS = False
 PRINT_MSGS = True

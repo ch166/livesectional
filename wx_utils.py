@@ -50,7 +50,12 @@ def get_usa_metar(airport_data):
     expiredtime = timenow - timedelta(minutes=metarexpiry)
     if airport_data.metar_date > expiredtime:
         # Metar Data still fresh
-        debugging.debug("METAR is fresh  : " + airport_data.icao + " - " + airport_data.wx_category_str)
+        debugging.debug(
+            "METAR is fresh  : "
+            + airport_data.icao
+            + " - "
+            + airport_data.wx_category_str
+        )
         return True
     # TODO: Move this to config
     metar_url_usa = "https://tgftp.nws.noaa.gov/data/observations/metar/stations"
@@ -122,7 +127,9 @@ def cloud_height(wx_metar):
             debugging.debug("Cloud Layer without altitude values " + cloudlayer[0])
             return -1
         layer_altitude = cloudlayer[1].value()
-        debugging.debug("LOC: " + wx_metar + " Layer: " + key + " Alt: " + str(layer_altitude))
+        debugging.debug(
+            "LOC: " + wx_metar + " Layer: " + key + " Alt: " + str(layer_altitude)
+        )
         if key in ("OVC", "BKN"):
             # Overcast or Broken are considered ceiling
             if layer_altitude < lowest_ceiling:
@@ -151,7 +158,12 @@ def update_wx(airport_data, metar_xml_dict):
         except Exception as err:
             debugging.error(err)
     elif airport_data.wxsrc == "usa-metar":
-        debugging.info("Update USA Metar: " + airport_data.icao + " - " + airport_data.wx_category_str)
+        debugging.info(
+            "Update USA Metar: "
+            + airport_data.icao
+            + " - "
+            + airport_data.wx_category_str
+        )
         freshness = get_usa_metar(airport_data)
         if freshness:
             # get_*_metar() returned true, so weather is still fresh
@@ -212,7 +224,9 @@ def calculate_wx_from_metar(airport_data):
         airport_data.wx_category_str = "LIFR"
     elif 1 <= airport_data.wx_visibility < 3 or 500 <= airport_data.wx_ceiling < 1000:
         airport_data.wx_category_str = "IFR"
-    elif 3 <= airport_data.wx_visibility <= 5 or 1000 <= airport_data.wx_ceiling <= 3000:
+    elif (
+        3 <= airport_data.wx_visibility <= 5 or 1000 <= airport_data.wx_ceiling <= 3000
+    ):
         airport_data.wx_category_str = "MVFR"
     elif airport_data.wx_visibility > 5 and airport_data.wx_ceiling > 3000:
         airport_data.wx_category_str = "VFR"
@@ -221,8 +235,15 @@ def calculate_wx_from_metar(airport_data):
 
     airport_data.set_wx_category(airport_data.wx_category_str)
 
-    debugging.debug("Airport: Ceiling " + str(airport_data.wx_ceiling) + " Visibility " + str(airport_data.wx_visibility))
-    debugging.info("Airport " + airport_data.icao + " - " + airport_data.wx_category_str)
+    debugging.debug(
+        "Airport: Ceiling "
+        + str(airport_data.wx_ceiling)
+        + " Visibility "
+        + str(airport_data.wx_visibility)
+    )
+    debugging.info(
+        "Airport " + airport_data.icao + " - " + airport_data.wx_category_str
+    )
     return True
 
 

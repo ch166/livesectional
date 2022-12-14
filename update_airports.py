@@ -64,6 +64,7 @@ import debugging
 import utils
 import airport
 
+
 class AirportDB:
     """Airport Database - Keeping track of interesting sets of airport data"""
 
@@ -573,7 +574,11 @@ class AirportDB:
             )
 
             ret, etag_metar = utils.download_newer_file(
-                https_session, metar_xml_url, metar_file, decompress=True, etag=etag_metar
+                https_session,
+                metar_xml_url,
+                metar_file,
+                decompress=True,
+                etag=etag_metar,
             )
             if ret == True:
                 debugging.info("Downloaded METAR file")
@@ -590,31 +595,41 @@ class AirportDB:
             elif ret == False:
                 debugging.info("Server side TAFS older")
 
-            ret, etag_mos00 = utils.download_newer_file(https_session, mos00_xml_url, mos00_file, etag=etag_mos00)
+            ret, etag_mos00 = utils.download_newer_file(
+                https_session, mos00_xml_url, mos00_file, etag=etag_mos00
+            )
             if ret == True:
                 debugging.info("Downloaded MOS00 file")
             elif ret == False:
                 debugging.info("Server side MOS00 older")
 
-            ret, etag_mos06 = utils.download_newer_file(https_session, mos06_xml_url, mos06_file, etag=etag_mos06)
+            ret, etag_mos06 = utils.download_newer_file(
+                https_session, mos06_xml_url, mos06_file, etag=etag_mos06
+            )
             if ret == True:
                 debugging.info("Downloaded MOS06 file")
             elif ret == False:
                 debugging.info("Server side MOS06 older")
 
-            ret, etag_mos12 = utils.download_newer_file(https_session, mos12_xml_url, mos12_file)
+            ret, etag_mos12 = utils.download_newer_file(
+                https_session, mos12_xml_url, mos12_file
+            )
             if ret == True:
                 debugging.info("Downloaded MOS12 file")
             elif ret == False:
                 debugging.info("Server side MOS12 older")
 
-            ret, etag_runways = utils.download_newer_file( https_session, runways_csv_url, runways_file, etag=etag_runways)
+            ret, etag_runways = utils.download_newer_file(
+                https_session, runways_csv_url, runways_file, etag=etag_runways
+            )
             if ret == True:
                 debugging.info("Downloaded runways.csv")
             elif ret == False:
                 debugging.info("Server side runways.csv older")
 
-            ret, etag_mos18 = utils.download_newer_file(https_session, mos18_xml_url, mos18_file, etag=etag_mos18)
+            ret, etag_mos18 = utils.download_newer_file(
+                https_session, mos18_xml_url, mos18_file, etag=etag_mos18
+            )
             if ret == True:
                 debugging.info("Downloaded MOS18 file")
             elif ret == False:

@@ -120,10 +120,14 @@ def hex2rgb(value):
     """Hex to RGB"""
     value = value.lstrip("#")
     length_v = len(value)
-    return tuple(int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3))
+    return tuple(
+        int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3)
+    )
 
 
-def download_newer_file(session, url, filename, newer=True, decompress=False, etag=None):
+def download_newer_file(
+    session, url, filename, newer=True, decompress=False, etag=None
+):
     """
     Attempt to download a file only if it appears newer / different from the server side copy.
     Download a file from URL if the
@@ -172,7 +176,12 @@ def download_newer_file(session, url, filename, newer=True, decompress=False, et
                 download = True
             else:
                 # Server side file is same or older, our file is up to date
-                msg = "Timestamp check - Server side: " + str(datetime.fromtimestamp(url_date.timestamp())) + " : Local : " + str(datetime.fromtimestamp(file_time.timestamp()))
+                msg = (
+                    "Timestamp check - Server side: "
+                    + str(datetime.fromtimestamp(url_date.timestamp()))
+                    + " : Local : "
+                    + str(datetime.fromtimestamp(file_time.timestamp()))
+                )
                 debugging.debug(msg)
         if (url_etag is not None) and (etag != url_etag):
             # Check to see if downloaded etag and value passed in are the same. If not - download is true
@@ -240,7 +249,9 @@ def comp_time(zulu_time, taf_time):
     date_time_format = "%Y-%m-%dT%H:%M:%SZ"
     date1 = taf_time
     date2 = zulu_time
-    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(date2, date_time_format)
+    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(
+        date2, date_time_format
+    )
     diff_minutes = int(diff.seconds / 60)
     diff_hours = int(diff_minutes / 60)
     return diff.seconds, diff_minutes, diff_hours, diff.days
@@ -256,8 +267,12 @@ def reboot_if_time(conf):
     if use_reboot and use_autorun:
         now = datetime.now()
         rb_time = now.strftime("%H:%M")
-        debugging.debug("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))
-        print("**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time))  # debug
+        debugging.debug(
+            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
+        )
+        print(
+            "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
+        )  # debug
 
         # FIXME: Reference to 'self' here
         # if rb_time == self.time_reboot:

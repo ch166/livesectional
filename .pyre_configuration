@@ -1,4 +1,5 @@
 {
    "source_directories": ["."],
    "exclude": ["Attic/*"]
+   "binary": ["/usr/bin/python3.8"]
 }

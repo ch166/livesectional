@@ -33,7 +33,8 @@ from flask import (
     send_file,
     Response,
 )
-from werkzeug.utils import secure_filename
+
+# from werkzeug.utils import secure_filename
 
 from pyqrcode import QRCode
 

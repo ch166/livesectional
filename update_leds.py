@@ -444,6 +444,7 @@ class UpdateLEDs:
         self.strip.show()
 
     def set_brightness(self, lux):
+        """Update saved brightness value."""
         self.LED_BRIGHTNESS = int(lux)
 
     def dim(self, color_data, value):
@@ -630,10 +631,10 @@ class UpdateLEDs:
             try:
                 file = open(self.mos_filepath, "r", encoding="utf8")
                 lines = file.readlines()
-            except IOError as e:
+            except IOError as err:
                 debugging.error("MOS data file could not be loaded.")
-                debugging.error(e)
-                return e
+                debugging.error(err)
+                return err
 
             for line in lines:  # read the MOS data file line by line0
                 line = str(line)
@@ -911,6 +912,8 @@ class UpdateLEDs:
         return True
 
     def wx_display_loop(self, stationiddict, windsdict, wxstringdict, toggle):
+        """Master Weather Display Loop."""
+
         # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
         # debugging.info("WX Display")
 
@@ -1225,6 +1228,7 @@ class UpdateLEDs:
         print("//")
 
     def update_loop(self):
+        """Main Loop."""
         # #########################
         # Start of executed code #
         # #########################

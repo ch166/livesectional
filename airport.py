@@ -74,6 +74,7 @@ class Airport:
         self.metar_prev = None
         self.metar_date = datetime.now() - timedelta(days=1)  # Make initial date "old"
         self.observation = None
+        self.runway_dataset = None
 
         # Application Status for Airport
         self.enabled = True
@@ -146,6 +147,10 @@ class Airport:
         """Update LED ID"""
         self.led_index = led_index
 
+    def set_runway_data(self, runway_dataset):
+        """Update Runway Data"""
+        self.runway_dataset = runway_dataset
+
     def get_led_index(self):
         """Return LED ID"""
         return self.led_index
@@ -169,6 +174,30 @@ class Airport:
     def set_inactive(self):
         """Mark Airport as Inactive"""
         self.active_led = False
+
+    def best_runway(self):
+        """Examine the list of known runways to find the best alignment to the wind."""
+        if self.runway_dataset is None:
+            return None
+        best_runway = None
+        best_delta = None
+        for runway in self.runway_dataset:
+            runway_closed = self.runway_dataset["closed"]
+            if runway_closed:
+                continue
+            runway_direction_le = self.runway_dataset["le_heading_degT"]
+            runway_wind_delta_le = abs(runway_direction_le - self.wx_dir_degrees)
+            runway_direction_he = self.runway_dataset["he_heading_degT"]
+            runway_wind_delta_he = abs(runway_direction_he - self.wx_dir_degrees)
+            better_delta = min(runway_wind_delta_le, runway_wind_delta_he)
+            if runway_wind_delta_le < runway_direction_he:
+                better_runway = runway_direction_le
+            else:
+                better_runway = runway_direction_he
+            if (best_runway is None) or (better_delta < best_delta):
+                best_runway = better_runway
+                best_delta = min(runway_wind_delta_le, runway_direction_he)
+        return best_runway
 
     def set_wx_category(self, wx_category_str):
         """Set WX Category to ENUM based on current wx_category_str"""

@@ -229,12 +229,12 @@ class UpdateOLEDs:
 
         # Runway Dimensions
         rway_width = 6
-        rway_X = 5  # 5 pixel border
-        rway_Y = int(height / 2 - rway_width / 2)
+        rway_x = 5  # 5 pixel border
+        rway_y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport} {winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
         runway_poly = utils_gfx.create_runway(
-            rway_X, rway_Y, rway_width, rway_angle, width, height
+            rway_x, rway_y, rway_width, rway_angle, width, height
         )
 
         self.i2cbus.bus_lock()

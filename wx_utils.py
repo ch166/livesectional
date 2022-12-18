@@ -51,10 +51,7 @@ def get_usa_metar(airport_data):
     if airport_data.metar_date > expiredtime:
         # Metar Data still fresh
         debugging.debug(
-            "METAR is fresh  : "
-            + airport_data.icao
-            + " - "
-            + airport_data.wx_category_str
+            f"METAR is fresh  : {airport_data.icao} - {airport_data.wx_category_str}"
         )
         return True
     # TODO: Move this to config
@@ -159,10 +156,7 @@ def update_wx(airport_data, metar_xml_dict):
             debugging.error(err)
     elif airport_data.wxsrc == "usa-metar":
         debugging.info(
-            "Update USA Metar: "
-            + airport_data.icao
-            + " - "
-            + airport_data.wx_category_str
+            f"Update USA Metar: {airport_data.icao} - {airport_data.wx_category_str}"
         )
         freshness = get_usa_metar(airport_data)
         if freshness:
@@ -236,14 +230,9 @@ def calculate_wx_from_metar(airport_data):
     airport_data.set_wx_category(airport_data.wx_category_str)
 
     debugging.debug(
-        "Airport: Ceiling "
-        + str(airport_data.wx_ceiling)
-        + " Visibility "
-        + str(airport_data.wx_visibility)
+        f"Airport: Ceiling {airport_data.wx_ceiling} + Visibility : {airport_data.wx_visibility}"
     )
-    debugging.info(
-        "Airport " + airport_data.icao + " - " + airport_data.wx_category_str
-    )
+    debugging.info(f"Airport {airport_data.icao} - {airport_data.wx_category_str}")
     return True
 
 

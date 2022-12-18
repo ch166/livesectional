@@ -125,9 +125,7 @@ def hex2rgb(value):
     )
 
 
-def download_newer_file(
-    session, url, filename, newer=True, decompress=False, etag=None
-):
+def download_newer_file(session, url, filename, decompress=False, etag=None):
     """
     Attempt to download a file only if it appears newer / different from the server side copy.
     Download a file from URL if the
@@ -142,16 +140,14 @@ def download_newer_file(
 
     """
     debugging.debug("Starting download_newer_file" + filename)
-    url_time = None
-    url_date = None
-    url_etag = None
+    url_time = url_date = url_etag = None
+    download = False
 
     # Do a HTTP GET to pull headers so we can check timestamps
     try:
         req = session.head(url, allow_redirects=True, timeout=5)
     except Exception as err:
-        msg = f"Problem requesting {url}"
-        debugging.debug(msg)
+        debugging.debug(f"Problem requesting {url}")
         debugging.error(err)
         return False, url_etag
 
@@ -161,10 +157,11 @@ def download_newer_file(
     if "etag" in req.headers:
         url_etag = req.headers["etag"]
 
-    download = False
-
     if not os.path.isfile(filename):
         # File doesn't exist, so we need to download it
+        debugging.info(
+            f"Download request for {filename}; file not found ; download scheduled"
+        )
         download = True
     else:
         # File exists - we might have a last-modified header
@@ -176,20 +173,14 @@ def download_newer_file(
                 download = True
             else:
                 # Server side file is same or older, our file is up to date
-                msg = (
-                    "Timestamp check - Server side: "
-                    + str(datetime.fromtimestamp(url_date.timestamp()))
-                    + " : Local : "
-                    + str(datetime.fromtimestamp(file_time.timestamp()))
-                )
+                msg = f"Timestamp check - Server side: {datetime.fromtimestamp(url_date.timestamp())} Local : {datetime.fromtimestamp(file_time.timestamp())}"
                 debugging.debug(msg)
         if (url_etag is not None) and (etag != url_etag):
             # Check to see if downloaded etag and value passed in are the same. If not - download is true
             download = True
 
     if download:
-        # Need to trigger a file download
-        debugging.debug("Starting download_newer_file" + filename)
+        debugging.debug(f"Starting download_newer_file {filename}")
         try:
             # Download file to temporary object
             download_object = tempfile.NamedTemporaryFile(delete=False)
@@ -199,7 +190,7 @@ def download_newer_file(
                 try:
                     decompress_file_gz(download_object.name, uncompress_object.name)
                 except Exception as err:
-                    debugging.error("File decompression failed for : " + filename)
+                    debugging.error(f"File decompression failed for : {filename}")
                     debugging.error(err)
                 os.remove(download_object.name)
                 download_object = uncompress_object
@@ -209,15 +200,16 @@ def download_newer_file(
             # Set the timestamp of the downloaded file to match
             # match the HEAD date stamp / or 'now' for etag headers
             if url_date is None:
-                file_timestamp = datetime.now()
+                file_timestamp = datetime.now().timestamp()
             else:
                 file_timestamp = datetime.timestamp(url_date)
             os.utime(filename, (file_timestamp, file_timestamp))
-            return True, url_etag
+            return download, url_etag
         except Exception as err:
+            debugging.info(f"Error Handling in file download")
             debugging.error(err)
             return False, url_etag
-    return False, url_etag
+    return download, url_etag
 
 
 def decompress_file_gz(srcfile, dstfile):
@@ -258,7 +250,7 @@ def comp_time(zulu_time, taf_time):
 
 
 def reboot_if_time(conf):
-    """Check to see if it's time to reboot"""
+    """Check to see if it's time to reboot."""
     # Check time and reboot machine if time equals
     # time_reboot and if use_reboot along with autorun are both set to 1
     use_reboot = conf.get_bool("default", "nightly_reboot")

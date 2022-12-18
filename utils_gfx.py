@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env p_ython3
 # -*- coding: utf-8 -*-
 """
 Utilities for handling images / graphics .
@@ -12,17 +12,21 @@ import math
 import debugging
 
 
-def rotate_point(xy, angle):
+def rotate_point(x_y, angle):
     """Rotate X,Y around the origin to Angle (radians)."""
     origin_x, origin_y = (0, 0)
-    px, py = xy
-    qx = (
-        origin_x + math.cos(angle) * (px - origin_x) - math.sin(angle) * (py - origin_x)
+    p_x, p_y = x_y
+    q_x = (
+        origin_x
+        + math.cos(angle) * (p_x - origin_x)
+        - math.sin(angle) * (p_y - origin_x)
     )
-    qy = (
-        origin_y + math.sin(angle) * (px - origin_y) + math.cos(angle) * (py - origin_y)
+    q_y = (
+        origin_y
+        + math.sin(angle) * (p_x - origin_y)
+        + math.cos(angle) * (p_y - origin_y)
     )
-    return (int(qx), int(qy))
+    return (int(q_x), int(q_y))
 
 
 def rotate_polygon(seq, angle):
@@ -49,16 +53,16 @@ def poly_center(polygon):
         max_y = max(pos[1], max_y)
     mid_x = (max_x - min_x) / 2 + min_x
     mid_y = (max_y - min_y) / 2 + min_y
-    mid_xy = (mid_x, mid_y)
-    return mid_xy
+    mid_x_y = (mid_x, mid_y)
+    return mid_x_y
 
 
 def poly_offset(polygon, xoffset, yoffset):
-    """Move each xy part of a polygon by an x and y offset."""
+    """Move each x_y part of a polygon by an x and y offset."""
     result = []
     for pos in polygon:
-        x, y = pos
-        pos2 = (x + xoffset, y + yoffset)
+        x_pos, y_pos = pos
+        pos2 = (x_pos + xoffset, y_pos + yoffset)
         result = result + [
             pos2,
         ]
@@ -68,33 +72,37 @@ def poly_offset(polygon, xoffset, yoffset):
 def create_wind_arrow(windangle, width, height):
     """Draw a Wind Arrow."""
     arrow = [(0, 15), (35, 8), (30, 15), (35, 22)]
-    midPoly = poly_center(arrow)
-    offX, offY = midPoly
-    seqOffset = poly_offset(arrow, 0 - offX, 0 - offY)
-    seqR = rotate_polygon(seqOffset, math.radians((windangle + 270) % 360))
-    seqOffset2 = poly_offset(seqR, offX, offY)
-    seqDraw = poly_offset(seqOffset2, int((width / 2) - offX), int((height / 2) - offY))
-    debugging.debug(
-        f"arrow:{windangle}\n  in:{arrow}\n out:{seqDraw}\n   w:{width} / h:{height}"
+    mid_poly = poly_center(arrow)
+    off_x, off_y = mid_poly
+    seq_offset = poly_offset(arrow, 0 - off_x, 0 - off_y)
+    seq_r = rotate_polygon(seq_offset, math.radians((windangle + 270) % 360))
+    seq_offset2 = poly_offset(seq_r, off_x, off_y)
+    seq_draw = poly_offset(
+        seq_offset2, int((width / 2) - off_x), int((height / 2) - off_y)
     )
-    return seqDraw
+    debugging.debug(
+        f"arrow:{windangle}\n  in:{arrow}\n out:{seq_draw}\n   w:{width} / h:{height}"
+    )
+    return seq_draw
 
 
-def create_runway(rx, ry, rwidth, rwangle, width, height):
+def create_runway(r_x, r_y, rwidth, rwangle, width, height):
     """Draw a runway on a canvas."""
     # Runway is centered on X axis, and rwidth high
     runway = [
-        (rx, ry),
-        (rx + (width - rx), ry),
-        (rx + (width - rx), (ry + rwidth)),
-        (rx, (ry + rwidth)),
+        (r_x, r_y),
+        (r_x + (width - r_x), r_y),
+        (r_x + (width - r_x), (r_y + rwidth)),
+        (r_x, (r_y + rwidth)),
     ]
-    midPoly = poly_center(runway)
-    offX, offY = midPoly
-    seqOffset = poly_offset(runway, 0 - offX, 0 - offY)
-    seqR = rotate_polygon(seqOffset, math.radians((rwangle + 270) % 360))
-    seqOffset2 = poly_offset(seqR, offX, offY)
-    seqDraw = poly_offset(seqOffset2, int((width / 2) - offX), int((height / 2) - offY))
-    debugging.debug(f"runway:{rwangle}\n  in:{runway}\n out:{seqDraw}")
-    debugging.debug(f"runway:x-{rx}:y-{ry}:rw-{rwidth}:w-{width}:h-{height}")
-    return seqDraw
+    mid_poly = poly_center(runway)
+    off_x, off_y = mid_poly
+    seq_offset = poly_offset(runway, 0 - off_x, 0 - off_y)
+    seq_r = rotate_polygon(seq_offset, math.radians((rwangle + 270) % 360))
+    seq_offset2 = poly_offset(seq_r, off_x, off_y)
+    seq_draw = poly_offset(
+        seq_offset2, int((width / 2) - off_x), int((height / 2) - off_y)
+    )
+    debugging.debug(f"runway:{rwangle}\n  in:{runway}\n out:{seq_draw}")
+    debugging.debug(f"runway:x-{r_x}:y-{r_y}:rw-{rwidth}:w-{width}:h-{height}")
+    return seq_draw

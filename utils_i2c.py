@@ -86,20 +86,20 @@ class I2CBus:
 
     def select(self, channel_id):
         """Enable MUX."""
+        result = False
         if self.mux_active:
             if self.i2c_exists(self.MUX_DEVICE_ID):
                 self.i2c_mux_select(channel_id)
-                return True
+                result = True
             else:
                 debugging.error("i2c: mux missing")
-        return False
+        return result
 
     def i2c_exists(self, device_id):
         """Iterate across the list of i2c devices."""
         found_device = False
-        self.lock.acquire()
-        active_devices = self.i2c.scan()
-        self.lock.release()
+        with self.lock:
+            active_devices = self.i2c.scan()
         # length = len(active_devices)
         # debugging.debug("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
@@ -150,9 +150,8 @@ class I2CBus:
         """Update MUX settings."""
         # This switches to channel 1
         if self.mux_active:
-            self.lock.acquire()
-            self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
-            self.lock.release()
+            with self.lock:
+                self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
             if not self.i2c_update():
                 debugging.error("OLED: i2c_mux_default - error calling i2c_update")
 
@@ -161,9 +160,8 @@ class I2CBus:
         if self.mux_active:
             try:
                 mux_select_flags = self.always_enabled | self.current_enabled
-                self.lock.acquire()
-                self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, mux_select_flags)
-                self.lock.release()
+                with self.lock:
+                    self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, mux_select_flags)
                 return True
             except Exception as err:
                 self.lock.release()

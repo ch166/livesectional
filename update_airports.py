@@ -45,7 +45,7 @@ import pytz
 # import socket
 import shutil
 
-# import gzip
+import csv
 import json
 
 # Moving to use requests instead of urllib
@@ -102,6 +102,9 @@ class AirportDB:
         # Live RAW XML Data
         self.taf_xml_dict = {}
         self.taf_update_time = None
+
+        # Runway Data
+        self.runway_data = None
 
         debugging.info("AirportDB : init")
 
@@ -519,6 +522,47 @@ class AirportDB:
         debugging.debug("Updating Airport TAF from XML")
         return True
 
+    def airport_runway_data(self, airport_id):
+        """Find Airport data in Runway DICT."""
+        runway_set = []
+        if self.runway_data is None:
+            return runway_set
+        airport_id = airport_id.upper()
+        for runway_info in self.runway_data:
+            if runway_info["airport_ident"] == airport_id:
+                debugging.debug(f"Airport Runway Data Found: {runway_info}")
+                runway_set.append(runway_info)
+        return runway_set
+
+    def import_runways(self):
+        """Load CSV Runways file."""
+        runways_file = self.conf.get_string("filenames", "runways_file")
+        runway_data = None
+        index_counter = 0
+        with open(runways_file, "r") as rway_file:
+            runway_data = list(csv.DictReader(rway_file))
+            index_counter += 1
+        debugging.info(f"CSV Load found {index_counter} rows")
+        self.runway_data = runway_data
+        return True
+
+    def update_airport_runways(self):
+        """Update airport RUNWAY data for each known Airport"""
+        for icao, arptdb_row in self.airport_master_dict.items():
+            arpt = arptdb_row["airport"]
+            debugging.debug(f"Updating Runway for {arpt.icao}")
+            if not arpt.active():
+                continue
+            try:
+                runway_dataset = self.airport_runway_data(icao)
+                arpt.set_runwaydata(runway_dataset)
+            except Exception as err:
+                debug_string = (
+                    "Error: update_airport_runways Exception handling for " + arpt.icao
+                )
+                debugging.error(debug_string)
+                debugging.crash(err)
+
     def update_loop(self, conf):
         """Master loop for keeping the airport data set current
 
@@ -580,59 +624,61 @@ class AirportDB:
                 decompress=True,
                 etag=etag_metar,
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded METAR file")
                 self.update_airport_metar_xml()
-            elif ret == False:
+            elif ret is False:
                 debugging.info("Server side METAR older")
 
             ret, tafs_etag = utils.download_newer_file(
                 https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded TAFS file")
                 self.update_airport_taf_xml()
-            elif ret == False:
+            elif ret is False:
                 debugging.info("Server side TAFS older")
 
             ret, etag_mos00 = utils.download_newer_file(
                 https_session, mos00_xml_url, mos00_file, etag=etag_mos00
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded MOS00 file")
-            elif ret == False:
+            elif ret is False:
                 debugging.info("Server side MOS00 older")
 
             ret, etag_mos06 = utils.download_newer_file(
                 https_session, mos06_xml_url, mos06_file, etag=etag_mos06
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded MOS06 file")
-            elif ret == False:
+            elif ret is False:
                 debugging.info("Server side MOS06 older")
 
             ret, etag_mos12 = utils.download_newer_file(
-                https_session, mos12_xml_url, mos12_file
+                https_session, mos12_xml_url, mos12_file, etag=etag_mos12
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded MOS12 file")
-            elif ret == False:
+            elif ret is False:
                 debugging.info("Server side MOS12 older")
 
             ret, etag_runways = utils.download_newer_file(
                 https_session, runways_csv_url, runways_file, etag=etag_runways
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded runways.csv")
-            elif ret == False:
+                self.import_runways()
+                self.update_airport_runways()
+            elif ret is False:
                 debugging.info("Server side runways.csv older")
 
             ret, etag_mos18 = utils.download_newer_file(
                 https_session, mos18_xml_url, mos18_file, etag=etag_mos18
             )
-            if ret == True:
+            if ret is True:
                 debugging.info("Downloaded MOS18 file")
-            elif ret == False:
+            elif ret is False:
                 debugging.info("Server side MOS18 older")
 
             try:
@@ -644,5 +690,7 @@ class AirportDB:
                 debugging.error(err)
             kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
+            kbfi_runway = self.airport_runway_data("kbfi")
+            debugging.info(f"Runway data - kbfi :{kbfi_runway}:")
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

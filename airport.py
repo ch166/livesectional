@@ -181,13 +181,16 @@ class Airport:
             return None
         best_runway = None
         best_delta = None
+        if self.runway_dataset is None:
+            return best_runway
         for runway in self.runway_dataset:
-            runway_closed = self.runway_dataset["closed"]
+            debugging.info(runway)
+            runway_closed = runway["closed"]
             if runway_closed:
                 continue
-            runway_direction_le = self.runway_dataset["le_heading_degT"]
+            runway_direction_le = runway["le_heading_degT"]
             runway_wind_delta_le = abs(runway_direction_le - self.wx_dir_degrees)
-            runway_direction_he = self.runway_dataset["he_heading_degT"]
+            runway_direction_he = runway["he_heading_degT"]
             runway_wind_delta_he = abs(runway_direction_he - self.wx_dir_degrees)
             better_delta = min(runway_wind_delta_le, runway_wind_delta_he)
             if runway_wind_delta_le < runway_direction_he:
@@ -258,13 +261,7 @@ class Airport:
         try:
             wx_utils.calculate_wx_from_metar(self)
         except Exception as err:
-            debug_string = (
-                "Error: get_adds_metar processing "
-                + self.icao
-                + " metar:"
-                + self.get_raw_metar()
-                + ":"
-            )
+            debug_string = "Error: get_adds_metar processing " + self.icao + " metar:" + self.get_raw_metar() + ":"
             debugging.debug(debug_string)
             debugging.debug(err)
         return False
@@ -287,9 +284,7 @@ class Airport:
             # directly. This is unused for now - we may want to use it if the
             # adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geogrpahies
-            debugging.info(
-                "Update USA Metar: " + self.icao + " - " + self.wx_category_str
-            )
+            debugging.info("Update USA Metar: " + self.icao + " - " + self.wx_category_str)
             freshness = wx_utils.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh

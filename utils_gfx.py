@@ -1,4 +1,4 @@
-#!/usr/bin/env p_ython3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Utilities for handling images / graphics .

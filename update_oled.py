@@ -233,11 +233,15 @@ class UpdateOLEDs:
         rway_y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport} {winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
-        runway_poly = utils_gfx.create_runway(rway_x, rway_y, rway_width, rway_angle, width, height)
+        runway_poly = utils_gfx.create_runway(
+            rway_x, rway_y, rway_width, rway_angle, width, height
+        )
 
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
-            draw.text((1, 1), airport_details, font=ImageFont.load_default(), fill="white")
+            draw.text(
+                (1, 1), airport_details, font=ImageFont.load_default(), fill="white"
+            )
             draw.polygon(wind_poly, fill="white", outline="white")
             draw.polygon(runway_poly, fill=None, outline="white")
         self.i2cbus.bus_unlock()
@@ -259,7 +263,9 @@ class UpdateOLEDs:
         if best_runway is None:
             best_runway = default_rwy
         if (winddir is not None) and (best_runway is not None):
-            debugging.info(f"Updating OLED Wind: {airportcode} : rwy: {best_runway} : wind {winddir}")
+            debugging.info(
+                f"Updating OLED Wind: {airportcode} : rwy: {best_runway} : wind {winddir}"
+            )
             self.draw_wind(oled_id, airportcode, best_runway, winddir, windspeed)
         return
 

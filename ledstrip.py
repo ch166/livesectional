@@ -77,7 +77,7 @@ class LedStrip:
     WX_MVFR = 2
     WX_IFR = 3
     WX_LIFR = 4
-    WX_UNK = 5
+    WX_UNKN = 5
     WX_OLD = 6
 
     def __init__(self, conf, pixelcount):
@@ -301,7 +301,7 @@ class LedStrip:
         """For a specific weather code and timeslice, work out
         the appropriate color"""
         wxcolor = self.HOTPINK
-        if weathercode == self.WX_UNK:
+        if weathercode == self.WX_UNKN:
             wxcolor = self.WHITE
         if weathercode == self.WX_MVFR:
             wxcolor = self.BLUE
@@ -338,8 +338,8 @@ class LedStrip:
         airportcode = airportdb[key].icaocode()
         self.airport_index[key] = airportdb[key].led_index
         if not airportcode in self.airport_weathercode:
-            # Initialize to UNK if airport doesn't already exist
-            self.airport_weathercode[airportcode] = self.WX_UNK
+            # Initialize to UNKN if airport doesn't already exist
+            self.airport_weathercode[airportcode] = self.WX_UNKN
         if airportdb[key].wx_category == airport.AirportFlightCategory.MVFR:
             self.airport_weathercode[airportcode] = self.WX_MVFR
         if airportdb[key].wx_category == airport.AirportFlightCategory.VFR:
@@ -350,8 +350,8 @@ class LedStrip:
             self.airport_weathercode[airportcode] = self.WX_LIFR
         if airportdb[key].wx_category == airport.AirportFlightCategory.OLD:
             self.airport_weathercode[airportcode] = self.WX_OLD
-        if airportdb[key].wx_category == airport.AirportFlightCategory.UNKNOWN:
-            self.airport_weathercode[airportcode] = self.WX_UNK
+        if airportdb[key].wx_category == airport.AirportFlightCategory.UNKN:
+            self.airport_weathercode[airportcode] = self.WX_UNKN
         debugging.debug(
             "Airport WX Code : %s : " % self.airport_weathercode[airportcode]
         )

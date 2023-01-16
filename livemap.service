@@ -1,0 +1,12 @@
+[Unit]
+Description=Livemap
+After=syslog.service network.target
+Documentation=man:livemap
+
+[Service]
+Type=simple
+WorkingDirectory=/NeoSectional
+ExecStart=/NeoSectional/livemap.py
+
+[Install]
+WantedBy=multi-user.target

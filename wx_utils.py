@@ -169,7 +169,7 @@ def update_wx(airport_data, metar_xml_dict):
         if freshness:
             # get_*_metar() returned true, so weather is still fresh
             return
-        airport_data.wx_category_str = "UNK"
+        airport_data.wx_category_str = "UNKN"
         airport_data.set_wx_category(airport_data.wx_category_str)
     return
 
@@ -183,7 +183,7 @@ def calculate_wx_from_metar(airport_data):
     except Metar.ParserError as err:
         debugging.info("Parse Error for METAR code: " + airport_data.metar)
         debugging.error(err)
-        airport_data.wx_category_str = "UNK"
+        airport_data.wx_category_str = "UNKN"
         airport_data.set_wx_category(airport_data.wx_category_str)
         return False
 
@@ -213,7 +213,7 @@ def calculate_wx_from_metar(airport_data):
 
     # Calculate Flight Category
     if airport_data.wx_ceiling == -1 or airport_data.wx_visibility == -1:
-        airport_data.wx_category_str = "UNK"
+        airport_data.wx_category_str = "UNKN"
     elif airport_data.wx_visibility < 1 or airport_data.wx_ceiling < 500:
         airport_data.wx_category_str = "LIFR"
     elif 1 <= airport_data.wx_visibility < 3 or 500 <= airport_data.wx_ceiling < 1000:
@@ -225,7 +225,7 @@ def calculate_wx_from_metar(airport_data):
     elif airport_data.wx_visibility > 5 and airport_data.wx_ceiling > 3000:
         airport_data.wx_category_str = "VFR"
     else:
-        airport_data.wx_category_str = "UNK"
+        airport_data.wx_category_str = "UNKN"
 
     airport_data.set_wx_category(airport_data.wx_category_str)
 

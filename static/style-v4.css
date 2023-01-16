@@ -362,6 +362,60 @@ div.headertxt {
   background-size: cover;
 }
 
+.badge-vfr {
+  padding: 3px 6px 3px;
+  font-size: 12.025px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: #ffffff;
+  background-color: #01b001;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+.badge-vfr:hover .badge-vfr:active {
+  text-decoration: none;
+}
+
+
+.badge-mvfr {
+  padding: 3px 6px 3px;
+  font-size: 12.025px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: #ffffff;
+  background-color: #0000ff;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+.badge-mvfr:hover .badge-mvfr:active {
+  text-decoration: none;
+}
+
+
+.badge-ifr {
+  padding: 3px 6px 3px;
+  font-size: 12.025px;
+  font-weight: bold;
+  white-space: nowrap;
+  color: #ffffff;
+  background-color: #ff0000;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+.badge-ifr:hover .badge-ifr:active {
+  text-decoration: none;
+}
+
+
 .badge-lifr {
   padding: 3px 6px 3px;
   font-size: 12.025px;
@@ -371,7 +425,7 @@ div.headertxt {
   background-color: #FF00FF;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
-  border-radius: 4px;
+  border-radius: 2px;
   text-decoration: none;
 }
 
@@ -388,7 +442,7 @@ div.headertxt {
   background-color: #777777;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
-  border-radius: 4px;
+  border-radius: 2px;
   text-decoration: none;
 }
 
@@ -405,7 +459,7 @@ div.headertxt {
   background-color: #660066;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
-  border-radius: 4px;
+  border-radius: 0px;
   text-decoration: none;
 }
 

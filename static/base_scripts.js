@@ -21,7 +21,7 @@ function get_badge (ap, loc) {
       metar = obj.metar
       flightcategory = obj.flightcategory
       if (metar == '') {
-        metar = 'No METAR Data Returned by FAA API. CLICK for Raw METAR'
+        metar = 'No METAR Data Returned by API. CLICK for Raw METAR'
         flightcategory = 'NOWX'
       }
       // console.log(metar);
@@ -33,11 +33,11 @@ function get_badge (ap, loc) {
       ap +
       '&format=decoded&hours=0&taf=on&layout=on" target="_blank">'
     if (flightcategory == 'VFR') {
-      outp = outp + '<h6><span class="badge badge-success">'
+      outp = outp + '<h6><span class="badge-vfr">'
     } else if (flightcategory == 'MVFR') {
-      outp = outp + '<h6><span class="badge badge-primary">'
+      outp = outp + '<h6><span class="badge-mvfr">'
     } else if (flightcategory == 'IFR') {
-      outp = outp + '<h6><span class="badge badge-danger">'
+      outp = outp + '<h6><span class="badge-ifr">'
     } else if (flightcategory == 'LIFR') {
       outp = outp + '<h6><span class="badge-lifr">'
     } else if (flightcategory == 'NOWX') {
@@ -73,22 +73,22 @@ function get_fc (ap, loc) {
         outp =
           '<a href="https://www.checkwx.com/weather/' +
           ap +
-          '/metar" target="_blank"><h5><p class="badge badge-success">'
+          '/metar" target="_blank"><h5><p class="badge-vfr">'
       } else if (obj.data[0].flight_category == 'MVFR') {
         outp =
           '<a href="https://www.checkwx.com/weather/' +
           ap +
-          '/metar" target="_blank"><h5><p class="badge badge-primary">'
+          '/metar" target="_blank"><h5><p class="badge-mvfr">'
       } else if (obj.data[0].flight_category == 'IFR') {
         outp =
           '<a href="https://www.checkwx.com/weather/' +
           ap +
-          '/metar" target="_blank"><h5><p class="badge badge-danger">'
+          '/metar" target="_blank"><h5><p class="badge-ifr">'
       } else if (obj.data[0].flight_category == 'LIFR') {
         outp =
           '<a href="https://www.checkwx.com/weather/' +
           ap +
-          '/metar" target="_blank"><h5><p class="badge badge-warning">'
+          '/metar" target="_blank"><h5><p class="badge-lifr">'
       }
       outp = outp + '&nbsp' + obj.data[0].flight_category + '&nbsp</p></h5></a>'
       document.getElementById(loc).innerHTML = outp

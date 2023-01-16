@@ -3,6 +3,7 @@
 Created on Sat Jun 15 08:01:44 2019
 
 @author: Chris Higgins
+
 """
 
 # This is the collection and aggregation of all functions that manage Airports and airport weather
@@ -19,7 +20,7 @@ Created on Sat Jun 15 08:01:44 2019
 
 from datetime import datetime
 from datetime import timedelta
-from distutils import util
+# from distutils import util
 from enum import Enum
 
 # from urllib.request import urlopen
@@ -35,7 +36,7 @@ from enum import Enum
 import debugging
 import ledstrip
 
-# import utils
+import utils
 import wx_utils
 
 
@@ -80,7 +81,7 @@ class Airport:
 
         # Application Status for Airport
         self.enabled = True
-        self.active_led = util.strtobool(active_led)
+        self.active_led = utils.str2bool(active_led)
         self.led_active_state = None
         self.led_index = led_index
         self.updated_time = datetime.now()

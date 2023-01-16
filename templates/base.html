@@ -98,11 +98,11 @@
 
         outp = '<a href="https://www.aviationweather.gov/metar/data?ids=' + ap + '&format=decoded&hours=0&taf=on&layout=on" rel="noopener noreferrer" target="_blank">';
         if (flightcategory == 'VFR') {
-          var outp = outp + '<h6><span class="badge badge-success">';
+          var outp = outp + '<h6><span class="badge-vfr">';
         } else if (flightcategory == 'MVFR') {
-          var outp = outp + '<h6><span class="badge badge-primary">';
+          var outp = outp + '<h6><span class="badge-mvfr">';
         } else if (flightcategory == 'IFR') {
-          var outp = outp + '<h6><span class="badge badge-danger">';
+          var outp = outp + '<h6><span class="badge-ifr">';
         } else if (flightcategory == 'LIFR') {
           var outp = outp + '<h6><span class="badge-lifr">';
         } else if (flightcategory == 'NOWX') {
@@ -133,13 +133,13 @@ xhttp.send();
           obj = JSON.parse(xhttp.responseText);
 
           if (obj.data[0].flight_category == 'VFR') {
-            var outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-success">'
+            outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge-vfr">'
           } else if (obj.data[0].flight_category == 'MVFR') {
-            var outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-primary">'
+            outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge-mvfr">'
           } else if (obj.data[0].flight_category == 'IFR') {
-            var outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-danger">'
+            outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge-ifr">'
           } else if (obj.data[0].flight_category == 'LIFR') {
-            var outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge badge-warning">'
+            outp = '<a href="https://www.checkwx.com/weather/' + ap + '/metar" rel="noopener noreferrer" target="_blank"><h5><p class="badge-lifr">'
           }
           outp = outp + '&nbsp' + obj.data[0].flight_category + '&nbsp</p></h5></a>'
           document.getElementById(loc).innerHTML = outp

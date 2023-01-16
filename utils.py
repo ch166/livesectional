@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Collection of shared utility functions for all of the modules """
+""" Collection of shared utility functions for all of the modules ."""
 
 import os
 import time
@@ -25,7 +25,7 @@ import debugging
 
 
 def is_connected():
-    """Check to see if we can reach an endpoint on the Internet"""
+    """Check to see if we can reach an endpoint on the Internet."""
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
@@ -39,8 +39,13 @@ def is_connected():
     return False
 
 
+def str2bool(input_str):
+    """Simple check for truthiness of string."""
+    return input_str.lower() in ['true', '1', 't', 'y', 'yes']
+
+
 def wait_for_internet():
-    """Delay until Internet is up (return True) - or (return False)"""
+    """Delay until Internet is up (return True) - or (return False)."""
     wait_count = 0
     while True:
         if is_connected():
@@ -52,7 +57,7 @@ def wait_for_internet():
 
 
 def get_local_ip():
-    """Create Socket to the Internet, Query Local IP"""
+    """Create Socket to the Internet, Query Local IP."""
     ipaddr = "UNKN"
     try:
         # connect to the host -- tells us if the host is actually
@@ -77,7 +82,7 @@ def get_local_ip():
 # IP to Geo mapping is notoriously error prone
 # Going to look at python-geoip as a data source
 def get_loc():
-    """Try figure out approximate location from IP data"""
+    """Try figure out approximate location from IP data."""
     loc_data = {}
     loc = {}
 
@@ -94,7 +99,7 @@ def get_loc():
 
 
 def delete_file(target_path, filename):
-    """Delete File"""
+    """Delete File."""
     # TODO: - Check to make sure filename is not relative
     if os.path.isfile(filename):
         try:
@@ -109,7 +114,7 @@ def delete_file(target_path, filename):
 
 
 def rgb2hex(rgb):
-    """Convert RGB to HEX"""
+    """Convert RGB to HEX."""
     debugging.dprint(rgb)
     (red_value, green_value, blue_value) = rgb
     hexval = "#%02x%02x%02x" % (red_value, green_value, blue_value)
@@ -117,7 +122,7 @@ def rgb2hex(rgb):
 
 
 def hex2rgb(value):
-    """Hex to RGB"""
+    """Hex to RGB."""
     value = value.lstrip("#")
     length_v = len(value)
     return tuple(
@@ -138,7 +143,7 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
     Etag:
         Etag Header
 
-    """
+    ."""
     debugging.debug("Starting download_newer_file" + filename)
     url_time = url_date = url_etag = None
     download = False

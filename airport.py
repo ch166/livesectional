@@ -49,7 +49,8 @@ class AirportFlightCategory(Enum):
     IFR = ledstrip.LedStrip.RED
     LIFR = ledstrip.LedStrip.MAGENTA
     OLD = ledstrip.LedStrip.YELLOW
-    UNKNOWN = ledstrip.LedStrip.WHITE
+    UNKN = ledstrip.LedStrip.WHITE
+    OFF = ledstrip.LedStrip.BLACK
 
 
 class Airport:
@@ -67,6 +68,7 @@ class Airport:
         self.iata = iata
         self.latitude = 0
         self.longitude = 0
+        self.coordinates = False
 
         # Airport Configuration
         self.wxsrc = wxsrc
@@ -108,6 +110,10 @@ class Airport:
     def get_longitude(self):
         """Return Airport longitude"""
         return self.longitude
+
+    def valid_coordinates(self):
+        """Are lat/lon coordinates set to something other than Missing."""
+        return self.coordinates
 
     def icaocode(self):
         """airport ICAO (4 letter) code"""
@@ -205,8 +211,8 @@ class Airport:
     def set_wx_category(self, wx_category_str):
         """Set WX Category to ENUM based on current wx_category_str"""
         # Calculate Flight Category
-        if wx_category_str == "UNK":
-            self.wx_category = AirportFlightCategory.UNKNOWN
+        if wx_category_str == "UNKN":
+            self.wx_category = AirportFlightCategory.UNKN
         elif wx_category_str == "LIFR":
             self.wx_category = AirportFlightCategory.LIFR
         elif wx_category_str == "IFR":
@@ -240,8 +246,8 @@ class Airport:
             # We also need to wonder if we want to copy over data from the previous record
             # to this record... so we have some persistance of data rather than losing the airport completely.
             debugging.debug("metar_dict WX for " + self.icao + " missing")
-            self.wx_category = AirportFlightCategory.UNKNOWN
-            self.wx_category_str = "UNK"
+            self.wx_category = AirportFlightCategory.UNKN
+            self.wx_category_str = "UNKN"
             self.set_metar(None)
             return
 
@@ -256,12 +262,22 @@ class Airport:
         self.wx_category_str = metar_dict[self.icao]["flight_category"]
         self.latitude = float(metar_dict[self.icao]["latitude"])
         self.longitude = float(metar_dict[self.icao]["longitude"])
+        if self.latitude == "Missing" or self.longitude == "Missing":
+            self.coordinates = False
+        else:
+            self.coordinates = True
         self.set_wx_category(self.wx_category_str)
 
         try:
             wx_utils.calculate_wx_from_metar(self)
         except Exception as err:
-            debug_string = "Error: get_adds_metar processing " + self.icao + " metar:" + self.get_raw_metar() + ":"
+            debug_string = (
+                "Error: get_adds_metar processing "
+                + self.icao
+                + " metar:"
+                + self.get_raw_metar()
+                + ":"
+            )
             debugging.debug(debug_string)
             debugging.debug(err)
         return False
@@ -284,7 +300,9 @@ class Airport:
             # directly. This is unused for now - we may want to use it if the
             # adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geogrpahies
-            debugging.info("Update USA Metar: " + self.icao + " - " + self.wx_category_str)
+            debugging.info(
+                "Update USA Metar: " + self.icao + " - " + self.wx_category_str
+            )
             freshness = wx_utils.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh

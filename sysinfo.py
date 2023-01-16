@@ -41,7 +41,7 @@ class SystemData:
         """Update data"""
         self.sysinfo = self.query_system_information()
         self.update_local_ip()
-        self.uptime = "UNK"
+        self.uptime = "UNKN"
 
     def get_size(self, bytes_size, suffix="B"):
         """

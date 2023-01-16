@@ -95,6 +95,7 @@ class WebViews:
             "/confedit", view_func=self.confedit, methods=["GET", "POST"]
         )
         self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET", "POST"])
+        self.app.add_url_rule("/hmedit", view_func=self.hmedit, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/post", view_func=self.handle_post_request, methods=["GET", "POST"]
         )
@@ -307,6 +308,8 @@ class WebViews:
 
             if not arpt.active():
                 continue
+            if not arpt.valid_coordinates():
+                continue
             lat = float(arpt.get_latitude())
             lat_list.append(lat)
             lon = float(arpt.get_longitude())
@@ -402,6 +405,8 @@ class WebViews:
             arpt = arptdb_row["airport"]
             if not arpt.active():
                 # Inactive airports likely don't have valid lat/lon data
+                continue
+            if not arpt.valid_coordinates():
                 continue
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.

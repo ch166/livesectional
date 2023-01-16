@@ -925,7 +925,7 @@ class UpdateLEDs:
         airport_list = self.airport_database.get_airport_dict_led()
 
         for cycle_num in self.cycles:
-            print(f" {cycle_num}", end="")
+            # print(f" {cycle_num}", end="")
             sys.stdout.flush()
 
             # Inner Loop. Increments through each LED in the self.strip setting the appropriate color to each individual LED.
@@ -1216,16 +1216,16 @@ class UpdateLEDs:
                 self.setLedColor(airportled, color)
                 i = i + 1  # set next LED pin in self.strip
 
-            print("/LED.", end="")
+            # print("/LED.", end="")
             sys.stdout.flush()
             # Display self.strip with newly assigned colors for the current cycle_num cycle.
             self.strip.show()
-            print(".", end="")
+            # print(".", end="")
             # cycle_wait time is a user defined value
             wait_time = self.cycle_wait[cycle_num]
             # pause between cycles. pauses are setup in user definitions.
             time.sleep(wait_time)
-        print("//")
+        # print("//")
 
     def update_loop(self):
         """Main Loop."""

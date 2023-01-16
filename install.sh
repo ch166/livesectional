@@ -17,3 +17,9 @@ mkdir -p /NeoSectional/static
 rsync -rav --relative static/ /NeoSectional/
 
 mkdir -p /NeoSectional/logs/
+
+cp livemap.service /etc/systemd/system/livemap.service
+systemctl daemon-reload
+#systemctl restart livemap
+
+echo -e "Try\nsystemctl restart livemap ; systemctl status livemap"

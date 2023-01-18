@@ -118,26 +118,26 @@ class AirportDB:
         return self.airport_master_dict[airport_icao]["airport"]
 
     def get_airport_taf(self, airport_icao):
-        """Return a single Airport TAF"""
+        """Return a single Airport TAF."""
         result = None
         if airport_icao in self.taf_xml_dict:
             result = self.taf_xml_dict[airport_icao]
         return result
 
     def get_airportdb(self):
-        """Return a single Airport"""
+        """Return a single Airport."""
         return self.airport_master_dict
 
     def get_airportxml(self, airport_icao):
-        """Return a single Airport"""
+        """Return a single Airport."""
         return self.metar_xml_dict[airport_icao]
 
     def get_airportxmldb(self):
-        """Return a single Airport"""
+        """Return a single Airport."""
         return self.metar_xml_dict
 
     def get_airport_dict_led(self):
-        """Return Airport LED dict"""
+        """Return Airport LED dict."""
         return self.airport_led_dict
 
     def get_metar_update_time(self):
@@ -145,7 +145,7 @@ class AirportDB:
         return self.metar_update_time
 
     def update_airport_wx(self):
-        """Update airport WX data for each known Airport"""
+        """Update airport WX data for each known Airport."""
         for icao, arptdb_row in self.airport_master_dict.items():
             arpt = arptdb_row["airport"]
             debugging.debug("Updating WX for " + arpt.icao)
@@ -154,14 +154,27 @@ class AirportDB:
             try:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as err:
-                debug_string = (
-                    "Error: update_airport_wx Exception handling for " + arpt.icao
-                )
+                debug_string = "Error: update_airport_wx Exception handling for " + arpt.icao
                 debugging.error(debug_string)
                 debugging.crash(err)
 
+    def save_data_from_db(self):
+        """Create JSON data from Airport datasets."""
+        airportdb_list = []
+        for airport_db_id, airportdb_row in self.airport_master_dict.items():
+            airport_save_record = {}
+            aprt = airportdb_row["airport"]
+            airport_save_record["active"] = aprt.active()
+            airport_save_record["heatmap"] = aprt.heatmap_index()
+            airport_save_record["icao"] = aprt.icaocode()
+            airport_save_record["led"] = aprt.get_led_index()
+            airport_save_record["wxsrc"] = aprt.get_wxsrc()
+            airportdb_list.append(airport_save_record)
+
+        return airportdb_list
+
     def airport_dict_from_json(self, airport_jsondb):
-        """Create Airport List from json src"""
+        """Create Airport List from json src."""
         # Airport dict Entry
         #
         # Dictionary of Airport Entries
@@ -203,7 +216,7 @@ class AirportDB:
         return airportdb_dict
 
     def airport_dicts_update(self):
-        """Update master database sub-lists from master list"""
+        """Update master database sub-lists from master list."""
         # LED List ( purpose: LED / NULL / LGND )
         # WEB List ( purpose: WEB / LGND )
         for airport_db_id, airportdb_row in self.airport_master_dict.items():
@@ -216,7 +229,7 @@ class AirportDB:
         return
 
     def load_airport_db(self):
-        """Load Airport Data file"""
+        """Load Airport Data file."""
         # FIXME: Add file error handling
         debugging.info("Loading Airport List")
         airport_json = self.conf.get_string("filenames", "airports_json")
@@ -240,7 +253,7 @@ class AirportDB:
         debugging.info("Airport Load and Merge complete")
 
     def save_airport_db(self):
-        """Save Airport Data file"""
+        """Save Airport Data file."""
         # FIXME: Add file error handling
         # Should only overwrite destination file if this is succesful
 
@@ -250,21 +263,14 @@ class AirportDB:
         airport_json = self.conf.get_string("filenames", "airports_json")
 
         shutil.move(airport_json, airport_json_backup)
-
-        # FIXME: This saves the same data we loaded ; and doesn't yet include
-        # updates from the web interface.
-        json_save_data = {"airports": self.airport_master_list}
-        # Opening JSON file
+        json_save_data = self.save_data_from_db()
         with open(airport_json_new, "w", encoding="utf8") as json_file:
             json.dump(json_save_data, json_file, sort_keys=True, indent=4)
-
-        # TODO:  Only if write was successful, then we should
-        # mv airport_json_new over airport_json
 
         shutil.move(airport_json_new, airport_json)
 
     def update_airport_metar_xml(self):
-        """Update Airport METAR DICT from XML"""
+        """Update Airport METAR DICT from XML."""
         # FIXME: Add file error handling
         # Consider extracting only interesting airports from dict first
         debugging.info("Updating Airport METAR DICT")
@@ -425,9 +431,7 @@ class AirportDB:
                     fcast["wind_speed_kt"] = forecast.find("wind_speed_kt").text
 
                 if forecast.find("visibility_statute_mi") is not None:
-                    fcast["visibility_statute_mi"] = forecast.find(
-                        "visibility_statute_mi"
-                    ).text
+                    fcast["visibility_statute_mi"] = forecast.find("visibility_statute_mi").text
 
                 if forecast.find("wind_gust_kt") is not None:
                     fcast["wind_gust_kt"] = forecast.find("wind_gust_kt").text
@@ -477,9 +481,7 @@ class AirportDB:
                     if flightcategory != "LIFR":
                         # check XML if visibility value exists
                         if forecast.find("visibility_statute_mi") is not None:
-                            visibility_statute_mi = forecast.find(
-                                "visibility_statute_mi"
-                            ).text  # get visibility number
+                            visibility_statute_mi = forecast.find("visibility_statute_mi").text  # get visibility number
                             visibility_statute_mi = float(visibility_statute_mi)
                             debugging.debug(visibility_statute_mi)
 
@@ -488,10 +490,7 @@ class AirportDB:
                             elif 1.0 <= visibility_statute_mi < 3.0:
                                 flightcategory = "IFR"
                             # if Flight Category was already set to IFR $
-                            elif (
-                                3.0 <= visibility_statute_mi <= 5.0
-                                and flightcategory != "IFR"
-                            ):
+                            elif 3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR":
                                 flightcategory = "MVFR"
 
                     debugging.debug("Airport - " + stationId)
@@ -501,13 +500,9 @@ class AirportDB:
                     if "wx_string" in fcast:
                         debugging.debug("WX String - " + fcast["wx_string"])
                     if "change_indicator" in fcast:
-                        debugging.debug(
-                            "Change Indicator - " + fcast["change_indicator"]
-                        )
+                        debugging.debug("Change Indicator - " + fcast["change_indicator"])
                     if "wind_dir_degrees" in fcast:
-                        debugging.debug(
-                            "Wind Director Degrees - " + fcast["wind_dir_degrees"]
-                        )
+                        debugging.debug("Wind Director Degrees - " + fcast["wind_dir_degrees"])
                     if "wind_gust_kt" in fcast:
                         debugging.debug("Wind Gust - " + fcast["wind_gust_kt"])
 
@@ -561,9 +556,7 @@ class AirportDB:
                 runway_dataset = self.airport_runway_data(icao)
                 arpt.set_runway_data(runway_dataset)
             except Exception as err:
-                debug_string = (
-                    "Error: update_airport_runways Exception handling for " + arpt.icao
-                )
+                debug_string = "Error: update_airport_runways Exception handling for " + arpt.icao
                 debugging.error(debug_string)
                 debugging.crash(err)
 
@@ -615,11 +608,7 @@ class AirportDB:
         etag_runways = None
 
         while True:
-            debugging.info(
-                "Updating Airport Data .. every aviation_weather_adds_timer ("
-                + str(aviation_weather_adds_timer)
-                + "m)"
-            )
+            debugging.info("Updating Airport Data .. every aviation_weather_adds_timer (" + str(aviation_weather_adds_timer) + "m)")
 
             ret, etag_metar = utils.download_newer_file(
                 https_session,
@@ -634,42 +623,32 @@ class AirportDB:
             elif ret is False:
                 debugging.info("Server side METAR older")
 
-            ret, tafs_etag = utils.download_newer_file(
-                https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs
-            )
+            ret, tafs_etag = utils.download_newer_file(https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs)
             if ret is True:
                 debugging.info("Downloaded TAFS file")
                 self.update_airport_taf_xml()
             elif ret is False:
                 debugging.info("Server side TAFS older")
 
-            ret, etag_mos00 = utils.download_newer_file(
-                https_session, mos00_xml_url, mos00_file, etag=etag_mos00
-            )
+            ret, etag_mos00 = utils.download_newer_file(https_session, mos00_xml_url, mos00_file, etag=etag_mos00)
             if ret is True:
                 debugging.info("Downloaded MOS00 file")
             elif ret is False:
                 debugging.info("Server side MOS00 older")
 
-            ret, etag_mos06 = utils.download_newer_file(
-                https_session, mos06_xml_url, mos06_file, etag=etag_mos06
-            )
+            ret, etag_mos06 = utils.download_newer_file(https_session, mos06_xml_url, mos06_file, etag=etag_mos06)
             if ret is True:
                 debugging.info("Downloaded MOS06 file")
             elif ret is False:
                 debugging.info("Server side MOS06 older")
 
-            ret, etag_mos12 = utils.download_newer_file(
-                https_session, mos12_xml_url, mos12_file, etag=etag_mos12
-            )
+            ret, etag_mos12 = utils.download_newer_file(https_session, mos12_xml_url, mos12_file, etag=etag_mos12)
             if ret is True:
                 debugging.info("Downloaded MOS12 file")
             elif ret is False:
                 debugging.info("Server side MOS12 older")
 
-            ret, etag_runways = utils.download_newer_file(
-                https_session, runways_csv_url, runways_file, etag=etag_runways
-            )
+            ret, etag_runways = utils.download_newer_file(https_session, runways_csv_url, runways_file, etag=etag_runways)
             if ret is True:
                 debugging.info("Downloaded runways.csv")
                 self.import_runways()
@@ -677,9 +656,7 @@ class AirportDB:
             elif ret is False:
                 debugging.info("Server side runways.csv older")
 
-            ret, etag_mos18 = utils.download_newer_file(
-                https_session, mos18_xml_url, mos18_file, etag=etag_mos18
-            )
+            ret, etag_mos18 = utils.download_newer_file(https_session, mos18_xml_url, mos18_file, etag=etag_mos18)
             if ret is True:
                 debugging.info("Downloaded MOS18 file")
             elif ret is False:
@@ -688,9 +665,7 @@ class AirportDB:
             try:
                 self.update_airport_wx()
             except Exception as err:
-                debugging.error(
-                    "Update Weather Loop: self.update_airport_wx() exception"
-                )
+                debugging.error("Update Weather Loop: self.update_airport_wx() exception")
                 debugging.error(err)
             kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")

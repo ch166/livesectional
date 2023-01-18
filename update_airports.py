@@ -183,6 +183,7 @@ class AirportDB:
             airportdb_row["ledindex"] = int(json_airport["led"])
             airportdb_row["active"] = json_airport["active"]
             airportdb_row["purpose"] = json_airport["purpose"]
+            airportdb_row["heatmap"] = json_airport["heatmap"]
             airport_db_id = airport_icao
             if airport_icao in ("null", "lgnd"):
                 # Need a Unique Key if icao code is null or lgnd
@@ -196,6 +197,7 @@ class AirportDB:
                 airportdb_row["ledindex"],
                 self.conf,
             )
+            airport_obj.set_heatmap_index(airportdb_row["heatmap"])
             airportdb_row["airport"] = airport_obj
             airportdb_dict[airport_db_id] = airportdb_row
         return airportdb_dict
@@ -249,12 +251,14 @@ class AirportDB:
 
         shutil.move(airport_json, airport_json_backup)
 
+        # FIXME: This saves the same data we loaded ; and doesn't yet include
+        # updates from the web interface.
         json_save_data = {"airports": self.airport_master_list}
         # Opening JSON file
         with open(airport_json_new, "w", encoding="utf8") as json_file:
             json.dump(json_save_data, json_file, sort_keys=True, indent=4)
 
-        # FIXME:  Only if write was successful, then we should
+        # TODO:  Only if write was successful, then we should
         # mv airport_json_new over airport_json
 
         shutil.move(airport_json_new, airport_json)

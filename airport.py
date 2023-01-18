@@ -75,7 +75,7 @@ class Airport:
         self.wxsrc = wxsrc
         self.metar = None
         self.metar_prev = None
-        self.metar_date = datetime.now() - timedelta(days=1)  # Make initial date "old"
+        self.metar_date = datetime.now() - timedelta(days=1) # Make initial date "old"
         self.observation = None
         self.runway_dataset = None
 
@@ -95,6 +95,9 @@ class Airport:
         self.wx_windgust = None
         self.wx_category = None
         self.wx_category_str = "UNSET"
+
+        # HeatMap
+        self.hm_index = 0
 
         # Global Data
         self.conf = conf
@@ -173,6 +176,14 @@ class Airport:
     def set_active(self):
         """Mark Airport as Active"""
         self.active_led = True
+
+    def heatmap_index(self):
+        """Heatmap Count"""
+        return self.hm_index
+
+    def set_heatmap_index(self, hmcount):
+        """Set Heatmap"""
+        self.hm_index = hmcount
 
     def active(self):
         """Active"""
@@ -273,11 +284,7 @@ class Airport:
             wx_utils.calculate_wx_from_metar(self)
         except Exception as err:
             debug_string = (
-                "Error: get_adds_metar processing "
-                + self.icao
-                + " metar:"
-                + self.get_raw_metar()
-                + ":"
+                f"Error: get_adds_metar processing {self.icao} metar:{self.get_raw_metar()}:"
             )
             debugging.debug(debug_string)
             debugging.debug(err)
@@ -300,9 +307,9 @@ class Airport:
             # This is the scenario where we want to query an individual METAR record
             # directly. This is unused for now - we may want to use it if the
             # adds data is missing.
-            # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geogrpahies
+            # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geographies
             debugging.info(
-                "Update USA Metar: " + self.icao + " - " + self.wx_category_str
+                f"Update USA Metar: {self.icao} - {self.wx_category_str}"
             )
             freshness = wx_utils.get_usa_metar(self)
             if freshness:

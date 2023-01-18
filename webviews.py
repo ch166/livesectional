@@ -96,6 +96,7 @@ class WebViews:
         )
         self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET", "POST"])
         self.app.add_url_rule("/hmedit", view_func=self.hmedit, methods=["GET", "POST"])
+        self.app.add_url_rule("/hmpost", view_func=self.hmpost_handler, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/post", view_func=self.handle_post_request, methods=["GET", "POST"]
         )
@@ -107,7 +108,6 @@ class WebViews:
 
         # Replace These with real data
         self.airports = []
-        self.hmdata = None
         self.update_vers = None
         self.machines = []
         self.num = self.conf.get_int("default", "led_count")
@@ -138,11 +138,11 @@ class WebViews:
             airport_record["metarsrc"] = airport_object.get_wxsrc()
             airport_record["ledindex"] = airport_object.get_led_index()
             airport_record["rawmetar"] = airport_object.get_raw_metar()
+            airport_record["hmindex"] = airport_object.heatmap_index()
             airport_dict_data[airport_icao] = airport_record
 
         template_data = {
             "title": "NOT SET - " + self.appinfo.current_version(),
-            "hmdata": self.hmdata,
             "airports": airport_dict_data,
             "settings": self.conf.gen_settings_dict(),
             "ipadd": self.sysdata.local_ip(),
@@ -305,7 +305,6 @@ class WebViews:
         airports = self.airport_database.get_airport_dict_led()
         for icao, airportdb_row in airports.items():
             arpt = airportdb_row["airport"]
-
             if not arpt.active():
                 continue
             if not arpt.valid_coordinates():
@@ -607,87 +606,38 @@ class WebViews:
         path = self.conf.get_string("filenames", "config_file")
         return send_file(path, as_attachment=True)
 
-    # FIXME: Integrate into Class
-    # @app.route('/download_hm', methods=["GET", "POST"])
-    def downloadhm(self):
-        """Flask Route: /download_hm - Export heatmap data file."""
-        debugging.info("Downloaded Heat Map data file")
-        path = "data/hmdata"
-        return send_file(path, as_attachment=True)
-
-    # FIXME: Integrate into Class
     # Routes for Heat Map Editor
     # @app.route("/hmedit", methods=["GET", "POST"])
     def hmedit(self):
         """Flask Route: /hmedit - Heat Map Editor."""
         debugging.info("Opening hmedit.html")
-
-        self.readhmdata(self.conf.get_string("filenames", "heatmap_file"))
-
         template_data = self.standardtemplate_data()
         template_data["title"] = "HeatMap Editor"
-
         return render_template("hmedit.html", **template_data)
 
-    # FIXME: Integrate into Class
     # @app.route("/hmpost", methods=["GET", "POST"])
-    def handle_hmpost_request(self):
+    def hmpost_handler(self):
         """Flask Route: /hmpost - Upload HeatMap Data."""
-        debugging.info("Saving Heat Map Data File")
-
-        loc_newlist = []
+        debugging.info("Updating airport heatmap data in airport records")
 
         if request.method == "POST":
-            data = request.form.to_dict()
-            debugging.dprint(data)  # debug
+            form_data = request.form.to_dict()
+            # debugging.dprint(data)  # debug
 
-            j = 0
-            for key in data:
-                value = data.get(key)
+            # This will update the data for all airports.
+            # So we should iterate through the airport data set.
+            airports = self.airport_database.get_airport_dict_led()
+            for icao, airportdb_row in airports.items():
+                arpt = airportdb_row["airport"]
+                if not arpt.active():
+                    continue
+                if icao in form_data:
+                    hm_value = int(form_data[icao])
+                    arpt.set_heatmap_index(hm_value)
+                    debugging.debug(f"hmpost: key {icao} : value {hm_value}")
 
-                if value == "":
-                    value = "0"
-
-                # FIXME: self.airports doesn't exist any more.
-                # loc_newlist.append(self.airports[j] + " " + value)
-                j += 1
-
-            self.writehmdata(
-                loc_newlist, self.conf.get_string("filenames", "heatmap_file")
-            )
-
-        flash("Heat Map Data Successfully Saved")
+        flash("Heat Map Data applied")
         return redirect("hmedit")
-
-    # FIXME: Integrate into Class
-    # Import a file to populate Heat Map Data. Must Save airports to keep
-    # @app.route("/importhm", methods=["GET", "POST"])
-    def importhm(self):
-        """Flask Route: /importhm - Importing Heat Map."""
-        debugging.info("Importing Heat Map File")
-        hmdata = []
-
-        if "file" not in request.files:
-            flash("No File Selected")
-            return redirect("./hmedit")
-
-        file = request.files["file"]
-
-        if file.filename == "":
-            flash("No File Selected")
-            return redirect("./hmedit")
-
-        filedata = file.read()
-        tmphmdata = bytes.decode(filedata)
-        debugging.dprint(tmphmdata)
-        hmdata = tmphmdata.split("\n")
-        hmdata.pop()
-        debugging.dprint(hmdata)
-
-        template_data = self.standardtemplate_data()
-        template_data["title"] = "Import HeatMap"
-        flash('Heat Map Imported - Click "Save Heat Map File" to save')
-        return render_template("hmedit.html", **template_data)
 
     # FIXME: Integrate into Class
     # Routes for Airport Editor
@@ -733,39 +683,16 @@ class WebViews:
         """Flask Route: /appost."""
         debugging.info("Saving Airport File")
 
-        # FIXME: This needs to be integrated
-        hmdata = None
-
         if request.method == "POST":
             data = request.form.to_dict()
             debugging.debug(data)  # debug
-            self.writeairports(data, self.conf.get_string("filenames", "airports_file"))
+
+            debugging.debug("FIXME: NEED TO PROCESS handle_appost_request")
+            # self.writeairports(data, self.conf.get_string("filenames", "airports_file"))
 
             # self.readairports(self.conf.get_string("filenames", "airports_file"))
 
-            # update size and data of hmdata based on saved airports file.
-            self.readhmdata(self.conf.get_string("filenames", "heatmap_file"))
-            # get heat map data to update with newly edited airports file
-            # FIXME: self.airports retired
-            if len(self.hmdata) > len(self.airports):
-                # adjust size of hmdata list if length is larger than airports
-                num = len(self.hmdata) - len(self.airports)
-                hmdata = hmdata[:-num]
-
-            elif len(hmdata) < len(self.airports):
-                # adjust size of hmdata list if length is smaller than airports
-                for count_index in range(len(hmdata), len(self.airports)):
-                    hmdata.append("NULL 0")
-
-            for loc_index, airport in enumerate(self.airports):
-                # now that both lists are same length, be sure the data matches
-                ap_id, *_ = hmdata[loc_index].split()
-                if ap_id != airport:
-                    hmdata[loc_index] = airport + " 0"
-                    # save changed airport and set zero landings to it in hmdata
-            self.writehmdata(hmdata, self.conf.get_string("filenames", "heatmap_file"))
-
-        flash("Airports Successfully Saved")
+        # flash("Airports Successfully Saved")
         return redirect("apedit")
 
     # FIXME: Integrate into Class
@@ -775,8 +702,6 @@ class WebViews:
         debugging.info("Controlling LED's on/off")
 
         if request.method == "POST":
-
-            # self.readairports(self.conf.get_string("filenames", "airports_file"))
 
             if "buton" in request.form:
                 num = int(request.form["lednum"])
@@ -1045,7 +970,7 @@ class WebViews:
 
             url = request.referrer
             if url is None:
-                url = "http://" + ipadd + ":5000/index"
+                url = "http://" + ipadd + ":5000/"
                 # Use index if called from URL and not page.
 
             temp = url.split("/")
@@ -1233,9 +1158,9 @@ class WebViews:
                 val = val[0]
                 key = key.strip()
                 val = str(val.strip())
-                settings[(key)] = val
+                # settings[(key)] = val
 
-        debugging.dprint(settings)
+        # debugging.dprint(settings)
         flash('Config File Imported - Click "Save Config File" to save')
         return redirect("./confedit")
 
@@ -1250,31 +1175,31 @@ class WebViews:
     # FIXME: Integrate into Class
     # Loads the profile into the Settings Editor, but does not save it.
     # @app.route("/profiles", methods=["GET", "POST"])
-    def profiles(self):
-        """Flask Route: /profiles - Load from Multiple Config Profiles"""
-        config_profiles = {
-            "b1": "config-basic.py",
-            "b2": "config-basic2.py",
-            "b3": "config-basic3.py",
-            "a1": "config-advanced-1oled.py",
-            "a2": "config-advanced-lcd.py",
-            "a3": "config-advanced-8oledsrs.py",
-            "a4": "config-advanced-lcdrs.py",
-        }
-
-        req_profile = request.form["profile"]
-        debugging.dprint(req_profile)
-        debugging.dprint(self.config_profiles)
-        tmp_profile = config_profiles[req_profile]
-        stored_profile = "/NeoSectional/profiles/" + tmp_profile
-
-        flash(
-            tmp_profile
-            + "Profile Loaded. Review And Tweak The Settings As Desired. Must Be Saved!"
-        )
-        self.readconf(stored_profile)  # read profile config file
-        debugging.info("Loading a Profile into Settings Editor")
-        return redirect("confedit")
+    # def profiles(self):
+    #    """Flask Route: /profiles - Load from Multiple Config Profiles"""
+    #    config_profiles = {
+    #        "b1": "config-basic.py",
+    #        "b2": "config-basic2.py",
+    #        "b3": "config-basic3.py",
+    #        "a1": "config-advanced-1oled.py",
+    #        "a2": "config-advanced-lcd.py",
+    #        "a3": "config-advanced-8oledsrs.py",
+    #        "a4": "config-advanced-lcdrs.py",
+    #    }
+    #
+    #    req_profile = request.form["profile"]
+    #    debugging.dprint(req_profile)
+    #    debugging.dprint(self.config_profiles)
+    #    tmp_profile = config_profiles[req_profile]
+    #    stored_profile = "/NeoSectional/profiles/" + tmp_profile
+    #
+    #    flash(
+    #        tmp_profile
+    #        + "Profile Loaded. Review And Tweak The Settings As Desired. Must Be Saved!"
+    #    )
+    #    self.readconf(stored_profile)  # read profile config file
+    #    debugging.info("Loading a Profile into Settings Editor")
+    #    return redirect("confedit")
 
     # FIXME: Integrate into Class
     # Route for Reboot of RPI
@@ -1284,10 +1209,10 @@ class WebViews:
         ipadd = self.sysdata.local_ip()
         url = request.referrer
         if url is None:
-            url = "http://" + ipadd + ":5000/index"
+            url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
-        temp = url.split("/")
+        # temp = url.split("/")
         # flash("Rebooting Map ")
         debugging.info("Rebooting Map from " + url)
         # FIXME:
@@ -1303,10 +1228,10 @@ class WebViews:
         url = request.referrer
         ipadd = self.sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/index"
+            url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
-        temp = url.split("/")
+        # temp = url.split("/")
         debugging.info("Startup Map from " + url)
         # FIXME:
         # os.system('sudo python3 /NeoSectional/startup.py run &')
@@ -1323,10 +1248,10 @@ class WebViews:
         url = request.referrer
         ipadd = self.sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/index"
+            url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
-        temp = url.split("/")
+        # temp = url.split("/")
         debugging.info("Shutoff Map from " + url)
         # FIXME:
         # os.system("ps -ef | grep '/NeoSectional/metar-display-v4.py' | awk '{print $2}' | xargs sudo kill")
@@ -1346,7 +1271,7 @@ class WebViews:
         url = request.referrer
         ipadd = self.sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/index"
+            url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         temp = url.split("/")
@@ -1366,10 +1291,10 @@ class WebViews:
         ipadd = self.sysdata.local_ip()
 
         if url is None:
-            url = "http://" + ipadd + ":5000/index"
+            url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
-        temp = url.split("/")
+        # temp = url.split("/")
 
         # flash("Testing LED's")
         debugging.info("Running testled.py from " + url)
@@ -1385,10 +1310,10 @@ class WebViews:
         url = request.referrer
         ipadd = self.sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/index"
+            url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
-        temp = url.split("/")
+        # temp = url.split("/")
         if (self.conf.get_int("oled", "displayused") != 1) or (
             self.conf.get_int("oled", "oledused") != 1
         ):

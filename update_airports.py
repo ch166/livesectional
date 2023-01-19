@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 """
-Created on Sat Jun 15 08:01:44 2019
+Created on Sat Jun 15 08:01:44 2019.
 
 @author: Chris Higgins
 """
@@ -66,10 +66,10 @@ import airport
 
 
 class AirportDB:
-    """Airport Database - Keeping track of interesting sets of airport data"""
+    """Airport Database - Keeping track of interesting sets of airport data."""
 
     def __init__(self, conf):
-        """Create a database of Airports to be tracked"""
+        """Create a database of Airports to be tracked."""
 
         # TODO:
         # A lot of the class local variables are extras,
@@ -164,10 +164,11 @@ class AirportDB:
         for airport_db_id, airportdb_row in self.airport_master_dict.items():
             airport_save_record = {}
             aprt = airportdb_row["airport"]
-            airport_save_record["active"] = aprt.active()
+            airport_save_record["active"] = str(aprt.active())
             airport_save_record["heatmap"] = aprt.heatmap_index()
             airport_save_record["icao"] = aprt.icaocode()
-            airport_save_record["led"] = aprt.get_led_index()
+            airport_save_record["led"] = str(aprt.get_led_index())
+            airport_save_record["purpose"] = airportdb_row["purpose"]
             airport_save_record["wxsrc"] = aprt.get_wxsrc()
             airportdb_list.append(airport_save_record)
 
@@ -254,24 +255,23 @@ class AirportDB:
 
     def save_airport_db(self):
         """Save Airport Data file."""
-        # FIXME: Add file error handling
-        # Should only overwrite destination file if this is succesful
-
         debugging.info("Saving Airport DB")
+        json_save_data = {}
+        json_save_data_airport = []
         airport_json_backup = self.conf.get_string("filenames", "airports_json_backup")
         airport_json_new = self.conf.get_string("filenames", "airports_json_new")
         airport_json = self.conf.get_string("filenames", "airports_json")
 
         shutil.move(airport_json, airport_json_backup)
-        json_save_data = self.save_data_from_db()
+        json_save_data_airport = self.save_data_from_db()
+        json_save_data["airports"] = json_save_data_airport
         with open(airport_json_new, "w", encoding="utf8") as json_file:
             json.dump(json_save_data, json_file, sort_keys=True, indent=4)
-
         shutil.move(airport_json_new, airport_json)
 
     def update_airport_metar_xml(self):
         """Update Airport METAR DICT from XML."""
-        # FIXME: Add file error handling
+        # TODO: Add file error handling
         # Consider extracting only interesting airports from dict first
         debugging.info("Updating Airport METAR DICT")
         metar_data = []
@@ -370,7 +370,7 @@ class AirportDB:
         return True
 
     def update_airport_taf_xml(self):
-        """Update Airport TAF DICT from XML"""
+        """Update Airport TAF DICT from XML."""
 
         # Create a DICT containing TAF records per site
         #
@@ -546,7 +546,7 @@ class AirportDB:
         return True
 
     def update_airport_runways(self):
-        """Update airport RUNWAY data for each known Airport"""
+        """Update airport RUNWAY data for each known Airport."""
         for icao, arptdb_row in self.airport_master_dict.items():
             arpt = arptdb_row["airport"]
             debugging.debug(f"Updating Runway for {arpt.icao}")
@@ -561,7 +561,7 @@ class AirportDB:
                 debugging.crash(err)
 
     def update_loop(self, conf):
-        """Master loop for keeping the airport data set current
+        """Master loop for keeping the airport data set current.
 
         Infinite Loop
          1/ Update METAR for all Airports in DB

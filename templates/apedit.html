@@ -1,52 +1,5 @@
 {% extends "base_lite.html" %}
 {% block content %}
-  <div class="sticky">
-    <form action="ledonoff" name="ledonoff" id="ledonoff" method="post">
-      <table>
-        <tr>
-          <td class="submitbuttons">
-            Enter LED to Control
-            <input onchange="document.form[0].submit()"
-                   type="number"
-                   name="lednum"
-                   size="5"
-                   min="0"
-                   max="{{ airports|length }}"
-                   value="{{ num }}"/>
-          </td>
-          <td class="submitbuttons">
-            <input type="submit" class="button1" name="buton" id="buton" value="LED On" />
-            <input type="submit"
-                   class="button1"
-                   name="butoff"
-                   id="butoff"
-                   value="LED Off"/>
-          </td>
-          <td class="submitbuttons">
-            <input type="submit" class="button1" name="butup" value="Next" />
-            <input type="submit" class="button1" name="butdown" value="Previous" />
-          </td>
-          <td class="submitbuttons">
-            <input type="submit" class="button1" name="butall" value="All On" />
-            <input type="submit" class="button1" name="butnone" value="All Off" />
-          </td>
-          <td class="submitbuttons">
-            <a href="https://www.rocketroute.com/airports"
-               rel
-               noreferrer
-               noopener
-               target="aplookup">
-              <input type="button" class="button" id="lookupap" value="Lookup Airports" />
-            </a>
-            <a href="./apedit">
-              <input type="button" class="button" value="Restore Airports" id="restoreaps" />
-            </a>
-          </td>
-        </tr>
-      </table>
-    </form>
-  </div>
-  <br>
   <div>
     <table>
       <tr>
@@ -61,8 +14,9 @@
               <div class="flashes">
                 {% with messages = get_flashed_messages() %}
                   {% if messages %}
-                    <div class="flashes">{% for message in messages %}</div>
-                    {{ message }}
+                    <div class="flashes">
+                      {% for message in messages %}{{ message }}{% endfor %}
+                    </div>
                   {% endif %}
                 {% endwith %}
               </div>

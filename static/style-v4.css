@@ -3,7 +3,7 @@ body {
   background: white;
   color: #005c99;
   padding: 0px;
-  padding-top: 90px;
+  padding-top: 0px;
 }
 
 a {
@@ -36,9 +36,25 @@ th {
   color: #ff0000
 }
 
+th.config {
+  border: 1px solid #dddddd;
+  text-align: center;
+  vertical-align: middle;
+  padding: 2px;
+  color: #ff0000
+}
+
+
 td {
   border: 1px solid #dddddd;
   text-align: left;
+  vertical-align: middle;
+  padding: 2px;
+}
+
+td.config {
+  border: 1px solid #dddddd;
+  text-align: center;
   vertical-align: middle;
   padding: 2px;
 }
@@ -143,12 +159,13 @@ tr:nth-child(even) {
 div.sticky {
   position: -webkit-sticky;
   position: sticky;
-  top: 58px;
+  top: 0px;
   background-color: #dddddd;
   padding: 5px;
   font-size: 14px;
   font-weight: bold;
   border-style: solid;
+  z-index: 10;
 }
 
 div.stickydn {
@@ -159,6 +176,7 @@ div.stickydn {
   padding: 0px;
   font-size: 14px;
   border-style: solid;
+  z-index: 9;
 }
 
 select {

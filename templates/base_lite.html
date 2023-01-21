@@ -37,182 +37,184 @@
     {% else %}
       <body onload="scrollto()">
       {% endif %}
-      <nav class="navbar navbar-expand-md bg-dark navbar-dark fixed-tmp">
-        <a class="navbar-brand" href="/">
-          <img src="/static/LS-32x32.png"
-               width="32"
-               height="32"
-               class="d-inline-block align-top"
-               alt="">
-          {{ title }}
-        </a>
-        <button type="button"
-                class="navbar-toggler"
-                data-toggle="collapse"
-                data-target="#myNavbar">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="myNavbar">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Settings</a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="/confedit">Editor <i class="far fa-edit"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="/">Load Profile <i class="fas fa-home"></i></a>
-                <a class="dropdown-item {% if enable != 3 %} {{ 'disabled' }}{% endif %}"
-                   href="/restoreconf">Restore
-                Settings from File <i class="far fa-window-restore"></i></a>
-                <a class="dropdown-item {% if enable != 3 %} {{ 'disabled' }}{% endif %}"
-                   href="javascript:{}"
-                   onclick="document.getElementById('post').submit(); return false;">Save Config File <i class="far fa-save"></i></a>
-              </div>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Airports</a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="/apedit">Editor <i class="far fa-edit"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item"
-                   href="https://www.rocketroute.com/airports"
-                   rel
-                   noreferrer
-                   noopener
-                   target="aplookup">Lookup Airports <i class="fas fa-external-link-alt"></i></a>
-                <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
-                   href="/apedit">Restore Airports from File <i class="far fa-window-restore"></i></a>
-                <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
-                   href="javascript:{}"
-                   onclick="document.getElementById('appost').submit(); return false;">Save Airport File <i class="far fa-save"></i></a>
-              </div>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Heat Map</a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="/hmedit">Editor <i class="far fa-edit"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="/heat_map" target="_blank">HeatMap Layout <i class="far fa-map"></i></a>
-              </div>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Map Functions</a>
-              <div class="dropdown-menu">
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('startup1').submit(); return false;">Turn On Map<i class="far fa-sun"></i></a>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('shutdown1').submit(); return false;">Turn Off Map<i class="fas fa-sun"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('system_reboot').submit(); return false;">Reboot System<i class="fas fa-laptop"></i></a>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('shutoffnow1').submit(); return false;">Shutdown RPI <i class="fas fa-power-off"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="/led_map" target="_blank">Map Layout <i class="far fa-map"></i></a>
-              </div>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Map Utilities</a>
-              <div class="dropdown-menu">
-                {% if update_available == 1 %}
-                  <a class="dropdown-item" href="/update_page"><b>Click to Update to v{{ update_vers }}</b> <i class="far fa-check-square"></i></a>
-                {% endif %}
-                {% if update_available == 2 %}
-                  <a class="dropdown-item"
-                     href="https://www.livesectional.com/downloads/"
-                     rel
-                     noreferrer
-                     noopener
-                     target="_blank"><b>Click to Download Latest Image</b> <i class="far fa-check-square"></i></a>
-                {% endif %}
-                <a class="dropdown-item" href="/">Homepage <i class="fas fa-home"></i></a>
-                <a class="dropdown-item" href="/tzset">Set RPI Timezone <i class="far fa-clock"></i></a>
-                <a class="dropdown-item" href="/expandfs">Expand RPI File System <i class="fas fa-expand-alt"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('download_cf').submit(); return false;">Download Config File <i class="fas fa-download"></i></a>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('download_ap').submit(); return false;">Download Airports File <i class="fas fa-download"></i></a>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('download_hm').submit(); return false;">Download Heat Map File <i class="fas fa-download"></i></a>
-                <a class="dropdown-item"
-                   href="javascript:{}"
-                   onclick="document.getElementById('download_log').submit(); return false;">Download Logfile <i class="fas fa-download"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="/testled">Run LED Test Script <i class="fas fa-cogs"></i></a>
-                <a class="dropdown-item" href="/testoled">Run OLED Test Script <i class="fas fa-cogs"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="/confmobile" target="qrcode">Web Remote App <i class="fab fa-app-store"></i></a>
-                <a class="dropdown-item" href="/qrcode" target="qrcode">Create QR Code for Web Remote <i class="fas fa-qrcode"></i></a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="/test_for_update">Check for Update <i class="fa fa-check-circle"></i></a>
-                <a class="dropdown-item" href="/open_console" target="open_console">Display Console Output <i class="fas fa-tablet-alt"></i></a>
-                <a class="dropdown-item" href="/stream_log" target="stream_log">Display Log File <i class="fab fa-wpforms"></i></a>
-                <a class="dropdown-item" href="/yield" target="lssysinfo">System Information <i class="fas fa-code"></i></a>
-                <a class="dropdown-item" href="/update_info">Update History <i class="fa fa-history"></i></a>
-                <a class="dropdown-item"
-                   href="https://www.livesectional.com/community/ls-schematics/"
-                   rel
-                   noreferrer
-                   noopener
-                   target="_blank">View Schematics <i class="fas fa-external-link-alt"></i></a>
-                <a class="dropdown-item"
-                   href="http://www.livesectional.com/community/main-forum/"
-                   rel
-                   noreferrer
-                   noopener
-                   target="_blank">Help <i class="fas fa-external-link-alt"></i></a>
-              </div>
-            </li>
-            {% if machines|length > 1 %}
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Local Machines</a>
-                <div class="dropdown-menu">
-                  {% for i in range(machines|length) %}
-                    {% set ip_add = machines[i].split(' ') %}
-                    <a class="dropdown-item"
-                       href="http://{{ ip_add[0] }}:5000"
-                       rel
-                       noreferrer
-                       noopener
-                       target="_blank">{{ machines[i] }} <i class="fas fa-external-link-alt"></i></a>
-                  {% endfor %}
-                </div>
-              </li>
-            {% endif %}
-            <!--      <li class="nav-item">
-          <a class="nav-link" href="http://www.livesectional.com/community/main-forum/" target="_blank">Help</a>
-      </li>
--->
-          </ul>
-          <a class="navbar-brand" href="/confmobile" target="_blank">
-            <img src="/static/lsremotefav.png"
+      <div class="sticky">
+        <nav class="navbar navbar-expand-md bg-dark navbar-dark fixed-tmp">
+          <a class="navbar-brand" href="/">
+            <img src="/static/LS-32x32.png"
                  width="32"
                  height="32"
                  class="d-inline-block align-top"
-                 alt=""/>
-            Web Remote
+                 alt="">
+            {{ title }}
           </a>
-          <span class="navbar-text"
-                title="{{ current_timezone }}"
-                style="font-size:x-small">
-            <b>IP :</b>{{ ipadd }}
-            <br />
-            <b>LOC:</b>{{ timestr }}
-            <br />
-            <b>UTC:</b>{{ timestrutc }}
-            <br />
-            <b>METAR:</b>{{ timemetarage }}
-            <br />
-          </span>
-        </div>
-      </nav>
+          <button type="button"
+                  class="navbar-toggler"
+                  data-toggle="collapse"
+                  data-target="#myNavbar">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Settings</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="/confedit">Editor <i class="far fa-edit"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="/">Load Profile <i class="fas fa-home"></i></a>
+                  <a class="dropdown-item {% if enable != 3 %} {{ 'disabled' }}{% endif %}"
+                     href="/restoreconf">Restore
+                  Settings from File <i class="far fa-window-restore"></i></a>
+                  <a class="dropdown-item {% if enable != 3 %} {{ 'disabled' }}{% endif %}"
+                     href="javascript:{}"
+                     onclick="document.getElementById('post').submit(); return false;">Save Config File <i class="far fa-save"></i></a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Airports</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="/apedit">Editor <i class="far fa-edit"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item"
+                     href="https://www.rocketroute.com/airports"
+                     rel
+                     noreferrer
+                     noopener
+                     target="aplookup">Lookup Airports <i class="fas fa-external-link-alt"></i></a>
+                  <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
+                     href="/apedit">Restore Airports from File <i class="far fa-window-restore"></i></a>
+                  <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
+                     href="javascript:{}"
+                     onclick="document.getElementById('appost').submit(); return false;">Save Airport File <i class="far fa-save"></i></a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Heat Map</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="/hmedit">Editor <i class="far fa-edit"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="/heat_map" target="_blank">HeatMap Layout <i class="far fa-map"></i></a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Map Functions</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('startup1').submit(); return false;">Turn On Map<i class="far fa-sun"></i></a>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('shutdown1').submit(); return false;">Turn Off Map<i class="fas fa-sun"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('system_reboot').submit(); return false;">Reboot System<i class="fas fa-laptop"></i></a>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('shutoffnow1').submit(); return false;">Shutdown RPI <i class="fas fa-power-off"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="/led_map" target="_blank">Map Layout <i class="far fa-map"></i></a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Map Utilities</a>
+                <div class="dropdown-menu">
+                  {% if update_available == 1 %}
+                    <a class="dropdown-item" href="/update_page"><b>Click to Update to v{{ update_vers }}</b> <i class="far fa-check-square"></i></a>
+                  {% endif %}
+                  {% if update_available == 2 %}
+                    <a class="dropdown-item"
+                       href="https://www.livesectional.com/downloads/"
+                       rel
+                       noreferrer
+                       noopener
+                       target="_blank"><b>Click to Download Latest Image</b> <i class="far fa-check-square"></i></a>
+                  {% endif %}
+                  <a class="dropdown-item" href="/">Homepage <i class="fas fa-home"></i></a>
+                  <a class="dropdown-item" href="/tzset">Set RPI Timezone <i class="far fa-clock"></i></a>
+                  <a class="dropdown-item" href="/expandfs">Expand RPI File System <i class="fas fa-expand-alt"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('download_cf').submit(); return false;">Download Config File <i class="fas fa-download"></i></a>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('download_ap').submit(); return false;">Download Airports File <i class="fas fa-download"></i></a>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('download_hm').submit(); return false;">Download Heat Map File <i class="fas fa-download"></i></a>
+                  <a class="dropdown-item"
+                     href="javascript:{}"
+                     onclick="document.getElementById('download_log').submit(); return false;">Download Logfile <i class="fas fa-download"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="/testled">Run LED Test Script <i class="fas fa-cogs"></i></a>
+                  <a class="dropdown-item" href="/testoled">Run OLED Test Script <i class="fas fa-cogs"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="/confmobile" target="qrcode">Web Remote App <i class="fab fa-app-store"></i></a>
+                  <a class="dropdown-item" href="/qrcode" target="qrcode">Create QR Code for Web Remote <i class="fas fa-qrcode"></i></a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="/test_for_update">Check for Update <i class="fa fa-check-circle"></i></a>
+                  <a class="dropdown-item" href="/open_console" target="open_console">Display Console Output <i class="fas fa-tablet-alt"></i></a>
+                  <a class="dropdown-item" href="/stream_log" target="stream_log">Display Log File <i class="fab fa-wpforms"></i></a>
+                  <a class="dropdown-item" href="/yield" target="lssysinfo">System Information <i class="fas fa-code"></i></a>
+                  <a class="dropdown-item" href="/update_info">Update History <i class="fa fa-history"></i></a>
+                  <a class="dropdown-item"
+                     href="https://www.livesectional.com/community/ls-schematics/"
+                     rel
+                     noreferrer
+                     noopener
+                     target="_blank">View Schematics <i class="fas fa-external-link-alt"></i></a>
+                  <a class="dropdown-item"
+                     href="http://www.livesectional.com/community/main-forum/"
+                     rel
+                     noreferrer
+                     noopener
+                     target="_blank">Help <i class="fas fa-external-link-alt"></i></a>
+                </div>
+              </li>
+              {% if machines|length > 1 %}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Local Machines</a>
+                  <div class="dropdown-menu">
+                    {% for i in range(machines|length) %}
+                      {% set ip_add = machines[i].split(' ') %}
+                      <a class="dropdown-item"
+                         href="http://{{ ip_add[0] }}:5000"
+                         rel
+                         noreferrer
+                         noopener
+                         target="_blank">{{ machines[i] }} <i class="fas fa-external-link-alt"></i></a>
+                    {% endfor %}
+                  </div>
+                </li>
+              {% endif %}
+              <!--      <li class="nav-item">
+          <a class="nav-link" href="http://www.livesectional.com/community/main-forum/" target="_blank">Help</a>
+          </li>
+          -->
+            </ul>
+            <a class="navbar-brand" href="/confmobile" target="_blank">
+              <img src="/static/lsremotefav.png"
+                   width="32"
+                   height="32"
+                   class="d-inline-block align-top"
+                   alt=""/>
+              Web Remote
+            </a>
+            <span class="navbar-text"
+                  title="{{ current_timezone }}"
+                  style="font-size:x-small">
+              <b>IP :</b>{{ ipadd }}
+              <br />
+              <b>LOC:</b>{{ timestr }}
+              <br />
+              <b>UTC:</b>{{ timestrutc }}
+              <br />
+              <b>METAR:</b>{{ timemetarage }}
+              <br />
+            </span>
+          </div>
+        </nav>
+      </div>
       <div class="modal fade"
            id="myModal"
            tabindex="-1"
@@ -289,7 +291,7 @@
                    noreferrer
                    noopener
                    target="_blank">
-                  <input type="button" class="button" value="Help">
+                  <input type="button" class="button" value="Help" />
                 </a>
               </td>
               <td class="submitbuttons">

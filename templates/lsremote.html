@@ -2,17 +2,8 @@
 {% block content %}
     <table>
         <tr>
-            <td>
-                <th width="20%" style="text-align:center" td bgcolor="#0099ff"></th>
-                <font size="4" color="white">Setting</font>
-                <th width="15%"
-                    style="text-align:center"
-                    td
-                    bgcolor="#0099ff"
-                    style="color:white">
-                    <font size="4" color="white">Value</font>
-                </th>
-            </td>
+            <th width="20%" style="text-align:center" bgcolor="#0099ff">Setting</th>
+            <th width="15%" style="text-align:center color:white" bgcolor="#0099ff">Value</th>
         </tr>
         <tr>
             <td style="display:none">
@@ -51,7 +42,7 @@
                 <b>Set Wind Speed = </b>
             </td>
             <td style="display:none">
-                <input type="number" name="max_wind_speed" min="0" max="100" value={{ settings.max_wind_speed }}/>
+                <input type="number" name="max_wind_speed" min="0" max="100" value={{ settings.max_wind_speed }} />
             </td>
         </tr>
         <tr>
@@ -59,7 +50,7 @@
                 <b>Update FAA Weather = </b>
             </td>
             <td style="display:none">
-                <input type="number" name="update_interval" min="1" max="60" value={{ settings.update_interval }}/>
+                <input type="number" name="update_interval" min="1" max="60" value={{ settings.update_interval }} />
             </td>
         </tr>
         <tr>
@@ -67,22 +58,22 @@
                 <b>Age of Metar = </b>
             </td>
             <td style="display:none">
-                <input type="number" name="metar_age" min="0.5" max="6" step=".5" value={{ settings.metar_age }}/>
+                <input type="number" name="metar_age" min="0.5" max="6" step=".5" value={{ settings.metar_age }} />
             </td>
         </tr>
         <tr>
             <td style="text-align:center">
                 <b>Map Data to Display</b>
+                <br />
             </td>
-            <br />
             <!--        <td>
-            <input type="radio" name="metar_taf_mos" id="mettafmoshmmet" value="1" {{'checked="checked"' if settings.metar_taf_mos=="1" else "" }}/>
+            <input type="radio" name="metar_taf_mos" id="mettafmoshmmet" value="1" {{'checked="checked"' if settings.metar_taf_mos=="1" else "" }} />
             <label for="mettafmoshmmet">METAR</label>
-            <input type="radio" name="metar_taf_mos" id="mettafmoshmtaf" value="0" {{'checked="checked"' if settings.metar_taf_mos=="0" else "" }}/>
+            <input type="radio" name="metar_taf_mos" id="mettafmoshmtaf" value="0" {{'checked="checked"' if settings.metar_taf_mos=="0" else "" }} />
             <label for="mettafmoshmtaf">TAF</label>
-             <input type="radio" name="metar_taf_mos" id="mettafmoshmmos" value="2" {{'checked="checked"' if settings.metar_taf_mos=="2" else "" }}/>
+             <input type="radio" name="metar_taf_mos" id="mettafmoshmmos" value="2" {{'checked="checked"' if settings.metar_taf_mos=="2" else "" }} />
             <label for="mettafmoshmmos">MOS</label>
-            <input type="radio" name="metar_taf_mos" id="mettafmoshmhm" value="3" {{'checked="checked"' if settings.metar_taf_mos=="3" else "" }}/>
+            <input type="radio" name="metar_taf_mos" id="mettafmoshmhm" value="3" {{'checked="checked"' if settings.metar_taf_mos=="3" else "" }} />
             <label for="mettafmoshmhm">Heat Map</label>
             <td><label for="data_sw0"><b>Choose Default Data to Display:</b></label>-->
             <td style="text-align:center">
@@ -103,7 +94,7 @@
                 <b>Hours Ahead to Display:</b>
             </td>
             <td style="text-align:center">
-                <input type="number" name="time_sw0" min="1" max="24" value={{ settings.time_sw0 }} style="min-width: 100px" pattern="\d*" / value="0" min="0" required placeholder="1-24"/>
+                <input type="number" name="time_sw0" min="1" max="24" value={{ settings.time_sw0 }} style="min-width: 100px" pattern="\d*" value="0" min="0" required placeholder="1-24" />
             </td>
         </tr>
         <tr>
@@ -132,33 +123,33 @@
         </tr>
         <tr>
             <td style="display:none">
-                <b>&nbsp&nbsp&nbsp&nbsp&nbspTime Off</b>
+                <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Time Off</b>
             </td>
             <td style="display:none">
-                <input type="text" name="offhour" maxlength="2" size="2" value={{ settings.offhour }}/> :
-                <input type="text" name="offminutes" maxlength="2" size="2" value={{ settings.offminutes }}/>
-            </td>
-        </tr>
-        <tr>
-            <td style="display:none">
-                <b>&nbsp&nbsp&nbsp&nbsp&nbspTime On</b>
-            </td>
-            <td style="display:none">
-                <input type="text" name="onhour" maxlength="2" size="2" value={{ settings.onhour }}/> :
-                <input type="text" name="onminutes" maxlength="2" size="2" value={{ settings.onminutes }}/>
+                <input type="text" name="offhour" maxlength="2" size="2" value={{ settings.offhour }} /> :
+                <input type="text" name="offminutes" maxlength="2" size="2" value={{ settings.offminutes }} />
             </td>
         </tr>
         <tr>
             <td style="display:none">
-                <b>&nbsp&nbsp&nbsp&nbsp&nbspSleep Interrupt Time</b>
+                <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Time On</b>
             </td>
             <td style="display:none">
-                <input type="number" name="tempsleepon" min="0" max="120" value={{ settings.tempsleepon }}/>
+                <input type="text" name="onhour" maxlength="2" size="2" value={{ settings.onhour }} /> :
+                <input type="text" name="onminutes" maxlength="2" size="2" value={{ settings.onminutes }} />
             </td>
         </tr>
         <tr>
             <td style="display:none">
-                <b>&nbsp&nbsp&nbsp&nbsp&nbspDisplay 'Sleeping' Message</b>
+                <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sleep Interrupt Time</b>
+            </td>
+            <td style="display:none">
+                <input type="number" name="tempsleepon" min="0" max="120" value={{ settings.tempsleepon }} />
+            </td>
+        </tr>
+        <tr>
+            <td style="display:none">
+                <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Display 'Sleeping' Message</b>
                 <br />
             </td>
             <td style="display:none">
@@ -209,7 +200,7 @@
                 <b>Number of OLED Displays =</b>
             </td>
             <td style="display:none">
-                <input type="number" name="numofdisplays" min="0" max="8" value={{ settings.numofdisplays }}/>
+                <input type="number" name="numofdisplays" min="0" max="8" value={{ settings.numofdisplays }} />
             </td>
         </tr>
         <tr>
@@ -230,7 +221,9 @@
         </tr>
     </table>
     <!--Start of LED Map Settings-->
-    <button type="button" class="collapsible" style="display:none">Sectional Map Settings</button>
+    <button type="button" class="collapsible" style="display:none">
+        Sectional Map Settings
+    </button>
     <div class="content" style="display:none">
         <table>
             <tr>
@@ -407,7 +400,7 @@
                     <b>Home Airport Pin = </b>
                 </td>
                 <td>
-                    <input type="number" name="homeport_pin" min="0" max="500" value={{ settings.homeport_pin }}/>
+                    <input type="number" name="homeport_pin" min="0" max="500" value={{ settings.homeport_pin }} />
                 </td>
                 <td>
                     Pin number of the home airport if 'Turn On Home Airport Feature' is 'Yes'. Otherwise this is
@@ -443,7 +436,7 @@
                     <b>Homeport Dimming = </b>
                 </td>
                 <td>
-                    <input type="number" name="dim_value" min="0" max="255" value={{ settings.dim_value }}/>
+                    <input type="number" name="dim_value" min="0" max="255" value={{ settings.dim_value }} />
                 </td>
                 <td>
                     Level of brightness to dim all other airports if home airport is being used. Play with brightness
@@ -490,7 +483,7 @@
                     <b>Low Brightness = </b>
                 </td>
                 <td>
-                    <input type="number" name="dimmed_value" min="0" max="255" value={{ settings.dimmed_value }}/>
+                    <input type="number" name="dimmed_value" min="0" max="255" value={{ settings.dimmed_value }} />
                 </td>
                 <td>
                     This sets the value of LED brightness when IC238 Ambient Light Sensor detects low ambient light.
@@ -502,7 +495,7 @@
                     <b>High Brightness = </b>
                 </td>
                 <td>
-                    <input type="number" name="bright_value" min="0" max="255" value={{ settings.bright_value }}/>
+                    <input type="number" name="bright_value" min="0" max="255" value={{ settings.bright_value }} />
                 </td>
                 <td>
                     This sets the value of LED brightness when light sensor detects high ambient light. This value is
@@ -555,7 +548,7 @@
                     <b>IFR Flight Category = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" onload="hex2rgb(this)" name="color_ifr" id={{ settings.color_ifr }} size=10 value={{ color_ifr_hex }}/>
+                    <input type="color" style="float:left" onload="hex2rgb(this)" name="color_ifr" id={{ settings.color_ifr }} size=10 value={{ color_ifr_hex }} />
                 </td>
                 <td>
                     IFR is designated by RED (255,0,0).
@@ -566,7 +559,7 @@
                     <b>LIFR Flight Category = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_lifr" id={{ settings.color_lifr }} size=10 value={{ color_lifr_hex }}/>
+                    <input type="color" style="float:left" name="color_lifr" id={{ settings.color_lifr }} size=10 value={{ color_lifr_hex }} />
                 </td>
                 <td>
                     LIFR is designated by Magenta (255,0,255).
@@ -577,7 +570,7 @@
                     <b>No Weather Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_nowx" id={{ settings.color_nowx }} size=10 value={{ color_nowx_hex }}/>
+                    <input type="color" style="float:left" name="color_nowx" id={{ settings.color_nowx }} size=10 value={{ color_nowx_hex }} />
                 </td>
                 <td>
                     No Weather (nowx) is typically designated by GRAY (80,80,80) or BLACK (0,0,0).
@@ -588,7 +581,7 @@
                     <b>Black/Off = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_black" size=10 id={{ settings.color_black }} value={{ color_black_hex }}/>
+                    <input type="color" style="float:left" name="color_black" size=10 id={{ settings.color_black }} value={{ color_black_hex }} />
                 </td>
                 <td>
                     Black/Off is designated by BLACK (0,0,0).
@@ -599,7 +592,7 @@
                     <b>Lightning = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_lghtn" size=10 id={{ settings.color_lghtn }} value={{ color_lghtn_hex }}/>
+                    <input type="color" style="float:left" name="color_lghtn" size=10 id={{ settings.color_lghtn }} value={{ color_lghtn_hex }} />
                 </td>
                 <td>
                     Lightning is typically designated by YELLOW (255,255,0).
@@ -610,7 +603,7 @@
                     <b>Snow1 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_snow1" size=10 id={{ settings.color_snow1 }} value={{ color_snow1_hex }}/>
+                    <input type="color" style="float:left" name="color_snow1" size=10 id={{ settings.color_snow1 }} value={{ color_snow1_hex }} />
                 </td>
                 <td>
                     Snow1 Reported is typically designated by WHITE (255,255,255).
@@ -621,7 +614,7 @@
                     <b>Snow2 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_snow2" size=10 id={{ settings.color_snow2 }} value={{ color_snow2_hex }}/>
+                    <input type="color" style="float:left" name="color_snow2" size=10 id={{ settings.color_snow2 }} value={{ color_snow2_hex }} />
                 </td>
                 <td>
                     Snow2 Reported is typically designated by SILVER (100,100,100). 2 different whites create blinking
@@ -633,7 +626,7 @@
                     <b>Rain1 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_rain1" size=10 id={{ settings.color_rain1 }} value={{ color_rain1_hex }}/>
+                    <input type="color" style="float:left" name="color_rain1" size=10 id={{ settings.color_rain1 }} value={{ color_rain1_hex }} />
                 </td>
                 <td>
                     Rain1 Reported is typically designated by DARK BLUE (4,0,54).
@@ -644,7 +637,7 @@
                     <b>Rain2 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_rain2" size=10 id={{ settings.color_rain2 }} value={{ color_rain2_hex }}/>
+                    <input type="color" style="float:left" name="color_rain2" size=10 id={{ settings.color_rain2 }} value={{ color_rain2_hex }} />
                 </td>
                 <td>
                     Rain2 Reported is typically designated by BLUE (0,0,255). 2 different blues create blinking effect.
@@ -655,7 +648,7 @@
                     <b>Freezing Rain1 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_frrain1" size=10 id={{ settings.color_frrain1 }} value={{ color_frrain1_hex }}/>
+                    <input type="color" style="float:left" name="color_frrain1" size=10 id={{ settings.color_frrain1 }} value={{ color_frrain1_hex }} />
                 </td>
                 <td>
                     Freezing Rain1 Reported is typically designated by LIGHT PURPLE (199,156,219).
@@ -666,7 +659,7 @@
                     <b>Freezing Rain2 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_frrain2" size=10 id={{ settings.color_frrain2 }} value={{ color_frrain2_hex }}/>
+                    <input type="color" style="float:left" name="color_frrain2" size=10 id={{ settings.color_frrain2 }} value={{ color_frrain2_hex }} />
                 </td>
                 <td>
                     Freezing Rain2 Reported is typically designated by PURPLE (152,0,199). 2 different purples create
@@ -678,7 +671,7 @@
                     <b>Dust, Sand, Ash1 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_dustsandash1" size=10 id={{ settings.color_dustsandash1 }} value={{ color_dustsandash1_hex }}/>
+                    <input type="color" style="float:left" name="color_dustsandash1" size=10 id={{ settings.color_dustsandash1 }} value={{ color_dustsandash1_hex }} />
                 </td>
                 <td>
                     Dust, Sand or Ash1 Reported is typically designated by BROWN (200,150,125).
@@ -689,7 +682,7 @@
                     <b>Dust, Sand, Ash2 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_dustsandash2" size=10 id={{ settings.color_dustsandash2 }} value={{ color_dustsandash2_hex }}/>
+                    <input type="color" style="float:left" name="color_dustsandash2" size=10 id={{ settings.color_dustsandash2 }} value={{ color_dustsandash2_hex }} />
                 </td>
                 <td>
                     Dust, Sand or Ash2 Reported is typically designated by DARK BROWN (100,50,0). 2 different browns
@@ -701,7 +694,7 @@
                     <b>Fog1 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_fog1" size=10 id={{ settings.color_fog1 }} value={{ color_fog1_hex }}/>
+                    <input type="color" style="float:left" name="color_fog1" size=10 id={{ settings.color_fog1 }} value={{ color_fog1_hex }} />
                 </td>
                 <td>
                     Fog1 Reported is typically designated by SILVER (80,80,80).
@@ -712,7 +705,7 @@
                     <b>Fog2 Reported = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_fog2" size=10 id={{ settings.color_fog2 }} value={{ color_fog2_hex }}/>
+                    <input type="color" style="float:left" name="color_fog2" size=10 id={{ settings.color_fog2 }} value={{ color_fog2_hex }} />
                 </td>
                 <td>
                     Fog2 Reported is typically designated by SILVER (80,80,80). Same colors create solid effect, but can
@@ -724,7 +717,7 @@
                     <b>Home Airport Marker Color = </b>
                 </td>
                 <td>
-                    <input type="color" style="float:left" name="color_homeport" size=10 id={{ settings.color_homeport }} value={{ color_homeport_hex }}/>
+                    <input type="color" style="float:left" name="color_homeport" size=10 id={{ settings.color_homeport }} value={{ color_homeport_hex }} />
                 </td>
                 <td>
                     Home Airport Marker Color can be any color that stands out from the rest to denote the home airport.
@@ -910,7 +903,7 @@
                     <b>Pin '#' for VFR Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_vfr" min="0" max="500" value={{ settings.leg_pin_vfr }}/>
+                    <input type="number" name="leg_pin_vfr" min="0" max="500" value={{ settings.leg_pin_vfr }} />
                 </td>
                 <td>
                     Set LED pin number for VFR Legend LED.
@@ -921,7 +914,7 @@
                     <b>Pin '#' for MVFR Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_mvfr" min="0" max="500" value={{ settings.leg_pin_mvfr }}/>
+                    <input type="number" name="leg_pin_mvfr" min="0" max="500" value={{ settings.leg_pin_mvfr }} />
                 </td>
                 <td>
                     Set LED pin number for MVFR Legend LED.
@@ -932,7 +925,7 @@
                     <b>Pin '#' for IFR Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_ifr" min="0" max="500" value={{ settings.leg_pin_ifr }}/>
+                    <input type="number" name="leg_pin_ifr" min="0" max="500" value={{ settings.leg_pin_ifr }} />
                 </td>
                 <td>
                     Set LED pin number for IFR Legend LED.
@@ -943,7 +936,7 @@
                     <b>Pin '#' for LIFR Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_lifr" min="0" max="500" value={{ settings.leg_pin_lifr }}/>
+                    <input type="number" name="leg_pin_lifr" min="0" max="500" value={{ settings.leg_pin_lifr }} />
                 </td>
                 <td>
                     Set LED pin number for LIFR Legend LED.
@@ -954,7 +947,7 @@
                     <b>Pin '#' for No Weather (nowx) Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_nowx" min="0" max="500" value={{ settings.leg_pin_nowx }}/>
+                    <input type="number" name="leg_pin_nowx" min="0" max="500" value={{ settings.leg_pin_nowx }} />
                 </td>
                 <td>
                     Set LED pin number for No Weather Legend LED.
@@ -965,7 +958,7 @@
                     <b>Pin '#' for Hi Winds Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_hiwinds" min="0" max="500" value={{ settings.leg_pin_hiwinds }}/>
+                    <input type="number" name="leg_pin_hiwinds" min="0" max="500" value={{ settings.leg_pin_hiwinds }} />
                 </td>
                 <td>
                     Set LED pin number for High Winds Legend LED.
@@ -976,7 +969,7 @@
                     <b>Pin '#' for Lightning Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_lghtn" min="0" max="500" value={{ settings.leg_pin_lghtn }}/>
+                    <input type="number" name="leg_pin_lghtn" min="0" max="500" value={{ settings.leg_pin_lghtn }} />
                 </td>
                 <td>
                     Set LED pin number for Thunderstorms Legend LED.
@@ -987,7 +980,7 @@
                     <b>Pin '#' for Snow Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_snow" min="0" max="500" value={{ settings.leg_pin_snow }}/>
+                    <input type="number" name="leg_pin_snow" min="0" max="500" value={{ settings.leg_pin_snow }} />
                 </td>
                 <td>
                     Set LED pin number for Snow Legend LED.
@@ -998,7 +991,7 @@
                     <b>Pin '#' for Rain Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_rain" min="0" max="500" value={{ settings.leg_pin_rain }}/>
+                    <input type="number" name="leg_pin_rain" min="0" max="500" value={{ settings.leg_pin_rain }} />
                 </td>
                 <td>
                     Set LED pin number for Rain Legend LED.
@@ -1009,7 +1002,7 @@
                     <b>Pin '#' for Freezing Rain Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_frrain" min="0" max="500" value={{ settings.leg_pin_frrain }}/>
+                    <input type="number" name="leg_pin_frrain" min="0" max="500" value={{ settings.leg_pin_frrain }} />
                 </td>
                 <td>
                     Set LED pin number for Freezing Rain Legend LED.
@@ -1020,7 +1013,7 @@
                     <b>Pin '#' for Dust, Sand or Ash Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_dustsandash" min="0" max="500" value={{ settings.leg_pin_dustsandash }}/>
+                    <input type="number" name="leg_pin_dustsandash" min="0" max="500" value={{ settings.leg_pin_dustsandash }} />
                 </td>
                 <td>
                     Set LED pin number for Dust, Sand Ash Legend LED.
@@ -1031,7 +1024,7 @@
                     <b>Pin '#' for Fog Legend LED = </b>
                 </td>
                 <td>
-                    <input type="number" name="leg_pin_fog" min="0" max="500" value={{ settings.leg_pin_fog }}/>
+                    <input type="number" name="leg_pin_fog" min="0" max="500" value={{ settings.leg_pin_fog }} />
                 </td>
                 <td>
                     Set LED pin number for Fog Legend LED.
@@ -1061,7 +1054,7 @@
                     <b>Number of Airports to Display = </b>
                 </td>
                 <td>
-                    <input type="number" name="num2display" min="0" max="500" value={{ settings.num2display }}/>
+                    <input type="number" name="num2display" min="0" max="500" value={{ settings.num2display }} />
                 </td>
                 <td>
                     Number of highest-wind airports to display. Can be as high as airports listed in airports file. 5 to
@@ -1168,7 +1161,7 @@
                     <b>LCD Display Pause = </b>
                 </td>
                 <td>
-                    <input type="number" name="lcdpause" min="0" max="3" step=".1" value={{ settings.lcdpause }}/>
+                    <input type="number" name="lcdpause" min="0" max="3" step=".1" value={{ settings.lcdpause }} />
                 </td>
                 <td>
                     Pause between character movements in scroll for LCD only. Used if 'lcddisplay = 1'. (0.3 to 1.0
@@ -1180,7 +1173,7 @@
                     <b>OLED Display Pause = </b>
                 </td>
                 <td>
-                    <input type="number" name="oledpause" min="0" max="5" step=".1" value={{ settings.oledpause }}/>
+                    <input type="number" name="oledpause" min="0" max="5" step=".1" value={{ settings.oledpause }} />
                 </td>
                 <td>
                     Pause between character movements in scroll for OLED only. Used if 'oledused = 1'. (1.0 to 2.0
@@ -1192,7 +1185,7 @@
                     <b>OLED Font Size = </b>
                 </td>
                 <td>
-                    <input type="number" name="fontsize" min="0" max="50" value={{ settings.fontsize }}/>
+                    <input type="number" name="fontsize" min="0" max="50" value={{ settings.fontsize }} />
                 </td>
                 <td>
                     Size of font for OLED display. 24 works well with current font used.
@@ -1203,7 +1196,7 @@
                     <b>OLED Pixel Offset = </b>
                 </td>
                 <td>
-                    <input type="number" name="offset" min="0" max="10" value={{ settings.offset }}/>
+                    <input type="number" name="offset" min="0" max="10" value={{ settings.offset }} />
                 </td>
                 <td>
                     Pixel offset for OLED text display vertically. Leave at 3 for current font used.
@@ -1314,7 +1307,7 @@
                     <b>OLED Minimum Brightness = </b>
                 </td>
                 <td>
-                    <input type="number" name="dimmin" min="0" max="255" value={{ settings.dimmin }}/>
+                    <input type="number" name="dimmin" min="0" max="255" value={{ settings.dimmin }} />
                 </td>
                 <td>
                     Set value 0-255 for the minimum brightness (0=darker display, but not off). When Light Sensor IS
@@ -1326,7 +1319,7 @@
                     <b>OLED Maximum Brightness = </b>
                 </td>
                 <td>
-                    <input type="number" name="dimmax" min="0" max="255" value={{ settings.dimmax }}/>
+                    <input type="number" name="dimmax" min="0" max="255" value={{ settings.dimmax }} />
                 </td>
                 <td>
                     Set value 0-255 for the maximum brightness (bright display). When Light Sensor IS used.
@@ -1412,7 +1405,7 @@
                 <td colspan="2">
                     <b>OLED Welcome Message</b>
                     <br />
-                    <input type="text" name="welcome" size="25" value="{{ settings.welcome }}"/>
+                    <input type="text" name="welcome" size="25" value="{{ settings.welcome }}" />
                 </td>
                 <td>
                     Must be in quotes. You can include a '\n' if you want a line break on the OLED. i.e.
@@ -1494,7 +1487,7 @@
             <tr>
                 <td style="color:grey;">
                     <label for="data_sw0">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to
                         Display:</b>
                     </label>
                 </td>
@@ -1518,7 +1511,7 @@
             </tr>
             <tr>
                 <td style="color:grey;">
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw0" min="1" max="24" value={{ settings.time_sw0 }} disabled />
@@ -1536,7 +1529,7 @@
             <tr>
                 <td>
                     <label for="data_sw1">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1561,7 +1554,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw1" min="1" max="24" value={{ settings.time_sw1 }} />
@@ -1580,7 +1573,7 @@
             <tr>
                 <td>
                     <label for="data_sw2">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1605,7 +1598,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw2" min="1" max="24" value={{ settings.time_sw2 }} />
@@ -1624,7 +1617,7 @@
             <tr>
                 <td>
                     <label for="data_sw3">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1649,7 +1642,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw3" min="1" max="24" value={{ settings.time_sw3 }} />
@@ -1668,7 +1661,7 @@
             <tr>
                 <td>
                     <label for="data_sw4">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1693,7 +1686,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw4" min="1" max="24" value={{ settings.time_sw4 }} />
@@ -1712,7 +1705,7 @@
             <tr>
                 <td>
                     <label for="data_sw5">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1737,7 +1730,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw5" min="1" max="24" value={{ settings.time_sw5 }} />
@@ -1756,7 +1749,7 @@
             <tr>
                 <td>
                     <label for="data_sw6">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1781,7 +1774,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw6" min="1" max="24" value={{ settings.time_sw6 }} />
@@ -1800,7 +1793,7 @@
             <tr>
                 <td>
                     <label for="data_sw7">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1825,7 +1818,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw7" min="1" max="24" value={{ settings.time_sw7 }} />
@@ -1844,7 +1837,7 @@
             <tr>
                 <td>
                     <label for="data_sw8">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1869,7 +1862,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw8" min="1" max="24" value={{ settings.time_sw8 }} />
@@ -1888,7 +1881,7 @@
             <tr>
                 <td>
                     <label for="data_sw9">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1913,7 +1906,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw9" min="1" max="24" value={{ settings.time_sw9 }} />
@@ -1932,7 +1925,7 @@
             <tr>
                 <td>
                     <label for="data_sw10">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -1957,7 +1950,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw10" min="1" max="24" value={{ settings.time_sw10 }} />
@@ -1976,7 +1969,7 @@
             <tr>
                 <td>
                     <label for="data_sw11">
-                        <b>&nbsp&nbsp&nbsp&nbsp&nbspChoose Data to Display:</b>
+                        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choose Data to Display:</b>
                     </label>
                 </td>
                 <td>
@@ -2001,7 +1994,7 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspEnter Hours Ahead:</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Enter Hours Ahead:</b>
                 </td>
                 <td>
                     <input type="number" name="time_sw11" min="1" max="24" value={{ settings.time_sw11 }} />
@@ -2060,9 +2053,9 @@
             </tr>
             <!-- <tr>
             <td><b>Display Binary or Gradient Colors</b><br /><td>
-            <input type="radio" name="bin_grad" id="bin_gradbin" value="0" {{'checked="checked"' if settings.bin_grad=="0" else "" }}/>
+            <input type="radio" name="bin_grad" id="bin_gradbin" value="0" {{'checked="checked"' if settings.bin_grad=="0" else "" }} />
             <label for="bin_gradbin">Binary</label>
-            <input type="radio" name="bin_grad" id="bin_gradgrad" value="1" {{'checked="checked"' if settings.bin_grad=="1" else "" }}/>
+            <input type="radio" name="bin_grad" id="bin_gradgrad" value="1" {{'checked="checked"' if settings.bin_grad=="1" else "" }} />
             <label for="bin_gradgrad">Gradient</label>
             <td>Heat Map displays which airports have been landed at. The LEDs can display all the visited airports in Red (Binary) or 
             depending the number of landings, can display a gradient of color from Cool Blue for few visits, to Hot Red for lots of visits.</tr>-->
@@ -2111,7 +2104,7 @@
                     <b>Fade In/Out Delay Time</b>
                 </td>
                 <td>
-                    <input type="number" name="fade_delay" min="0" max="3" step=".01" value={{ settings.fade_delay }}/>
+                    <input type="number" name="fade_delay" min="0" max="3" step=".01" value={{ settings.fade_delay }} />
                 </td>
                 <td>
                     Delay time to change how slowly the home airport LED fades in and out. .01 - .05 is typical.
@@ -2191,7 +2184,7 @@
                     <b>Time Delay</b>
                 </td>
                 <td>
-                    <input type="number" name="wait" min="0" max=".1" step=".01" value={{ settings.wait }}/>
+                    <input type="number" name="wait" min="0" max=".1" step=".01" value={{ settings.wait }} />
                 </td>
                 <td>
                     Use to adjust the speed of the transition. Range is 0 - .1 with a step value of .01
@@ -2202,7 +2195,7 @@
                     <b>Rainbow Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_rainbow" min="0" max="10" value={{ settings.num_rainbow }}/>
+                    <input type="number" name="num_rainbow" min="0" max="10" value={{ settings.num_rainbow }} />
                 </td>
                 <td>
                     Enter number of iterations for Rainbow Transition. 0 = disabled. Range is 0 - 10.
@@ -2213,7 +2206,7 @@
                     <b>Fade In/Out Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_fade" min="0" max="10" value={{ settings.num_fade }}/>
+                    <input type="number" name="num_fade" min="0" max="10" value={{ settings.num_fade }} />
                 </td>
                 <td>
                     Enter number of iterations for Fade In/Out Transition. 0 = disabled. Range is 0 - 10.
@@ -2221,17 +2214,17 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspFade In Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Fade In Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="fade_color1" id={{ settings.fade_color1 }} size="10" value={{ fade_color1_hex }}/>
+                    <input type="color" style="float:center" name="fade_color1" id={{ settings.fade_color1 }} size="10" value={{ fade_color1_hex }} />
                 </td>
                 <td>
                     This color will be when the LED is the brightest.
                 </td>
             </tr>
             <!--    <tr>
-            <td><b>&nbsp&nbsp&nbsp&nbsp&nbspFade Out Color</b>
+            <td><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Fade Out Color</b>
             <td><input type="color" style="float:center" name="fade_color2" id={{ settings.fade_color2 }} size=10 value = {{ fade_color2_hex }}>
             <td>This color will be when LED is at the dimmest.</tr> -->
             <tr>
@@ -2239,7 +2232,7 @@
                     <b>All On/Off Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_allsame" min="0" max="10" value={{ settings.num_allsame }}/>
+                    <input type="number" name="num_allsame" min="0" max="10" value={{ settings.num_allsame }} />
                 </td>
                 <td>
                     Enter number of iterations for All On/Off Transition. 0 = disabled. Range is 0 - 10.
@@ -2247,10 +2240,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspOn Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;On Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="allsame_color1" id={{ settings.allsame_color1 }} size=10 value={{ allsame_color1_hex }}/>
+                    <input type="color" style="float:center" name="allsame_color1" id={{ settings.allsame_color1 }} size=10 value={{ allsame_color1_hex }} />
                 </td>
                 <td>
                     Color of LEDs when all on.
@@ -2258,10 +2251,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspOff Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Off Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="allsame_color2" id={{ settings.allsame_color2 }} size=10 value={{ allsame_color2_hex }}/>
+                    <input type="color" style="float:center" name="allsame_color2" id={{ settings.allsame_color2 }} size=10 value={{ allsame_color2_hex }} />
                 </td>
                 <td>
                     Color of LEDs when all off.
@@ -2272,7 +2265,7 @@
                     <b>Shuffle Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_shuffle" min="0" max="10" value={{ settings.num_shuffle }}/>
+                    <input type="number" name="num_shuffle" min="0" max="10" value={{ settings.num_shuffle }} />
                 </td>
                 <td>
                     Enter number of iterations for Shuffle Transition. 0 = disabled. Range is 0 - 10.
@@ -2280,10 +2273,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspShuffle On Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Shuffle On Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="shuffle_color1" id={{ settings.shuffle_color1 }} size=10 value={{ shuffle_color1_hex }}/>
+                    <input type="color" style="float:center" name="shuffle_color1" id={{ settings.shuffle_color1 }} size=10 value={{ shuffle_color1_hex }} />
                 </td>
                 <td>
                     This color will be when the LED is the brightest.
@@ -2291,10 +2284,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspShuffle Off Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Shuffle Off Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="shuffle_color2" id={{ settings.shuffle_color2 }} size=10 value={{ shuffle_color2_hex }}/>
+                    <input type="color" style="float:center" name="shuffle_color2" id={{ settings.shuffle_color2 }} size=10 value={{ shuffle_color2_hex }} />
                 </td>
                 <td>
                     This color will be when LED is at the dimmest.
@@ -2305,7 +2298,7 @@
                     <b>Radar Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_radar" min="0" max="10" value={{ settings.num_radar }}/>
+                    <input type="number" name="num_radar" min="0" max="10" value={{ settings.num_radar }} />
                 </td>
                 <td>
                     Enter number of iterations for Radar Transition. 0 = disabled. Range is 0 - 10.
@@ -2313,10 +2306,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspRadar Background Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Radar Background Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="radar_color1" id={{ settings.radar_color1 }} size=10 value={{ radar_color1_hex }}/>
+                    <input type="color" style="float:center" name="radar_color1" id={{ settings.radar_color1 }} size=10 value={{ radar_color1_hex }} />
                 </td>
                 <td>
                     This color will represent the Radar's background.
@@ -2324,10 +2317,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspRadar Sweep Arm Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Radar Sweep Arm Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="radar_color2" id={{ settings.radar_color2 }} size=10 value={{ radar_color2_hex }}/>
+                    <input type="color" style="float:center" name="radar_color2" id={{ settings.radar_color2 }} size=10 value={{ radar_color2_hex }} />
                 </td>
                 <td>
                     This color will represent the Radar's Sweep Arm. Use a high contrast color compared to the
@@ -2339,7 +2332,7 @@
                     <b>Circle Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_circle" min="0" max="10" value={{ settings.num_circle }}/>
+                    <input type="number" name="num_circle" min="0" max="10" value={{ settings.num_circle }} />
                 </td>
                 <td>
                     Enter number of iterations for Circle Transition. 0 = disabled. Range is 0 - 10.
@@ -2347,10 +2340,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspCircle Inside Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Circle Inside Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="circle_color1" id={{ settings.circle_color1 }} size=10 value={{ circle_color1_hex }}/>
+                    <input type="color" style="float:center" name="circle_color1" id={{ settings.circle_color1 }} size=10 value={{ circle_color1_hex }} />
                 </td>
                 <td>
                     This color will be used to fill in the circle as it expands.
@@ -2358,10 +2351,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspCircle Outside Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Circle Outside Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="circle_color2" id={{ settings.circle_color2 }} size=10 value={{ circle_color2_hex }}/>
+                    <input type="color" style="float:center" name="circle_color2" id={{ settings.circle_color2 }} size=10 value={{ circle_color2_hex }} />
                 </td>
                 <td>
                     This color will be used to fill outside of the circle.
@@ -2372,7 +2365,7 @@
                     <b>Square Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_square" min="0" max="10" value={{ settings.num_square }}/>
+                    <input type="number" name="num_square" min="0" max="10" value={{ settings.num_square }} />
                 </td>
                 <td>
                     Enter number of iterations for Square Transition. 0 = disabled. Range is 0 - 10.
@@ -2380,10 +2373,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspSquare Inside Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Square Inside Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="square_color1" id={{ settings.square_color1 }} size=10 value={{ square_color1_hex }}/>
+                    <input type="color" style="float:center" name="square_color1" id={{ settings.square_color1 }} size=10 value={{ square_color1_hex }} />
                 </td>
                 <td>
                     This color will be used to fill in the square as its expanding.
@@ -2391,10 +2384,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspSquare Outside Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Square Outside Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="square_color2" id={{ settings.square_color2 }} size=10 value={{ square_color2_hex }}/>
+                    <input type="color" style="float:center" name="square_color2" id={{ settings.square_color2 }} size=10 value={{ square_color2_hex }} />
                 </td>
                 <td>
                     This color will be used to fill the outside of the square.
@@ -2405,7 +2398,7 @@
                     <b>Up/Down Side to Side Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_updn" min="0" max="10" value={{ settings.num_updn }}/>
+                    <input type="number" name="num_updn" min="0" max="10" value={{ settings.num_updn }} />
                 </td>
                 <td>
                     Enter number of iterations for Up/Down Side to Side Transition. 0 = disabled. Range is 0 - 10.
@@ -2413,10 +2406,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspSweep Line Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sweep Line Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="updn_color1" id={{ settings.updn_color1 }} size=10 value={{ updn_color1_hex }}/>
+                    <input type="color" style="float:center" name="updn_color1" id={{ settings.updn_color1 }} size=10 value={{ updn_color1_hex }} />
                 </td>
                 <td>
                     The sweep line travels up and down, then side to side. This color will represent this line.
@@ -2424,10 +2417,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspBackground Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Background Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="updn_color2" id={{ settings.updn_color2 }} size=10 value={{ updn_color2_hex }}/>
+                    <input type="color" style="float:center" name="updn_color2" id={{ settings.updn_color2 }} size=10 value={{ updn_color2_hex }} />
                 </td>
                 <td>
                     The background color. Should be high contrast to the sweep line color.
@@ -2438,7 +2431,7 @@
                     <b>Morse Code Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_morse" min="0" max="10" value={{ settings.num_morse }}/>
+                    <input type="number" name="num_morse" min="0" max="10" value={{ settings.num_morse }} />
                 </td>
                 <td>
                     Enter number of iterations for Morse Code Transition. 0 = disabled. Range is 0 - 10.
@@ -2461,10 +2454,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspMorse Code On Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Morse Code On Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="morse_color1" id={{ settings.morse_color1 }} size=10 value={{ morse_color1_hex }}/>
+                    <input type="color" style="float:center" name="morse_color1" id={{ settings.morse_color1 }} size=10 value={{ morse_color1_hex }} />
                 </td>
                 <td>
                     Morse Code color when LED is on.
@@ -2472,10 +2465,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspMorse Code Off Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Morse Code Off Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="morse_color2" id={{ settings.morse_color2 }} size=10 value={{ morse_color2_hex }}/>
+                    <input type="color" style="float:center" name="morse_color2" id={{ settings.morse_color2 }} size=10 value={{ morse_color2_hex }} />
                 </td>
                 <td>
                     Morse Code color when LED is off. Use high contrast colors.
@@ -2486,7 +2479,7 @@
                     <b>Chase the Rabbit Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_rabbit" min="0" max="10" value={{ settings.num_rabbit }}/>
+                    <input type="number" name="num_rabbit" min="0" max="10" value={{ settings.num_rabbit }} />
                 </td>
                 <td>
                     Enter number of iterations for Chase the Rabbit Transition. 0 = disabled. Range is 0 - 10.
@@ -2494,10 +2487,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspChaser Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Chaser Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="rabbit_color1" id={{ settings.rabbit_color1 }} size=10 value={{ rabbit_color1_hex }}/>
+                    <input type="color" style="float:center" name="rabbit_color1" id={{ settings.rabbit_color1 }} size=10 value={{ rabbit_color1_hex }} />
                 </td>
                 <td>
                     This color will follow the Rabbit. If set to black, only the Rabbit will run the map.
@@ -2505,10 +2498,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspRabbit Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rabbit Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="rabbit_color2" id={{ settings.rabbit_color2 }} size=10 value={{ rabbit_color2_hex }}/>
+                    <input type="color" style="float:center" name="rabbit_color2" id={{ settings.rabbit_color2 }} size=10 value={{ rabbit_color2_hex }} />
                 </td>
                 <td>
                     The color of the Rabbit. A single LED running away from the chasers. Should be high contrast to
@@ -2520,7 +2513,7 @@
                     <b>Checker Board Transition</b>
                 </td>
                 <td>
-                    <input type="number" name="num_checker" min="0" max="10" value={{ settings.num_checker }}/>
+                    <input type="number" name="num_checker" min="0" max="10" value={{ settings.num_checker }} />
                 </td>
                 <td>
                     Enter number of iterations for Checker Board Transition. 0 = disabled. Range is 0 - 10.
@@ -2528,10 +2521,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspMain Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Main Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="checker_color1" id={{ settings.checker_color1 }} size=10 value={{ checker_color1_hex }}/>
+                    <input type="color" style="float:center" name="checker_color1" id={{ settings.checker_color1 }} size=10 value={{ checker_color1_hex }} />
                 </td>
                 <td>
                     Main Color to fill box.
@@ -2539,10 +2532,10 @@
             </tr>
             <tr>
                 <td>
-                    <b>&nbsp&nbsp&nbsp&nbsp&nbspSecondary Color</b>
+                    <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Secondary Color</b>
                 </td>
                 <td>
-                    <input type="color" style="float:center" name="checker_color2" id={{ settings.checker_color2 }} size=10 value={{ checker_color2_hex }}/>
+                    <input type="color" style="float:center" name="checker_color2" id={{ settings.checker_color2 }} size=10 value={{ checker_color2_hex }} />
                 </td>
                 <td>
                     Secondary Color. Should be a high contrast to the main color.
@@ -2550,5 +2543,4 @@
             </tr>
         </table>
     </div>
-
 {% endblock content %}

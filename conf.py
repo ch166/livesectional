@@ -40,7 +40,7 @@ class Conf:
         """Read Setting."""
         return self.configfile.get(section, key)
 
-    def get_color(self, section, key):
+    def color(self, section, key):
         """Pull out color value in hex."""
         return self.configfile.get(section, key)
 

@@ -41,9 +41,8 @@ th.config {
   text-align: center;
   vertical-align: middle;
   padding: 2px;
-  color: #ff0000
+  color: #0b22f1
 }
-
 
 td {
   border: 1px solid #dddddd;
@@ -59,8 +58,35 @@ td.config {
   padding: 2px;
 }
 
-tr:nth-child(even) {
+td.intro {
+  background-color: #ffffff;
+  border: 0px solid #dddddd;
+  text-align: center;
+  vertical-align: middle;
+  padding: 5px;
+}
+
+tr.intro {
+  border: 0px solid #dddddd;
+  text-align: center;
+  vertical-align: middle;
+  padding: 5px;
+}
+
+tr.headernote {
+  background-color: #82c4f0;
+  border: 1px solid #dddddd;
+  text-align: center;
+  vertical-align: middle;
+  padding: 2px;
+}
+
+tr.config:nth-child(even) {
   background-color: #dddddd;
+}
+
+tr.config:nth-child(odd) {
+  background-color: #bcd0f5;
 }
 
 .submitbuttons {
@@ -101,6 +127,10 @@ tr:nth-child(even) {
   content: "\2212";
 }
 
+.active,
+.button:hover {
+  background-color: #808080;
+}
 .content {
   padding: 0 18px;
   max-height: 0;
@@ -125,10 +155,6 @@ tr:nth-child(even) {
   display: none;
 }
 
-.active,
-.button:hover {
-  background-color: #808080;
-}
 
 .button1 {
   background-color: #005c99;
@@ -154,6 +180,7 @@ tr:nth-child(even) {
   font-family: arial, sans-serif;
   font-weight: bold;
   color: red;
+  border: 0px;
 }
 
 div.sticky {
@@ -162,10 +189,10 @@ div.sticky {
   top: 0px;
   background-color: #dddddd;
   padding: 5px;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: bold;
   border-style: solid;
-  z-index: 10;
+  z-index: 10000;
 }
 
 div.stickydn {
@@ -176,7 +203,7 @@ div.stickydn {
   padding: 0px;
   font-size: 14px;
   border-style: solid;
-  z-index: 9;
+  z-index: 9000;
 }
 
 select {
@@ -287,7 +314,6 @@ select {
   outline: 3px solid grey;
 }
 
-
 .tooltip {
   position: relative;
   display: inline-block;
@@ -383,7 +409,7 @@ div.headertxt {
 .badge-vfr {
   padding: 3px 6px 3px;
   font-size: 12.025px;
-  font-weight: bold;
+;  font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #01b001;

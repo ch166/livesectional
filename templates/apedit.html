@@ -36,7 +36,7 @@
   <form action="appost" id="appost" method="post">
     <!--Airports File Data-->
     <table style="width:100%;">
-      <tr bgcolor="#ffffff;">
+      <tr class="headernote">
         <td colspan=5 style="font-size:small;">
           <b>NOTE:</b> Enter the appropriate 4 character airport identifier. If identifier is only 3 characters, precede
           it with proper country code, i.e. 'K' for US. If the LED position will not be used, enter <font color="red">
@@ -46,14 +46,15 @@
         </td>
       </tr>
       <tr>
-        <th style="text-align:center;">Pin #</th>
-        <th style="text-align:center;">Airport ID</th>
-        <th style="text-align:center;">Metar SRC</th>
-        <th style="text-align:center;">Description</th>
-        <th style="text-align:center;">Flight Category and Raw METAR</th>
+        <th class="config">Pin #</th>
+        <th class="config">Airport ID</th>
+        <th class="config">Purpose</th>
+        <th class="config">Metar SRC</th>
+        <th class="config">Description</th>
+        <th class="config">Flight Category and Raw METAR</th>
       </tr>
       {% for aprt_icao, aprt_data in airports.items() %}
-        <tr id="{{ loop.index - 1 }}">
+        <tr class="config" id="{{ loop.index - 1 }}">
           <td width="5%" style="text-align:center;">
             <b>{{ aprt_data['ledindex'] }}</b>
           </td>
@@ -70,6 +71,23 @@
                    onchange="myFunction(this)"
                    value="{{ aprt_icao }}"/>
             <!--onfocus="this.value=''"-->
+          </td>
+          <td width="10%" style="text-align:center">
+            <label for="purpose">Purpose:</label>
+            <select name="purpose" id="purpose">
+              {% set purposelist = ["off", "led", "lgnd", "all"] %}
+              {% for purpose in purposelist %}
+                {% if purpose == aprt_data['purpose'] %}
+                  <option value="{{ purpose }}" selected>
+                    {{ purpose }}
+                  </option>
+                {% else %}
+                  <option value="{{ purpose }}">
+                    {{ purpose }}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
           </td>
           <td width="10%" style="text-align:center">
             <b>{{ aprt_data['metarsrc'] }}</b>

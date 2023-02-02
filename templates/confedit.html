@@ -31,15 +31,15 @@
             </td>
         </tr>
     </table>
-    <form action="post" id="post" method="post">
+    <form action="cfpost" id="post" method="post">
         <!--Start of Misc Settings-->
         <button type="button" class="collapsible">Basic Settings</button>
         <div class="content">
             <table>
                 <tr>
-                    <th width="20%">Setting</th>
-                    <th width="15%">Value</th>
-                    <th>Setting Description</th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td>
@@ -53,8 +53,7 @@
                         <label for="autorunno">No</label>
                     </td>
                     <td>
-                        Set this to 'Yes' to have Live Sectional Map run on boot/reboot. Set to 'No' to boot to command
-                        line.
+                        Set this to 'Yes' to have Live Sectional Map run on boot/reboot. Set to 'No' to boot to command line.
                         Note: This must be set to 'Yes' for reboot in the middle of night to occur.
                     </td>
                 </tr>
@@ -91,8 +90,7 @@
                         <input type="number" name="max_wind_speed" onchange="checkBlankF(this)" min="0" max="100" value={{ settings.max_wind_speed }} />
                     </td>
                     <td>
-                        Enter the wind speed at which to start blinking airports if speed is at or above. (Allowable range =
-                        0 to 100).
+                        Enter the wind speed at which to start blinking airports if speed is at or above. (Allowable range = 0 to 100).
                     </td>
                 </tr>
                 <tr>
@@ -112,8 +110,7 @@
                         <input type="number" name="metar_age" onchange="checkBlankF(this)" min="0.5" max="6" step=".5" value={{ settings.metar_age }} />
                     </td>
                     <td>
-                        In HOURS, of the Metar data retrieved from the FAA - 2 to 3 hours is good. (Allowable range = .5 to
-                        6)
+                        In HOURS, of the Metar data retrieved from the FAA - 2 to 3 hours is good. (Allowable range = .5 to 6)
                     </td>
                 </tr>
                 <tr>
@@ -323,15 +320,9 @@
         <div class="content">
             <table>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="15%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td>
@@ -616,15 +607,9 @@
         <div class="content">
             <table>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="10%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="10%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td>
@@ -855,15 +840,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="15%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td>
@@ -1150,15 +1129,9 @@
         <div class="content">
             <table>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="15%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td>
@@ -1589,15 +1562,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="15%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td colspan=3 style="color:grey;">
@@ -2132,15 +2099,9 @@
         <div class="content">
             <table>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="15%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td style="display:none">
@@ -2262,15 +2223,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <th width="20%">
-                        Setting
-                    </th>
-                    <th width="15%">
-                        Value
-                    </th>
-                    <th>
-                        Setting Description
-                    </th>
+                    <th width="20%" class="config">Setting</th>
+                    <th width="15%" class="config">Value</th>
+                    <th class="config">Setting Description</th>
                 </tr>
                 <tr>
                     <td>

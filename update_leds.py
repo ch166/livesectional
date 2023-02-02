@@ -66,28 +66,16 @@
 # AGL = Above Ground Level
 
 # Import needed libraries
-
-# Removing URL related actions from update_leds
-# import urllib.request
-# import urllib.error
-# import urllib.parse
-# import socket
-# import xml.etree.ElementTree as ET
 import time
 from datetime import datetime
 
-# from datetime import timedelta
 from datetime import time as time_
 import sys
-
-# import os
-# from os.path import getmtime
 
 # import random
 import collections
 import re
 import ast
-
 
 from rpi_ws281x import (
     Color,
@@ -97,12 +85,11 @@ from rpi_ws281x import (
 
 import debugging
 import utils
-
 import utils_colors
 
 
 class UpdateLEDs:
-    """Class to manage LED self.strips"""
+    """Class to manage LED Strips"""
 
     def __init__(self, conf, airport_database):
         self.conf = conf
@@ -960,7 +947,7 @@ class UpdateLEDs:
                 if self.metar_taf_mos == 0:
                     debugging.debug("TAF Time +" + str(self.hour_to_display) + " Hour")
                 elif self.metar_taf_mos == 1:
-                    debugging.debug("METAR")
+                    debugging.debug(f"METAR {airportcode} / {airportled} / {flightcategory} / {airportwinds}")
                 elif self.metar_taf_mos == 2:
                     debugging.debug("MOS Time +" + str(self.hour_to_display) + " Hour")
                 elif self.metar_taf_mos == 3:
@@ -1235,6 +1222,10 @@ class UpdateLEDs:
         toggle = 0  # used for homeport display
         outerloop = True  # Set to TRUE for infinite outerloop
         display_num = 0
+
+        # Let's start with all the LEDs turned off.
+        self.turnoff()
+
         while outerloop:
             display_num = display_num + 1
 

@@ -1,6 +1,7 @@
-{% extends "layout.html" %}
+{% extends "base_lite.html" %}
 {% block title %} Map Layout {% endblock %}
 {% block head %} {{ super() }} {% endblock %}
-{% block body %}
-{% include "map.html" %}
-{% endblock %}
+{% block content %}
+<iframe width="100%" height="800" src="/static/led_map.html"></iframe>
+
+{% endblock content %}

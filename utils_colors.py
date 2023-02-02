@@ -45,69 +45,69 @@ def RGB(value):
 
 def VFR(confdata):
     """Get VFR Color code from config"""
-    return confdata.get_color("colors", "color_vfr")
+    return confdata.color("colors", "color_vfr")
 
 
 def MVFR(confdata):
     """Get MVFR Color code from config"""
-    return confdata.get_color("colors", "color_mvfr")
+    return confdata.color("colors", "color_mvfr")
 
 
 def IFR(confdata):
     """Get IFR Color code from config"""
-    return confdata.get_color("colors", "color_ifr")
+    return confdata.color("colors", "color_ifr")
 
 
 def LIFR(confdata):
     """Get LIFR Color code from config"""
-    return confdata.get_color("colors", "color_lifr")
+    return confdata.color("colors", "color_lifr")
 
 
 def LIGHTNING(confdata):
     """Get Lightning Color code from config"""
-    return confdata.get_color("colors", "color_lghtn")
+    return confdata.color("colors", "color_lghtn")
 
 
 def SNOW(confdata, value):
     """Get SNOW Color code from config"""
     if value == 1:
-        return confdata.get_color("colors", "color_snow1")
+        return confdata.color("colors", "color_snow1")
     else:
-        return confdata.get_color("colors", "color_snow2")
+        return confdata.color("colors", "color_snow2")
 
 
 def FRZRAIN(confdata, value):
     """Get Freezing Rain Color code from config"""
     if value == 1:
-        return confdata.get_color("colors", "color_frrain1")
+        return confdata.color("colors", "color_frrain1")
     else:
-        return confdata.get_color("colors", "color_frrain2")
+        return confdata.color("colors", "color_frrain2")
 
 
 def DUST_SAND_ASH(confdata, value):
     """Get Dust Sand Ash Color (1) code from config"""
     if value == 1:
-        return confdata.get_color("colors", "color_dustsandash1")
+        return confdata.color("colors", "color_dustsandash1")
     else:
-        return confdata.get_color("colors", "color_dustsandash2")
+        return confdata.color("colors", "color_dustsandash2")
 
 
 def FOG(confdata, value):
     """Get FOG Color code from config"""
     if value == 1:
-        return confdata.get_color("colors", "color_fog1")
+        return confdata.color("colors", "color_fog1")
     else:
-        return confdata.get_color("colors", "color_fog2")
+        return confdata.color("colors", "color_fog2")
 
 
 def RAIN(confdata, value):
     """Get RAIN Color code from config"""
     if value == 1:
-        return confdata.get_color("colors", "color_rain1")
+        return confdata.color("colors", "color_rain1")
     else:
-        return confdata.get_color("colors", "color_rain2")
+        return confdata.color("colors", "color_rain2")
 
 
 def NOWEATHER(confdata):
     """Get NOWX Color code from config"""
-    return confdata.get_color("colors", "color_nowx")
+    return confdata.color("colors", "color_nowx")

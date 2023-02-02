@@ -41,7 +41,7 @@ def is_connected():
 
 def str2bool(input_str):
     """Simple check for truthiness of string."""
-    return input_str.lower() in ['true', '1', 't', 'y', 'yes']
+    return input_str.lower() in ["true", "1", "t", "y", "yes"]
 
 
 def wait_for_internet():

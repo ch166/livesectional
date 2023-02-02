@@ -1,6 +1,7 @@
-{% extends "layout.html" %}
+{% extends "base_lite.html" %}
 {% block title %} Heatmap Layout {% endblock %}
 {% block head %} {{ super() }} {% endblock %}
-{% block body %}
-{% include "heatmap.html" %}
-{% endblock %}
+{% block content %}
+<iframe width="100%" height="800" src="/static/heat_map.html"></iframe>
+
+{% endblock content %}

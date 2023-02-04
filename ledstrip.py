@@ -26,7 +26,6 @@ import update_airports
 import airport
 
 import random
-
 import debugging
 
 """
@@ -83,18 +82,18 @@ class LedStrip:
     def __init__(self, conf, pixelcount):
         """Init object and set initial values for internals"""
         self.conf = conf
-        self.leds = None
-        self.pixelcount = pixelcount
+        self._leds = None
+        self._pixelcount = pixelcount
         #        self.pin = board.D18
         self.nullpins = {}
         self.pin = 18
         self.freq = 800000
         self.dma = 10
-        self.brightness = 255
+        self._brightness = 255
         self.channel = 0
         self.update_counter = 0
-        self.enabled = True
-        self.strip = None
+        self._enabled = True
+        self._strip = None
         self.gamma = None
         # Airport LED Weather Data
         self.airport_weathercode = {}
@@ -210,7 +209,7 @@ class LedStrip:
 
         # Create an instance of NeoPixel
         # strip = Adafruit_NeoPixel(LED_COUNT, self.led_pin, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
-        # self.leds.begin()
+        # self._leds.begin()
 
         # Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
         # Full brightness will be used if no light sensor is installed.
@@ -218,66 +217,66 @@ class LedStrip:
         #    LED_BRIGHTNESS = self.conf.get_string("lights", "dimmed_value")
         # else:
         #    LED_BRIGHTNESS = self.conf.get_string("lights", "bright_value")
-        # self.leds.setBrightness(LED_BRIGHTNESS)
+        # self._leds.setBrightness(LED_BRIGHTNESS)
 
     def start(self):
         """Initialize LED string"""
-        self.leds = PixelStrip(
-            self.pixelcount,
+        self._leds = PixelStrip(
+            self._pixelcount,
             self.pin,
             freq_hz=self.freq,
             dma=self.dma,
             invert=False,
-            brightness=self.brightness,
+            brightness=self._brightness,
             channel=self.channel,
-            strip_type=self.strip,
+            strip_type=self._strip,
             gamma=self.gamma,
         )
-        self.leds.begin()
+        self._leds.begin()
 
     def colorcode(self, color):
         """Convert (RGB) color code to Color datatype"""
         return Color(color[0], color[1], color[2])
 
-    def getbrightness(self):
+    def brightness(self):
         """Current Brightness"""
-        return self.brightness
+        return self._brightness
 
     def setbrightness(self, brightness):
         """Current Brightness"""
-        self.brightness = brightness
-        self.leds.setBrightness(self.brightness)
+        self._brightness = brightness
+        self._leds.setBrightness(self._brightness)
 
     def count(self):
         """Get Current METAR"""
-        return self.pixelcount
+        return self._pixelcount
 
     def fill(self, color):
         """Iterate across all pixels and set to single color"""
-        for i in range(0, self.pixelcount):
+        for i in range(0, self._pixelcount):
             self.setpixcolor(i, color)
         return
 
     def setpixcolor(self, index, color):
         """Set color of individual pixel"""
-        self.leds.setPixelColor(index, self.colorcode(color))
+        self._leds.setPixelColor(index, self.colorcode(color))
 
     def colorwipe(self):
         """Run a color wipe test"""
         self.fill(self.RED)
-        self.leds.show()
+        self._leds.show()
         time.sleep(2)
         self.fill(self.GREEN)
-        self.leds.show()
+        self._leds.show()
         time.sleep(2)
         self.fill(self.BLUE)
-        self.leds.show()
+        self._leds.show()
         time.sleep(2)
 
     def blackout(self):
         """Set color to Black (0,0,0)"""
         self.fill((0, 0, 0))
-        self.leds.show()
+        self._leds.show()
 
     def selftest(self):
         """Run through self test process to enable all LEDs and
@@ -289,13 +288,13 @@ class LedStrip:
     def setLedState(self, ledindex, status, color):
         """Setup individual LED status"""
         if status is True:
-            self.enabled = True
+            self._enabled = True
             self.setpixcolor(ledindex, color)
-            self.leds.show()
+            self._leds.show()
         else:
-            self.enabled = False
+            self._enabled = False
             self.setpixcolor(ledindex, self.BLACK)
-            self.leds.show()
+            self._leds.show()
 
     def getWxColor(self, weathercode, timeslice):
         """For a specific weather code and timeslice, work out
@@ -390,19 +389,19 @@ class LedStrip:
     def rainbowCycle(self, led_indexations, wait=0.1):
         """Draw rainbow that uniformly distributes itself across all pixels."""
         for j in range(256 * led_indexations):
-            for led_index in range(self.leds.numPixels()):
+            for led_index in range(self._leds.numPixels()):
                 if (
                     str(led_index) in self.nullpins
                 ):  # exclude NULL and LGND pins from wipe
-                    self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                    self._leds.setPixelColor(led_index, Color(0, 0, 0))
                 else:
-                    self.leds.setPixelColor(
+                    self._leds.setPixelColor(
                         led_index,
                         self.wheel(
-                            (int(led_index * 256 / self.leds.numPixels()) + j) & 255
+                            (int(led_index * 256 / self._leds.numPixels()) + j) & 255
                         ),
                     )
-            self.leds.show()
+            self._leds.show()
             time.sleep(wait / 100)
 
     # Generate random RGB color
@@ -413,7 +412,7 @@ class LedStrip:
         return (r, g, b)
 
     # Change color code to work with various led strips. For instance, WS2812 model strip uses RGB where WS2811 model uses GRB
-    # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB self.leds.
+    # Set the "rgb_grb" user setting above. 1 for RGB LED strip, and 0 for GRB self._leds.
     # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
     def rgbtogrb_wipes(self, led_index, data, order=0):
         if (
@@ -480,13 +479,13 @@ class LedStrip:
                     )  # Assign the pin number to the led to turn on/off
 
                     color = self.rgbtogrb_wipes(led_index, color1, self.rgb_grb)
-                    self.leds.setPixelColor(led_index, color)
-                    self.leds.show()
+                    self._leds.setPixelColor(led_index, color)
+                    self._leds.show()
                     time.sleep(self.wait * wait_mult)
 
                     color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
-                    self.leds.setPixelColor(led_index, color)
-                    self.leds.show()
+                    self._leds.setPixelColor(led_index, color)
+                    self._leds.show()
                     time.sleep(self.wait * wait_mult)
 
     # Circle wipe
@@ -522,8 +521,8 @@ class LedStrip:
                     #               print("Outside")
                     color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
 
-                self.leds.setPixelColor(led_index, color)
-                self.leds.show()
+                self._leds.setPixelColor(led_index, color)
+                self._leds.show()
                 time.sleep(self.wait)
             rad = rad + rad_inc
 
@@ -543,8 +542,8 @@ class LedStrip:
                     #               print("Outside")
                     color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
 
-                self.leds.setPixelColor(led_index, color)
-                self.leds.show()
+                self._leds.setPixelColor(led_index, color)
+                self._leds.show()
                 time.sleep(self.wait)
 
         self.allonoff_wipes((0, 0, 0), 0.1)
@@ -600,12 +599,12 @@ class LedStrip:
                 if self.isInside(centerlon, centerlat, x1, y1, x2, y2, px1, py1):
                     #               print('Inside')
                     color = self.rgbtogrb_wipes(led_index, color1, self.rgb_grb)
-                    self.leds.setPixelColor(led_index, color)
+                    self._leds.setPixelColor(led_index, color)
                 else:
                     color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
-                    self.leds.setPixelColor(led_index, color)
+                    self._leds.setPixelColor(led_index, color)
             #               print('Not Inside')
-            self.leds.show()
+            self._leds.show()
             time.sleep(self.wait)
 
             # Increase the angle by angleinc radians
@@ -663,13 +662,13 @@ class LedStrip:
                         #                    print('Not Inside') #debug
                         color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
 
-                    self.leds.setPixelColor(led_index, color)
+                    self._leds.setPixelColor(led_index, color)
 
                 inclat = round(inclat - step, 2)
                 declon = round(declon + step, 2)
                 declat = round(declat + step, 2)
 
-                self.leds.show()
+                self._leds.show()
                 time.sleep(self.wait * wait_mult)
 
             for inclon in self.frange(centlon, maxlon, step):
@@ -688,13 +687,13 @@ class LedStrip:
                         #                   print('Not Inside') #debug
                         color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
 
-                    self.leds.setPixelColor(led_index, color)
+                    self._leds.setPixelColor(led_index, color)
 
                 inclat = round(inclat + step, 2)
                 declon = round(declon - step, 2)
                 declat = round(declat - step, 2)
 
-                self.leds.show()
+                self._leds.show()
                 time.sleep(self.wait * wait_mult)
 
     def checkerwipe(
@@ -741,49 +740,49 @@ class LedStrip:
                     else:
                         color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
 
-                    self.leds.setPixelColor(led_index, color)
-                self.leds.show()
+                    self._leds.setPixelColor(led_index, color)
+                self._leds.show()
                 time.sleep(self.wait * wait_mult)
         self.allonoff_wipes((0, 0, 0), 0.1)
 
     # Turn on or off all the lights using the same color.
     def allonoff_wipes(self, color1, delay):
-        for led_index in range(self.leds.numPixels()):
+        for led_index in range(self._leds.numPixels()):
             if str(led_index) in self.nullpins:  # exclude NULL and LGND pins from wipe
-                self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                self._leds.setPixelColor(led_index, Color(0, 0, 0))
             else:
                 color = self.rgbtogrb_wipes(led_index, color1, self.rgb_grb)
-                self.leds.setPixelColor(led_index, color)
-        self.leds.show()
+                self._leds.setPixelColor(led_index, color)
+        self._leds.show()
         time.sleep(delay)
 
     # Fade LED's in and out using the same color.
     def fade(self, color1, delay):
 
-        for val in range(0, self.brightness, 1):  # self.leds.numPixels()):
-            for led_index in range(self.leds.numPixels()):  # LED_BRIGHTNESS,0,-1):
+        for val in range(0, self._brightness, 1):  # self._leds.numPixels()):
+            for led_index in range(self._leds.numPixels()):  # LED_BRIGHTNESS,0,-1):
                 if (
                     str(led_index) in self.nullpins
                 ):  # exclude NULL and LGND pins from wipe
-                    self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                    self._leds.setPixelColor(led_index, Color(0, 0, 0))
                 else:
                     color2 = self.dimwipe(color1, val)
                     color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
-                    self.leds.setPixelColor(led_index, color)
-            self.leds.show()
+                    self._leds.setPixelColor(led_index, color)
+            self._leds.show()
             time.sleep(self.wait * 0.5)
 
-        for val in range(self.brightness, 0, -1):  # self.leds.numPixels()):
-            for led_index in range(self.leds.numPixels()):  # 0,LED_BRIGHTNESS,1):
+        for val in range(self._brightness, 0, -1):  # self._leds.numPixels()):
+            for led_index in range(self._leds.numPixels()):  # 0,LED_BRIGHTNESS,1):
                 if (
                     str(led_index) in self.nullpins
                 ):  # exclude NULL and LGND pins from wipe
-                    self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                    self._leds.setPixelColor(led_index, Color(0, 0, 0))
                 else:
                     color2 = self.dimwipe(color1, val)
                     color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
-                    self.leds.setPixelColor(led_index, color)
-            self.leds.show()
+                    self._leds.setPixelColor(led_index, color)
+            self._leds.show()
             time.sleep(self.wait * 0.5)
         time.sleep(delay * 1)
 
@@ -806,26 +805,26 @@ class LedStrip:
 
     # Shuffle LED Wipe
     def shuffle(self, color1, color2, delay):
-        l = list(range(self.leds.numPixels()))
+        l = list(range(self._leds.numPixels()))
         random.shuffle(l)
         for led_index in l:
             if str(led_index) in self.nullpins:  # exclude NULL and LGND pins from wipe
-                self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                self._leds.setPixelColor(led_index, Color(0, 0, 0))
             else:
                 color = self.rgbtogrb_wipes(led_index, color1, self.rgb_grb)
-                self.leds.setPixelColor(led_index, color)
-            self.leds.show()
+                self._leds.setPixelColor(led_index, color)
+            self._leds.show()
             time.sleep(self.wait * 1)
 
-        l = list(range(self.leds.numPixels()))
+        l = list(range(self._leds.numPixels()))
         random.shuffle(l)
         for led_index in l:
             if str(led_index) in self.nullpins:  # exclude NULL and LGND pins from wipe
-                self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                self._leds.setPixelColor(led_index, Color(0, 0, 0))
             else:
                 color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
-                self.leds.setPixelColor(led_index, color)
-            self.leds.show()
+                self._leds.setPixelColor(led_index, color)
+            self._leds.show()
             time.sleep(self.wait * 1)
         time.sleep(delay)
 
@@ -856,26 +855,26 @@ class LedStrip:
                     else:
                         morse_signal = dash_leng
 
-                    for led_index in range(self.leds.numPixels()):  # turn LED's on
+                    for led_index in range(self._leds.numPixels()):  # turn LED's on
                         if (
                             str(led_index) in self.nullpins
                         ):  # exclude NULL and LGND pins from wipe
-                            self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                            self._leds.setPixelColor(led_index, Color(0, 0, 0))
                         else:
                             color = self.rgbtogrb_wipes(led_index, color1, self.rgb_grb)
-                            self.leds.setPixelColor(led_index, color)
-                    self.leds.show()
+                            self._leds.setPixelColor(led_index, color)
+                    self._leds.show()
                     time.sleep(morse_signal)  # time on depending on dot or dash
 
-                    for led_index in range(self.leds.numPixels()):  # turn LED's off
+                    for led_index in range(self._leds.numPixels()):  # turn LED's off
                         if (
                             str(led_index) in self.nullpins
                         ):  # exclude NULL and LGND pins from wipe
-                            self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                            self._leds.setPixelColor(led_index, Color(0, 0, 0))
                         else:
                             color = self.rgbtogrb_wipes(led_index, color2, self.rgb_grb)
-                            self.leds.setPixelColor(led_index, color)
-                    self.leds.show()
+                            self._leds.setPixelColor(led_index, color)
+                    self._leds.show()
                     time.sleep(bet_symb_leng)  # timing between symbols
                 time.sleep(bet_let_leng)  # timing between letters
 
@@ -893,30 +892,30 @@ class LedStrip:
                         else:
                             morse_signal = dash_leng
 
-                        for led_index in range(self.leds.numPixels()):  # turn LED's on
+                        for led_index in range(self._leds.numPixels()):  # turn LED's on
                             if (
                                 str(led_index) in self.nullpins
                             ):  # exclude NULL and LGND pins from wipe
-                                self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                                self._leds.setPixelColor(led_index, Color(0, 0, 0))
                             else:
                                 color = self.rgbtogrb_wipes(
                                     led_index, color1, self.rgb_grb
                                 )
-                                self.leds.setPixelColor(led_index, color)
-                        self.leds.show()
+                                self._leds.setPixelColor(led_index, color)
+                        self._leds.show()
                         time.sleep(morse_signal)  # time on depending on dot or dash
 
-                        for led_index in range(self.leds.numPixels()):  # turn LED's off
+                        for led_index in range(self._leds.numPixels()):  # turn LED's off
                             if (
                                 str(led_index) in self.nullpins
                             ):  # exclude NULL and LGND pins from wipe
-                                self.leds.setPixelColor(led_index, Color(0, 0, 0))
+                                self._leds.setPixelColor(led_index, Color(0, 0, 0))
                             else:
                                 color = self.rgbtogrb_wipes(
                                     led_index, color2, self.rgb_grb
                                 )
-                                self.leds.setPixelColor(led_index, color)
-                        self.leds.show()
+                                self._leds.setPixelColor(led_index, color)
+                        self._leds.show()
                         time.sleep(bet_symb_leng)  # timing between symbols
 
                     time.sleep(bet_let_leng)  # timing between letters
@@ -927,50 +926,50 @@ class LedStrip:
     # Chase the rabbit through string.
     def rabbit(self, color1, color2, delay):
 
-        for led_index in range(self.leds.numPixels()):  # turn LED's on
+        for led_index in range(self._leds.numPixels()):  # turn LED's on
             rabbit = led_index + 1
 
             if (
                 str(led_index) in self.nullpins or str(rabbit) in self.nullpins
             ):  # exclude NULL and LGND pins from wipe
-                self.leds.setPixelColor(led_index, Color(0, 0, 0))
-                self.leds.setPixelColor(rabbit, Color(0, 0, 0))
+                self._leds.setPixelColor(led_index, Color(0, 0, 0))
+                self._leds.setPixelColor(rabbit, Color(0, 0, 0))
 
             else:
 
-                if rabbit < self.leds.numPixels() and rabbit > 0:
+                if rabbit < self._leds.numPixels() and rabbit > 0:
                     color = self.rgbtogrb_wipes(rabbit, color2, self.rgb_grb)
-                    self.leds.setPixelColor(rabbit, color)
-                    self.leds.show()
+                    self._leds.setPixelColor(rabbit, color)
+                    self._leds.show()
 
                 color = self.rgbtogrb_wipes(led_index, color1, self.rgb_grb)
-                self.leds.setPixelColor(led_index, color)
-                self.leds.show()
+                self._leds.setPixelColor(led_index, color)
+                self._leds.show()
                 time.sleep(self.wait)
 
-        for led_index in range(self.leds.numPixels(), -1, -1):  # turn led's off
+        for led_index in range(self._leds.numPixels(), -1, -1):  # turn led's off
             rabbit = led_index + 1
             erase_pin = led_index + 2
 
             if (
                 str(rabbit) in self.nullpins or str(erase_pin) in self.nullpins
             ):  # exclude NULL and LGND pins from wipe
-                self.leds.setPixelColor(rabbit, Color(0, 0, 0))
-                self.leds.setPixelColor(erase_pin, Color(0, 0, 0))
-                self.leds.show()
+                self._leds.setPixelColor(rabbit, Color(0, 0, 0))
+                self._leds.setPixelColor(erase_pin, Color(0, 0, 0))
+                self._leds.show()
             else:
 
-                if rabbit < self.leds.numPixels() and rabbit > 0:
+                if rabbit < self._leds.numPixels() and rabbit > 0:
                     color = self.rgbtogrb_wipes(rabbit, color2, self.rgb_grb)
-                    self.leds.setPixelColor(rabbit, color)
-                    self.leds.show()
+                    self._leds.setPixelColor(rabbit, color)
+                    self._leds.show()
 
-                if erase_pin < self.leds.numPixels() and erase_pin > 0:
+                if erase_pin < self._leds.numPixels() and erase_pin > 0:
                     color = self.rgbtogrb_wipes(
                         erase_pin, self.black_color, self.rgb_grb
                     )
-                    self.leds.setPixelColor(erase_pin, color)
-                    self.leds.show()
+                    self._leds.setPixelColor(erase_pin, color)
+                    self._leds.show()
                     time.sleep(self.wait)
 
         self.allonoff_wipes(self.black_color, 0)
@@ -991,7 +990,7 @@ class LedStrip:
 #        i = 0
 #        self.nullpins = []
 #        for airportcode in airports:
-#            if airportcode == "NULL" or airportcode == "LGND":
+#            if airportcode == "null" or airportcode == "lgnd":
 #                self.nullpins.append(str(i))
 #                i += 1
 #                continue

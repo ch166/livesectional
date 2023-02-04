@@ -14,8 +14,6 @@ import pytz
 
 from rpi_ws281x import (
     Color,
-    PixelStrip,
-    ws,
 )
 
 import folium
@@ -40,9 +38,9 @@ from flask import (
 from pyqrcode import QRCode
 
 import utils
-import conf
+# import conf
 import debugging
-import sysinfo
+# import sysinfo
 
 
 class WebViews:
@@ -50,9 +48,9 @@ class WebViews:
 
     def __init__(self, config, sysdata, airport_database, appinfo):
         self.conf = config
-        self.sysdata = sysdata
-        self.airport_database = airport_database
-        self.appinfo = appinfo
+        self._sysdata = sysdata
+        self._airport_database = airport_database
+        self._appinfo = appinfo
         self.app = Flask(__name__)
         # self.app.jinja_env.auto_reload = True
         # This needs to happen really early in the process to take effect
@@ -140,7 +138,7 @@ class WebViews:
         for (
             airport_icao,
             airportdb_row,
-        ) in self.airport_database.get_airport_dict_led().items():
+        ) in self._airport_database.get_airport_dict_led().items():
             airport_object = airportdb_row["airport"]
             airport_record = {}
             airport_record["active"] = airport_object.active()
@@ -153,23 +151,23 @@ class WebViews:
             airport_dict_data[airport_icao] = airport_record
 
         template_data = {
-            "title": "NOT SET - " + self.appinfo.current_version(),
+            "title": "NOT SET - " + self._appinfo.current_version(),
             "airports": airport_dict_data,
             "settings": self.conf.gen_settings_dict(),
-            "ipadd": self.sysdata.local_ip(),
+            "ipadd": self._sysdata.local_ip(),
             "strip": self.strip,
             "timestr": utils.time_format(utils.current_time(self.conf)),
             "timestrutc": utils.time_format(utils.current_time_utc(self.conf)),
             "timemetarage": utils.time_format(
-                self.airport_database.get_metar_update_time()
+                self._airport_database.get_metar_update_time()
             ),
             "current_timezone": self.conf.get_string("default", "timezone"),
             "num": self.num,
-            "version": self.appinfo.current_version(),
+            "version": self._appinfo.current_version(),
             "update_available": self.update_available,
             "update_vers": self.update_vers,
             "machines": self.machines,
-            "sysinfo": self.sysdata.query_system_information(),
+            "sysinfo": self._sysdata.query_system_information(),
         }
         return template_data
 
@@ -208,7 +206,7 @@ class WebViews:
     # @app.route('/touchscr', methods=["GET", "POST"])
     def touchscr(self):
         """Flask Route: /touchscr - Touch Screen template."""
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         return render_template(
             "touchscr.html",
             title="Touch Screen",
@@ -228,13 +226,13 @@ class WebViews:
             for line in file.readlines()[-1:]:
                 line = line.rstrip()
                 console_ips.append(line)
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         console_ips.append(ipadd)
         debugging.info("Opening open_console in separate window")
         return render_template(
             "open_console.html",
             urls=console_ips,
-            title="Display Console Output-" + self.appinfo.current_version(),
+            title="Display Console Output-" + self._appinfo.current_version(),
             num=5,
             machines=self.machines,
             ipadd=ipadd,
@@ -249,11 +247,11 @@ class WebViews:
         """Flask Route: /stream_log - Watch logs live."""
         loc_timestr = utils.time_format(utils.current_time(self.conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         debugging.info("Opening stream_log in separate window")
         return render_template(
             "stream_log.html",
-            title="Display Logfile-" + self.appinfo.current_version(),
+            title="Display Logfile-" + self._appinfo.current_version(),
             num=5,
             machines=self.machines,
             ipadd=ipadd,
@@ -278,7 +276,7 @@ class WebViews:
         # TODO: Handle boot-up scenario where airport list isn't loaded yet
         lat_list = []
         lon_list = []
-        airports = self.airport_database.get_airport_dict_led()
+        airports = self._airport_database.get_airport_dict_led()
         debugging.debug("Boundary Calc")
         for icao, airportdb_row in airports.items():
             arpt = airportdb_row["airport"]
@@ -334,10 +332,10 @@ class WebViews:
         )
         # Place map within bounds of screen
         folium_map.fit_bounds(
-            [[self.min_lat -1 , self.min_lon -1 ], [self.max_lat + 1, self.max_lon + 1]]
+            [[self.min_lat - 1, self.min_lon - 1], [self.max_lat + 1, self.max_lon + 1]]
         )
         # Set Marker Color by Flight Category
-        airports = self.airport_database.get_airport_dict_led()
+        airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
             arpt = arptdb_row["airport"]
             if not arpt.active():
@@ -368,7 +366,7 @@ class WebViews:
                 weight=6,
             ).add_to(folium_map)
 
-        airports = self.airport_database.get_airport_dict_led()
+        airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
             arpt = arptdb_row["airport"]
             if not arpt.active():
@@ -463,7 +461,7 @@ class WebViews:
         )
 
         # Set Marker Color by Flight Category
-        airports = self.airport_database.get_airport_dict_led()
+        airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
             arpt = arptdb_row["airport"]
             if not arpt.active():
@@ -482,13 +480,16 @@ class WebViews:
             # Get Pin Number to display in popup
             heatmap_scale = arpt.heatmap_index()
             if heatmap_scale == 0:
-                heatmap_radius = 2
+                heatmap_radius = 10
             else:
-                heatmap_radius = 2 + heatmap_scale / 100 * 50
+                heatmap_radius = 10 + heatmap_scale / 100 * 30
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.latitude()},{arpt.longitude()}]<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b><font size=+2 color={loc_color}>{loc_color}</font></b>"
+            popup = (f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.latitude()},{arpt.longitude()}]"
+                     f"<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b>"
+                     f"<font size=+2 color={loc_color}>{loc_color}</font></b>"
+                     )
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -497,14 +498,15 @@ class WebViews:
                 color=loc_color,
                 location=[arpt.latitude(), arpt.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>Pin {str(arpt.get_led_index())}",
+                tooltip=f"{str(icao)}<br>LED {str(arpt.get_led_index())}",
                 weight=6,
             ).add_to(folium_map)
 
-        airports = self.airport_database.get_airport_dict_led()
+        airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
             arpt = arptdb_row["airport"]
-            debugging.info(f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} : Coords: {arpt.valid_coordinates()}")
+            debugging.info(f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} :"
+                           f" Coords: {arpt.valid_coordinates()}")
             if not arpt.active():
                 # Inactive airports likely don't have valid lat/lon data
                 continue
@@ -516,8 +518,9 @@ class WebViews:
             debugging.info(f"HeatMap: {arpt.icaocode()} :{arpt.latitude()}:{arpt.longitude()}:{pin_index}:")
             points.insert(pin_index, [arpt.latitude(), arpt.longitude()])
 
-        debugging.info(points)
-        folium.PolyLine(points, color="grey", weight=2.5, opacity=1, dash_array="10").add_to(folium_map)
+        # debugging.info(points)
+        # No polyline on HeatMap
+        # folium.PolyLine(points, color="grey", weight=2.5, opacity=1, dash_array="10").add_to(folium_map)
 
         # Add Title to the top of the map
         folium.map.Marker(
@@ -544,7 +547,7 @@ class WebViews:
 
         # FIXME: Move URL to configuration
         folium.TileLayer(
-            "http://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
+            "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
             attr="chartbundle.com",
             name="ChartBundle Sectional",
         ).add_to(folium_map)
@@ -573,7 +576,7 @@ class WebViews:
         # the configuration generator
         template_data = self.standardtemplate_data()
 
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         qraddress = "http://" + ipadd.strip() + ":5000/confmobile"
         debugging.info("Opening qrcode in separate window")
         qrcode_file = self.conf.get_string("filenames", "qrcode")
@@ -598,7 +601,7 @@ class WebViews:
         if airport == "debug":
             # Debug request - dumping DB info
             with open("logs/airport_database.txt", "w") as outfile:
-                airportdb = self.airport_database.get_airportxmldb()
+                airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_id in airportdb.items():
                     outfile.write(f"{icao}: {airport_id} :\n")
@@ -606,7 +609,7 @@ class WebViews:
                 outfile.write(f"stats: {counter}\n")
         wx_data = {"airport": "Not Set", "metar": "", "flightcategory": "UNKN"}
         try:
-            airport_entry = self.airport_database.get_airportxml(airport)
+            airport_entry = self._airport_database.get_airportxml(airport)
             # debugging.info(airport_entry)
             wx_data["airport"] = airport_entry["station_id"]
             wx_data["metar"] = airport_entry["raw_text"]
@@ -630,14 +633,14 @@ class WebViews:
         if airport == "debug":
             # Debug request - dumping DB info
             with open("logs/airport_database.txt", "w") as outfile:
-                airportdb = self.airport_database.get_airportxmldb()
+                airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_id in airportdb.items():
                     outfile.write(f"{icao}: {airport_id} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
         try:
-            airport_entry = self.airport_database.get_airportxml(airport)
+            airport_entry = self._airport_database.get_airportxml(airport)
             # debugging.info(airport_entry)
             template_data["metar"] = airport_entry["raw_text"]
         except Exception as err:
@@ -660,14 +663,14 @@ class WebViews:
         if airport == "debug":
             # Debug request - dumping DB info
             with open("logs/airport_database.txt", "w") as outfile:
-                airportdb = self.airport_database.get_airportxmldb()
+                airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_id in airportdb.items():
                     outfile.write(f"{icao}: {airport_id} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
         try:
-            airport_entry = self.airport_database.get_airport_taf(airport)
+            airport_entry = self._airport_database.get_airport_taf(airport)
             debugging.info(airport_entry)
             template_data["taf"] = airport_entry["raw_text"]
         except Exception as err:
@@ -731,7 +734,7 @@ class WebViews:
 
             # This will update the data for all airports.
             # So we should iterate through the airport data set.
-            airports = self.airport_database.get_airport_dict_led()
+            airports = self._airport_database.get_airport_dict_led()
             for icao, airportdb_row in airports.items():
                 arpt = airportdb_row["airport"]
                 if not arpt.active():
@@ -741,7 +744,7 @@ class WebViews:
                     arpt.set_heatmap_index(hm_value)
                     debugging.debug(f"hmpost: key {icao} : value {hm_value}")
 
-        self.airport_database.save_airport_db()
+        self._airport_database.save_airport_db()
 
         flash("Heat Map Data applied")
         return redirect("hmedit")
@@ -985,7 +988,7 @@ class WebViews:
         """Flask Route: /cfpost ."""
         debugging.info("Processing Config Form")
 
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
 
         if request.method == "POST":
             data = request.form.to_dict()
@@ -1020,7 +1023,7 @@ class WebViews:
         """Flask Route: /confmobile - Mobile Device API"""
         debugging.info("Opening lsremote.html")
 
-        # ipadd = self.sysdata.local_ip()
+        # ipadd = self._sysdata.local_ip()
         # current_timezone = self.conf.get_string("default", "timezone")
         # settings = self.conf.gen_settings_dict()
         # loc_timestr = utils.time_format(utils.current_time(self.conf))
@@ -1165,7 +1168,7 @@ class WebViews:
     # Route for Reboot of RPI
     def system_reboot(self):
         """Flask Route: /system_reboot - Request host reboot"""
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         url = request.referrer
         if url is None:
             url = "http://" + ipadd + ":5000/"
@@ -1183,7 +1186,7 @@ class WebViews:
     def shutdown1(self):
         """Flask Route: /shutdown1 - Trigger process shutdown"""
         url = request.referrer
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         if url is None:
             url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
@@ -1206,7 +1209,7 @@ class WebViews:
     def shutoffnow1(self):
         """Flask Route: /shutoffnow1 - Turn Off RPI"""
         url = request.referrer
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         if url is None:
             url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
@@ -1225,7 +1228,7 @@ class WebViews:
     def testled(self):
         """Flask Route: /testled - Run LED Test scripts"""
         url = request.referrer
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
 
         if url is None:
             url = "http://" + ipadd + ":5000/"
@@ -1245,7 +1248,7 @@ class WebViews:
     def testoled(self):
         """Flask Route: /testoled - Run OLED Test sequence"""
         url = request.referrer
-        ipadd = self.sysdata.local_ip()
+        ipadd = self._sysdata.local_ip()
         if url is None:
             url = "http://" + ipadd + ":5000/"
             # Use index if called from URL and not page.

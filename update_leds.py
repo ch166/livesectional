@@ -154,13 +154,10 @@ class UpdateLEDs:
         self.homeport_colors = ast.literal_eval(
             self.conf.get_string("colors", "homeport_colors")
         )
-        # ************************************************************
-        # * End of User defined settings. Normally shouldn't change  *
-        # * any thing under here unless you are confident in change. *
-        # ************************************************************
 
-        # 0 = do not turn refresh off, 1 = turn off the blanking refresh of the LED string between FAA updates.
-        self.turnoffrefresh = 1
+        # Blanking during refresh of the LED string between FAA updates.
+        # TODO: Move to config
+        self.blank_during_refresh = False
 
         # LED Cycle times - Can change if necessary.
         # These cycle times all added together will equal the total amount of time the LED takes to finish displaying one cycle.
@@ -262,6 +259,8 @@ class UpdateLEDs:
             self.cycle5_wait,
         ]
         self.cycles = [0, 1, 2, 3, 4, 5]  # Used as a index for the cycle loop.
+
+        # Legend PINS
         self.legend_pins = [
             self.conf.get_int("lights", "leg_pin_vfr"),
             self.conf.get_int("lights", "leg_pin_mvfr"),
@@ -279,14 +278,17 @@ class UpdateLEDs:
 
         # LED self.strip configuration:
         self.LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
+
         # LED signal frequency in hertz (usually 800khz)
-        self.LED_FREQ_HZ = 800000
+        self.LED_FREQ_HZ = 800_000
         self.LED_DMA = 5  # DMA channel to use for generating signal (try 5)
+
         # True to invert the signal (when using NPN transistor level shift)
         self.LED_INVERT = False
         self.LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
         self.LED_STRIP = ws.WS2811_STRIP_GRB  # Strip type and color ordering
-        # 255    # starting brightness. It will be changed below.
+
+        # starting brightness. It will be changed below.
         self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
 
         # Timer calculations
@@ -303,6 +305,7 @@ class UpdateLEDs:
 
         # MOS Data Settings
         # location of the downloaded local MOS file.
+        # TODO: Move to config file
         self.mos_filepath = "/NeoSectional/data/GFSMAV"
         self.categories = [
             "HR",
@@ -334,6 +337,7 @@ class UpdateLEDs:
         # Used to determine that an airport from our airports file is currently being read.
         self.ap_flag = 0
 
+        # TODO: Color Definitions - Move to Config
         # Used by Heat Map. Do not change - assumed by routines below.
         self.low_visits = (0, 0, 255)  # Start with Blue - Do Not Change
         # Increment to Red as visits get closer to 100 - Do Not Change
@@ -344,12 +348,6 @@ class UpdateLEDs:
         )  # If 100, then home airport - designate with Green
         # color_fog2  # (10, 10, 10) # dk grey to denote airports never visited
         self.no_visits = (20, 20, 20)
-
-        # Misc Settings
-        # Toggle used for logging when ambient sensor changes from bright to dim.
-        self.ambient_toggle = 0
-
-        self.apid = ""
 
         # Morse Code Dictionary
         self.CODE = {
@@ -397,8 +395,6 @@ class UpdateLEDs:
             "(": "-.--.",
             ")": "-.--.-",
         }
-
-        debugging.info("metar-v4.py Settings Loaded")
 
         # Create an instance of NeoPixel
         # FIXME: MOVE THIS FROM HERE TO LEDSTRIP for one INIT action
@@ -457,7 +453,7 @@ class UpdateLEDs:
 
         return data
 
-    def rgbtogrb(self, pin, data, order=0):
+    def rgbtogrb(self, pin, data, order=True):
         """Change colorcode to match self.strip RGB / GRB style"""
         # Change color code to work with various led self.strips. For instance, WS2812 model self.strip uses RGB where WS2811 model uses GRB
         # Set the "rgb_grb" user setting above. 1 for RGB LED self.strip, and 0 for GRB self.strip.
@@ -467,7 +463,6 @@ class UpdateLEDs:
         if str(pin) in self.conf.get_string("lights", "rev_rgb_grb"):
             order = not order
             debugging.info(f"Reversing rgb2grb Routine Output for PIN {pin}")
-
         red = data[0]
         grn = data[1]
         blu = data[2]
@@ -561,13 +556,13 @@ class UpdateLEDs:
             j += 1
 
            # marry the hour_dict to the proper key in mos_dict
-            self.mos_dict[self.apid] = self.hour_dict
+            self.mos_dict[apid] = self.hour_dict
 
         """
 
     # For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
     # Can choose to display binary colors with homeap.
-    def assign_color(self, visits):
+    def heatmap_color(self, visits):
         """Color codes assigned with heatmap"""
         if visits == "0":
             color = self.no_visits
@@ -637,9 +632,8 @@ class UpdateLEDs:
                 # Check for and grab the Airport ID of the current MOS
                 if "MOS" in line:
                     unused, loc_apid, mos_date = line.split(" ", 2)
-                    self.apid = loc_apid
                     # If this Airport ID is in the airports file then grab all the info needed from this MOS
-                    if self.apid in self.airports:
+                    if loc_apid in self.airports:
                         ap_flag = 1
                         # used to determine if a category is being reported in MOS or not. If not, need to inject it.
                         cat_counter = 0
@@ -662,7 +656,9 @@ class UpdateLEDs:
                     xtra, cat, value = line.split(" ", 2)
                     # Check if the needed categories are being read and if so, grab its data
                     if cat in self.categories:
-                        cat_counter += 1  # used to check if a category is not in mos report for airport
+                        cat_counter += (
+                            1
+                        )  # used to check if a category is not in mos report for airport
                         if cat == "HR":  # hour designation
                             # grab all the hours from line read
                             temp = re.findall(r"\s?(\s*\S+)", value.rstrip())
@@ -901,36 +897,34 @@ class UpdateLEDs:
     def wx_display_loop(self, stationiddict, windsdict, wxstringdict, toggle):
         """Master Weather Display Loop."""
 
-        # "+str(display_num)+" Cycle Loop # "+str(loopcount)+": ",end="")
-        # debugging.info("WX Display")
-
-        color = 0
+        color = utils_colors.black()
 
         # Start main loop. This loop will create all the necessary colors to display the weather one time.
         # cycle through the self.strip 6 times, setting the color then displaying to create various effects.
 
         airport_list = self.airport_database.get_airport_dict_led()
 
-        for cycle_num in self.cycles:
-            # print(f" {cycle_num}", end="")
-            sys.stdout.flush()
+        led_updated_list = []
+        for led_index in range(self.strip.numPixels()):
+            led_updated_list.append(False)
 
+        for cycle_num in self.cycles:
+
+            # Default to LED off
+            color = utils_colors.black()
             # Inner Loop. Increments through each LED in the self.strip setting the appropriate color to each individual LED.
             i = 0
-            for airport_key in airport_list:
 
+            for airport_key in airport_list:
                 airport_record = airport_list[airport_key]["airport"]
                 airportcode = airport_record.icaocode()
                 airportled = airport_record.get_led_index()
-
                 if not airportcode:
                     break
-
                 # Pull the next flight category from dictionary.
                 flightcategory = airport_record.get_wx_category_str()
                 if not flightcategory:
                     flightcategory = "UNKN"
-
                 # Pull the winds from the dictionary.
                 airportwinds = airport_record.get_wx_windspeed()
                 if not airportwinds:
@@ -947,34 +941,25 @@ class UpdateLEDs:
                 if self.metar_taf_mos == 0:
                     debugging.debug("TAF Time +" + str(self.hour_to_display) + " Hour")
                 elif self.metar_taf_mos == 1:
-                    debugging.debug(f"METAR {airportcode} / {airportled} / {flightcategory} / {airportwinds}")
+                    debugging.debug(
+                        f"METAR {airportcode} / {airportled} / {flightcategory} / {airportwinds}"
+                    )
                 elif self.metar_taf_mos == 2:
                     debugging.debug("MOS Time +" + str(self.hour_to_display) + " Hour")
                 elif self.metar_taf_mos == 3:
                     debugging.debug("Heat Map + ")
 
                 debugging.debug(
-                    (
-                        airportcode
-                        + " "
-                        + str(flightcategory)
-                        + " "
-                        + str(airportwinds)
-                        + " "
-                        + airportwx
-                        + " "
-                        + str(cycle_num)
-                        + " "
-                    )
+                    f"{airportcode}:{flightcategory}:{airportwinds}:{airportwx}:cycle=={cycle_num}"
                 )
                 # Check to see if airport code is a NULL and set to black.
-                if airportcode in ("NULL", "LGND"):
+                if airportcode in ("null", "lgnd"):
                     color = utils_colors.black()
 
-                # Build and display Legend. "legend" must be set to 1 in the user defined section and "LGND" set in airports file.
+                # Build and display Legend. "legend" must be set to 1 in the user defined section and "lgnd" set in airports file.
                 if (
                     self.conf.get_bool("default", "legend")
-                    and airportcode == "LGND"
+                    and airportcode == "lgnd"
                     and (airportled in self.legend_pins)
                 ):
                     if airportled == self.conf.get_int("lights", "leg_pin_vfr"):
@@ -1017,7 +1002,6 @@ class UpdateLEDs:
 
                         if cycle_num == 4:
                             color = utils_colors.SNOW(self.conf, 2)
-
                         elif cycle_num in (0, 1, 2):
                             color = utils_colors.LIFR(self.conf)
 
@@ -1029,7 +1013,6 @@ class UpdateLEDs:
 
                         if cycle_num == 4:
                             color = utils_colors.RAIN(self.conf, 2)
-
                         elif cycle_num in (0, 1, 2):
                             color = utils_colors.VFR(self.conf)
 
@@ -1041,7 +1024,6 @@ class UpdateLEDs:
 
                         if cycle_num == 4:
                             color = utils_colors.FRZRAIN(self.conf, 2)
-
                         elif cycle_num in (0, 1, 2):
                             color = utils_colors.MVFR(self.conf)
 
@@ -1053,7 +1035,6 @@ class UpdateLEDs:
 
                         if cycle_num == 4:
                             color = utils_colors.DUST_SAND_ASH(self.conf, 2)
-
                         elif cycle_num in (0, 1, 2):
                             color = utils_colors.VFR(self.conf)
 
@@ -1065,7 +1046,6 @@ class UpdateLEDs:
 
                         if cycle_num == 4:
                             color = utils_colors.FOG(self.conf, 2)
-
                         elif cycle_num in (0, 1, 2):
                             color = utils_colors.IFR(self.conf)
 
@@ -1083,11 +1063,11 @@ class UpdateLEDs:
                     else:
                         color = utils_colors.NOWEATHER(self.conf)
 
-                # 3.01 bug fix by adding "LGND" test
+                # 3.01 bug fix by adding "lgnd" test
                 elif (
                     flightcategory == "NONE"
-                    and airportcode != "LGND"
-                    and airportcode != "NULL"
+                    and airportcode != "lgnd"
+                    and airportcode != "null"
                 ):
                     color = utils_colors.NOWEATHER(self.conf)
 
@@ -1201,10 +1181,21 @@ class UpdateLEDs:
 
                 # debugging.info(f"LED:{i}, Code:{airportcode}")
                 self.setLedColor(airportled, color)
+                led_updated_list[airportled] = True
                 i = i + 1  # set next LED pin in self.strip
 
+            num_dark_leds = 0
+            for led_index in range(self.strip.numPixels()):
+                if not led_updated_list[led_index]:
+                    # debugging.debug(f"Marking LED {led_index} as OFF")
+                    num_dark_leds = num_dark_leds + 1
+                    self.strip.setPixelColor(led_index, Color(0, 0, 0))
+                    # self.setLedColor(led_index, utils_colors.black())
+
+            debugging.info(f"Dark LEDs : {num_dark_leds}/{self.strip.numPixels()}")
+
             # print("/LED.", end="")
-            sys.stdout.flush()
+            # sys.stdout.flush()
             # Display self.strip with newly assigned colors for the current cycle_num cycle.
             self.strip.show()
             # print(".", end="")
@@ -1252,8 +1243,7 @@ class UpdateLEDs:
             # FIXME: These will be empty - need to clean them up
             # self.update_metar_data(stationiddict, windsdict, wxstringdict)
 
-            if self.turnoffrefresh == 0:
-                # turn off led before repainting them. If Rainbow stays on, it has hung up before this.
+            if self.blank_during_refresh:
                 self.turnoff()
 
             if self.check_heat_map(stationiddict, windsdict, wxstringdict) is False:

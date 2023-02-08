@@ -76,9 +76,7 @@ class Airport:
         self._wxsrc = wxsrc
         self._metar = None
         self._metar_prev = None
-        self._metar_date = datetime.now() - timedelta(
-            days=1
-        )  # Make initial date "old"
+        self._metar_date = datetime.now() - timedelta(days=1)  # Make initial date "old"
         self._observation = None
         self._runway_dataset = None
 
@@ -91,7 +89,7 @@ class Airport:
         self.updated_time = datetime.now()
 
         # Airport Weather Data
-        self.wx_conditions = ()
+        self._wx_conditions = ()
         self.wx_visibility = None
         self.wx_ceiling = None
         self.wx_dir_degrees = None
@@ -150,6 +148,10 @@ class Airport:
         """Return Timestamp of METAR"""
         return self._metar_date
 
+    def wxconditions(self):
+        """Return list of weather conditions at Airport."""
+        return self._wx_conditions
+
     def get_ca_metar(self):
         """Try get Fresh METAR data for Canadian Airports"""
         # TODO:
@@ -173,7 +175,7 @@ class Airport:
         """Return LED ID"""
         return self.led_index
 
-    def get_wxsrc(self):
+    def wxsrc(self):
         """Set Weather source"""
         return self._wxsrc
 

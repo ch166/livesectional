@@ -98,11 +98,10 @@ class LightSensor:
                     self.i2cbus.bus_unlock()
                     self.found_device = False
                     debugging.error(err)
-                lux = current_light["lux"]
-                lux = max(lux, 50)
-                lux = min(lux, 240)
-                msg = "Setting light levels: " + str(lux)
-                debugging.info(msg)
+                lux = current_light["lux"] * 1.5
+                lux = max(lux, 30)
+                lux = min(lux, 255)
+                debugging.info(f"Setting light levels: {lux}")
                 self.led_mgmt.set_brightness(lux)
                 time.sleep(5)
             else:

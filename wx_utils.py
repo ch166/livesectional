@@ -57,7 +57,7 @@ def get_usa_metar(airport_data):
     # TODO: Move this to config
     metar_url_usa = "https://tgftp.nws.noaa.gov/data/observations/metar/stations"
     url = f"{metar_url_usa}/{airport_data.icao.upper()}.TXT"
-    debugging.info("Retrieving METAR from: " + url)
+    debugging.debug("Retrieving METAR from: " + url)
     urlh = None
     try:
         urlh = urlopen(url)
@@ -70,14 +70,14 @@ def get_usa_metar(airport_data):
                 airport_data.metar_date = timenow
                 airport_data.metar_prev = airport_data.metar
                 airport_data.metar = report
-                debugging.info(report)
+                debugging.debug(report)
         if not report:
             debugging.debug("No data for " + airport_data.icao)
     except urllib.error.HTTPError:
         debugging.debug("HTTPError retrieving " + airport_data.icao + " data")
     except urllib.error.URLError:
         # import traceback
-        # debugging.info(traceback.format_exc())
+        # debugging.debug(traceback.format_exc())
         debugging.debug("URLError retrieving " + airport_data.icao + " data")
         if urlh:
             if urlh.getcode() == 404:
@@ -98,7 +98,7 @@ def get_usa_metar(airport_data):
             airport_data.metar = "Transient Error"
             return True
     except (socket.error, socket.gaierror):
-        debugging.info("Socket Error retrieving " + airport_data.icao)
+        debugging.debug("Socket Error retrieving " + airport_data.icao)
         # airport_data.metar_date = timenow
         airport_data.metar_prev = airport_data.metar
         airport_data.metar = "Transient Error"
@@ -108,7 +108,7 @@ def get_usa_metar(airport_data):
 
 def cloud_height(wx_metar):
     """Calculate Height to Broken Layer. wx_metar - METAR String."""
-    # debugging.info(wx_data.observation.sky)
+    # debugging.debug(wx_data.observation.sky)
     wx_data = Metar.Metar(wx_metar)
     lowest_ceiling = 100000
     for cloudlayer in wx_data.sky:
@@ -150,12 +150,12 @@ def update_wx(airport_data, metar_xml_dict):
     freshness = False
     if airport_data.wxsrc == "adds":
         try:
-            debugging.info("Update USA Metar: ADDS " + airport_data.icao)
+            debugging.debug("Update USA Metar: ADDS " + airport_data.icao)
             freshness = airport_data.get_adds_metar(metar_xml_dict)
         except Exception as err:
             debugging.error(err)
     elif airport_data.wxsrc == "usa-metar":
-        debugging.info(
+        debugging.debug(
             f"Update USA Metar: {airport_data.icao} - {airport_data.wx_category_str}"
         )
         freshness = get_usa_metar(airport_data)
@@ -164,7 +164,7 @@ def update_wx(airport_data, metar_xml_dict):
             return
         calculate_wx_from_metar(airport_data)
     elif airport_data.wxsrc == "ca-metar":
-        debugging.info("Update CA Metar: " + airport_data.icao + " and skip")
+        debugging.debug("Update CA Metar: " + airport_data.icao + " and skip")
         freshness = airport_data.get_ca_metar()
         if freshness:
             # get_*_metar() returned true, so weather is still fresh
@@ -181,7 +181,7 @@ def calculate_wx_from_metar(airport_data):
     try:
         airport_data_observation = Metar.Metar(airport_data.metar)
     except Metar.ParserError as err:
-        debugging.info("Parse Error for METAR code: " + airport_data.metar)
+        debugging.debug("Parse Error for METAR code: " + airport_data.metar)
         debugging.error(err)
         airport_data.wx_category_str = "UNKN"
         airport_data.set_wx_category(airport_data.wx_category_str)
@@ -232,7 +232,7 @@ def calculate_wx_from_metar(airport_data):
     debugging.debug(
         f"Airport: Ceiling {airport_data.wx_ceiling} + Visibility : {airport_data.wx_visibility}"
     )
-    debugging.info(f"Airport {airport_data.icao} - {airport_data.wx_category_str}")
+    debugging.debug(f"Airport {airport_data.icao} - {airport_data.wx_category_str}")
     return True
 
 

@@ -211,7 +211,6 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
             os.utime(filename, (file_timestamp, file_timestamp))
             return download, url_etag
         except Exception as err:
-            debugging.info(f"Error Handling in file download")
             debugging.error(err)
             return False, url_etag
     return download, url_etag

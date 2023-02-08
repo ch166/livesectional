@@ -38,6 +38,17 @@
         { "active": "False", "heatmap": 0, "icao": "null", "led": "35", "purpose": "off", "wxsrc": "none" },
         { "active": "False", "heatmap": 0, "icao": "null", "led": "36", "purpose": "off", "wxsrc": "none" },
         { "active": "False", "heatmap": 0, "icao": "null", "led": "37", "purpose": "off", "wxsrc": "none" },
-        { "active": "True", "heatmap": 0, "icao": "khqm", "led": "38", "purpose": "all", "wxsrc": "adds" }
+        { "active": "True", "heatmap": 0, "icao": "khqm", "led": "38", "purpose": "all", "wxsrc": "adds" },
+        { "active": "False", "heatmap": 0, "icao": "null", "led": "39", "purpose": "off", "wxsrc": "none" },
+        { "active": "False", "heatmap": 0, "icao": "null", "led": "40", "purpose": "off", "wxsrc": "none" },
+        { "active": "False", "heatmap": 0, "icao": "null", "led": "41", "purpose": "off", "wxsrc": "none" },
+        { "active": "False", "heatmap": 0, "icao": "null", "led": "42", "purpose": "off", "wxsrc": "none" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "43", "purpose": "all", "wxsrc": "vfr" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "44", "purpose": "all", "wxsrc": "mvfr" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "45", "purpose": "all", "wxsrc": "ifr" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "46", "purpose": "all", "wxsrc": "lifr" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "47", "purpose": "all", "wxsrc": "home" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "48", "purpose": "all", "wxsrc": "unkn" },
+        { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "49", "purpose": "all", "wxsrc": "none" }
     ]
 }

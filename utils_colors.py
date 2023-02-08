@@ -22,6 +22,11 @@ def hex2rgb(value):
     )
 
 
+def off():
+    """Return HEX Color code for Black"""
+    return "#000000"
+
+
 def black():
     """Return HEX Color code for Black"""
     return "#000000"

@@ -10,7 +10,8 @@ Start individual threads
  a) update_airport thread - to keep METAR/TAF/MOS data up to date
  b) update_leds thread - keep the LEDs updated to reflect airport state
  c) update_oleds thread - keep the OLEDs updated to reflect state
- d) SOON: Web interface for config and maps
+ d) Web interface for config and maps
+ e) Light Sensor thread
 
 """
 
@@ -87,7 +88,7 @@ if __name__ == "__main__":
     OLEDmgmt = update_oled.UpdateOLEDs(conf, airport_database, i2cbus)
 
     # Setup Flask APP
-    web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo)
+    web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo, LEDmgmt)
 
     # Almost Setup
     debugging.info(f"Livemap Startup - IP: {ipaddr}")

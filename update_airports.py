@@ -106,7 +106,7 @@ class AirportDB:
         # Runway Data
         self.runway_data = None
 
-        debugging.info("AirportDB : init")
+        debugging.debug("AirportDB : init")
 
         self.load_airport_db()
         # self.update_airport_metar_xml()
@@ -171,7 +171,7 @@ class AirportDB:
             airport_save_record["icao"] = aprt.icaocode()
             airport_save_record["led"] = str(aprt.get_led_index())
             airport_save_record["purpose"] = airportdb_row["purpose"]
-            airport_save_record["wxsrc"] = aprt.get_wxsrc()
+            airport_save_record["wxsrc"] = aprt.wxsrc()
             airportdb_list.append(airport_save_record)
 
         return airportdb_list
@@ -235,7 +235,7 @@ class AirportDB:
     def load_airport_db(self):
         """Load Airport Data file."""
         # FIXME: Add file error handling
-        debugging.info("Loading Airport List")
+        debugging.debug("Loading Airport List")
         airport_json = self.conf.get_string("filenames", "airports_json")
         # Opening JSON file
         json_file = open(airport_json, encoding="utf8")
@@ -254,11 +254,11 @@ class AirportDB:
         self.airport_master_dict.update(airport_dict_new)
         self.airport_dicts_update()
 
-        debugging.info("Airport Load and Merge complete")
+        debugging.debug("Airport Load and Merge complete")
 
     def save_airport_db(self):
         """Save Airport Data file."""
-        debugging.info("Saving Airport DB")
+        debugging.debug("Saving Airport DB")
         json_save_data = {}
         json_save_data_airport = []
         airport_json_backup = self.conf.get_string("filenames", "airports_json_backup")
@@ -276,7 +276,7 @@ class AirportDB:
         """Update Airport METAR DICT from XML."""
         # TODO: Add file error handling
         # Consider extracting only interesting airports from dict first
-        debugging.info("Updating Airport METAR DICT")
+        debugging.debug("Updating Airport METAR DICT")
         metar_data = []
         metar_dict = {}
         metar_file = self.conf.get_string("filenames", "metar_xml_data")
@@ -285,7 +285,7 @@ class AirportDB:
         except etree.ParseError as err:
             debugging.error("XML Parse METAR Error")
             debugging.error(err)
-            debugging.info("Not updating - returning")
+            debugging.debug("Not updating - returning")
             return False
 
         display_counter = 0
@@ -369,7 +369,7 @@ class AirportDB:
         self.metar_xml_dict = metar_dict
         UTC = pytz.utc
         self.metar_update_time = datetime.now(UTC)
-        debugging.info("Updating Airport METAR from XML")
+        debugging.debug("Updating Airport METAR from XML")
         return True
 
     def update_airport_taf_xml(self):
@@ -388,7 +388,7 @@ class AirportDB:
         #
         # TODO: Add file error handling
 
-        debugging.info("Updating Airport TAF DICT")
+        debugging.debug("Updating Airport TAF DICT")
 
         taf_dict = {}
 
@@ -398,7 +398,7 @@ class AirportDB:
         except etree.ParseError as err:
             debugging.error("XML Parse TAF Error")
             debugging.error(err)
-            debugging.info("Not updating - returning")
+            debugging.debug("Not updating - returning")
             return False
 
         for taf in root.iter("TAF"):
@@ -555,7 +555,7 @@ class AirportDB:
         with open(runways_file, "r") as rway_file:
             runway_data = list(csv.DictReader(rway_file))
             index_counter += 1
-        debugging.info(f"CSV Load found {index_counter} rows")
+        debugging.debug(f"CSV Load found {index_counter} rows")
         self.runway_data = runway_data
         return True
 
@@ -571,7 +571,8 @@ class AirportDB:
                 arpt.set_runway_data(runway_dataset)
             except Exception as err:
                 debug_string = (
-                    "Error: update_airport_runways Exception handling for " + arpt.icaocode()
+                    "Error: update_airport_runways Exception handling for "
+                    + arpt.icaocode()
                 )
                 debugging.error(debug_string)
                 debugging.crash(err)
@@ -624,7 +625,7 @@ class AirportDB:
         etag_runways = None
 
         while True:
-            debugging.info(
+            debugging.debug(
                 "Updating Airport Data .. every aviation_weather_adds_timer ("
                 + str(aviation_weather_adds_timer)
                 + "m)"
@@ -638,61 +639,61 @@ class AirportDB:
                 etag=etag_metar,
             )
             if ret is True:
-                debugging.info("Downloaded METAR file")
+                debugging.debug("Downloaded METAR file")
                 self.update_airport_metar_xml()
             elif ret is False:
-                debugging.info("Server side METAR older")
+                debugging.debug("Server side METAR older")
 
             ret, tafs_etag = utils.download_newer_file(
                 https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs
             )
             if ret is True:
-                debugging.info("Downloaded TAFS file")
+                debugging.debug("Downloaded TAFS file")
                 self.update_airport_taf_xml()
             elif ret is False:
-                debugging.info("Server side TAFS older")
+                debugging.debug("Server side TAFS older")
 
             ret, etag_mos00 = utils.download_newer_file(
                 https_session, mos00_xml_url, mos00_file, etag=etag_mos00
             )
             if ret is True:
-                debugging.info("Downloaded MOS00 file")
+                debugging.debug("Downloaded MOS00 file")
             elif ret is False:
-                debugging.info("Server side MOS00 older")
+                debugging.debug("Server side MOS00 older")
 
             ret, etag_mos06 = utils.download_newer_file(
                 https_session, mos06_xml_url, mos06_file, etag=etag_mos06
             )
             if ret is True:
-                debugging.info("Downloaded MOS06 file")
+                debugging.debug("Downloaded MOS06 file")
             elif ret is False:
-                debugging.info("Server side MOS06 older")
+                debugging.debug("Server side MOS06 older")
 
             ret, etag_mos12 = utils.download_newer_file(
                 https_session, mos12_xml_url, mos12_file, etag=etag_mos12
             )
             if ret is True:
-                debugging.info("Downloaded MOS12 file")
+                debugging.debug("Downloaded MOS12 file")
             elif ret is False:
-                debugging.info("Server side MOS12 older")
+                debugging.debug("Server side MOS12 older")
 
             ret, etag_runways = utils.download_newer_file(
                 https_session, runways_csv_url, runways_file, etag=etag_runways
             )
             if ret is True:
-                debugging.info("Downloaded runways.csv")
+                debugging.debug("Downloaded runways.csv")
                 self.import_runways()
                 self.update_airport_runways()
             elif ret is False:
-                debugging.info("Server side runways.csv older")
+                debugging.debug("Server side runways.csv older")
 
             ret, etag_mos18 = utils.download_newer_file(
                 https_session, mos18_xml_url, mos18_file, etag=etag_mos18
             )
             if ret is True:
-                debugging.info("Downloaded MOS18 file")
+                debugging.debug("Downloaded MOS18 file")
             elif ret is False:
-                debugging.info("Server side MOS18 older")
+                debugging.debug("Server side MOS18 older")
 
             try:
                 self.update_airport_wx()
@@ -704,6 +705,6 @@ class AirportDB:
             kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
             kbfi_runway = self.airport_runway_data("kbfi")
-            debugging.info(f"Runway data - kbfi :{kbfi_runway}:")
+            debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")
             time.sleep(aviation_weather_adds_timer * 60)
         debugging.error("Hit the exit of the airport update loop")

@@ -38,15 +38,17 @@ from flask import (
 from pyqrcode import QRCode
 
 import utils
+
 # import conf
 import debugging
+
 # import sysinfo
 
 
 class WebViews:
     """Class to contain all the Flask WEB functionality."""
 
-    def __init__(self, config, sysdata, airport_database, appinfo):
+    def __init__(self, config, sysdata, airport_database, appinfo, LEDmgmt):
         self.conf = config
         self._sysdata = sysdata
         self._airport_database = airport_database
@@ -114,6 +116,8 @@ class WebViews:
         self.max_lon = 0
         self.min_lon = 0
 
+        self._led_strip = LEDmgmt
+
         # Replace These with real data
         self.airports = []
         self.update_vers = None
@@ -122,7 +126,7 @@ class WebViews:
         self.update_available = None
         self.ap_info = None
         self.settings = None
-        self.strip = None
+
         self.led_map_dict = {}
 
     def run(self):
@@ -143,7 +147,7 @@ class WebViews:
             airport_record = {}
             airport_record["active"] = airport_object.active()
             airport_record["icaocode"] = airport_icao
-            airport_record["metarsrc"] = airport_object.get_wxsrc()
+            airport_record["metarsrc"] = airport_object.wxsrc()
             airport_record["ledindex"] = airport_object.get_led_index()
             airport_record["rawmetar"] = airport_object.get_raw_metar()
             airport_record["purpose"] = airport_object.purpose()
@@ -155,7 +159,7 @@ class WebViews:
             "airports": airport_dict_data,
             "settings": self.conf.gen_settings_dict(),
             "ipadd": self._sysdata.local_ip(),
-            "strip": self.strip,
+            "strip": self._led_strip,
             "timestr": utils.time_format(utils.current_time(self.conf)),
             "timestrutc": utils.time_format(utils.current_time_utc(self.conf)),
             "timemetarage": utils.time_format(
@@ -486,10 +490,11 @@ class WebViews:
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = (f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.latitude()},{arpt.longitude()}]"
-                     f"<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b>"
-                     f"<font size=+2 color={loc_color}>{loc_color}</font></b>"
-                     )
+            popup = (
+                f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.latitude()},{arpt.longitude()}]"
+                f"<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b>"
+                f"<font size=+2 color={loc_color}>{loc_color}</font></b>"
+            )
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -505,8 +510,10 @@ class WebViews:
         airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
             arpt = arptdb_row["airport"]
-            debugging.info(f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} :"
-                           f" Coords: {arpt.valid_coordinates()}")
+            debugging.info(
+                f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} :"
+                f" Coords: {arpt.valid_coordinates()}"
+            )
             if not arpt.active():
                 # Inactive airports likely don't have valid lat/lon data
                 continue
@@ -515,7 +522,9 @@ class WebViews:
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(arpt.get_led_index())
-            debugging.info(f"HeatMap: {arpt.icaocode()} :{arpt.latitude()}:{arpt.longitude()}:{pin_index}:")
+            debugging.info(
+                f"HeatMap: {arpt.icaocode()} :{arpt.latitude()}:{arpt.longitude()}:{pin_index}:"
+            )
             points.insert(pin_index, [arpt.latitude(), arpt.longitude()])
 
         # debugging.info(points)
@@ -815,41 +824,41 @@ class WebViews:
             if "buton" in request.form:
                 num = int(request.form["lednum"])
                 debugging.info("LED " + str(num) + " On")
-                self.strip.setPixelColor(num, Color(155, 155, 155))
-                self.strip.show()
+                self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.show()
                 flash("LED " + str(num) + " On")
 
             elif "butoff" in request.form:
                 num = int(request.form["lednum"])
                 debugging.info("LED " + str(num) + " Off")
-                self.strip.setPixelColor(num, Color(0, 0, 0))
-                self.strip.show()
+                self._led_strip.setLedColor(num, Color(0, 0, 0))
+                self._led_strip.show()
                 flash("LED " + str(num) + " Off")
 
             elif "butup" in request.form:
                 debugging.info("LED UP")
                 num = int(request.form["lednum"])
-                self.strip.setPixelColor(num, Color(0, 0, 0))
+                self._led_strip.setLedColor(num, Color(0, 0, 0))
                 num = num + 1
 
                 # FIXME: self.airports retired
                 if num > len(self.airports):
                     num = len(self.airports)
 
-                self.strip.setPixelColor(num, Color(155, 155, 155))
-                self.strip.show()
+                self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.show()
                 flash("LED " + str(num) + " should be On")
 
             elif "butdown" in request.form:
                 debugging.info("LED DOWN")
                 num = int(request.form["lednum"])
-                self.strip.setPixelColor(num, Color(0, 0, 0))
+                self._led_strip.setLedColor(num, Color(0, 0, 0))
 
                 num = num - 1
                 num = max(num, 0)
 
-                self.strip.setPixelColor(num, Color(155, 155, 155))
-                self.strip.show()
+                self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.show()
                 flash("LED " + str(num) + " should be On")
 
             elif "butall" in request.form:
@@ -858,8 +867,8 @@ class WebViews:
 
                 # FIXME: self.airports retired
                 for num in range(len(self.airports)):
-                    self.strip.setPixelColor(num, Color(155, 155, 155))
-                self.strip.show()
+                    self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.show()
                 flash("All LEDs should be On")
                 num = 0
 
@@ -869,8 +878,8 @@ class WebViews:
 
                 # FIXME: self.airports retired
                 for num in range(len(self.airports)):
-                    self.strip.setPixelColor(num, Color(0, 0, 0))
-                self.strip.show()
+                    self._led_strip.setLedColor(num, Color(0, 0, 0))
+                self._led_strip.show()
                 flash("All LEDs should be Off")
                 num = 0
 

@@ -16,6 +16,7 @@ import debugging
 # Moved this here from other places ..
 # This needs to be restructured before it can be used in the new code layout.
 
+
 def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
     # FIXME: This still uses the old fields - needs cleanup
     """
@@ -152,9 +153,7 @@ def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
                 debugging.debug("\n" + airport)
                 debugging.debug(self.categories)
 
-                mos_time = (
-                    utils.current_time_hr_utc(self.conf) + self.hour_to_display
-                )
+                mos_time = utils.current_time_hr_utc(self.conf) + self.hour_to_display
                 if mos_time >= 24:  # check for reset at 00z
                     mos_time = mos_time - 24
 
@@ -296,9 +295,7 @@ def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
                     stationiddict[stationId] = flightcategory
 
                 if stationId in windsdict:
-                    debugging.info(
-                        f"{stationId} Duplicate, only saved the first winds"
-                    )
+                    debugging.info(f"{stationId} Duplicate, only saved the first winds")
                 else:
                     # build windspeed dictionary
                     windsdict[stationId] = windspeedkt
@@ -313,6 +310,7 @@ def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
         debugging.info("Decoded MOS Data for Display")
     return True
 
+
 # Used by MOS decode routine. This routine builds mos_dict nested with hours_dict
 # FIXME: Move to update_airports.py
 def set_data(self):
@@ -324,44 +322,44 @@ def set_data(self):
         temp1 = []
         tmp_sw = 0
 
-        for val in self.temp: # Check each item in the list
-            val = val.lstrip() # remove leading white space
-            val = val.rstrip('/') # remove trailing /
+        for val in self.temp:  # Check each item in the list
+            val = val.lstrip()  # remove leading white space
+            val = val.rstrip("/")  # remove trailing /
 
-            if len(val) == 6: # this is for T06 to build appropriate length list
-               # add a '0' to the front of the list. T06 doesn't report data in first 3 hours.
-                temp1.append('0')
-               # add back the original value taken from T06
+            if len(val) == 6:  # this is for T06 to build appropriate length list
+                # add a '0' to the front of the list. T06 doesn't report data in first 3 hours.
+                temp1.append("0")
+                # add back the original value taken from T06
                 temp1.append(val)
-               # Turn on switch so we don't go through it again.
+                # Turn on switch so we don't go through it again.
                 tmp_sw = 1
 
-           # and tmp_sw == 0: # if item is 1 or 2 chars long, then bypass. Otherwise fix.
+            # and tmp_sw == 0: # if item is 1 or 2 chars long, then bypass. Otherwise fix.
             elif len(val) > 2 and tmp_sw == 0:
-                pos = val.find('100') # locate first 100
-               # capture the first value which is not a 100
+                pos = val.find("100")  # locate first 100
+                # capture the first value which is not a 100
                 tmp = val[0:pos]
-                temp1.append(tmp) # and store it in temp list.
+                temp1.append(tmp)  # and store it in temp list.
 
                 k = 0
-                for j in range(pos, len(val), 3): # now iterate through remainder
-                    temp1.append(val[j:j+3]) # and capture all the 100's
+                for j in range(pos, len(val), 3):  # now iterate through remainder
+                    temp1.append(val[j : j + 3])  # and capture all the 100's
                     k += 1
             else:
-                temp1.append(val) # Store the normal values too.
+                temp1.append(val)  # Store the normal values too.
 
         self.temp = temp1
 
     # load data into appropriate lists by hours designated by current MOS file
     # clean up data by removing '/' and spaces
-    self.temp0 = ([x.strip() for x in self.temp[0].split('/')])
-    self.temp1 = ([x.strip() for x in self.temp[1].split('/')])
-    self.temp2 = ([x.strip() for x in self.temp[2].split('/')])
-    self.temp3 = ([x.strip() for x in self.temp[3].split('/')])
-    self.temp4 = ([x.strip() for x in self.temp[4].split('/')])
-    self.temp5 = ([x.strip() for x in self.temp[5].split('/')])
-    self.temp6 = ([x.strip() for x in self.temp[6].split('/')])
-    self.temp7 = ([x.strip() for x in self.temp[7].split('/')])
+    self.temp0 = [x.strip() for x in self.temp[0].split("/")]
+    self.temp1 = [x.strip() for x in self.temp[1].split("/")]
+    self.temp2 = [x.strip() for x in self.temp[2].split("/")]
+    self.temp3 = [x.strip() for x in self.temp[3].split("/")]
+    self.temp4 = [x.strip() for x in self.temp[4].split("/")]
+    self.temp5 = [x.strip() for x in self.temp[5].split("/")]
+    self.temp6 = [x.strip() for x in self.temp[6].split("/")]
+    self.temp7 = [x.strip() for x in self.temp[7].split("/")]
 
     # build a list for each data group. grab 1st element [0] in list to store.
     self.dat0.append(self.temp0[0])
@@ -374,7 +372,7 @@ def set_data(self):
     self.dat7.append(self.temp7[0])
 
     j = 0
-    for key in self.keys: # add cat data to the hour_dict by hour
+    for key in self.keys:  # add cat data to the hour_dict by hour
 
         if j == 0:
             self.hour_dict[key] = self.dat0
@@ -394,5 +392,5 @@ def set_data(self):
             self.hour_dict[key] = self.dat7
         j += 1
 
-       # marry the hour_dict to the proper key in mos_dict
+        # marry the hour_dict to the proper key in mos_dict
         self.mos_dict[apid] = self.hour_dict

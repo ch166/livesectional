@@ -1,7 +1,35 @@
 # -*- coding: utf-8 -*- #
 """ Collection of shared color handling functions and constants """
 
+from enum import Enum, auto
+import random
 import debugging
+
+colordict = {
+    "BLACK": "#000000",  # Black
+    "GRAY": "#808080",  # Gray
+    "BROWN": "#2AA52A",  # Brown
+    "RED": "#FF0000",  # Red
+    "ROSE": "#FF8000",  # Rose (Red)
+    "MAGENTA": "#FF00FF",  # Magenta
+    "PURPLE": "#800080",  # Purple
+    "VIOLET": "#8000FF",  # Violet
+    "PINK": "#FFC0CB",  # Pink
+    "HOTPINK": "#FF69B4",  # Hotpink
+    "BLUE": "#0000FF",  # Blue
+    "NAVY": "#000080",  # Navy
+    "AZURE": "#0080FF",  # Azure
+    "CYAN": "#00FFFF",  # Cyan
+    "DKCYAN": "#008B8B",  # Dark Cyan
+    "SPGREEN": "#00FF80",  # Spring Green
+    "DKGREEN": "#006400",  # Dark Green
+    "GREEN": "#00FF00",  # Green
+    "CHUSE": "#80FF00",  # Chartreuse
+    "YELLOW": "#FFFF00",  # Yellow
+    "ORANGE": "#FFA500",  # Orange
+    "GOLD": "#FFD700",  # Gold
+    "WHITE": "#FFFFFF",  # White
+}
 
 
 def rgb2hex(rgb):
@@ -29,7 +57,7 @@ def off():
 
 def black():
     """Return HEX Color code for Black"""
-    return "#000000"
+    return colordict["BLACK"]
 
 
 def HEX_tuple(col_tuple):
@@ -116,3 +144,11 @@ def RAIN(confdata, value):
 def NOWEATHER(confdata):
     """Get NOWX Color code from config"""
     return confdata.color("colors", "color_nowx")
+
+
+# Generate random RGB color
+def randomcolor():
+    r = int(random.randint(0, 255))
+    g = int(random.randint(0, 255))
+    b = int(random.randint(0, 255))
+    return HEX(r, g, b)

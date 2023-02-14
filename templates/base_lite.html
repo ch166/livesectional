@@ -106,12 +106,13 @@
                   <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Map Functions</a>
                     <div class="dropdown-menu">
+                      <a class="dropdown-item" href="/ledmodeset">Set LED Mode <i class="far fa-rabbit">&nbsp;</i></a>
                       <a class="dropdown-item"
                          href="javascript:{}"
-                         onclick="document.getElementById('startup1').submit(); return false;">Turn On Map <i class="far fa-sun">&nbsp;</i></a>
+                         onclick="document.getElementById('mapturnon').submit(); return false;">Turn On Map <i class="far fa-sun">&nbsp;</i></a>
                       <a class="dropdown-item"
                          href="javascript:{}"
-                         onclick="document.getElementById('shutdown1').submit(); return false;">Turn Off Map <i class="fas fa-sun">&nbsp;</i></a>
+                         onclick="document.getElementById('mapturnoff').submit(); return false;">Turn Off Map <i class="fas fa-sun">&nbsp;</i></a>
                       <div class="dropdown-divider"></div>
                       <a class="dropdown-item"
                          href="javascript:{}"
@@ -216,6 +217,8 @@
                 <br />
                 <b>METAR:</b>{{ timemetarage }}
                 <br />
+                <b>MAP:</b>{{ current_ledmode }}
+                <br />
               </span>
             </div>
           </div>
@@ -278,12 +281,12 @@
                 </form>
               </td>
               <td class="submitbuttons">
-                <form action="shutdown1" id="shutdown1" method="post">
+                <form action="mapturnoff" id="mapturnoff" method="post">
                   <input type="submit" class="button" value="Shutoff Map" />
                 </form>
               </td>
               <td class="submitbuttons">
-                <form action="startup1" id="startup1" method="post">
+                <form action="mapturnon" id="mapturnon" method="post">
                   <input type="submit" class="button" value="Startup Map" />
                 </form>
               </td>

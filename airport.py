@@ -22,7 +22,7 @@ from datetime import datetime
 from datetime import timedelta
 
 # from distutils import util
-from enum import Enum
+from enum import Enum, auto
 
 # from urllib.request import urlopen
 # import urllib.error
@@ -46,13 +46,13 @@ class AirportFlightCategory(Enum):
     ENUM Flight Categories
     """
 
-    VFR = ledstrip.LedStrip.GREEN
-    MVFR = ledstrip.LedStrip.BLUE
-    IFR = ledstrip.LedStrip.RED
-    LIFR = ledstrip.LedStrip.MAGENTA
-    OLD = ledstrip.LedStrip.YELLOW
-    UNKN = ledstrip.LedStrip.WHITE
-    OFF = ledstrip.LedStrip.BLACK
+    VFR = auto()
+    MVFR = auto()
+    IFR = auto()
+    LIFR = auto()
+    OLD = auto()
+    UNKN = auto()
+    OFF = auto()
 
 
 class Airport:

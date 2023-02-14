@@ -165,13 +165,13 @@ class AirportDB:
         airportdb_list = []
         for airport_db_id, airportdb_row in self.airport_master_dict.items():
             airport_save_record = {}
-            aprt = airportdb_row["airport"]
-            airport_save_record["active"] = str(aprt.active())
-            airport_save_record["heatmap"] = aprt.heatmap_index()
-            airport_save_record["icao"] = aprt.icaocode()
-            airport_save_record["led"] = str(aprt.get_led_index())
+            arpt = airportdb_row["airport"]
+            airport_save_record["active"] = str(arpt.active())
+            airport_save_record["heatmap"] = arpt.heatmap_index()
+            airport_save_record["icao"] = arpt.icaocode()
+            airport_save_record["led"] = str(arpt.get_led_index())
             airport_save_record["purpose"] = airportdb_row["purpose"]
-            airport_save_record["wxsrc"] = aprt.wxsrc()
+            airport_save_record["wxsrc"] = arpt.wxsrc()
             airportdb_list.append(airport_save_record)
 
         return airportdb_list
@@ -248,12 +248,10 @@ class AirportDB:
         # On initial boot ; the saved data set could be empty
         # - This will need to create all the objects
         # On update ; some records will already exist, but may have updates
-
         airport_dict_new = self.airport_dict_from_json(new_airport_json_dict)
         # Update the master dictionary ; overwrite existing keys with new keys
         self.airport_master_dict.update(airport_dict_new)
         self.airport_dicts_update()
-
         debugging.debug("Airport Load and Merge complete")
 
     def save_airport_db(self):

@@ -72,13 +72,13 @@ def get_usa_metar(airport_data):
                 airport_data.metar = report
                 debugging.debug(report)
         if not report:
-            debugging.debug("No data for " + airport_data.icao)
+            debugging.debug(f"No data for {airport_data.icao}")
     except urllib.error.HTTPError:
-        debugging.debug("HTTPError retrieving " + airport_data.icao + " data")
+        debugging.debug(f"HTTPError retrieving {airport_data.icao} data")
     except urllib.error.URLError:
         # import traceback
         # debugging.debug(traceback.format_exc())
-        debugging.debug("URLError retrieving " + airport_data.icao + " data")
+        debugging.debug(f"URLError retrieving {airport_data.icao} data")
         if urlh:
             if urlh.getcode() == 404:
                 airport_data.metar_date = timenow

@@ -1,0 +1,69 @@
+{% extends "base_lite.html" %}
+{% block content %}
+<p>
+<p>
+<div class="container-fluid">
+  <div class="card border-primary mb-3">
+    <section class="py-5">
+      <div class="container">
+        <h2 class="display-4">LED Mode Information</h2>
+        <table>
+          <form action="ledmodeset" id="ledmodeset" method="POST">
+            <tr>
+              <td>
+                <p style="color: red;"><b>Current LED Mode</b></p>
+                <b>{{ current_ledmode }}</b><br>
+              </td>
+            </tr>
+
+            <tr>
+              <td width="33%">
+                <div>
+                  <label for="ledoptionlist"><b>Choose LED Mode:</b></label>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="margin: auto;">
+                <select name="newledmode" id="newledmode">
+                  {% for o in ledoptionlist %}
+                  <option value="{{ o }}" {{"selected" if o == current_ledmode else "" }}>{{ o }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="margin: auto;">
+                <input class="button1" type="submit" value="Select" />
+              </td>
+            </tr>
+
+
+            <tr>
+              <td style="margin: auto;">
+                <div class="flashes">
+                  {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                  <div class=flashes>
+			  <ul>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+		  </div>
+                    {% endif %}
+                    {% endwith %}
+                  </div>
+              </td>
+            </tr>
+
+        </table>
+
+      </div>
+    </section>
+  </div>
+</div>
+
+{% endblock %}

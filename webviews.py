@@ -40,6 +40,7 @@ from pyqrcode import QRCode
 import utils
 
 # import conf
+from update_leds import LedMode
 import debugging
 
 # import sysinfo
@@ -68,6 +69,9 @@ class WebViews:
         self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
         self.app.add_url_rule("/wx/<airport>", view_func=self.getwx, methods=["GET"])
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
+        self.app.add_url_rule(
+            "/ledmodeset", view_func=self.ledmodeset, methods=["GET", "POST"]
+        )
         self.app.add_url_rule(
             "/led_map", view_func=self.led_map, methods=["GET", "POST"]
         )
@@ -110,6 +114,8 @@ class WebViews:
         self.app.add_url_rule(
             "/system_reboot", view_func=self.system_reboot, methods=["GET", "POST"]
         )
+        self.app.add_url_rule("/mapturnon", view_func=self.handle_mapturnon, methods=["GET", "POST"])
+        self.app.add_url_rule("/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"])
 
         self.max_lat = 0
         self.min_lat = 0
@@ -154,6 +160,8 @@ class WebViews:
             airport_record["hmindex"] = airport_object.heatmap_index()
             airport_dict_data[airport_icao] = airport_record
 
+        current_ledmode = self._led_strip.ledmode()
+
         template_data = {
             "title": "NOT SET - " + self._appinfo.current_version(),
             "airports": airport_dict_data,
@@ -166,6 +174,7 @@ class WebViews:
                 self._airport_database.get_metar_update_time()
             ),
             "current_timezone": self.conf.get_string("default", "timezone"),
+            "current_ledmode": current_ledmode,
             "num": self.num,
             "version": self._appinfo.current_version(),
             "update_available": self.update_available,
@@ -205,6 +214,39 @@ class WebViews:
 
         debugging.info("Opening Time Zone Set page")
         return render_template("tzset.html", **template_data)
+
+    def ledmodeset(self):
+        """Flask Route: /ledmodeset - Set LED Display Mode."""
+        if request.method == "POST":
+            newledmode = request.form["newledmode"]
+            newledmode_upper = newledmode.upper()
+            if newledmode_upper == "METAR":
+                self._led_strip.set_ledmode(LedMode.METAR)
+            if newledmode_upper == "OFF":
+                self._led_strip.set_ledmode(LedMode.OFF)
+            if newledmode_upper == "TEST":
+                self._led_strip.set_ledmode(LedMode.TEST)
+            if newledmode_upper == "RABBIT":
+                self._led_strip.set_ledmode(LedMode.RABBIT)
+            if newledmode_upper == "METAR":
+                self._led_strip.set_ledmode(LedMode.METAR)
+            if newledmode_upper == "SHUFFLE":
+                self._led_strip.set_ledmode(LedMode.SHUFFLE)
+
+            flash(f"LED Mode set to {newledmode}")
+            debugging.info(f"LEDMode set to {newledmode}")
+            return redirect("ledmodeset")
+
+        ledmodelist = ["METAR", "Off", "Test", "Rabbit", "Shuffle"]
+        current_ledmode = self._led_strip.ledmode()
+
+        template_data = self.standardtemplate_data()
+        template_data["title"] = "LEDModeSet"
+        template_data["ledoptionlist"] = ledmodelist
+        template_data["current_ledmode"] = current_ledmode
+
+        debugging.info("Opening LEDode Set page")
+        return render_template("ledmode.html", **template_data)
 
     # FIXME: Integrate into Class
     # @app.route('/touchscr', methods=["GET", "POST"])
@@ -1189,26 +1231,25 @@ class WebViews:
         return redirect("/")
         # temp[3] holds name of page that called this route.
 
-    # FIXME: Integrate into Class
     # Route to turn off the map and displays
-    # @app.route("/shutdown1", methods=["GET", "POST"])
-    def shutdown1(self):
-        """Flask Route: /shutdown1 - Trigger process shutdown"""
+    # @app.route("/mapturnoff", methods=["GET", "POST"])
+    def handle_mapturnoff(self):
+        """Flask Route: /mapturnoff - Trigger process shutdown"""
         url = request.referrer
-        ipadd = self._sysdata.local_ip()
-        if url is None:
-            url = "http://" + ipadd + ":5000/"
-            # Use index if called from URL and not page.
+        debugging.info(f"Shutoff Map from {url}")
+        self._led_strip.set_ledmode(LedMode.OFF)
+        flash("Map Turned Off")
+        return redirect("/")
+        # temp[3] holds name of page that called this route.
 
-        # temp = url.split("/")
-        debugging.info("Shutoff Map from " + url)
-        # FIXME:
-        # os.system("ps -ef | grep '/NeoSectional/metar-display-v4.py' | awk '{print $2}' | xargs sudo kill")
-        # os.system("ps -ef | grep '/NeoSectional/metar-v4.py' | awk '{print $2}' | xargs sudo kill")
-        # os.system("ps -ef | grep '/NeoSectional/check-display.py' | awk '{print $2}' | xargs sudo kill")
-        # os.system('sudo python3 /NeoSectional/shutoff.py &')
-        flash("Map Turned Off ")
-        time.sleep(1)
+    # Route to turn off the map and displays
+    # @app.route("/mapturnoff", methods=["GET", "POST"])
+    def handle_mapturnon(self):
+        """Flask Route: /mapturnon - Trigger process shutdown"""
+        url = request.referrer
+        debugging.info(f"Turn Map ON from {url}")
+        self._led_strip.set_ledmode(LedMode.METAR)
+        flash("Map Turned On")
         return redirect("/")
         # temp[3] holds name of page that called this route.
 

@@ -33,20 +33,12 @@ Created on Sat Jun 15 08:01:44 2019.
 # import os
 import time
 from datetime import datetime
-import pytz
-
-
-# from datetime import datetime
-# from datetime import timedelta
-# from distutils import util
-# from enum import Enum
-# from urllib.request import urlopen
-# import urllib.error
-# import socket
 import shutil
 
 import csv
 import json
+
+import pytz
 
 # Moving to use requests instead of urllib
 import requests
@@ -229,7 +221,7 @@ class AirportDB:
                 self.airport_led_dict[airport_db_id] = airportdb_row
             if airport_purpose in ("web", "all"):
                 self.airport_web_dict[airport_db_id] = airportdb_row
-        return
+        return True
 
     def load_airport_db(self):
         """Load Airport Data file."""
@@ -288,7 +280,7 @@ class AirportDB:
         display_counter = 0
 
         for metar_data in root.iter("METAR"):
-            station_id = metar_data.find("station_id").text
+            station_id = metar_data.find("stationId").text
             station_id = station_id.lower()
 
             # Log an update every 20 stations parsed
@@ -302,7 +294,7 @@ class AirportDB:
             # print(":" + station_id + ": ", end='')
             # FIXME: Move most of this code into an Airport Class function, where it belongs
             metar_dict[station_id] = {}
-            metar_dict[station_id]["station_id"] = station_id
+            metar_dict[station_id]["stationId"] = station_id
             next_object = metar_data.find("raw_text")
             if next_object is not None:
                 metar_dict[station_id]["raw_text"] = next_object.text
@@ -400,16 +392,16 @@ class AirportDB:
 
         for taf in root.iter("TAF"):
             taf_data = {}
-            stationId = taf.find("station_id").text
-            stationId = stationId.lower()
+            station_id = taf.find("stationId").text
+            station_id = station_id.lower()
             issue_time = taf.find("issue_time").text
             raw_taf = taf.find("raw_text").text
 
-            taf_data["stationId"] = stationId
+            taf_data["stationId"] = station_id
             taf_data["issue_time"] = issue_time
             taf_data["raw_text"] = raw_taf
 
-            debugging.debug(f"TAF: {stationId} - {issue_time}")
+            debugging.debug(f"TAF: {station_id} - {issue_time}")
             fcast_index = 0
             taf_forecast = []
 
@@ -500,7 +492,7 @@ class AirportDB:
                             ):
                                 flightcategory = "MVFR"
 
-                    debugging.debug("Airport - " + stationId)
+                    debugging.debug("Airport - " + station_id)
                     debugging.debug("Flight Category - " + flightcategory)
                     if "wind_speed_kt" in fcast:
                         debugging.debug("Wind Speed - " + fcast["wind_speed_kt"])
@@ -522,9 +514,9 @@ class AirportDB:
                 fcast_index = fcast_index + 1
 
             taf_data["forecast"] = taf_forecast
-            taf_dict[stationId] = taf_data
+            taf_dict[station_id] = taf_data
 
-            debugging.debug(f"TAF: {stationId} - {issue_time} - {fcast_index - 1}")
+            debugging.debug(f"TAF: {station_id} - {issue_time} - {fcast_index - 1}")
 
         self.taf_xml_dict = taf_dict
         UTC = pytz.utc

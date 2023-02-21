@@ -39,6 +39,7 @@ class SystemData:
 
     def refresh(self):
         """Update data"""
+        # TODO: Need to refresh this data on a regular basis
         self.sysinfo = self.query_system_information()
         self.update_local_ip()
         self.uptime = "UNKN"
@@ -57,7 +58,7 @@ class SystemData:
             bytes_size /= factor
         return "ERR"
 
-    def query_system_information(self):
+    def poll_system_information(self):
         """Generate useful system description"""
         uname = platform.uname()
         # Get system information
@@ -142,4 +143,9 @@ class SystemData:
         sysinfo_text += (
             f"Total Bytes Received: {self.get_size(net_io.bytes_recv)}" + "<br> \n"
         )
-        return sysinfo_text
+        self.sysinfo = sysinfo_text
+
+    def query_system_information(self):
+        if self.sysinfo is "":
+            self.poll_system_information()
+        return self.sysinfo

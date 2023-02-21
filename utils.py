@@ -231,11 +231,12 @@ def decompress_file_gz(srcfile, dstfile):
         return 1
 
 
-def time_in_range(start, end, x_time):
+def time_in_range(start_time, end_time, check_time):
     """See if a time falls within range."""
-    if start <= end:
-        return start <= x_time <= end
-    return end <= x_time <= start
+    if start_time < end_time:
+        return check_time >= start_time and check_time <= end_time
+    else: # overnight
+        return check_time >= start_time or check_time <= end_time
 
 
 # Compare current time plus offset to TAF's time period and return difference

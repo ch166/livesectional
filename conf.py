@@ -101,7 +101,7 @@ class Conf:
         settings["max_wind_speed"] = self.get_string("metar", "max_wind_speed")
         settings["wx_update_interval"] = self.get_string("metar", "wx_update_interval")
         settings["metar_age"] = self.get_string("metar", "metar_age")
-        settings["usetimer"] = self.get_string("schedule", "usetimer")
+        settings["usetimer"] = self.get_bool("schedule", "usetimer")
         settings["offhour"] = self.get_string("schedule", "offhour")
         settings["offminutes"] = self.get_string("schedule", "offminutes")
         settings["onhour"] = self.get_string("schedule", "onhour")
@@ -240,25 +240,31 @@ class Conf:
 
     def parse_config_input(self, form_data):
         """Parse settings data input."""
-        # FIXME - Change to boolean here and in HTML Templates
-        self.set_string("default", "autorun", form_data["autorun"])
+        #
+        autorun_flag = utils.str2bool(form_data["autorun"])
+        self.set_string("default", "autorun", autorun_flag)
         self.set_string("default", "led_count", form_data["LED_COUNT"])
-        # FIXME - Change to boolean here and in HTML Templates
-        self.set_string("default", "legend", form_data["legend"])
+        #
+        legend_flag = utils.str2bool(form_data["legend"])
+        self.set_string("default", "legend", legend_flag )
         self.set_string("metar", "max_wind_speed", form_data["max_wind_speed"])
         self.set_string("metar", "wx_update_interval", form_data["wx_update_interval"])
         self.set_string("metar", "metar_age", form_data["metar_age"])
-        self.set_string("schedule", "usetimer", form_data["usetimer"])
+        #
+        timer_flag = utils.str2bool(form_data["usetimer"])
+        self.set_string("schedule", "usetimer", )
         self.set_string("schedule", "offhour", form_data["offhour"])
         self.set_string("schedule", "offminutes", form_data["offminutes"])
         self.set_string("schedule", "onhour", form_data["onhour"])
         self.set_string("schedule", "onminutes", form_data["onminutes"])
         self.set_string("schedule", "tempsleepon", form_data["tempsleepon"])
         self.set_string("schedule", "sleepmsg", form_data["sleepmsg"])
+        #
         self.set_string("oled", "displayused", form_data["displayused"])
         self.set_string("oled", "oledused", form_data["oledused"])
         self.set_string("oled", "lcddisplay", form_data["lcddisplay"])
         self.set_string("oled", "numofdisplays", form_data["numofdisplays"])
+        #
         self.set_string("default", "loglevel", form_data["loglevel"])
         self.set_string("lights", "bright_value", form_data["bright_value"])
         self.set_string("lights", "hiwindblink", form_data["hiwindblink"])

@@ -35,7 +35,6 @@ from enum import Enum, auto
 # from metar import Metar
 
 import debugging
-import ledstrip
 
 import utils
 import wx_utils
@@ -271,7 +270,7 @@ class Airport:
             self.wx_category = AirportFlightCategory.UNKN
             self.wx_category_str = "UNKN"
             self.set_metar(None)
-            return
+            return False
 
         # Don't need to worry about these entries existing
         # We check for valid data when we create the Airport data
@@ -293,6 +292,7 @@ class Airport:
 
         try:
             wx_utils.calculate_wx_from_metar(self)
+            return True
         except Exception as err:
             debug_string = f"Error: get_adds_metar processing {self._icao} metar:{self.get_raw_metar()}:"
             debugging.debug(debug_string)

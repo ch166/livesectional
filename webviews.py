@@ -61,7 +61,7 @@ class WebViews:
 
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
-        self.app.add_url_rule("/sysinfo", view_func=self.yindex, methods=["GET"])
+        self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
         self.app.add_url_rule(
             "/metar/<airport>", view_func=self.getmetar, methods=["GET"]
@@ -144,6 +144,8 @@ class WebViews:
 
     def standardtemplate_data(self):
         """Generate a standardized template_data."""
+        # For performance reasons we should do the minimum of data generation now
+        # This gets executed for every page load
         airport_dict_data = {}
         for (
             airport_icao,
@@ -184,8 +186,9 @@ class WebViews:
         }
         return template_data
 
-    def yindex(self):
+    def systeminfo(self):
         """Flask Route: /sysinfo - Display System Info."""
+        self._sysdata.refresh()
         template_data = self.standardtemplate_data()
         template_data["title"] = "SysInfo"
 

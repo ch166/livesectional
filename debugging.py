@@ -68,7 +68,7 @@ def dprint(args):
         logger.info(args)
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(logtime, appname, "PRINT:", args, flush=True)
+        # print(logtime, appname, "PRINT:", args, flush=True)
     else:
         return
 
@@ -81,7 +81,7 @@ def info(args):
         logger.info(args)
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(logtime, appname, "INFO:", args, flush=True)
+        # print(logtime, appname, "INFO:", args, flush=True)
     else:
         return
 
@@ -94,7 +94,7 @@ def warn(args):
         logger.warning(args)
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(logtime, appname, "WARN:", args, flush=True)
+        # print(logtime, appname, "WARN:", args, flush=True)
     else:
         return
 
@@ -108,7 +108,7 @@ def error(args):
         appname = "LIVEMAP:"
         logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         logging.error(args)
-        print(logtime, appname, "ERROR:", args, flush=True)
+        # print(logtime, appname, "ERROR:", args, flush=True)
     else:
         return
 

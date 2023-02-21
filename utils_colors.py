@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- #
 """ Collection of shared color handling functions and constants """
 
-from enum import Enum, auto
+# from enum import Enum, auto
 import random
 import debugging
 
@@ -105,40 +105,35 @@ def SNOW(confdata, value):
     """Get SNOW Color code from config"""
     if value == 1:
         return confdata.color("colors", "color_snow1")
-    else:
-        return confdata.color("colors", "color_snow2")
+    return confdata.color("colors", "color_snow2")
 
 
 def FRZRAIN(confdata, value):
     """Get Freezing Rain Color code from config"""
     if value == 1:
         return confdata.color("colors", "color_frrain1")
-    else:
-        return confdata.color("colors", "color_frrain2")
+    return confdata.color("colors", "color_frrain2")
 
 
 def DUST_SAND_ASH(confdata, value):
     """Get Dust Sand Ash Color (1) code from config"""
     if value == 1:
         return confdata.color("colors", "color_dustsandash1")
-    else:
-        return confdata.color("colors", "color_dustsandash2")
+    return confdata.color("colors", "color_dustsandash2")
 
 
 def FOG(confdata, value):
     """Get FOG Color code from config"""
     if value == 1:
         return confdata.color("colors", "color_fog1")
-    else:
-        return confdata.color("colors", "color_fog2")
+    return confdata.color("colors", "color_fog2")
 
 
 def RAIN(confdata, value):
     """Get RAIN Color code from config"""
     if value == 1:
         return confdata.color("colors", "color_rain1")
-    else:
-        return confdata.color("colors", "color_rain2")
+    return confdata.color("colors", "color_rain2")
 
 
 def NOWEATHER(confdata):
@@ -148,6 +143,7 @@ def NOWEATHER(confdata):
 
 # Generate random RGB color
 def randomcolor():
+    """Generate random color."""
     r = int(random.randint(0, 255))
     g = int(random.randint(0, 255))
     b = int(random.randint(0, 255))

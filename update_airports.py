@@ -71,8 +71,7 @@ class AirportDB:
     def __init__(self, conf):
         """Create a database of Airports to be tracked."""
 
-        # TODO:
-        # A lot of the class local variables are extras,
+        # TODO: A lot of the class local variables are extras,
         # left over from the restructuring of the code.
         # for example: Some are just copies of config file data, and it
         # should be remove them as class-local variables and access the

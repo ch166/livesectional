@@ -98,7 +98,7 @@
                         <b>Update FAA Weather = </b>
                     </td>
                     <td>
-                        <input type="number" name="update_interval" onchange="checkBlankF(this)" min="1" max="60" value={{ settings.wx_update_interval }} />
+                        <input type="number" name="wx_update_interval" onchange="checkBlankF(this)" min="1" max="60" value={{ settings.wx_update_interval }} />
                     </td>
                     <td>Number of MINUTES between FAA updates - 15 minutes is a good compromise. (Allowable range = 1 to 60)</td>
                 </tr>
@@ -164,9 +164,9 @@
                         <br />
                     </td>
                     <td>
-                        <input type="radio" name="usetimer" id="usetimeryes" value="1" {{ 'checked="checked"' if settings.usetimer=="1" else "" }} />
+                        <input type="radio" name="usetimer" id="usetimeryes" value="1" {{ 'checked="checked"' if settings.usetimer else "" }} />
                         <label for="usetimeryes">Yes</label>
-                        <input type="radio" name="usetimer" id="usetimerno" value="0" {{ 'checked="checked"' if settings.usetimer=="0" else "" }} />
+                        <input type="radio" name="usetimer" id="usetimerno" value="0" {{ 'checked="checked"' if not settings.usetimer else "" }} />
                         <label for="usetimerno">No</label>
                     </td>
                     <td>

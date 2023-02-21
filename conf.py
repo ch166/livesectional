@@ -246,13 +246,16 @@ class Conf:
         self.set_string("default", "led_count", form_data["LED_COUNT"])
         #
         legend_flag = utils.str2bool(form_data["legend"])
-        self.set_string("default", "legend", legend_flag )
+        self.set_string("default", "legend", legend_flag)
         self.set_string("metar", "max_wind_speed", form_data["max_wind_speed"])
         self.set_string("metar", "wx_update_interval", form_data["wx_update_interval"])
         self.set_string("metar", "metar_age", form_data["metar_age"])
         #
         timer_flag = utils.str2bool(form_data["usetimer"])
-        self.set_string("schedule", "usetimer", )
+        self.set_string(
+            "schedule",
+            "usetimer",
+        )
         self.set_string("schedule", "offhour", form_data["offhour"])
         self.set_string("schedule", "offminutes", form_data["offminutes"])
         self.set_string("schedule", "onhour", form_data["onhour"])

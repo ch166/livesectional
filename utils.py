@@ -235,7 +235,7 @@ def time_in_range(start_time, end_time, check_time):
     """See if a time falls within range."""
     if start_time < end_time:
         return check_time >= start_time and check_time <= end_time
-    else: # overnight
+    else:  # overnight
         return check_time >= start_time or check_time <= end_time
 
 

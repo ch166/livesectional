@@ -114,8 +114,12 @@ class WebViews:
         self.app.add_url_rule(
             "/system_reboot", view_func=self.system_reboot, methods=["GET", "POST"]
         )
-        self.app.add_url_rule("/mapturnon", view_func=self.handle_mapturnon, methods=["GET", "POST"])
-        self.app.add_url_rule("/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"])
+        self.app.add_url_rule(
+            "/mapturnon", view_func=self.handle_mapturnon, methods=["GET", "POST"]
+        )
+        self.app.add_url_rule(
+            "/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"]
+        )
 
         self.max_lat = 0
         self.min_lat = 0

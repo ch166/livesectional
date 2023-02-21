@@ -50,8 +50,10 @@ import debugging
 import utils
 import utils_colors
 
+
 class LedMode(Enum):
     """Set of Operating Modes for LED Strip."""
+
     OFF = auto()
     SLEEP = auto()
     METAR = auto()
@@ -402,7 +404,7 @@ class UpdateLEDs:
 
     def findpoint(self, x_1, y_1, x_2, y_2, x_posn, y_posn):
         """Check to see if x,y is inside rectangle x_1,y_1-x_2,y_2."""
-        return ((x_1 < x_posn < x_2) and (y_1 < y_posn < y_2))
+        return (x_1 < x_posn < x_2) and (y_1 < y_posn < y_2)
 
     def area(self, x_1, y_1, x_2, y_2, x_3, y_3):
         """Calculate area of triangle."""
@@ -607,7 +609,7 @@ class UpdateLEDs:
     def ledmode_heatmap(self, clocktick):
         """Placeholder STUB."""
         # FIXME: Stub
-        if clocktick:   # Local scope ; no effect
+        if clocktick:  # Local scope ; no effect
             return {}
         return {}
 

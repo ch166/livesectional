@@ -436,8 +436,8 @@ class UpdateLEDs:
 
     def center(self, max_a, min_a):
         """Calculate the middle point between two values."""
-        z = ((max_a - min_a) / 2) + min_a
-        return round(z, 2)
+        z_val = ((max_a - min_a) / 2) + min_a
+        return round(z_val, 2)
 
     def rgbtogrb(self, pin, data, order=True):
         """Change colorcode to match self.strip RGB / GRB style"""

@@ -239,12 +239,14 @@ class WebViews:
                 self._led_strip.set_ledmode(LedMode.METAR)
             if newledmode_upper == "SHUFFLE":
                 self._led_strip.set_ledmode(LedMode.SHUFFLE)
+            if newledmode_upper == "RAINBOW":
+                self._led_strip.set_ledmode(LedMode.RAINBOW)
 
             flash(f"LED Mode set to {newledmode}")
             debugging.info(f"LEDMode set to {newledmode}")
             return redirect("ledmodeset")
 
-        ledmodelist = ["METAR", "Off", "Test", "Rabbit", "Shuffle"]
+        ledmodelist = ["METAR", "Off", "Test", "Rabbit", "Shuffle", "Rainbow"]
         current_ledmode = self._led_strip.ledmode()
 
         template_data = self.standardtemplate_data()

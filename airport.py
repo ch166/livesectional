@@ -37,7 +37,7 @@ from enum import Enum, auto
 import debugging
 
 import utils
-import wx_utils
+import utils_wx
 
 
 class AirportFlightCategory(Enum):
@@ -291,7 +291,7 @@ class Airport:
         self.set_wx_category(self.wx_category_str)
 
         try:
-            wx_utils.calculate_wx_from_metar(self)
+            utils_wx.calculate_wx_from_metar(self)
             return True
         except Exception as err:
             debug_string = f"Error: get_adds_metar processing {self._icao} metar:{self.get_raw_metar()}:"
@@ -318,9 +318,9 @@ class Airport:
             # adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geographies
             debugging.info(f"Update USA Metar: {self._icao} - {self.wx_category_str}")
-            freshness = wx_utils.get_usa_metar(self)
+            freshness = utils_wx.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh
                 return
-            wx_utils.calculate_wx_from_metar(self)
+            utils_wx.calculate_wx_from_metar(self)
         return

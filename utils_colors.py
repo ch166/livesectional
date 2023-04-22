@@ -67,6 +67,9 @@ def HEX_tuple(col_tuple):
 
 def HEX(red_value, green_value, blue_value):
     """Return HEX values from RGB string"""
+    red_value = int(red_value) % 255
+    green_value = int(green_value) % 255
+    blue_value = int(blue_value) % 255
     hexval = "#%02x%02x%02x" % (red_value, green_value, blue_value)
     return hexval
 

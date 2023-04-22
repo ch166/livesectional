@@ -39,5 +39,6 @@ pyqrcode
 python-dateutil
 luma.core
 luma.oled
+webcolors
 python_tsl2591
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

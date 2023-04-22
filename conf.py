@@ -7,6 +7,7 @@ Created on Oct 28 - 2021.
 
 import re
 import configparser
+import utils
 
 # This configuration parser provides access to the key/value data stored in
 # the config.ini file. It currently uses configparser as the backend for managing ini files.
@@ -70,7 +71,9 @@ class Conf:
 
     def set_string(self, section, key, value):
         """Set String Value."""
-        self.configfile.set(section, key, value)
+        # FIXME: Convert value to a string
+        str_value = f"{value}"
+        self.configfile.set(section, key, str_value)
 
     def get_bool(self, section, key):
         """Read Setting."""
@@ -255,6 +258,7 @@ class Conf:
         self.set_string(
             "schedule",
             "usetimer",
+            timer_flag
         )
         self.set_string("schedule", "offhour", form_data["offhour"])
         self.set_string("schedule", "offminutes", form_data["offminutes"])

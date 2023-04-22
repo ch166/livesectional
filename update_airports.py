@@ -280,7 +280,9 @@ class AirportDB:
         display_counter = 0
 
         for metar_data in root.iter("METAR"):
-            station_id = metar_data.find("stationId").text
+            if metar_data is None:
+                return False
+            station_id = metar_data.find("station_id").text
             station_id = station_id.lower()
 
             # Log an update every 20 stations parsed
@@ -391,8 +393,10 @@ class AirportDB:
             return False
 
         for taf in root.iter("TAF"):
+            if taf is None:
+                return False
             taf_data = {}
-            station_id = taf.find("stationId").text
+            station_id = taf.find("station_id").text
             station_id = station_id.lower()
             issue_time = taf.find("issue_time").text
             raw_taf = taf.find("raw_text").text

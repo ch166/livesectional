@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- #
 
 """
 Main livemap program
@@ -125,6 +125,7 @@ if __name__ == "__main__":
     #
     # Start Executing Threads
     #
+
     debugging.info("Starting threads")
     airport_thread.start()
     led_thread.start()
@@ -133,13 +134,13 @@ if __name__ == "__main__":
     flask_thread.start()
     lightsensor_thread.start()
 
-    main_loop_sleep = 5
+    MAIN_LOOP_SLEEP = 5
 
     while True:
-        MSG = "In Main Loop - Threadcount ({}), Sleep for {}m"
+        info_msg = "In Main Loop - Threadcount ({}), Sleep for {}m"
         active_thread_count = threading.active_count()
-        debugging.info(MSG.format(active_thread_count, main_loop_sleep))
+        debugging.info(info_msg.format(active_thread_count, MAIN_LOOP_SLEEP))
 
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
-        time.sleep(main_loop_sleep * 60)
+        time.sleep(MAIN_LOOP_SLEEP * 60)

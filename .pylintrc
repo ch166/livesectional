@@ -58,6 +58,7 @@ confidence=
 # --disable=W"
 #
 
+disable=R0902,R0904,R0912,R0913,R0914,R0915,W0511
 
 [REPORTS]
 

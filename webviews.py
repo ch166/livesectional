@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Flask Module for WEB Interface. """
+"""Flask Module for WEB Interface."""
 
 import os
 
@@ -49,7 +49,20 @@ import debugging
 class WebViews:
     """Class to contain all the Flask WEB functionality."""
 
-    def __init__(self, config, sysdata, airport_database, appinfo, LEDmgmt):
+    max_lat = 0
+    min_lat = 0
+    max_lon = 0
+    min_lon = 0
+
+    airports = []
+    update_vers = None
+    machines = []
+    update_available = None
+    ap_info = None
+    settings = None
+    led_map_dict = {}
+
+    def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt):
         self.conf = config
         self._sysdata = sysdata
         self._airport_database = airport_database
@@ -63,81 +76,33 @@ class WebViews:
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
         self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
-        self.app.add_url_rule(
-            "/metar/<airport>", view_func=self.getmetar, methods=["GET"]
-        )
+        self.app.add_url_rule("/metar/<airport>", view_func=self.getmetar, methods=["GET"])
         self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
         self.app.add_url_rule("/wx/<airport>", view_func=self.getwx, methods=["GET"])
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
-        self.app.add_url_rule(
-            "/ledmodeset", view_func=self.ledmodeset, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/led_map", view_func=self.led_map, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/heat_map", view_func=self.heat_map, methods=["GET", "POST"]
-        )
+        self.app.add_url_rule("/ledmodeset", view_func=self.ledmodeset, methods=["GET", "POST"])
+        self.app.add_url_rule("/led_map", view_func=self.led_map, methods=["GET", "POST"])
+        self.app.add_url_rule("/heat_map", view_func=self.heat_map, methods=["GET", "POST"])
         # self.app.add_url_rule("/touchscr", view_func=self.touchscr, methods=["GET", "POST"])
-        self.app.add_url_rule(
-            "/open_console", view_func=self.open_console, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/stream_log", view_func=self.stream_log, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/stream_log1", view_func=self.stream_log1, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/download_ap", view_func=self.downloadairports, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/download_cf", view_func=self.downloadconfig, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/download_log", view_func=self.downloadlog, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/confedit", view_func=self.confedit, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/confmobile", view_func=self.confmobile, methods=["GET", "POST"]
-        )
+        self.app.add_url_rule("/open_console", view_func=self.open_console, methods=["GET", "POST"])
+        self.app.add_url_rule("/stream_log", view_func=self.stream_log, methods=["GET", "POST"])
+        self.app.add_url_rule("/stream_log1", view_func=self.stream_log1, methods=["GET", "POST"])
+        self.app.add_url_rule("/download_ap", view_func=self.downloadairports, methods=["GET", "POST"])
+        self.app.add_url_rule("/download_cf", view_func=self.downloadconfig, methods=["GET", "POST"])
+        self.app.add_url_rule("/download_log", view_func=self.downloadlog, methods=["GET", "POST"])
+        self.app.add_url_rule("/confedit", view_func=self.confedit, methods=["GET", "POST"])
+        self.app.add_url_rule("/confmobile", view_func=self.confmobile, methods=["GET", "POST"])
         self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET", "POST"])
         self.app.add_url_rule("/hmedit", view_func=self.hmedit, methods=["GET", "POST"])
-        self.app.add_url_rule(
-            "/hmpost", view_func=self.hmpost_handler, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/cfpost", view_func=self.cfedit_handler, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/system_reboot", view_func=self.system_reboot, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/mapturnon", view_func=self.handle_mapturnon, methods=["GET", "POST"]
-        )
-        self.app.add_url_rule(
-            "/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"]
-        )
+        self.app.add_url_rule("/hmpost", view_func=self.hmpost_handler, methods=["GET", "POST"])
+        self.app.add_url_rule("/cfpost", view_func=self.cfedit_handler, methods=["GET", "POST"])
+        self.app.add_url_rule("/system_reboot", view_func=self.system_reboot, methods=["GET", "POST"])
+        self.app.add_url_rule("/mapturnon", view_func=self.handle_mapturnon, methods=["GET", "POST"])
+        self.app.add_url_rule("/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"])
 
-        self.max_lat = 0
-        self.min_lat = 0
-        self.max_lon = 0
-        self.min_lon = 0
+        self._led_strip = led_mgmt
 
-        self._led_strip = LEDmgmt
-
-        # Replace These with real data
-        self.airports = []
-        self.update_vers = None
-        self.machines = []
         self.num = self.conf.get_int("default", "led_count")
-        self.update_available = None
-        self.ap_info = None
-        self.settings = None
-
-        self.led_map_dict = {}
 
     def run(self):
         """Run Flask Application.
@@ -176,9 +141,7 @@ class WebViews:
             "strip": self._led_strip,
             "timestr": utils.time_format(utils.current_time(self.conf)),
             "timestrutc": utils.time_format(utils.current_time_utc(self.conf)),
-            "timemetarage": utils.time_format(
-                self._airport_database.get_metar_update_time()
-            ),
+            "timemetarage": utils.time_format(self._airport_database.get_metar_update_time()),
             "current_timezone": self.conf.get_string("default", "timezone"),
             "current_ledmode": current_ledmode,
             "num": self.num,
@@ -360,7 +323,6 @@ class WebViews:
             self.min_lon = min(lon_list)
         else:
             self.max_lat = 0
-        return
 
     # Route to display map's airports on a digital map.
     # @app.route('/led_map', methods=["GET", "POST"])
@@ -386,9 +348,7 @@ class WebViews:
             tiles="OpenStreetMap",
         )
         # Place map within bounds of screen
-        folium_map.fit_bounds(
-            [[self.min_lat - 1, self.min_lon - 1], [self.max_lat + 1, self.max_lon + 1]]
-        )
+        folium_map.fit_bounds([[self.min_lat - 1, self.min_lon - 1], [self.max_lat + 1, self.max_lon + 1]])
         # Set Marker Color by Flight Category
         airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
@@ -433,9 +393,7 @@ class WebViews:
             # floats otherwise recursion error occurs.
             pin_index = int(arpt.get_led_index())
             points.insert(pin_index, [arpt.latitude(), arpt.longitude()])
-            folium.PolyLine(
-                points, color="grey", weight=2.5, opacity=1, dash_array="10"
-            ).add_to(folium_map)
+            folium.PolyLine(points, color="grey", weight=2.5, opacity=1, dash_array="10").add_to(folium_map)
 
         # Add Title to the top of the map
         folium.map.Marker(
@@ -511,9 +469,7 @@ class WebViews:
         )
 
         # Place map within bounds of screen
-        folium_map.fit_bounds(
-            [[self.min_lat, self.min_lon], [self.max_lat, self.max_lon]]
-        )
+        folium_map.fit_bounds([[self.min_lat, self.min_lon], [self.max_lat, self.max_lon]])
 
         # Set Marker Color by Flight Category
         airports = self._airport_database.get_airport_dict_led()
@@ -561,10 +517,7 @@ class WebViews:
         airports = self._airport_database.get_airport_dict_led()
         for icao, arptdb_row in airports.items():
             arpt = arptdb_row["airport"]
-            debugging.info(
-                f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} :"
-                f" Coords: {arpt.valid_coordinates()}"
-            )
+            debugging.info(f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} :" f" Coords: {arpt.valid_coordinates()}")
             if not arpt.active():
                 # Inactive airports likely don't have valid lat/lon data
                 continue
@@ -573,9 +526,7 @@ class WebViews:
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(arpt.get_led_index())
-            debugging.info(
-                f"HeatMap: {arpt.icaocode()} :{arpt.latitude()}:{arpt.longitude()}:{pin_index}:"
-            )
+            debugging.info(f"HeatMap: {arpt.icaocode()} :{arpt.latitude()}:{arpt.longitude()}:{pin_index}:")
             points.insert(pin_index, [arpt.latitude(), arpt.longitude()])
 
         # debugging.info(points)
@@ -645,9 +596,7 @@ class WebViews:
         my_qrcode = QRCode(qraddress)
         my_qrcode.png(qrcode_file, scale=8)
 
-        return render_template(
-            "qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data
-        )
+        return render_template("qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data)
 
     def getwx(self, airport):
         """Flask Route: /wx - Get WX JSON for Airport."""
@@ -704,9 +653,7 @@ class WebViews:
             # debugging.info(airport_entry)
             template_data["metar"] = airport_entry["raw_text"]
         except Exception as err:
-            debugging.error(
-                f"Attempt to get metar for failed for :{airport}: ERR:{err}"
-            )
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{err}")
             template_data["metar"] = "ERR - Not found"
 
         return render_template("metar.html", **template_data)
@@ -734,9 +681,7 @@ class WebViews:
             debugging.info(airport_entry)
             template_data["taf"] = airport_entry["raw_text"]
         except Exception as err:
-            debugging.error(
-                f"Attempt to get metar for failed for :{airport}: ERR:{err}"
-            )
+            debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{err}")
             template_data["taf"] = "ERR - Not found"
 
         return render_template("taf.html", **template_data)
@@ -871,44 +816,43 @@ class WebViews:
         debugging.info("Controlling LED's on/off")
 
         if request.method == "POST":
-
             if "buton" in request.form:
                 num = int(request.form["lednum"])
                 debugging.info("LED " + str(num) + " On")
-                self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.set_led_color(num, Color(155, 155, 155))
                 self._led_strip.show()
                 flash("LED " + str(num) + " On")
 
             elif "butoff" in request.form:
                 num = int(request.form["lednum"])
                 debugging.info("LED " + str(num) + " Off")
-                self._led_strip.setLedColor(num, Color(0, 0, 0))
+                self._led_strip.set_led_color(num, Color(0, 0, 0))
                 self._led_strip.show()
                 flash("LED " + str(num) + " Off")
 
             elif "butup" in request.form:
                 debugging.info("LED UP")
                 num = int(request.form["lednum"])
-                self._led_strip.setLedColor(num, Color(0, 0, 0))
+                self._led_strip.set_led_color(num, Color(0, 0, 0))
                 num = num + 1
 
                 # FIXME: self.airports retired
                 if num > len(self.airports):
                     num = len(self.airports)
 
-                self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.set_led_color(num, Color(155, 155, 155))
                 self._led_strip.show()
                 flash("LED " + str(num) + " should be On")
 
             elif "butdown" in request.form:
                 debugging.info("LED DOWN")
                 num = int(request.form["lednum"])
-                self._led_strip.setLedColor(num, Color(0, 0, 0))
+                self._led_strip.set_led_color(num, Color(0, 0, 0))
 
                 num = num - 1
                 num = max(num, 0)
 
-                self._led_strip.setLedColor(num, Color(155, 155, 155))
+                self._led_strip.set_led_color(num, Color(155, 155, 155))
                 self._led_strip.show()
                 flash("LED " + str(num) + " should be On")
 
@@ -918,7 +862,7 @@ class WebViews:
 
                 # FIXME: self.airports retired
                 for num in range(len(self.airports)):
-                    self._led_strip.setLedColor(num, Color(155, 155, 155))
+                    self._led_strip.set_led_color(num, Color(155, 155, 155))
                 self._led_strip.show()
                 flash("All LEDs should be On")
                 num = 0
@@ -929,7 +873,7 @@ class WebViews:
 
                 # FIXME: self.airports retired
                 for num in range(len(self.airports)):
-                    self._led_strip.setLedColor(num, Color(0, 0, 0))
+                    self._led_strip.set_led_color(num, Color(0, 0, 0))
                 self._led_strip.show()
                 flash("All LEDs should be Off")
                 num = 0
@@ -998,31 +942,17 @@ class WebViews:
         template_data["color_rain2_hex"] = self.conf.color("colors", "color_rain2")
         template_data["color_frrain1_hex"] = self.conf.color("colors", "color_frrain1")
         template_data["color_frrain2_hex"] = self.conf.color("colors", "color_frrain2")
-        template_data["color_dustsandash1_hex"] = self.conf.color(
-            "colors", "color_dustsandash1"
-        )
-        template_data["color_dustsandash2_hex"] = self.conf.color(
-            "colors", "color_dustsandash2"
-        )
+        template_data["color_dustsandash1_hex"] = self.conf.color("colors", "color_dustsandash1")
+        template_data["color_dustsandash2_hex"] = self.conf.color("colors", "color_dustsandash2")
         template_data["color_fog1_hex"] = self.conf.color("colors", "color_fog1")
         template_data["color_fog2_hex"] = self.conf.color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self.conf.color(
-            "colors", "color_homeport"
-        )
+        template_data["color_homeport_hex"] = self.conf.color("colors", "color_homeport")
 
         template_data["fade_color1_hex"] = self.conf.color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self.conf.color(
-            "colors", "allsame_color1"
-        )
-        template_data["allsame_color2_hex"] = self.conf.color(
-            "colors", "allsame_color2"
-        )
-        template_data["shuffle_color1_hex"] = self.conf.color(
-            "colors", "shuffle_color1"
-        )
-        template_data["shuffle_color2_hex"] = self.conf.color(
-            "colors", "shuffle_color2"
-        )
+        template_data["allsame_color1_hex"] = self.conf.color("colors", "allsame_color1")
+        template_data["allsame_color2_hex"] = self.conf.color("colors", "allsame_color2")
+        template_data["shuffle_color1_hex"] = self.conf.color("colors", "shuffle_color1")
+        template_data["shuffle_color2_hex"] = self.conf.color("colors", "shuffle_color2")
         template_data["radar_color1_hex"] = self.conf.color("colors", "radar_color1")
         template_data["radar_color2_hex"] = self.conf.color("colors", "radar_color2")
         template_data["circle_color1_hex"] = self.conf.color("colors", "circle_color1")
@@ -1035,12 +965,8 @@ class WebViews:
         template_data["morse_color2_hex"] = self.conf.color("colors", "morse_color2")
         template_data["rabbit_color1_hex"] = self.conf.color("colors", "rabbit_color1")
         template_data["rabbit_color2_hex"] = self.conf.color("colors", "rabbit_color2")
-        template_data["checker_color1_hex"] = self.conf.color(
-            "colors", "checker_color1"
-        )
-        template_data["checker_color2_hex"] = self.conf.color(
-            "colors", "checker_color2"
-        )
+        template_data["checker_color1_hex"] = self.conf.color("colors", "checker_color1")
+        template_data["checker_color2_hex"] = self.conf.color("colors", "checker_color2")
         return render_template("confedit.html", **template_data)
 
     # @app.route("/cfpost", methods=["GET", "POST"])
@@ -1105,31 +1031,17 @@ class WebViews:
         template_data["color_rain2_hex"] = self.conf.color("colors", "color_rain2")
         template_data["color_frrain1_hex"] = self.conf.color("colors", "color_frrain1")
         template_data["color_frrain2_hex"] = self.conf.color("colors", "color_frrain2")
-        template_data["color_dustsandash1_hex"] = self.conf.color(
-            "colors", "color_dustsandash1"
-        )
-        template_data["color_dustsandash2_hex"] = self.conf.color(
-            "colors", "color_dustsandash2"
-        )
+        template_data["color_dustsandash1_hex"] = self.conf.color("colors", "color_dustsandash1")
+        template_data["color_dustsandash2_hex"] = self.conf.color("colors", "color_dustsandash2")
         template_data["color_fog1_hex"] = self.conf.color("colors", "color_fog1")
         template_data["color_fog2_hex"] = self.conf.color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self.conf.color(
-            "colors", "color_homeport"
-        )
+        template_data["color_homeport_hex"] = self.conf.color("colors", "color_homeport")
 
         template_data["fade_color1_hex"] = self.conf.color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self.conf.color(
-            "colors", "allsame_color1"
-        )
-        template_data["allsame_color2_hex"] = self.conf.color(
-            "colors", "allsame_color2"
-        )
-        template_data["shuffle_color1_hex"] = self.conf.color(
-            "colors", "shuffle_color1"
-        )
-        template_data["shuffle_color2_hex"] = self.conf.color(
-            "colors", "shuffle_color2"
-        )
+        template_data["allsame_color1_hex"] = self.conf.color("colors", "allsame_color1")
+        template_data["allsame_color2_hex"] = self.conf.color("colors", "allsame_color2")
+        template_data["shuffle_color1_hex"] = self.conf.color("colors", "shuffle_color1")
+        template_data["shuffle_color2_hex"] = self.conf.color("colors", "shuffle_color2")
         template_data["radar_color1_hex"] = self.conf.color("colors", "radar_color1")
         template_data["radar_color2_hex"] = self.conf.color("colors", "radar_color2")
         template_data["circle_color1_hex"] = self.conf.color("colors", "circle_color1")
@@ -1142,12 +1054,8 @@ class WebViews:
         template_data["morse_color2_hex"] = self.conf.color("colors", "morse_color2")
         template_data["rabbit_color1_hex"] = self.conf.color("colors", "rabbit_color1")
         template_data["rabbit_color2_hex"] = self.conf.color("colors", "rabbit_color2")
-        template_data["checker_color1_hex"] = self.conf.color(
-            "colors", "checker_color1"
-        )
-        template_data["checker_color2_hex"] = self.conf.color(
-            "colors", "checker_color2"
-        )
+        template_data["checker_color1_hex"] = self.conf.color("colors", "checker_color1")
+        template_data["checker_color2_hex"] = self.conf.color("colors", "checker_color2")
         return render_template("lsremote.html", **template_data)
 
     # FIXME: Integrate into Class
@@ -1313,9 +1221,7 @@ class WebViews:
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
-        if (self.conf.get_int("oled", "displayused") != 1) or (
-            self.conf.get_int("oled", "oledused") != 1
-        ):
+        if (self.conf.get_int("oled", "displayused") != 1) or (self.conf.get_int("oled", "oledused") != 1):
             return redirect("/")
             # temp[3] holds name of page that called this route.
 

@@ -157,7 +157,6 @@ class UpdateGPIO:
         tempsleepon = self.conf.get_int("schedule", "tempsleepon")
 
         while outerloop:
-
             # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
             if GPIO.input(22) is False:
                 # Set to turn lights on two seconds ago to make sure we hit the loop next time through

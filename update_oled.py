@@ -150,7 +150,6 @@ class UpdateOLEDs:
     }
 
     def __init__(self, conf, airport_database, i2cbus):
-
         self.conf = conf
         self.airport_database = airport_database
         self.i2cbus = i2cbus

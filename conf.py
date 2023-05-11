@@ -255,11 +255,7 @@ class Conf:
         self.set_string("metar", "metar_age", form_data["metar_age"])
         #
         timer_flag = utils.str2bool(form_data["usetimer"])
-        self.set_string(
-            "schedule",
-            "usetimer",
-            timer_flag
-        )
+        self.set_string("schedule", "usetimer", timer_flag)
         self.set_string("schedule", "offhour", form_data["offhour"])
         self.set_string("schedule", "offminutes", form_data["offminutes"])
         self.set_string("schedule", "onhour", form_data["onhour"])

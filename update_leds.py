@@ -321,7 +321,9 @@ class UpdateLEDs:
         self.__rgb_grb = self.__conf.get_int("lights", "rgb_grb")
 
         self.homeport_toggle = False
-        self.homeport_colors = ast.literal_eval(self.__conf.get_string("colors", "homeport_colors"))
+        self.homeport_colors = ast.literal_eval(
+            self.__conf.get_string("colors", "homeport_colors")
+        )
 
         # Blanking during refresh of the LED string between FAA updates.
         # Removing because it's not currently used
@@ -352,7 +354,9 @@ class UpdateLEDs:
     def init_rainbow(self):
         """Define Rainbow Color List."""
         rainbow_index = 30
-        hsv_tuples = [(x * 1.0 / rainbow_index, 0.85, 0.5) for x in range(rainbow_index)]
+        hsv_tuples = [
+            (x * 1.0 / rainbow_index, 0.85, 0.5) for x in range(rainbow_index)
+        ]
         rgb_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples)
         rgb_list = list(rgb_tuples)
         for i in range(len(rgb_list)):
@@ -370,18 +374,34 @@ class UpdateLEDs:
         self.__confcache["ifr_color"] = utils_colors.cat_ifr(self.__conf)
         self.__confcache["lifr_color"] = utils_colors.cat_lifr(self.__conf)
         self.__confcache["unkn_color"] = utils_colors.wx_noweather(self.__conf)
-        self.__confcache["lights_highwindblink"] = self.__conf.get_bool("lights", "hiwindblink")
-        self.__confcache["metar_maxwindspeed"] = self.__conf.get_int("metar", "max_wind_speed")
-        self.__confcache["lights_lghtnflash"] = self.__conf.get_bool("lights", "lghtnflash")
+        self.__confcache["lights_highwindblink"] = self.__conf.get_bool(
+            "lights", "hiwindblink"
+        )
+        self.__confcache["metar_maxwindspeed"] = self.__conf.get_int(
+            "metar", "max_wind_speed"
+        )
+        self.__confcache["lights_lghtnflash"] = self.__conf.get_bool(
+            "lights", "lghtnflash"
+        )
         self.__confcache["lights_snowshow"] = self.__conf.get_bool("lights", "snowshow")
         self.__confcache["lights_rainshow"] = self.__conf.get_bool("lights", "rainshow")
-        self.__confcache["lights_frrainshow"] = self.__conf.get_bool("lights", "frrainshow")
-        self.__confcache["lights_dustsandashshow"] = self.__conf.get_bool("lights", "dustsandashshow")
+        self.__confcache["lights_frrainshow"] = self.__conf.get_bool(
+            "lights", "frrainshow"
+        )
+        self.__confcache["lights_dustsandashshow"] = self.__conf.get_bool(
+            "lights", "dustsandashshow"
+        )
         self.__confcache["lights_fogshow"] = self.__conf.get_bool("lights", "fogshow")
-        self.__confcache["lights_homeportpin"] = self.__conf.get_int("lights", "homeport_pin")
+        self.__confcache["lights_homeportpin"] = self.__conf.get_int(
+            "lights", "homeport_pin"
+        )
         self.__confcache["lights_homeport"] = self.__conf.get_int("lights", "homeport")
-        self.__confcache["lights_homeport_display"] = self.__conf.get_int("lights", "homeport_display")
-        self.__confcache["rev_rgb_grb"] = self.__conf.get_string("lights", "rev_rgb_grb")
+        self.__confcache["lights_homeport_display"] = self.__conf.get_int(
+            "lights", "homeport_display"
+        )
+        self.__confcache["rev_rgb_grb"] = self.__conf.get_string(
+            "lights", "rev_rgb_grb"
+        )
 
     def ledmode(self):
         """Return current LED Mode."""
@@ -460,12 +480,10 @@ class UpdateLEDs:
         """
         if isinstance(value, str):
             value = int(value)
-
         data = utils_colors.rgb_color(color_data)
         red = max(data[0] - ((value * data[0]) / 100), 0)
         grn = max(data[1] - ((value * data[1]) / 100), 0)
         blu = max(data[2] - ((value * data[2]) / 100), 0)
-
         return utils_colors.hexcode(red, grn, blu)
 
     def findpoint(self, x_1, y_1, x_2, y_2, x_posn, y_posn):
@@ -533,7 +551,9 @@ class UpdateLEDs:
         if visits == "0":
             color = utils_colors.colordict["GOLD"]
         elif visits == "100":
-            if self.__conf.get_bool("rotaryswitch", "fade_yesno") and self.__conf.get_bool("rotaryswitch", "bin_grad"):
+            if self.__conf.get_bool(
+                "rotaryswitch", "fade_yesno"
+            ) and self.__conf.get_bool("rotaryswitch", "bin_grad"):
                 color = utils_colors.black()
             elif not self.__conf.get_bool("rotaryswitch", "use_homeap"):
                 color = utils_colors.colordict["RED"]
@@ -662,7 +682,7 @@ class UpdateLEDs:
                 continue
 
     def update_ledstring(self, led_color_dict):
-        """Iter across all the LEDs and set the color appropriately."""
+        """Iterate across all the LEDs and set the color appropriately."""
         for ledindex, led_color in led_color_dict.items():
             self.set_led_color(ledindex, led_color)
         self.strip.setBrightness(self.__led_brightness)
@@ -671,13 +691,6 @@ class UpdateLEDs:
     def ledmode_test(self, clocktick):
         """Run self test sequences."""
         self.colorwipe(clocktick)
-
-    def ledmode_heatmap(self, clocktick):
-        """Placeholder STUB."""
-        # FIXME: Stub
-        if clocktick:  # Local scope ; no effect
-            return {}
-        return {}
 
     def legend_color(self, airportwxsrc, cycle_num):
         """Work out the color for the legend LEDs."""
@@ -771,7 +784,9 @@ class UpdateLEDs:
             if not airportwinds:
                 airportwinds = -1
             airport_conditions = airport_record.wxconditions()
-            debugging.debug(f"{airportcode}:{flightcategory}:{airportwinds}:cycle=={cycle_num}")
+            debugging.debug(
+                f"{airportcode}:{flightcategory}:{airportwinds}:cycle=={cycle_num}"
+            )
 
             # Start of weather display code for each airport in the "airports" file
             # Check flight category and set the appropriate color to display
@@ -789,7 +804,9 @@ class UpdateLEDs:
             # Check winds and set the 2nd half of cycles to black to create blink effect
             if self.__confcache["lights_highwindblink"]:
                 # bypass if "hiwindblink" is set to 0
-                if int(airportwinds) >= self.__confcache["metar_maxwindspeed"] and (cycle_num in (3, 4, 5)):
+                if int(airportwinds) >= self.__confcache["metar_maxwindspeed"] and (
+                    cycle_num in (3, 4, 5)
+                ):
                     ledcolor = utils_colors.off()
                     debugging.debug(f"HIGH WINDS {airportcode} : {airportwinds} kts")
 
@@ -821,7 +838,9 @@ class UpdateLEDs:
 
             if self.__confcache["lights_dustsandashshow"]:
                 # Check for Dust, Sand or Ash
-                if airport_conditions in self.wx_dustsandash_ck and (cycle_num in (3, 5)):
+                if airport_conditions in self.wx_dustsandash_ck and (
+                    cycle_num in (3, 5)
+                ):
                     ledcolor = utils_colors.wx_dust_sand_ash(self.__conf, 1)
                 if airport_conditions in self.wx_dustsandash_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_dust_sand_ash(self.__conf, 2)
@@ -836,11 +855,17 @@ class UpdateLEDs:
             # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
             # so that every other time through, the color will display the proper weather, then homeport color(s).
             self.homeport_toggle = not self.homeport_toggle
-            if airportled == self.__confcache["lights_homeportpin"] and self.__confcache["lights_homeport"] and self.homeport_toggle:
+            if (
+                airportled == self.__confcache["lights_homeportpin"]
+                and self.__confcache["lights_homeport"]
+                and self.homeport_toggle
+            ):
                 if self.__confcache["lights_homeport_display"] == 1:
                     # FIXME: ast.literal_eval converts a string to a list of tuples..
                     # Should move these colors to be managed with other colors.
-                    homeport_colors = ast.literal_eval(self.__conf.get_string("colors", "homeport_colors"))
+                    homeport_colors = ast.literal_eval(
+                        self.__conf.get_string("colors", "homeport_colors")
+                    )
                     # The length of this array needs to metch the cycle_num length or we'll get errors.
                     # FIXME: Fragile
                     ledcolor = homeport_colors[cycle_num]
@@ -918,7 +943,9 @@ class UpdateLEDs:
         """Wipe based on location."""
         # Need to find duplicate values (lat/lons) from dictionary using flip technique
         flipped = {}
-        for key, value in list(dict_name.items()):  # create a dict where keys and values are swapped
+        for key, value in list(
+            dict_name.items()
+        ):  # create a dict where keys and values are swapped
             if value not in flipped:
                 flipped[value] = [key]
             else:
@@ -930,9 +957,13 @@ class UpdateLEDs:
             if key in flipped:  # Grab latitude from dict
                 num_elem = len(flipped[key])  # Determine the number of duplicates
 
-                for j in range(num_elem):  # loop through each duplicate to get led number
+                for j in range(
+                    num_elem
+                ):  # loop through each duplicate to get led number
                     key_id = flipped[key][j]
-                    led_index = self.ap_id.index(key_id)  # Assign the pin number to the led to turn on/off
+                    led_index = self.ap_id.index(
+                        key_id
+                    )  # Assign the pin number to the led to turn on/off
 
                     self.set_led_color(led_index, color1)
                     self.show()
@@ -957,11 +988,13 @@ class UpdateLEDs:
         circle_x = centerlon
         circle_y = centerlat
 
-        led_index = int(sizelat / rad_inc)  # attempt to figure number of led_indexations necessary to cover whole map
+        led_index = int(
+            sizelat / rad_inc
+        )  # attempt to figure number of led_indexations necessary to cover whole map
 
-        for j in range(led_index):
+        for dummy_j in range(led_index):
             airports = self.__airport_database.get_airport_dict_led()
-            for key, airport_record in airports.items():
+            for dummy_key, airport_record in airports.items():
                 arpt = airport_record["airport"]
                 if not arpt.active():
                     continue
@@ -969,7 +1002,9 @@ class UpdateLEDs:
                 y_posn = float(arpt.latitude())
                 led_index = int(arpt.get_led_index())
 
-                if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (y_posn - circle_y) <= rad * rad:
+                if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (
+                    y_posn - circle_y
+                ) <= rad * rad:
                     #               print("Inside")
                     color = color1
                 else:
@@ -980,16 +1015,18 @@ class UpdateLEDs:
                 time.sleep(self.__wait)
             rad = rad + rad_inc
 
-        for j in range(led_index):
+        for dummy_j in range(led_index):
             rad = rad - rad_inc
             airports = self.__airport_database.get_airport_dict_led()
-            for key, airport_record in airports.items():
+            for dummy_key, airport_record in airports.items():
                 arpt = airport_record["airport"]
                 x_posn = float(arpt.longitude())
                 y_posn = float(arpt.latitude())
                 led_index = int(arpt.get_led_index())
 
-                if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (y_posn - circle_y) <= rad * rad:
+                if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (
+                    y_posn - circle_y
+                ) <= rad * rad:
                     #               print("Inside")
                     color = color1
                 else:
@@ -1014,7 +1051,7 @@ class UpdateLEDs:
         """Radar sweep."""
         angle = 0
 
-        for k in range(led_index):
+        for dummy_k in range(led_index):
             # Calculate the x_1,y_1 for the end point of our 'sweep' based on
             # the current angle. Then do the same for x_2,y_2
             x_1 = round(radius * math.sin(angle) + centerlon, 2)
@@ -1023,7 +1060,7 @@ class UpdateLEDs:
             y_2 = round(radius * math.cos(angle + sweepwidth) + centerlat, 2)
 
             airports = self.__airport_database.get_airport_dict_led()
-            for key, airport_record in airports.items():
+            for dummy_key, airport_record in airports.items():
                 arpt = airport_record["airport"]
                 px_1 = float(arpt.longitude())  # Lon
                 py_1 = float(arpt.latitude())  # Lat
@@ -1065,11 +1102,14 @@ class UpdateLEDs:
         centlon = self.center(maxlon, minlon)
         centlat = self.center(maxlat, minlat)
 
-        for j in range(led_index):
+        for dummy_j in range(led_index):
             for inclon in self.frange(maxlon, centlon, step):
                 # declon, declat = Upper Left of box.
                 # inclon, inclat = Lower Right of box
-                for key, airport_record in self.__airport_database.get_airport_dict_led():
+                for (
+                    dummy_key,
+                    airport_record,
+                ) in self.__airport_database.get_airport_dict_led():
                     arpt = airport_record["airport"]
                     px_1 = float(arpt.longitude())  # Lon
                     py_1 = float(arpt.latitude())  # Lat
@@ -1095,7 +1135,10 @@ class UpdateLEDs:
             for inclon in self.frange(centlon, maxlon, step):
                 # declon, declat = Upper Left of box.
                 # inclon, inclat = Lower Right of box
-                for key, airport_record in self.__airport_database.get_airport_dict_led():
+                for (
+                    dummy_key,
+                    airport_record,
+                ) in self.__airport_database.get_airport_dict_led():
                     arpt = airport_record["airport"]
                     px_1 = float(arpt.longitude())  # Lon
                     py_1 = float(arpt.latitude())  # Lat
@@ -1149,15 +1192,20 @@ class UpdateLEDs:
         if cwccw == 1:  # clockwise = 0, counter-clockwise = 1
             squarelist.reverse()
 
-        for j in range(led_index):
+        for dummy_j in range(led_index):
             for box in squarelist:
-                for key, airport_record in self.__airport_database.get_airport_dict_led():
+                for (
+                    dummy_key,
+                    airport_record,
+                ) in self.__airport_database.get_airport_dict_led():
                     arpt = airport_record["airport"]
                     px_1 = float(arpt.longitude())  # Lon
                     py_1 = float(arpt.latitude())  # Lat
                     led_index = int(arpt.get_led_index())  # LED Pin Num
 
-                    if self.findpoint(*box, px_1, py_1):  # Asterick allows unpacking of list in function call.
+                    if self.findpoint(
+                        *box, px_1, py_1
+                    ):  # Asterick allows unpacking of list in function call.
                         color = color1
                     else:
                         color = color2
@@ -1193,7 +1241,9 @@ class UpdateLEDs:
         dash_leng = self.__wait * 3
         bet_symb_leng = self.__wait * 1
         bet_let_leng = self.__wait * 3
-        bet_word_leng = self.__wait * 4  # logic will add bet_let_leng + bet_word_leng = 7
+        bet_word_leng = (
+            self.__wait * 4
+        )  # logic will add bet_let_leng + bet_word_leng = 7
 
         for char in self.__conf("rotaryswitch", "morse_msg"):
             letter = []
@@ -1208,7 +1258,9 @@ class UpdateLEDs:
                         morse_signal = dash_leng
 
                     for led_index in range(self.num_pixels()):  # turn LED's on
-                        if str(led_index) in self.__nullpins:  # exclude NULL and LGND pins from wipe
+                        if (
+                            str(led_index) in self.__nullpins
+                        ):  # exclude NULL and LGND pins from wipe
                             self.set_led_color(led_index, utils_colors.off())
                         else:
                             self.set_led_color(led_index, color1)
@@ -1216,7 +1268,9 @@ class UpdateLEDs:
                     time.sleep(morse_signal)  # time on depending on dot or dash
 
                     for led_index in range(self.num_pixels()):  # turn LED's off
-                        if str(led_index) in self.__nullpins:  # exclude NULL and LGND pins from wipe
+                        if (
+                            str(led_index) in self.__nullpins
+                        ):  # exclude NULL and LGND pins from wipe
                             self.set_led_color(led_index, utils_colors.off())
                         else:
                             self.set_led_color(led_index, color2)
@@ -1239,7 +1293,9 @@ class UpdateLEDs:
                             morse_signal = dash_leng
 
                         for led_index in range(self.num_pixels()):  # turn LED's on
-                            if str(led_index) in self.__nullpins:  # exclude NULL and LGND pins from wipe
+                            if (
+                                str(led_index) in self.__nullpins
+                            ):  # exclude NULL and LGND pins from wipe
                                 self.set_led_color(led_index, utils_colors.off())
                             else:
                                 self.set_led_color(led_index, color1)
@@ -1247,7 +1303,9 @@ class UpdateLEDs:
                         time.sleep(morse_signal)  # time on depending on dot or dash
 
                         for led_index in range(self.num_pixels()):  # turn LED's off
-                            if str(led_index) in self.__nullpins:  # exclude NULL and LGND pins from wipe
+                            if (
+                                str(led_index) in self.__nullpins
+                            ):  # exclude NULL and LGND pins from wipe
                                 self.set_led_color(led_index, utils_colors.off())
                             else:
                                 self.set_led_color(led_index, color2)
@@ -1295,4 +1353,17 @@ class UpdateLEDs:
         fade_col = utils_colors.hexcode(fade_val, 255 - fade_val, fade_val)
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = fade_col
+        return led_updated_dict
+
+    def ledmode_heatmap(self, clocktick):
+        """Set airport color based on number of visits."""
+        airport_list = self.__airport_database.get_airport_dict_led()
+        led_updated_dict = {}
+        for led_index in range(self.num_pixels()):
+            led_updated_dict[led_index] = self.heatmap_color(0)
+        for airport_key in airport_list:
+            airport_record = airport_list[airport_key]["airport"]
+            airportled = airport_record.get_led_index()
+            airportheat = airport_record.heatmap_index()
+            led_updated_dict[airportled] = self.heatmap_color(airportheat)
         return led_updated_dict

@@ -38,7 +38,9 @@ def hex2rgb(value):
     """Hex to RGB."""
     value = value.lstrip("#")
     length_v = len(value)
-    return tuple(int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3))
+    return tuple(
+        int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3)
+    )
 
 
 def off():

@@ -159,7 +159,6 @@ def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
 
                 for hr in self.keys:
                     if int(hr) <= mos_time <= int(hr) + 2.99:
-
                         cld = self.mos_dict[airport][hr][0]
                         # make wind direction end in zero
                         wdr = (self.mos_dict[airport][hr][1]) + "0"
@@ -193,7 +192,6 @@ def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
                         flightcategory = "VFR"  # start with VFR as the assumption
                         # If the layer is OVC, BKN, set Flight category based on height of layer
                         if cld in ("OV", "BK"):
-
                             if cig <= "2":  # AGL is less than 500:
                                 flightcategory = "LIFR"
 
@@ -209,7 +207,6 @@ def mos_decode_routine(self, stationiddict, windsdict, wxstringdict):
                         if (
                             flightcategory != "LIFR"
                         ):  # if it's LIFR due to cloud layer, no reason to check any other things that can set fl$
-
                             if vis <= "2":  # vis < 1.0 mile:
                                 flightcategory = "LIFR"
 
@@ -373,7 +370,6 @@ def set_data(self):
 
     j = 0
     for key in self.keys:  # add cat data to the hour_dict by hour
-
         if j == 0:
             self.hour_dict[key] = self.dat0
         elif j == 1:

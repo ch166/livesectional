@@ -10,7 +10,6 @@ import conf
 
 
 def test_internet():
-
     settings = conf.Conf()
 
     if settings.get_bool("default", "nightly_reboot"):

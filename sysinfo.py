@@ -12,6 +12,7 @@ class SystemData:
     """Gather useful information about this system"""
 
     def __init__(self):
+        """Start from zero."""
         self.sysinfo = ""
         self.ipaddr = ""
         self.uptime = ""
@@ -146,6 +147,7 @@ class SystemData:
         self.sysinfo = sysinfo_text
 
     def query_system_information(self):
-        if self.sysinfo is "":
+        """Run query."""
+        if self.sysinfo == "":
             self.poll_system_information()
         return self.sysinfo

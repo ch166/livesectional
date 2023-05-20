@@ -151,10 +151,15 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
     # Do a HTTP GET to pull headers so we can check timestamps
     try:
         req = session.head(url, allow_redirects=True, timeout=5)
-    except Exception as err:
-        debugging.debug(f"Problem requesting {url}")
+    except ConnectionError as err:
+        debugging.debug(f"Connection Error {url}")
         debugging.error(err)
         return False, url_etag
+    except TimeoutError as err:
+        debugging.debug(f"Timeout Error {url}")
+        debugging.error(err)
+        return False, url_etag
+
 
     if "last-modified" in req.headers:
         url_time = req.headers["last-modified"]
@@ -223,12 +228,12 @@ def decompress_file_gz(srcfile, dstfile):
         with gzip.open(srcfile, "rb") as f_in:
             with open(dstfile, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
-        return 0
+        return True
     except Exception as err:
         # Something went wrong
         debugging.error("File gzip decompress error")
         debugging.error(err)
-        return 1
+        return False
 
 
 def time_in_range(start_time, end_time, check_time):

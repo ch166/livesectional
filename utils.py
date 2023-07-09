@@ -160,7 +160,6 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
         debugging.error(err)
         return False, url_etag
 
-
     if "last-modified" in req.headers:
         url_time = req.headers["last-modified"]
         url_date = parsedate(url_time)

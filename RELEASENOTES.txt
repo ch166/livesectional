@@ -1,3 +1,16 @@
+Version 4.4.07.16.23
+07-16-2023
+Significant restructuring of code
+Running multiple separate threads to handle the discrete functions
+Livesectional is now a single process rather than a set of disrete processes.
+Airport data / Metar data now shared across LED, OLED and Web processes- updated on a regular cadence
+New /wx/ API call to serve METAR data to javascript in web interface - fewer external dependencies
+Stable error handling of variable data in METAR datasets - allowing for months of stable operation on a Raspberry PI Pico 2W
+MOS code and Selector switch code still needs work to integrate it into the system
+Process for livemap is installed as a simple systemd managed process
+Moved most of the utility functions into utils_XXX.py files
+
+
 Version 4.4
 01-12-2021
 Forked from v4.373 - Started reorganizing code

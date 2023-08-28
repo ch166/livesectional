@@ -361,8 +361,8 @@ class UpdateLEDs:
         ]
         rgb_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples)
         rgb_list = list(rgb_tuples)
-        for i in range(len(rgb_list)):
-            (col_r, col_g, col_b) = rgb_list[i]
+        for i, rgb_col in enumerate(rgb_list):
+            (col_r, col_g, col_b) = rgb_col
             rgb_list[i] = (col_r * 255, col_g * 255, col_b * 255)
         self.__rgb_rainbow = rgb_list
         debugging.info(f"Rainbow List - {self.__rgb_rainbow}")
@@ -453,10 +453,12 @@ class UpdateLEDs:
         self.show()
 
     def fill(self, color):
-        """Fill all LEDs with same color."""
-        # This will naively turn on LEDs that are expected to be off
-        for i in range(self.num_pixels()):
-            self.set_led_color(i, color)
+        """Return led_updated_dict containing single color only"""
+        debugging.info("Fill: In the fill loop")
+        led_updated_dict = {}
+        for led_posn, active_led in enumerate(self.__active_led_dict):
+            led_updated_dict[self.__active_led_dict[led_posn]] = color
+        return led_updated_dict
 
     def num_pixels(self):
         """Return number of Pixels defined."""
@@ -604,6 +606,7 @@ class UpdateLEDs:
                 continue
             if self.__led_mode == LedMode.TEST:
                 self.ledmode_test(clocktick)
+                led_color_dict = self.colorwipe(clocktick)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self.__led_mode == LedMode.RAINBOW:
@@ -664,7 +667,7 @@ class UpdateLEDs:
 
     def ledmode_test(self, clocktick):
         """Run self test sequences."""
-        self.colorwipe(clocktick)
+        return self.colorwipe(clocktick)
 
     def legend_color(self, airportwxsrc, cycle_num):
         """Work out the color for the legend LEDs."""
@@ -871,30 +874,16 @@ class UpdateLEDs:
         """Run a color wipe test."""
         wipe_steps = clocktick % 5
         if wipe_steps == 0:
-            self.fill(utils_colors.colordict["RED"])
-            self.strip.setBrightness(self.__led_brightness)
-            self.show()
-            return
+            new_color = utils_colors.colordict["RED"]
         if wipe_steps == 1:
-            self.fill(utils_colors.colordict["GREEN"])
-            self.strip.setBrightness(self.__led_brightness)
-            self.show()
-            return
+            new_color = utils_colors.colordict["GREEN"]
         if wipe_steps == 2:
-            self.fill(utils_colors.colordict["BLUE"])
-            self.strip.setBrightness(self.__led_brightness)
-            self.show()
-            return
+            new_color = utils_colors.colordict["BLUE"]
         if wipe_steps == 3:
-            self.fill(utils_colors.colordict["MAGENTA"])
-            self.strip.setBrightness(self.__led_brightness)
-            self.show()
-            return
+            new_color = utils_colors.colordict["MAGENTA"]
         if wipe_steps == 4:
-            self.fill(utils_colors.colordict["YELLOW"])
-            self.strip.setBrightness(self.__led_brightness)
-            self.show()
-            return
+            new_color = utils_colors.colordict["YELLOW"]
+        return self.fill(new_color)
 
     def ledmode_rainbow(self, clocktick):
         """Update LEDs with rainbow pattern."""
@@ -1302,7 +1291,7 @@ class UpdateLEDs:
 
         debugging.info("Rabbit: In the rabbit loop")
 
-        for led_posn in range(len(self.__active_led_dict)):
+        for led_posn, active_led in enumerate(self.__active_led_dict):
             # debugging.info(f"posn:{rabbit_posn}/index:{led_index}")
             led_updated_dict[self.__active_led_dict[led_posn]] = utils_colors.off()
             if led_posn == rabbit_posn - 2:

@@ -665,7 +665,7 @@ class WebViews:
                     outfile.write(f"{icao}: {airport_id} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
-        wx_data = {"airport": "Not Set", "metar": "", "flightcategory": "UNKN"}
+        wx_data = {"airport": "Debugging Request", "metar": "", "flightcategory": "DB DUMPED"}
         try:
             airport_entry = self._airport_database.get_airportxml(airport)
             # debugging.info(airport_entry)

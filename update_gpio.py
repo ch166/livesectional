@@ -31,19 +31,10 @@
 ###########################
 
 # Import needed libraries
-
-# Removing URL related actions from update_leds
-# import urllib.request
-# import urllib.error
-# import urllib.parse
-# import socket
-# import xml.etree.ElementTree as ET
 import time
 from datetime import datetime
 from datetime import timedelta
 from datetime import time as time_
-
-# import sys
 
 try:
     import RPi.GPIO as GPIO
@@ -64,13 +55,14 @@ class UpdateGPIO:
         self.conf = conf
         self.airport_database = airport_database
 
-        # list of pins that need to reverse the rgb_grb setting. To accommodate two different models of LED's are used.
-        # self.rev_rgb_grb = self.conf.rev_rgb_grb        # [] # ['1', '2', '3', '4', '5', '6', '7', '8']
-
         # Specific Variables to default data to display if Rotary Switch is not installed.
         # hour_to_display # Offset in HOURS to choose which TAF/MOS to display
         self.hour_to_display = self.conf.get_int("rotaryswitch", "time_sw0")
-        # metar_taf_mos    # 0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
+        # metar_taf_mos    
+        # 0 = Display TAF, 
+        # 1 = Display METAR,
+        # 2 = Display MOS,
+        # 3 = Heat Map (Heat map not controlled by rotary switch)
         self.metar_taf_mos = self.conf.get_int("rotaryswitch", "data_sw0")
         # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
         self.toggle_sw = -1
@@ -85,10 +77,8 @@ class UpdateGPIO:
         # Misc settings
         # 0 = No, 1 = Yes, use wipes. Defined by configurator
         self.usewipes = self.conf.get_int("rotaryswitch", "usewipes")
-        # 1 = RGB color codes. 0 = GRB color codes. Populate color codes below with normal RGB codes and script will change if necessary
-
-        # Setup for IC238 Light Sensor for LED Dimming, does not need to be commented out if sensor is not used, map will remain at full brightness.
-        # For more info on the sensor visit; http://www.uugear.com/portfolio/using-light-sensor-module-with-raspberry-pi/
+        # 1 = RGB color codes. 0 = GRB color codes. 
+        # Populate color codes below with normal RGB codes and script will change if necessary
 
         # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
         GPIO.setmode(GPIO.BCM)

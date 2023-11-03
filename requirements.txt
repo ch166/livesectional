@@ -19,7 +19,7 @@ Jinja2>=3.1.2
 logzero>=1.7.0
 lxml>=4.9.1
 numpy
-Pillow>=9.3.0
+Pillow>=10.0.1
 ## pysftp>=0.2.9
 ## python-nmap>=0.7.1
 # requests>=2.21.0
@@ -42,3 +42,4 @@ luma.oled
 webcolors
 python_tsl2591
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+werkzeug>=3.0.1 # not directly required, pinned by Snyk to avoid a vulnerability

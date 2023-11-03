@@ -76,7 +76,7 @@ class UpdateOLEDs:
     # Broad option 2 - Multiple OLED devices connected via an i2c multiplexer
     # for example: TCA9548A i2c Multiplexer
     # In this scenario - a call is made to the mux to enable a single i2c device
-    # before it is used ; and only one device is visible at a time.
+    # before it is used ; and only one device is visible on the i2c bus at a time.
     # Many OLED devices can be connected ; and they can all have the same device ID;
     # as they will only be used when they are selected by the mux ; and at the point
     # they are the only visible device with that id
@@ -100,7 +100,7 @@ class UpdateOLEDs:
     #   push changes
     #   release i2c lock
     #
-    # the time spend inside the critical lock portion should be minimized
+    # the time spent inside the critical lock portion should be minimized
     # This is to allow other threads to make requests to update data
 
     # Looking to track data about individual OLED screens ; to allow support for multiple options

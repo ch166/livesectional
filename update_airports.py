@@ -100,8 +100,6 @@ class AirportDB:
         debugging.debug("AirportDB : init")
 
         self.load_airport_db()
-        # self.update_airport_metar_xml()
-        # self.save_airport_db()
         debugging.info("AirportDB : init complete")
 
     def get_airport(self, airport_icao):
@@ -540,14 +538,26 @@ class AirportDB:
 
     def import_runways(self):
         """Load CSV Runways file."""
-        runways_file = self.conf.get_string("filenames", "runways_file")
+        runways_master_data = self.conf.get_string("filenames", "runways_master_data")
         runway_data = None
         index_counter = 0
-        with open(runways_file, "r") as rway_file:
+        with open(runways_master_data, "r") as rway_file:
             runway_data = list(csv.DictReader(rway_file))
             index_counter += 1
         debugging.debug(f"CSV Load found {index_counter} rows")
         self.runway_data = runway_data
+        return True
+
+    def import_airports(self):
+        """Load CSV Airports file."""
+        airports_master_data = self.conf.get_string("filenames", "airports_master_data")
+        airport_data = None
+        index_counter = 0
+        with open(airports_master_data, "r") as aprt_file:
+            airport_data = list(csv.DictReader(aprt_file))
+            index_counter += 1
+        debugging.debug(f"CSV Load found {index_counter} rows")
+        self.airport_data = airport_data
         return True
 
     def update_airport_runways(self):
@@ -587,7 +597,9 @@ class AirportDB:
         metar_xml_url = conf.get_string("urls", "metar_xml_gz")
         metar_file = conf.get_string("filenames", "metar_xml_data")
         runways_csv_url = conf.get_string("urls", "runways_csv_url")
-        runways_file = conf.get_string("filenames", "runways_file")
+        airports_csv_url = conf.get_string("urls", "airports_csv_url")
+        runways_master_data = conf.get_string("filenames", "runways_master_data")
+        airports_master_data = conf.get_string("filenames", "airports_master_data")
         tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
         tafs_file = conf.get_string("filenames", "tafs_xml_data")
         mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
@@ -599,7 +611,6 @@ class AirportDB:
         mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
         mos18_file = conf.get_string("filenames", "mos18_xml_data")
 
-        https_session = requests.Session()
 
         # FIXME: This pre-seeds the data sets with whatever data is on disk.
         # This is great for a quick restart ; but bad for a reload after a period of time offline.
@@ -614,6 +625,7 @@ class AirportDB:
         etag_mos12 = None
         etag_mos18 = None
         etag_runways = None
+        etag_airports = None
 
         while True:
             debugging.debug(
@@ -621,6 +633,8 @@ class AirportDB:
                 + str(aviation_weather_adds_timer)
                 + "m)"
             )
+
+            https_session = requests.Session()
 
             ret, etag_metar = utils.download_newer_file(
                 https_session,
@@ -635,7 +649,7 @@ class AirportDB:
             elif ret is False:
                 debugging.debug("Server side METAR older")
 
-            ret, tafs_etag = utils.download_newer_file(
+            ret, etag_tafs = utils.download_newer_file(
                 https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs
             )
             if ret is True:
@@ -669,7 +683,7 @@ class AirportDB:
                 debugging.debug("Server side MOS12 older")
 
             ret, etag_runways = utils.download_newer_file(
-                https_session, runways_csv_url, runways_file, etag=etag_runways
+                https_session, runways_csv_url, runways_master_data, etag=etag_runways
             )
             if ret is True:
                 debugging.debug("Downloaded runways.csv")
@@ -677,6 +691,17 @@ class AirportDB:
                 self.update_airport_runways()
             elif ret is False:
                 debugging.debug("Server side runways.csv older")
+
+            ret, etag_airports = utils.download_newer_file(
+                https_session, airports_csv_url, airports_master_data, etag=etag_airports
+            )
+            if ret is True:
+                debugging.debug("Downloaded airports.csv")
+                self.import_airports()
+                # self.update_airport_lat_lon()
+                # Need to use the data in airports.csv to provide lat/lon data for any airports..
+            elif ret is False:
+                debugging.debug("Server side airports.csv older")
 
             ret, etag_mos18 = utils.download_newer_file(
                 https_session, mos18_xml_url, mos18_file, etag=etag_mos18
@@ -698,4 +723,7 @@ class AirportDB:
             kbfi_runway = self.airport_runway_data("kbfi")
             debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")
             time.sleep(aviation_weather_adds_timer * 60)
+
+            # Clean UP HTTPS_Session
+            https_session.close()
         debugging.error("Hit the exit of the airport update loop")

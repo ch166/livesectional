@@ -54,13 +54,13 @@ class WebViews:
     max_lon = 0
     min_lon = 0
 
-    airports = []
+    airports = [] # type: list[object]
     update_vers = None
-    machines = []
+    machines = [] # type: list[str]
     update_available = None
     ap_info = None
     settings = None
-    led_map_dict = {}
+    led_map_dict = {} # type: dict
 
     def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt):
         self.conf = config
@@ -647,7 +647,6 @@ class WebViews:
             "qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data
         )
 
-    def getwx(self, airport):
         """Flask Route: /wx - Get WX JSON for Airport."""
         template_data = self.standardtemplate_data()
 
@@ -665,11 +664,13 @@ class WebViews:
                     outfile.write(f"{icao}: {airport_id} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
-        wx_data = {"airport": "Debugging Request", "metar": "", "flightcategory": "DB DUMPED"}
+            wx_data = {"airport": "Debugging Request", "metar": "", "flightcategory": "DB DUMPED"}
+            return json.dumps(wx_data)
+        wx_data = {"airport": "Default Value", "metar": "", "flightcategory": "UNKN"}
         try:
             airport_entry = self._airport_database.get_airportxml(airport)
-            # debugging.info(airport_entry)
-            wx_data["airport"] = airport_entry["station_id"]
+            debugging.info(airport_entry)
+            wx_data["airport"] = airport_entry["stationId"]
             wx_data["metar"] = airport_entry["raw_text"]
             wx_data["flightcategory"] = airport_entry["flight_category"]
             wx_data["latitude"] = airport_entry["latitude"]

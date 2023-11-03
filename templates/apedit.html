@@ -93,7 +93,7 @@
             <b>{{ aprt_data['metarsrc'] }}</b>
           </td>
           <td width="15%" id="msg{{ loop.index-1 }}">
-            {% if aprt_icao == 'lgnd' %}
+            {% if aprt_icao.startswith('lgnd') %}
               <font color="green">LED at pin {{ loop.index -1 }} will be used as a <b>Legend</b> item.</font>
               <td></td>
               <td></td>

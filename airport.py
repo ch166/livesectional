@@ -312,7 +312,13 @@ class Airport:
         elif self.__wxsrc.startswith("neigh"):
             # Get METAR data from alternative Airport
             strparts = self.__wxsrc.split(":")
-            debugging.info(f"{self.__icao} needs metar for {strparts[1]}")
+            alt_aprt = strparts[1]
+            debugging.info(f"{self.__icao} needs metar for {alt_aprt}")
+            try:
+                debugging.info(f"Update USA Metar(neighbor): ADDS {self.__icao} ({alt_aprt})")
+                freshness = self.get_adds_metar(alt_aprt)
+            except Exception as err:
+                debugging.error(err)
         elif self.__wxsrc == "usa-metar":
             # This is the scenario where we want to query an individual METAR record
             # directly. This is unused for now - we may want to use it if the

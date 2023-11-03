@@ -54,13 +54,13 @@ class WebViews:
     max_lon = 0
     min_lon = 0
 
-    airports = [] # type: list[object]
+    airports = []  # type: list[object]
     update_vers = None
-    machines = [] # type: list[str]
+    machines = []  # type: list[str]
     update_available = None
     ap_info = None
     settings = None
-    led_map_dict = {} # type: dict
+    led_map_dict = {}  # type: dict
 
     def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt):
         self.conf = config
@@ -664,7 +664,11 @@ class WebViews:
                     outfile.write(f"{icao}: {airport_id} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
-            wx_data = {"airport": "Debugging Request", "metar": "", "flightcategory": "DB DUMPED"}
+            wx_data = {
+                "airport": "Debugging Request",
+                "metar": "",
+                "flightcategory": "DB DUMPED",
+            }
             return json.dumps(wx_data)
         wx_data = {"airport": "Default Value", "metar": "", "flightcategory": "UNKN"}
         try:

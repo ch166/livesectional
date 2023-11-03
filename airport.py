@@ -315,7 +315,9 @@ class Airport:
             alt_aprt = strparts[1]
             debugging.info(f"{self.__icao} needs metar for {alt_aprt}")
             try:
-                debugging.info(f"Update USA Metar(neighbor): ADDS {self.__icao} ({alt_aprt})")
+                debugging.info(
+                    f"Update USA Metar(neighbor): ADDS {self.__icao} ({alt_aprt})"
+                )
                 freshness = self.get_adds_metar(alt_aprt)
             except Exception as err:
                 debugging.error(err)

@@ -611,7 +611,6 @@ class AirportDB:
         mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
         mos18_file = conf.get_string("filenames", "mos18_xml_data")
 
-
         # FIXME: This pre-seeds the data sets with whatever data is on disk.
         # This is great for a quick restart ; but bad for a reload after a period of time offline.
         # Worth adding logic here to check the age of the files on disk and only load if they are relatively recent.
@@ -693,7 +692,10 @@ class AirportDB:
                 debugging.debug("Server side runways.csv older")
 
             ret, etag_airports = utils.download_newer_file(
-                https_session, airports_csv_url, airports_master_data, etag=etag_airports
+                https_session,
+                airports_csv_url,
+                airports_master_data,
+                etag=etag_airports,
             )
             if ret is True:
                 debugging.debug("Downloaded airports.csv")

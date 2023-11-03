@@ -58,8 +58,8 @@ class UpdateGPIO:
         # Specific Variables to default data to display if Rotary Switch is not installed.
         # hour_to_display # Offset in HOURS to choose which TAF/MOS to display
         self.hour_to_display = self.conf.get_int("rotaryswitch", "time_sw0")
-        # metar_taf_mos    
-        # 0 = Display TAF, 
+        # metar_taf_mos
+        # 0 = Display TAF,
         # 1 = Display METAR,
         # 2 = Display MOS,
         # 3 = Heat Map (Heat map not controlled by rotary switch)
@@ -77,7 +77,7 @@ class UpdateGPIO:
         # Misc settings
         # 0 = No, 1 = Yes, use wipes. Defined by configurator
         self.usewipes = self.conf.get_int("rotaryswitch", "usewipes")
-        # 1 = RGB color codes. 0 = GRB color codes. 
+        # 1 = RGB color codes. 0 = GRB color codes.
         # Populate color codes below with normal RGB codes and script will change if necessary
 
         # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.

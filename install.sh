@@ -6,6 +6,7 @@ mkdir -p /NeoSectional
 
 cp *.py /NeoSectional
 cp config.ini /NeoSectional
+cp requirements.txt /NeoSectional
 
 mkdir -p /NeoSectional/data
 cp data/airports.json /NeoSectional/data/

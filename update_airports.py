@@ -307,12 +307,34 @@ class AirportDB:
                 metar_dict[station_id]["observation_time"] = "Missing"
             next_object = metar_data.find("wind_dir_degrees")
             if next_object is not None:
-                metar_dict[station_id]["wind_dir_degrees"] = int(next_object.text)
+                try:
+                    next_val = int(next_object.text)
+                except (TypeError, ValueError):
+                    next_val_int = False
+                else:
+                    next_val_int = True
+                if next_val_int:
+                    metar_dict[station_id]["wind_dir_degrees"] = int(next_object.text)
+                else:
+                    # FIXME: Hack to handle complex wind definitions (eg: VRB)
+                    debugging.info(f"GRR: wind_dir_degrees parse mismatch - setting to zero; actual:{next_object.text}:")
+                    metar_dict[station_id]["wind_dir_degrees"] = 0
             else:
                 metar_dict[station_id]["wind_dir_degrees"] = 0
             next_object = metar_data.find("wind_speed_kt")
             if next_object is not None:
-                metar_dict[station_id]["wind_speed_kt"] = int(next_object.text)
+                try:
+                    next_val = int(next_object.text)
+                except (TypeError, ValueError):
+                    next_val_int = False
+                else:
+                    next_val_int = True
+                if next_val_int:
+                    metar_dict[station_id]["wind_speed_kt"] = int(next_object.text)
+                else:
+                    # FIXME: Hack to handle complex wind definitions (eg: VRB)
+                    debugging.info(f"GRR: wind_speed_kt parse mismatch - setting to zero; actual:{next_object.text}:")
+                    metar_dict[station_id]["wind_speed_kt"] = 0
             else:
                 metar_dict[station_id]["wind_speed_kt"] = 0
             next_object = metar_data.find("metar_type")
@@ -322,7 +344,18 @@ class AirportDB:
                 metar_dict[station_id]["metar_type"] = "Missing"
             next_object = metar_data.find("wind_gust_kt")
             if next_object is not None:
-                metar_dict[station_id]["wind_gust_kt"] = int(next_object.text)
+                try:
+                    next_val = int(next_object.text)
+                except (TypeError, ValueError):
+                    next_val_int = False
+                else:
+                    next_val_int = True
+                if next_val_int:
+                    metar_dict[station_id]["wind_gust_kt"] = int(next_object.text)
+                else:
+                    # FIXME: Hack to handle complex wind definitions (eg: VRB)
+                    debugging.info(f"GRR: wind_gust_kt parse mismatch - setting to zero; actual:{next_object.text}:")
+                    metar_dict[station_id]["wind_gust_kt"] = 0
             else:
                 metar_dict[station_id]["wind_gust_kt"] = 0
             next_object = metar_data.find("sky_condition")
@@ -479,7 +512,18 @@ class AirportDB:
                             visibility_statute_mi = forecast.find(
                                 "visibility_statute_mi"
                             ).text  # get visibility number
-                            visibility_statute_mi = float(visibility_statute_mi)
+                            try:
+                                next_val = float(visibility_statute_mi)
+                            except (TypeError, ValueError):
+                                next_val_float = False
+                            else:
+                                next_val_float = True
+                            if next_val_float:
+                                visibility_statute_mi = float(visibility_statute_mi)
+                            else:
+                                # FIXME: Hack for METAR parsing of complex valus
+                                debugging.info(f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}")
+                                visibility_statute_mi = 10
                             debugging.debug(visibility_statute_mi)
 
                             if visibility_statute_mi < 1.0:

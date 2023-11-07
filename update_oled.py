@@ -212,6 +212,35 @@ class UpdateOLEDs:
             draw.text((30, 40), txt, font=fnt, fill="white")
         self.i2cbus.bus_unlock()
 
+    def generate_image(self, oled_id, airport, rway_angle, winddir, windspeed):
+        """Create and save Web version of OLED display image"""
+
+        # Image Dimensions
+        width = 320
+        height = 200
+
+        image_filename = f"static/oled_{oled_id}_{airport}_oled_display.png"
+
+        # Runway Dimensions
+        rway_width = 6
+        rway_x = 5  # 5 pixel border
+        rway_y = int(height / 2 - rway_width / 2)
+        airport_details = f"{airport} {winddir}@{windspeed}"
+        wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
+        runway_poly = utils_gfx.create_runway(
+            rway_x, rway_y, rway_width, rway_angle, width, height
+        )
+
+        img = Image.new('RGB', (width, height), color = (73, 109, 137))
+
+        d = ImageDraw.Draw(img)
+        d.text((10,10), airport_details, fill=(255,255,0))
+        d.polygon(wind_poly, fill="white", outline="white", width=1)
+        d.polygon(runway_poly, fill=None, outline="white", width=1)
+
+        img.save(image_filename)
+
+
     def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
         """Draw Wind Arrow and Runway."""
         if oled_id > len(self.oled_list):
@@ -266,6 +295,12 @@ class UpdateOLEDs:
                 f"Updating OLED Wind: {airportcode} : rwy: {best_runway} : wind {winddir}"
             )
             self.draw_wind(oled_id, airportcode, best_runway, winddir, windspeed)
+            self.generate_image(oled_id, airportcode, best_runway, winddir, windspeed)
+        return
+
+    def update_oled_status(self, oled_id):
+        """Status Update Display"""
+
         return
 
     def update_loop(self):
@@ -279,10 +314,17 @@ class UpdateOLEDs:
             for oled_id in range(0, (self.device_count)):
                 self.oled_text(oled_id, f"run({count}): {oled_id}")
                 # TODO: This is hardcoded
-                if oled_id == 3:
+                if oled_id == 1:
                     self.update_oled_wind(oled_id, "kbfi", 140)
+                if oled_id == 2:
+                    self.update_oled_wind(oled_id, "ksea", 160)
+                if oled_id == 3:
+                    self.update_oled_wind(oled_id, "kpae", 160)
                 if oled_id == 4:
                     self.update_oled_wind(oled_id, "kpwt", 200)
                 if oled_id == 5:
                     self.update_oled_wind(oled_id, "kfhr", 340)
-            time.sleep(180)
+                if oled_id == 6:
+                    self.update_oled_status(oled_id)
+            time.sleep(20)
+            # time.sleep(180)

@@ -317,7 +317,9 @@ class AirportDB:
                     metar_dict[station_id]["wind_dir_degrees"] = int(next_object.text)
                 else:
                     # FIXME: Hack to handle complex wind definitions (eg: VRB)
-                    debugging.info(f"GRR: wind_dir_degrees parse mismatch - setting to zero; actual:{next_object.text}:")
+                    debugging.info(
+                        f"GRR: wind_dir_degrees parse mismatch - setting to zero; actual:{next_object.text}:"
+                    )
                     metar_dict[station_id]["wind_dir_degrees"] = 0
             else:
                 metar_dict[station_id]["wind_dir_degrees"] = 0
@@ -333,7 +335,9 @@ class AirportDB:
                     metar_dict[station_id]["wind_speed_kt"] = int(next_object.text)
                 else:
                     # FIXME: Hack to handle complex wind definitions (eg: VRB)
-                    debugging.info(f"GRR: wind_speed_kt parse mismatch - setting to zero; actual:{next_object.text}:")
+                    debugging.info(
+                        f"GRR: wind_speed_kt parse mismatch - setting to zero; actual:{next_object.text}:"
+                    )
                     metar_dict[station_id]["wind_speed_kt"] = 0
             else:
                 metar_dict[station_id]["wind_speed_kt"] = 0
@@ -354,7 +358,9 @@ class AirportDB:
                     metar_dict[station_id]["wind_gust_kt"] = int(next_object.text)
                 else:
                     # FIXME: Hack to handle complex wind definitions (eg: VRB)
-                    debugging.info(f"GRR: wind_gust_kt parse mismatch - setting to zero; actual:{next_object.text}:")
+                    debugging.info(
+                        f"GRR: wind_gust_kt parse mismatch - setting to zero; actual:{next_object.text}:"
+                    )
                     metar_dict[station_id]["wind_gust_kt"] = 0
             else:
                 metar_dict[station_id]["wind_gust_kt"] = 0
@@ -525,7 +531,9 @@ class AirportDB:
                                 if visibility_statute_mi == "6+":
                                     visibility_statute_mi = 6
                                 else:
-                                    debugging.info(f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}")
+                                    debugging.info(
+                                        f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}"
+                                    )
                                     visibility_statute_mi = 10
                             debugging.debug(visibility_statute_mi)
 

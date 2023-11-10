@@ -218,12 +218,11 @@ class UpdateOLEDs:
         # Image Dimensions
         width = 320
         height = 200
-
         image_filename = f"static/oled_{oled_id}_oled_display.png"
 
         # Runway Dimensions
-        rway_width = 6
-        rway_x = 5  # 5 pixel border
+        rway_width = 16
+        rway_x = 15  # 15 pixel border
         rway_y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport} {winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
@@ -231,15 +230,14 @@ class UpdateOLEDs:
             rway_x, rway_y, rway_width, rway_angle, width, height
         )
 
-        img = Image.new('RGB', (width, height), color = (73, 109, 137))
+        img = Image.new("RGB", (width, height), color=(73, 109, 137))
 
         d = ImageDraw.Draw(img)
-        d.text((10,10), airport_details, fill=(255,255,0))
+        d.text((10, 10), airport_details, fill=(255, 255, 0))
         d.polygon(wind_poly, fill="white", outline="white", width=1)
         d.polygon(runway_poly, fill=None, outline="white", width=1)
 
         img.save(image_filename)
-
 
     def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
         """Draw Wind Arrow and Runway."""

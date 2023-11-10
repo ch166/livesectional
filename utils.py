@@ -200,15 +200,15 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
             try:
                 urllib.request.urlretrieve(url, download_object.name)
             except ConnectionError as err:
-                debugging.debug(f"Connection error in download :{url}:")
+                debugging.info(f"Connection error in download :{url}:")
                 debugging.error(err)
                 return False, url_etag
             except TimeoutError as err:
-                debugging.debug(f"Timeout Error :{url}:")
+                debugging.info(f"Timeout Error :{url}:")
                 debugging.error(err)
                 return False, url_etag
             except Exception as err:
-                debugging.debug(f"Generic error in urlretrieve :{url}:")
+                debugging.info(f"Generic error in urlretrieve :{url}:")
                 debugging.error(err)
                 return False, url_etag
 
@@ -217,7 +217,7 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
                 try:
                     decompress_file_gz(download_object.name, uncompress_object.name)
                 except Exception as err:
-                    debugging.error(f"File decompression failed for : {filename}")
+                    debugging.info(f"File decompression failed for : {filename}")
                     debugging.error(err)
                 os.remove(download_object.name)
                 download_object = uncompress_object
@@ -248,7 +248,7 @@ def decompress_file_gz(srcfile, dstfile):
         return True
     except Exception as err:
         # Something went wrong
-        debugging.error("File gzip decompress error")
+        debugging.info(f"File gzip decompress error f:{srcfile}:")
         debugging.error(err)
         return False
 

@@ -465,8 +465,12 @@ class WebViews:
             attr="chartbundle.com",
             name="ChartBundle Sectional",
         ).add_to(folium_map)
-        folium.TileLayer("Stamen Terrain", name="Stamen Terrain", attr="stamen.com").add_to(folium_map)
-        folium.TileLayer("CartoDB positron", name="CartoDB Positron", attr="carto.com").add_to(folium_map)
+        folium.TileLayer(
+            "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
+        ).add_to(folium_map)
+        folium.TileLayer(
+            "CartoDB positron", name="CartoDB Positron", attr="carto.com"
+        ).add_to(folium_map)
 
         folium.LayerControl().add_to(folium_map)
 
@@ -611,8 +615,12 @@ class WebViews:
             attr="chartbundle.com",
             name="ChartBundle Sectional",
         ).add_to(folium_map)
-        folium.TileLayer("Stamen Terrain", name="Stamen Terrain", attr="stamen.com").add_to(folium_map)
-        folium.TileLayer("CartoDB positron", name="CartoDB Positron", attr="charto.com").add_to(folium_map)
+        folium.TileLayer(
+            "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
+        ).add_to(folium_map)
+        folium.TileLayer(
+            "CartoDB positron", name="CartoDB Positron", attr="charto.com"
+        ).add_to(folium_map)
 
         folium.LayerControl().add_to(folium_map)
 
@@ -649,7 +657,7 @@ class WebViews:
             "qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data
         )
 
-    def getwx(self,airport):
+    def getwx(self, airport):
         """Flask Route: /wx - Get WX JSON for Airport."""
         template_data = self.standardtemplate_data()
 

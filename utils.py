@@ -152,11 +152,15 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
     try:
         req = session.head(url, allow_redirects=True, timeout=5)
     except ConnectionError as err:
-        debugging.debug(f"Connection Error {url}")
+        debugging.debug(f"Connection Error :{url}:")
         debugging.error(err)
         return False, url_etag
     except TimeoutError as err:
-        debugging.debug(f"Timeout Error {url}")
+        debugging.debug(f"Timeout Error :{url}:")
+        debugging.error(err)
+        return False, url_etag
+    except Exception as err:
+        debugging.debug(f"Generic error checking HEAD :{url}:")
         debugging.error(err)
         return False, url_etag
 
@@ -193,7 +197,21 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
         try:
             # Download file to temporary object
             download_object = tempfile.NamedTemporaryFile(delete=False)
-            urllib.request.urlretrieve(url, download_object.name)
+            try:
+                urllib.request.urlretrieve(url, download_object.name)
+            except ConnectionError as err:
+                debugging.debug(f"Connection error in download :{url}:")
+                debugging.error(err)
+                return False, url_etag
+            except TimeoutError as err:
+                debugging.debug(f"Timeout Error :{url}:")
+                debugging.error(err)
+                return False, url_etag
+            except Exception as err:
+                debugging.debug(f"Generic error in urlretrieve :{url}:")
+                debugging.error(err)
+                return False, url_etag
+
             if decompress:
                 uncompress_object = tempfile.NamedTemporaryFile(delete=False)
                 try:

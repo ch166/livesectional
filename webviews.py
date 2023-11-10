@@ -382,6 +382,7 @@ class WebViews:
             control_scale=True,
             zoom_control=True,
             tiles="OpenStreetMap",
+            attr="OpenStreetMap",
         )
         # Place map within bounds of screen
         folium_map.fit_bounds(
@@ -460,12 +461,12 @@ class WebViews:
 
         # FIXME: Move URL to configuration
         folium.TileLayer(
-            "http://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
+            "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
             attr="chartbundle.com",
             name="ChartBundle Sectional",
         ).add_to(folium_map)
-        folium.TileLayer("Stamen Terrain", name="Stamen Terrain").add_to(folium_map)
-        folium.TileLayer("CartoDB positron", name="CartoDB Positron").add_to(folium_map)
+        folium.TileLayer("Stamen Terrain", name="Stamen Terrain", attr="stamen.com").add_to(folium_map)
+        folium.TileLayer("CartoDB positron", name="CartoDB Positron", attr="carto.com").add_to(folium_map)
 
         folium.LayerControl().add_to(folium_map)
 
@@ -506,6 +507,7 @@ class WebViews:
             control_scale=True,
             zoom_control=True,
             tiles="OpenStreetMap",
+            attr="OpenStreetMap",
         )
 
         # Place map within bounds of screen
@@ -609,8 +611,8 @@ class WebViews:
             attr="chartbundle.com",
             name="ChartBundle Sectional",
         ).add_to(folium_map)
-        folium.TileLayer("Stamen Terrain", name="Stamen Terrain").add_to(folium_map)
-        folium.TileLayer("CartoDB positron", name="CartoDB Positron").add_to(folium_map)
+        folium.TileLayer("Stamen Terrain", name="Stamen Terrain", attr="stamen.com").add_to(folium_map)
+        folium.TileLayer("CartoDB positron", name="CartoDB Positron", attr="charto.com").add_to(folium_map)
 
         folium.LayerControl().add_to(folium_map)
 

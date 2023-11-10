@@ -219,7 +219,7 @@ class UpdateOLEDs:
         width = 320
         height = 200
 
-        image_filename = f"static/oled_{oled_id}_{airport}_oled_display.png"
+        image_filename = f"static/oled_{oled_id}_oled_display.png"
 
         # Runway Dimensions
         rway_width = 6
@@ -326,5 +326,5 @@ class UpdateOLEDs:
                     self.update_oled_wind(oled_id, "kfhr", 340)
                 if oled_id == 6:
                     self.update_oled_status(oled_id)
-            time.sleep(20)
-            # time.sleep(180)
+            # time.sleep(20)
+            time.sleep(180)

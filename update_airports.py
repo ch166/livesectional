@@ -522,8 +522,11 @@ class AirportDB:
                                 visibility_statute_mi = float(visibility_statute_mi)
                             else:
                                 # FIXME: Hack for METAR parsing of complex valus
-                                debugging.info(f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}")
-                                visibility_statute_mi = 10
+                                if visibility_statute_mi == "6+":
+                                    visibility_statute_mi = 6
+                                else:
+                                    debugging.info(f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}")
+                                    visibility_statute_mi = 10
                             debugging.debug(visibility_statute_mi)
 
                             if visibility_statute_mi < 1.0:

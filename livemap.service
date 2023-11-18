@@ -1,6 +1,6 @@
 [Unit]
 Description=Livemap
-After=syslog.service network.target
+After=network-online.target
 Documentation=man:livemap
 
 [Service]

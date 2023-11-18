@@ -134,14 +134,13 @@ def cloud_height(wx_metar):
         if key == "VV":
             # """
             # From the AIM - Vertical Visibility (indefinite ceilingheight).
-            # The height into an indefinite ceiling is preceded by “VV” and followed
+            # The height into an indefinite ceiling is preceded by "VV" and followed
             # by three digits indicating the vertical visibility in hundreds of feet.
             # This layer indicates total obscuration
             # """
             if layer_altitude < lowest_ceiling:
                 lowest_ceiling = layer_altitude
         debugging.debug("Ceiling : " + str(lowest_ceiling))
-
     return lowest_ceiling
 
 

@@ -6,6 +6,8 @@ import socket
 import platform
 import psutil
 import flask
+import datetime
+import time
 
 
 class SystemData:
@@ -15,7 +17,15 @@ class SystemData:
         """Start from zero."""
         self.sysinfo = ""
         self.ipaddr = ""
-        self.uptime = ""
+        self._uptime = ""
+
+    def system_uptime(self):
+        """Update system uptime"""
+        return datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
+
+    def uptime(self):
+        """Return Uptime"""
+        return self._uptime
 
     def update_local_ip(self):
         """Create Socket to the Internet, Query Local IP"""
@@ -43,7 +53,7 @@ class SystemData:
         # TODO: Need to refresh this data on a regular basis
         self.sysinfo = self.query_system_information()
         self.update_local_ip()
-        self.uptime = "UNKN"
+        self._uptime = self.system_uptime()
 
     def get_size(self, bytes_size, suffix="B"):
         """

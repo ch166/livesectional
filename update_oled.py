@@ -35,7 +35,8 @@ from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106, ws0010
 
 import debugging
 
-# import utils
+import utils
+
 # import utils_i2c
 import utils_gfx
 
@@ -133,8 +134,8 @@ class UpdateOLEDs:
     OLED_240x320 = {"w": 240, "h": 320}
 
     reentry_check = False
-    conf = None
-    airport_database = None
+    _conf = None
+    _airport_database = None
     i2cbus = None
 
     device_count = 0
@@ -149,11 +150,12 @@ class UpdateOLEDs:
         "devid": 0,
     }
 
-    def __init__(self, conf, airport_database, i2cbus):
-        self.conf = conf
-        self.airport_database = airport_database
+    def __init__(self, conf, sysdata, airport_database, i2cbus):
+        self._conf = conf
+        self._sysdata = sysdata
+        self._airport_database = airport_database
         self.i2cbus = i2cbus
-        self.device_count = self.conf.get_int("oled", "oled_count")
+        self.device_count = self._conf.get_int("oled", "oled_count")
 
         debugging.debug("OLED: Config setup for {self.device_count} devices")
 
@@ -212,6 +214,29 @@ class UpdateOLEDs:
             draw.text((30, 40), txt, font=fnt, fill="white")
         self.i2cbus.bus_unlock()
 
+    def generate_info_image(self, oled_id):
+        """Create the status/info image"""
+        # Image Dimensions
+        width = 320
+        height = 200
+        image_filename = f"static/oled_{oled_id}_oled_display.png"
+
+        metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
+        currtime = utils.time_format_hms(utils.current_time(self._conf))
+        info_timestamp = f"time:{currtime} metar:{metarage}"
+        info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
+        info_uptime = f"uptime:{self._sysdata.uptime()}"
+
+        img = Image.new("RGB", (width, height), color=(73, 109, 137))
+        d = ImageDraw.Draw(img)
+
+        d.text((10, 10), "Status Info", fill=(255, 255, 0))
+        d.text((10, 30), info_ipaddr, fill=(255, 255, 0))
+        d.text((10, 50), info_uptime, fill=(255, 255, 0))
+        d.text((10, height - 20), info_timestamp, fill=(255, 255, 0))
+
+        img.save(image_filename)
+
     def generate_image(self, oled_id, airport, rway_angle, winddir, windspeed):
         """Create and save Web version of OLED display image"""
 
@@ -225,6 +250,9 @@ class UpdateOLEDs:
         rway_x = 15  # 15 pixel border
         rway_y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport} {winddir}@{windspeed}"
+        metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
+        currtime = utils.time_format_hms(utils.current_time(self._conf))
+        information_timestamp = f"time:{currtime} metar:{metarage}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
         runway_poly = utils_gfx.create_runway(
             rway_x, rway_y, rway_width, rway_angle, width, height
@@ -234,6 +262,7 @@ class UpdateOLEDs:
 
         d = ImageDraw.Draw(img)
         d.text((10, 10), airport_details, fill=(255, 255, 0))
+        d.text((10, height - 20), information_timestamp, fill=(255, 255, 0))
         d.polygon(wind_poly, fill="white", outline="white", width=1)
         d.polygon(runway_poly, fill=None, outline="white", width=1)
 
@@ -276,10 +305,11 @@ class UpdateOLEDs:
     def update_oled_wind(self, oled_id, airportcode, default_rwy):
         """Draw WIND Info on designated OLED."""
         # FIXME: Hardcoded data
-        airport_list = self.airport_database.get_airport_dict_led()
+        airport_list = self._airport_database.get_airport_dict_led()
         airport_record = airport_list[airportcode]["airport"]
         if airport_record is None:
             debugging.debug(f"Skipping OLED update {airportcode} lookup returns :None:")
+            # FIXME: We should not return here - we should update the OLED / Image with some signal that the information is out of date.
             return
         windspeed = airport_record.get_wx_windspeed()
         if windspeed is None:
@@ -310,8 +340,9 @@ class UpdateOLEDs:
             count += 1
             debugging.info("OLED: Updating OLEDs")
             for oled_id in range(0, (self.device_count)):
-                self.oled_text(oled_id, f"run({count}): {oled_id}")
                 # TODO: This is hardcoded
+                if oled_id == 0:
+                    self.generate_info_image(oled_id)
                 if oled_id == 1:
                     self.update_oled_wind(oled_id, "kbfi", 140)
                 if oled_id == 2:
@@ -322,7 +353,5 @@ class UpdateOLEDs:
                     self.update_oled_wind(oled_id, "kpwt", 200)
                 if oled_id == 5:
                     self.update_oled_wind(oled_id, "kfhr", 340)
-                if oled_id == 6:
-                    self.update_oled_status(oled_id)
             # time.sleep(20)
             time.sleep(180)

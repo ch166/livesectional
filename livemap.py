@@ -85,7 +85,7 @@ if __name__ == "__main__":
     GPIOmon = update_gpio.UpdateGPIO(conf, airport_database)
 
     # Setup OLED Management
-    OLEDmgmt = update_oled.UpdateOLEDs(conf, airport_database, i2cbus)
+    OLEDmgmt = update_oled.UpdateOLEDs(conf, sysdata, airport_database, i2cbus)
 
     # Setup Flask APP
     web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo, LEDmgmt)
@@ -100,27 +100,39 @@ if __name__ == "__main__":
 
     # Load Airports
     debugging.info("Starting Airport data management thread")
-    airport_thread = threading.Thread(target=airport_database.update_loop, args=(conf,))
+    airport_thread = threading.Thread(
+        target=airport_database.update_loop, name="airportdb", args=(conf,)
+    )
 
     # Updating LEDs
     debugging.info("Starting LED updating thread")
-    led_thread = threading.Thread(target=LEDmgmt.update_loop, args=())
+    led_thread = threading.Thread(
+        target=LEDmgmt.update_loop, name="led management", args=()
+    )
 
     # Updating LightSensor
     debugging.info("Starting Light Sensor thread")
-    lightsensor_thread = threading.Thread(target=LuxSensor.update_loop, args=(conf,))
+    lightsensor_thread = threading.Thread(
+        target=LuxSensor.update_loop, name="lightsensor", args=(conf,)
+    )
 
     # Updating OLEDs
     debugging.info("Starting OLED updating thread")
-    oled_thread = threading.Thread(target=OLEDmgmt.update_loop, args=())
+    oled_thread = threading.Thread(
+        target=OLEDmgmt.update_loop, name="oled management", args=()
+    )
 
     # Monitoring GPIO pins
     debugging.info("Starting GPIO monitoring thread")
-    gpio_thread = threading.Thread(target=GPIOmon.update_loop, args=())
+    gpio_thread = threading.Thread(
+        target=GPIOmon.update_loop, name="gpio monitoring", args=()
+    )
 
     # Flask Thread
     debugging.info("Creating Flask Thread")
-    flask_thread = threading.Thread(target=web_app.run, args=())
+    flask_thread = threading.Thread(
+        target=web_app.run, name="flask web server", args=()
+    )
 
     #
     # Start Executing Threads
@@ -141,6 +153,7 @@ if __name__ == "__main__":
         active_thread_count = threading.active_count()
         debugging.info(info_msg.format(active_thread_count, MAIN_LOOP_SLEEP))
 
+        sysdata.refresh()
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
         time.sleep(MAIN_LOOP_SLEEP * 60)

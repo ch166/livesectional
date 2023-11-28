@@ -27,7 +27,7 @@ def loginit():
     logger.setLevel(logging.DEBUG)
 
     # logging.basicConfig(filename="logs/debugging.log", level=logging.DEBUG)
-    logfilehandler = logging.handlers.WatchedFileHandler("logs/debugging.log")
+    logfilehandler = logging.handlers.TimedRotatingFileHandler("logs/debugging.log", when='midnight', interval = 1, backupCount=5, utc=True)
     logfilehandler.setLevel(logging.DEBUG)
     logger.addHandler(logfilehandler)
 

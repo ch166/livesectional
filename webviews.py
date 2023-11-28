@@ -18,9 +18,9 @@ from rpi_ws281x import (
 
 import folium
 import folium.plugins
-from folium.features import CustomIcon
+# from folium.features import CustomIcon
 from folium.features import DivIcon
-from folium.vector_layers import Circle, CircleMarker, PolyLine, Polygon, Rectangle
+# from folium.vector_layers import Circle, CircleMarker, PolyLine, Polygon, Rectangle
 
 from flask import (
     Flask,
@@ -28,9 +28,7 @@ from flask import (
     request,
     flash,
     redirect,
-    url_for,
     send_file,
-    Response,
 )
 
 # from werkzeug.utils import secure_filename
@@ -75,6 +73,7 @@ class WebViews:
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
         self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
+        self.app.add_url_rule("/oleddisplay", view_func=self.oled_display, methods=["GET"])
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
         self.app.add_url_rule(
             "/metar/<airport>", view_func=self.getmetar, methods=["GET"]
@@ -194,10 +193,16 @@ class WebViews:
         self._sysdata.refresh()
         template_data = self.standardtemplate_data()
         template_data["title"] = "SysInfo"
-
         debugging.info("Opening System Information page")
         return render_template("sysinfo.html", **template_data)
-        # text/html is required for most browsers to show this info.
+
+    def oled_display(self):
+        """Flask Route: /oleddisplay - Display System Info."""
+        self._sysdata.refresh()
+        template_data = self.standardtemplate_data()
+        template_data["title"] = "OLED Display"
+        debugging.info("Opening OLED Display page")
+        return render_template("oled.html", **template_data)
 
     def tzset(self):
         """Flask Route: /tzset - Display and Set Timezone Information."""
@@ -485,7 +490,6 @@ class WebViews:
         template_data["min_lat"] = self.min_lat
         template_data["max_lon"] = self.max_lon
         template_data["min_lon"] = self.min_lon
-
         return render_template("led_map.html", **template_data)
 
     # Route to display map's airports on a digital map.
@@ -668,7 +672,7 @@ class WebViews:
 
         if airport == "debug":
             # Debug request - dumping DB info
-            with open("logs/airport_database.txt", "w") as outfile:
+            with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
                 airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_id in airportdb.items():
@@ -706,7 +710,7 @@ class WebViews:
 
         if airport == "debug":
             # Debug request - dumping DB info
-            with open("logs/airport_database.txt", "w") as outfile:
+            with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
                 airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_id in airportdb.items():
@@ -736,7 +740,7 @@ class WebViews:
 
         if airport == "debug":
             # Debug request - dumping DB info
-            with open("logs/airport_database.txt", "w") as outfile:
+            with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
                 airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_id in airportdb.items():
@@ -1093,7 +1097,7 @@ class WebViews:
     # # @app.route('/', methods=["GET", "POST"])
     # @app.route('/confmobile', methods=["GET", "POST"])
     def confmobile(self):
-        """Flask Route: /confmobile - Mobile Device API"""
+        """Flask Route: /confmobile - Mobile Device API."""
         debugging.info("Opening lsremote.html")
 
         # ipadd = self._sysdata.local_ip()
@@ -1167,7 +1171,7 @@ class WebViews:
     # Import Config file. Must Save Config File to make permenant
     # @app.route("/importconf", methods=["GET", "POST"])
     def importconf(self):
-        """Flask Route: /importconf - Flask Config Uploader"""
+        """Flask Route: /importconf - Flask Config Uploader."""
         debugging.info("Importing Config File")
         tmp_settings = []
 
@@ -1205,7 +1209,7 @@ class WebViews:
     # Restore config.py settings
     # @app.route("/restoreconf", methods=["GET", "POST"])
     def restoreconf(self):
-        """Flask Route: /restoreconf"""
+        """Flask Route: /restoreconf."""
         debugging.info("Restoring Config Settings")
         return redirect("./confedit")
 
@@ -1240,7 +1244,7 @@ class WebViews:
 
     # Route for Reboot of RPI
     def system_reboot(self):
-        """Flask Route: /system_reboot - Request host reboot"""
+        """Flask Route: /system_reboot - Request host reboot."""
         ipadd = self._sysdata.local_ip()
         url = request.referrer
         if url is None:
@@ -1256,7 +1260,7 @@ class WebViews:
     # Route to turn off the map and displays
     # @app.route("/mapturnoff", methods=["GET", "POST"])
     def handle_mapturnoff(self):
-        """Flask Route: /mapturnoff - Trigger process shutdown"""
+        """Flask Route: /mapturnoff - Trigger process shutdown."""
         url = request.referrer
         debugging.info(f"Shutoff Map from {url}")
         self._led_strip.set_ledmode(LedMode.OFF)
@@ -1267,19 +1271,18 @@ class WebViews:
     # Route to turn off the map and displays
     # @app.route("/mapturnoff", methods=["GET", "POST"])
     def handle_mapturnon(self):
-        """Flask Route: /mapturnon - Trigger process shutdown"""
+        """Flask Route: /mapturnon - Trigger process shutdown."""
         url = request.referrer
         debugging.info(f"Turn Map ON from {url}")
         self._led_strip.set_ledmode(LedMode.METAR)
         flash("Map Turned On")
         return redirect("/")
-        # temp[3] holds name of page that called this route.
 
     # FIXME: Integrate into Class
     # Route to power down the RPI
     # @app.route("/shutoffnow1", methods=["GET", "POST"])
     def shutoffnow1(self):
-        """Flask Route: /shutoffnow1 - Turn Off RPI"""
+        """Flask Route: /shutoffnow1 - Turn Off RPI."""
         url = request.referrer
         ipadd = self._sysdata.local_ip()
         if url is None:
@@ -1298,7 +1301,7 @@ class WebViews:
     # Route to run LED test
     # @app.route("/testled", methods=["GET", "POST"])
     def testled(self):
-        """Flask Route: /testled - Run LED Test scripts"""
+        """Flask Route: /testled - Run LED Test scripts."""
         url = request.referrer
         ipadd = self._sysdata.local_ip()
 
@@ -1318,7 +1321,7 @@ class WebViews:
     # Route to run OLED test
     # @app.route("/testoled", methods=["GET", "POST"])
     def testoled(self):
-        """Flask Route: /testoled - Run OLED Test sequence"""
+        """Flask Route: /testoled - Run OLED Test sequence."""
         url = request.referrer
         ipadd = self._sysdata.local_ip()
         if url is None:

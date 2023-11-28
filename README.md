@@ -9,9 +9,9 @@ The current intent is to
  - move some of the 'one time setup' actions to a setup script (eg: filesystem expansion)
  - prepare for packaging via .deb to make it more repeatable
  - Restructure to run as one application (livemap) to allow <b>DONE</b>
- -- Code reuse
- -- Data reuse (lookup / calculate state once)
- -- Less process overhead ( less fork(), exec() )
+    - Code reuse
+    - Data reuse (lookup / calculate state once)
+    - Less process overhead ( less fork(), exec() )
 
 
 # LiveSectional.com

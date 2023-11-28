@@ -3,12 +3,12 @@
 This is a fork of the code from livesectional.com
 
 The current intent is to
- - simplify some of the existing code
- - improve the security (remove python calling sudo )
- - run the webapp as a non-priv user
+ - simplify some of the existing code <b>DONE</b>
+ - improve the security (remove python calling sudo ) <b>DONE - temporarily removed some functionality </b>
+ - run the webapp as a non-priv user <b>RPI GPIO access makes this hard</b>
  - move some of the 'one time setup' actions to a setup script (eg: filesystem expansion)
  - prepare for packaging via .deb to make it more repeatable
- - Restructure to run as one application (livemap) to allow
+ - Restructure to run as one application (livemap) to allow <b>DONE</b>
   - Code reuse
   - Data reuse (lookup / calculate state once)
   - Less process overhead ( less fork(), exec() )
@@ -33,7 +33,7 @@ The current intent is to
           <li>Sleep Timer - The Map can be put to sleep at night (or anytime) if desired. Pressing a pushbutton will turn on temporarily.
           <li>Reload the config settings automatically. The map will restart and reload the settings when new settings are saved.
           <li>Map builder has the ability to use both types of LED's, either RGB and/or GRB color encoding on same map.
-          <li>Decodes the airport ID to show City and State. If international airports are used, it will show Site and Country. 
+          <li>Decodes the airport ID to show City and State. If international airports are used, it will show Site and Country.
           <li>Will display IP address if an LCD/OLED display is used.
 	  <li>Logging capabilities were added to help with diagnosing issues.
           <li>The builder can now download and backup the config file, airports file, Heat Map file and logfile.
@@ -43,7 +43,7 @@ The current intent is to
           <li>Config Profiles available to load to help start the configuration process.
           <li>Many new Transitional Wipes were added for when the FAA weather is being updated. Some are still a work in process.
           <li>Ability to setup wifi remotely through the use of Android or IPhone app thanks to  <a class="text-danger" href="http://berrylan.org" target="_blank">Berrylan.org</a>.
-          <li>A System Information page was added to help with diagnosis if necessary. 
+          <li>A System Information page was added to help with diagnosis if necessary.
           <li>A Phone App was added to allow the casual user to control the data displayed on the map if a Rotary Switch was not installed. (Thank you Lance B.)
           <li>To help the casual user to access the App, a 'Create QR Code' feature was added to Utilities to display next to the map.
           <li>Added the ability to set the RPI's Time Zone without needing to enter the command line.
@@ -54,14 +54,14 @@ The current intent is to
     </p>
   <hr>
     <p class="lead">
-        Browser Compatibility: The following browsers have been tested and found to work (4-2020).        
+        Browser Compatibility: The following browsers have been tested and found to work (4-2020).
         <ul>
           <li>Windows 10
           <ul>
             <li>Chrome: Recommended, as most development was done using Chrome.
             <li>Microsoft Edge: All functions work.
             <li>Firefox: All functions work.
-            <li>Internet Explorer: All functions work, (except range sliders on Heat Map Editor).   
+            <li>Internet Explorer: All functions work, (except range sliders on Heat Map Editor).
             <li>Opera: All functions work.
           </ul>
           <li>IPAD - IOS 13
@@ -72,7 +72,7 @@ The current intent is to
           <li>Android 9
           <ul>
             <li>Chrome: All functions work.
-            <li>Miren Browser: All functions work.    
+            <li>Miren Browser: All functions work.
           </ul>
           <li>Mac 10.15 Catalina
           <ul>
@@ -108,10 +108,10 @@ The current intent is to
              <li>Homepage - Will bring up the Home page.
              <li>Set RPI Timezone - Allows the user to set their Time Zone without the command line.
              <li>Expand File System - Allows RPI to utilize the entire amount of memory on the microSD Card.
-             <li>Download Config File - Allows the builder to backup the config file to another computer.         
+             <li>Download Config File - Allows the builder to backup the config file to another computer.
              <li>Download Airports File - Allows the builder to backup the airports file to another computer.
              <li>Download Heat Map File - Allows the builder to download Heat Map file for diagnostic purposes.
-             <li>Download Logfile File - Allows the builder to download logfile for diagnostic purposes.                  
+             <li>Download Logfile File - Allows the builder to download logfile for diagnostic purposes.
              <li>Run LED Test Script - Run a basic test script to check all the LED's.
              <li>Run OLED Test Script - Run a basic test script to check the OLED displays.
              <li>Web Remote App - Setup for the casual user to control the type of weather data displayed on the map.
@@ -131,30 +131,30 @@ The current intent is to
 	     <ul>
               <li>Basic LED Map Only - No other hardware other than an RPI and LED string.
               <li>Basic LED Map with Pushbuttons - Add up to 3 pushbuttons for reboot/power-off, data refresh and power-on.
-              <li>Basic LED Map with Pushbuttons and Rotary Switch - The addition of the rotary switch gives the viewer the 
+              <li>Basic LED Map with Pushbuttons and Rotary Switch - The addition of the rotary switch gives the viewer the
 	          ability to choose what to display, METAR data, TAF data, MOS data or Heat Map.
 	     </ul>
-	  <li>LED Map with Display 
+	  <li>LED Map with Display
              <ul>
               <li>LED Map with LCD display - Use a 16x2 LCD to display Wind Speed and Direction information.
 	      <li>LED Map with single OLED display - Use a single SSD1306 OLED display to show the same information.
               <li>LED Map with multiple OLED displays - Use up to 8 SSD1306 OLED displays to create a great display of data.
               <li>LED Map with display and Rotary Switch - The addition of the rotary switch gives the viewer the
-                  ability to choose what to display, METAR data, TAF data, MOS data or Heat Map. Displays will show what data 
+                  ability to choose what to display, METAR data, TAF data, MOS data or Heat Map. Displays will show what data
 		  is being displayed, along with local and zulu time if desired.
 	     </ul>
 	  <li>Map with Legend - Legend can be added on any of the above maps if desired.
 	     <ul>
-              <li>Basic Legend - Will use 5 LED's to demonstrate VFR, MVFR, IFR, LIFR and No Weather reported.	
+              <li>Basic Legend - Will use 5 LED's to demonstrate VFR, MVFR, IFR, LIFR and No Weather reported.
 	      <li>High Winds and Lightning Legend - Will add 2 more LED's demonstrating High Winds and Lightning.
 	      <li>Reported Weather Legend - Will require up to 5 more LED's to demonstrate reported weather including;
 		  Rain, Freezing Rain, Snow, Dust/Ash/Sand, Fog.
 	     </ul>
-	  <li>Map with Light Sensor - An ambient light sensor can be added to any of the builds above and will 
-              dim LED's when room lights are turned off.        
+	  <li>Map with Light Sensor - An ambient light sensor can be added to any of the builds above and will
+              dim LED's when room lights are turned off.
         </ul>
     </p>
- 
+
   <hr>
 
   <blockquote class="blockquote">

@@ -87,7 +87,7 @@ def get_loc():
     loc = {}
 
     url_loc = "https://extreme-ip-lookup.com/json/"
-    geo_json_data = requests.get(url_loc)
+    geo_json_data = requests.get(url_loc, timeout=10)
     data = json.loads(geo_json_data.content.decode())
 
     ip_data = data["query"]

@@ -18,8 +18,10 @@ from rpi_ws281x import (
 
 import folium
 import folium.plugins
+
 # from folium.features import CustomIcon
 from folium.features import DivIcon
+
 # from folium.vector_layers import Circle, CircleMarker, PolyLine, Polygon, Rectangle
 
 from flask import (
@@ -73,7 +75,9 @@ class WebViews:
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
         self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
-        self.app.add_url_rule("/oleddisplay", view_func=self.oled_display, methods=["GET"])
+        self.app.add_url_rule(
+            "/oleddisplay", view_func=self.oled_display, methods=["GET"]
+        )
         self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
         self.app.add_url_rule(
             "/metar/<airport>", view_func=self.getmetar, methods=["GET"]
@@ -323,7 +327,8 @@ class WebViews:
         """Flask Route: /stream_log1 - UNUSED ALTERNATE LOGS ROUTE."""
 
         def generate():
-            with open("/NeoSectional/logs/logfile.log", encoding="utf8") as file:
+            # FIXME: Move logfile name to config file
+            with open("/NeoSectional/logs/debugging.log", encoding="utf8") as file:
                 while True:
                     yield "{}\n".format(file.read())
                     time.sleep(1)

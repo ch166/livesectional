@@ -111,14 +111,18 @@ class I2CBus:
 
     def bus_lock(self):
         """Grab bus lock."""
-        self.lock_count += 1
         if self.lock.locked():
-            debugging.warn("bus_lock: Lock already acquired")
-        self.lock.acquire()
+            debugging.warn(f"bus_lock: Lock already acquired: lock_count :{self.lock_count}:")
+        else:
+            self.lock_count += 1
+            self.lock.acquire()
 
     def bus_unlock(self):
         """Release bus lock."""
-        self.lock.release()
+        if self.lock.locked():
+            self.lock.release()
+        else:
+            debugging.warn(f"bus_unlock: Request to release lock that wasn't acquired - lock_count :{self.lock_count}:")
 
     def set_always_on(self, channel_id):
         """Set channel to be always on."""

@@ -62,7 +62,6 @@ class AirportDB:
 
     def __init__(self, conf):
         """Create a database of Airports to be tracked."""
-
         # TODO: A lot of the class local variables are extras,
         # left over from the restructuring of the code.
         # for example: Some are just copies of config file data, and it
@@ -103,7 +102,7 @@ class AirportDB:
         debugging.info("AirportDB : init complete")
 
     def get_airport(self, airport_icao):
-        """Return a single Airport"""
+        """Return a single Airport."""
         return self.airport_master_dict[airport_icao]["airport"]
 
     def get_airport_taf(self, airport_icao):
@@ -144,7 +143,7 @@ class AirportDB:
                 arpt.update_wx(self.metar_xml_dict)
             except Exception as err:
                 debug_string = (
-                    "Error: update_airport_wx Exception handling for " + arpt.icaocode()
+                    f"Error: update_airport_wx Exception handling for {arpt.icaocode()} ICAO:{icao}:"
                 )
                 debugging.error(debug_string)
                 debugging.crash(err)
@@ -162,7 +161,6 @@ class AirportDB:
             airport_save_record["purpose"] = airportdb_row["purpose"]
             airport_save_record["wxsrc"] = arpt.wxsrc()
             airportdb_list.append(airport_save_record)
-
         return airportdb_list
 
     def airport_dict_from_json(self, airport_jsondb):
@@ -174,7 +172,6 @@ class AirportDB:
         # ledindex = Index of LED on LED String
         # active = True / False
         # purpose = all | web | led
-
         airportdb_dict = {}
 
         for json_airport in airport_jsondb["airports"]:
@@ -227,6 +224,7 @@ class AirportDB:
         debugging.debug("Loading Airport List")
         airport_json = self.conf.get_string("filenames", "airports_json")
         # Opening JSON file
+        # FIXME: Error Handling for this being missing
         json_file = open(airport_json, encoding="utf8")
         # returns JSON object as a dictionary
         new_airport_json_dict = json.load(json_file)
@@ -272,7 +270,7 @@ class AirportDB:
         except etree.ParseError as err:
             debugging.error("XML Parse METAR Error")
             debugging.error(err)
-            debugging.debug("Not updating - returning")
+            debugging.debug("XML Parse Error - Not updating airport data")
             return False
 
         display_counter = 0
@@ -283,15 +281,14 @@ class AirportDB:
             station_id = metar_data.find("station_id").text
             station_id = station_id.lower()
 
-            # Log an update every 20 stations parsed
+            # Log an update every 200 stations parsed
             # Want to have some tracking of progress through the data set, but not
             # burden the log file with a huge volume of data
             display_counter += 1
-            if display_counter % 20 == 0:
-                msg = "xml:" + str(display_counter) + ":" + station_id
+            if display_counter % 200 == 0:
+                msg = f"xml parsing: entry:{str(display_counter)}  station_id:{station_id}"
                 debugging.debug(msg)
 
-            # print(":" + station_id + ": ", end='')
             # FIXME: Move most of this code into an Airport Class function, where it belongs
             metar_dict[station_id] = {}
             metar_dict[station_id]["stationId"] = station_id
@@ -300,11 +297,13 @@ class AirportDB:
                 metar_dict[station_id]["raw_text"] = next_object.text
             else:
                 metar_dict[station_id]["raw_text"] = "Missing"
+
             next_object = metar_data.find("observation_time")
             if next_object is not None:
                 metar_dict[station_id]["observation_time"] = next_object.text
             else:
                 metar_dict[station_id]["observation_time"] = "Missing"
+
             next_object = metar_data.find("wind_dir_degrees")
             if next_object is not None:
                 try:
@@ -314,7 +313,7 @@ class AirportDB:
                 else:
                     next_val_int = True
                 if next_val_int:
-                    metar_dict[station_id]["wind_dir_degrees"] = int(next_object.text)
+                    metar_dict[station_id]["wind_dir_degrees"] = next_val
                 else:
                     # FIXME: Hack to handle complex wind definitions (eg: VRB)
                     debugging.info(
@@ -323,6 +322,7 @@ class AirportDB:
                     metar_dict[station_id]["wind_dir_degrees"] = 0
             else:
                 metar_dict[station_id]["wind_dir_degrees"] = 0
+
             next_object = metar_data.find("wind_speed_kt")
             if next_object is not None:
                 try:
@@ -341,11 +341,13 @@ class AirportDB:
                     metar_dict[station_id]["wind_speed_kt"] = 0
             else:
                 metar_dict[station_id]["wind_speed_kt"] = 0
+
             next_object = metar_data.find("metar_type")
             if next_object is not None:
                 metar_dict[station_id]["metar_type"] = next_object.text
             else:
                 metar_dict[station_id]["metar_type"] = "Missing"
+
             next_object = metar_data.find("wind_gust_kt")
             if next_object is not None:
                 try:
@@ -364,36 +366,43 @@ class AirportDB:
                     metar_dict[station_id]["wind_gust_kt"] = 0
             else:
                 metar_dict[station_id]["wind_gust_kt"] = 0
+
             next_object = metar_data.find("sky_condition")
             if next_object is not None:
                 metar_dict[station_id]["sky_condition"] = next_object.text
             else:
                 metar_dict[station_id]["sky_condition"] = "Missing"
+
             next_object = metar_data.find("flight_category")
             if next_object is not None:
                 metar_dict[station_id]["flight_category"] = next_object.text
             else:
                 metar_dict[station_id]["flight_category"] = "Missing"
+
             next_object = metar_data.find("ceiling")
             if next_object is not None:
                 metar_dict[station_id]["ceiling"] = next_object.text
             else:
                 metar_dict[station_id]["ceiling"] = "Missing"
+
             next_object = metar_data.find("visibility_statute_mi")
             if next_object is not None:
                 metar_dict[station_id]["visibility"] = next_object.text
             else:
                 metar_dict[station_id]["visibility"] = "Missing"
+
             next_object = metar_data.find("latitude")
             if next_object is not None:
                 metar_dict[station_id]["latitude"] = next_object.text
             else:
                 metar_dict[station_id]["latitude"] = "Missing"
+
             next_object = metar_data.find("longitude")
             if next_object is not None:
                 metar_dict[station_id]["longitude"] = next_object.text
             else:
                 metar_dict[station_id]["longitude"] = "Missing"
+
         self.metar_xml_dict = metar_dict
         self.metar_update_time = datetime.now(pytz.utc)
         debugging.debug("Updating Airport METAR from XML")
@@ -401,7 +410,6 @@ class AirportDB:
 
     def update_airport_taf_xml(self):
         """Update Airport TAF DICT from XML."""
-
         # Create a DICT containing TAF records per site
         #
         # ['site']
@@ -525,7 +533,7 @@ class AirportDB:
                             else:
                                 next_val_float = True
                             if next_val_float:
-                                visibility_statute_mi = float(visibility_statute_mi)
+                                visibility_statute_mi = next_val
                             else:
                                 # FIXME: Hack for METAR parsing of complex valus
                                 if visibility_statute_mi == "6+":
@@ -645,10 +653,11 @@ class AirportDB:
 
         Triggered Update
         """
-
         aviation_weather_adds_timer = conf.get_int("metar", "wx_update_interval")
 
         # TODO: Do we really need these, or can we just do the conf lookup when needed
+        # Might be better to pull them from the conf file on demand,
+        # to allow the config to be dynamically updated without needing a restart
         metar_xml_url = conf.get_string("urls", "metar_xml_gz")
         metar_file = conf.get_string("filenames", "metar_xml_data")
         runways_csv_url = conf.get_string("urls", "runways_csv_url")
@@ -665,12 +674,6 @@ class AirportDB:
         mos12_file = conf.get_string("filenames", "mos12_xml_data")
         mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
         mos18_file = conf.get_string("filenames", "mos18_xml_data")
-
-        # FIXME: This pre-seeds the data sets with whatever data is on disk.
-        # This is great for a quick restart ; but bad for a reload after a period of time offline.
-        # Worth adding logic here to check the age of the files on disk and only load if they are relatively recent.
-        self.update_airport_metar_xml()
-        self.update_airport_taf_xml()
 
         etag_metar = None
         etag_tafs = None
@@ -742,6 +745,10 @@ class AirportDB:
             if ret is True:
                 debugging.debug("Downloaded runways.csv")
                 self.import_runways()
+                # TODO: Do we have a race condition here ; if we update the runway data but the
+                # airport data isn't updated - we're not going to call this if the airport 
+                # is activated later. Do we need to run the self.update_airport_runways()
+                # outside this if block
                 self.update_airport_runways()
             elif ret is False:
                 debugging.debug("Server side runways.csv older")
@@ -775,6 +782,7 @@ class AirportDB:
                     "Update Weather Loop: self.update_airport_wx() exception"
                 )
                 debugging.error(err)
+
             kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
             kbfi_runway = self.airport_runway_data("kbfi")

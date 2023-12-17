@@ -96,6 +96,9 @@ class AirportDB:
         # Runway Data
         self.runway_data = None
 
+        # Airport Data
+        self.airport_data = None
+
         debugging.debug("AirportDB : init")
 
         self.load_airport_db()
@@ -257,13 +260,134 @@ class AirportDB:
             json.dump(json_save_data, json_file, sort_keys=True, indent=4)
         shutil.move(airport_json_new, airport_json)
 
+
+    def set_airport_metar(self, station_id, metar_data):
+        """Update Airport METAR data from XML record."""
+        # Pulling this processing out of the update loop ; it needs to move to airport.py
+        metar_dict = {}
+        # FIXME: Move most of this code into an Airport Class function, where it belongs
+        metar_dict[station_id] = {}
+        metar_dict[station_id]["stationId"] = station_id
+        next_object = metar_data.find("raw_text")
+        if next_object is not None:
+            metar_dict[station_id]["raw_text"] = next_object.text
+        else:
+            metar_dict[station_id]["raw_text"] = "Missing"
+
+        next_object = metar_data.find("observation_time")
+        if next_object is not None:
+            metar_dict[station_id]["observation_time"] = next_object.text
+        else:
+            metar_dict[station_id]["observation_time"] = "Missing"
+
+        next_object = metar_data.find("wind_dir_degrees")
+        if next_object is not None:
+            try:
+                next_val = int(next_object.text)
+            except (TypeError, ValueError):
+                next_val_int = False
+            else:
+                next_val_int = True
+            if next_val_int:
+                metar_dict[station_id]["wind_dir_degrees"] = next_val
+            else:
+                # FIXME: Hack to handle complex wind definitions (eg: VRB)
+                debugging.info(
+                    f"GRR: wind_dir_degrees parse mismatch - setting to zero; actual:{next_object.text}:"
+                )
+                metar_dict[station_id]["wind_dir_degrees"] = 0
+        else:
+            metar_dict[station_id]["wind_dir_degrees"] = 0
+
+        next_object = metar_data.find("wind_speed_kt")
+        if next_object is not None:
+            try:
+                next_val = int(next_object.text)
+            except (TypeError, ValueError):
+                next_val_int = False
+            else:
+                next_val_int = True
+            if next_val_int:
+                metar_dict[station_id]["wind_speed_kt"] = int(next_object.text)
+            else:
+                # FIXME: Hack to handle complex wind definitions (eg: VRB)
+                debugging.info(
+                    f"GRR: wind_speed_kt parse mismatch - setting to zero; actual:{next_object.text}:"
+                )
+                metar_dict[station_id]["wind_speed_kt"] = 0
+        else:
+            metar_dict[station_id]["wind_speed_kt"] = 0
+
+        next_object = metar_data.find("metar_type")
+        if next_object is not None:
+            metar_dict[station_id]["metar_type"] = next_object.text
+        else:
+            metar_dict[station_id]["metar_type"] = "Missing"
+
+        next_object = metar_data.find("wind_gust_kt")
+        if next_object is not None:
+            try:
+                next_val = int(next_object.text)
+            except (TypeError, ValueError):
+                next_val_int = False
+            else:
+                next_val_int = True
+            if next_val_int:
+                metar_dict[station_id]["wind_gust_kt"] = int(next_object.text)
+            else:
+                # FIXME: Hack to handle complex wind definitions (eg: VRB)
+                debugging.info(
+                    f"GRR: wind_gust_kt parse mismatch - setting to zero; actual:{next_object.text}:"
+                )
+                metar_dict[station_id]["wind_gust_kt"] = 0
+        else:
+            metar_dict[station_id]["wind_gust_kt"] = 0
+
+        next_object = metar_data.find("sky_condition")
+        if next_object is not None:
+            metar_dict[station_id]["sky_condition"] = next_object.text
+        else:
+            metar_dict[station_id]["sky_condition"] = "Missing"
+
+        next_object = metar_data.find("flight_category")
+        if next_object is not None:
+            metar_dict[station_id]["flight_category"] = next_object.text
+        else:
+            metar_dict[station_id]["flight_category"] = "Missing"
+
+        next_object = metar_data.find("ceiling")
+        if next_object is not None:
+            metar_dict[station_id]["ceiling"] = next_object.text
+        else:
+            metar_dict[station_id]["ceiling"] = "Missing"
+
+        next_object = metar_data.find("visibility_statute_mi")
+        if next_object is not None:
+            metar_dict[station_id]["visibility"] = next_object.text
+        else:
+            metar_dict[station_id]["visibility"] = "Missing"
+
+        next_object = metar_data.find("latitude")
+        if next_object is not None:
+            metar_dict[station_id]["latitude"] = next_object.text
+        else:
+            metar_dict[station_id]["latitude"] = "Missing"
+
+        next_object = metar_data.find("longitude")
+        if next_object is not None:
+            metar_dict[station_id]["longitude"] = next_object.text
+        else:
+            metar_dict[station_id]["longitude"] = "Missing"
+
+        return metar_dict
+
+
     def update_airport_metar_xml(self):
         """Update Airport METAR DICT from XML."""
         # TODO: Add file error handling
         # Consider extracting only interesting airports from dict first
         debugging.debug("Updating Airport METAR DICT")
-        metar_data = []
-        metar_dict = {}
+        metar_dict = self.metar_xml_dict
         metar_file = self.conf.get_string("filenames", "metar_xml_data")
         try:
             root = etree.parse(metar_file)
@@ -273,6 +397,7 @@ class AirportDB:
             debugging.debug("XML Parse Error - Not updating airport data")
             return False
 
+        metar_data = []
         display_counter = 0
 
         for metar_data in root.iter("METAR"):
@@ -280,7 +405,6 @@ class AirportDB:
                 return False
             station_id = metar_data.find("station_id").text
             station_id = station_id.lower()
-
             # Log an update every 200 stations parsed
             # Want to have some tracking of progress through the data set, but not
             # burden the log file with a huge volume of data
@@ -288,125 +412,14 @@ class AirportDB:
             if display_counter % 200 == 0:
                 msg = f"xml parsing: entry:{str(display_counter)}  station_id:{station_id}"
                 debugging.debug(msg)
-
-            # FIXME: Move most of this code into an Airport Class function, where it belongs
-            metar_dict[station_id] = {}
-            metar_dict[station_id]["stationId"] = station_id
-            next_object = metar_data.find("raw_text")
-            if next_object is not None:
-                metar_dict[station_id]["raw_text"] = next_object.text
-            else:
-                metar_dict[station_id]["raw_text"] = "Missing"
-
-            next_object = metar_data.find("observation_time")
-            if next_object is not None:
-                metar_dict[station_id]["observation_time"] = next_object.text
-            else:
-                metar_dict[station_id]["observation_time"] = "Missing"
-
-            next_object = metar_data.find("wind_dir_degrees")
-            if next_object is not None:
-                try:
-                    next_val = int(next_object.text)
-                except (TypeError, ValueError):
-                    next_val_int = False
-                else:
-                    next_val_int = True
-                if next_val_int:
-                    metar_dict[station_id]["wind_dir_degrees"] = next_val
-                else:
-                    # FIXME: Hack to handle complex wind definitions (eg: VRB)
-                    debugging.info(
-                        f"GRR: wind_dir_degrees parse mismatch - setting to zero; actual:{next_object.text}:"
-                    )
-                    metar_dict[station_id]["wind_dir_degrees"] = 0
-            else:
-                metar_dict[station_id]["wind_dir_degrees"] = 0
-
-            next_object = metar_data.find("wind_speed_kt")
-            if next_object is not None:
-                try:
-                    next_val = int(next_object.text)
-                except (TypeError, ValueError):
-                    next_val_int = False
-                else:
-                    next_val_int = True
-                if next_val_int:
-                    metar_dict[station_id]["wind_speed_kt"] = int(next_object.text)
-                else:
-                    # FIXME: Hack to handle complex wind definitions (eg: VRB)
-                    debugging.info(
-                        f"GRR: wind_speed_kt parse mismatch - setting to zero; actual:{next_object.text}:"
-                    )
-                    metar_dict[station_id]["wind_speed_kt"] = 0
-            else:
-                metar_dict[station_id]["wind_speed_kt"] = 0
-
-            next_object = metar_data.find("metar_type")
-            if next_object is not None:
-                metar_dict[station_id]["metar_type"] = next_object.text
-            else:
-                metar_dict[station_id]["metar_type"] = "Missing"
-
-            next_object = metar_data.find("wind_gust_kt")
-            if next_object is not None:
-                try:
-                    next_val = int(next_object.text)
-                except (TypeError, ValueError):
-                    next_val_int = False
-                else:
-                    next_val_int = True
-                if next_val_int:
-                    metar_dict[station_id]["wind_gust_kt"] = int(next_object.text)
-                else:
-                    # FIXME: Hack to handle complex wind definitions (eg: VRB)
-                    debugging.info(
-                        f"GRR: wind_gust_kt parse mismatch - setting to zero; actual:{next_object.text}:"
-                    )
-                    metar_dict[station_id]["wind_gust_kt"] = 0
-            else:
-                metar_dict[station_id]["wind_gust_kt"] = 0
-
-            next_object = metar_data.find("sky_condition")
-            if next_object is not None:
-                metar_dict[station_id]["sky_condition"] = next_object.text
-            else:
-                metar_dict[station_id]["sky_condition"] = "Missing"
-
-            next_object = metar_data.find("flight_category")
-            if next_object is not None:
-                metar_dict[station_id]["flight_category"] = next_object.text
-            else:
-                metar_dict[station_id]["flight_category"] = "Missing"
-
-            next_object = metar_data.find("ceiling")
-            if next_object is not None:
-                metar_dict[station_id]["ceiling"] = next_object.text
-            else:
-                metar_dict[station_id]["ceiling"] = "Missing"
-
-            next_object = metar_data.find("visibility_statute_mi")
-            if next_object is not None:
-                metar_dict[station_id]["visibility"] = next_object.text
-            else:
-                metar_dict[station_id]["visibility"] = "Missing"
-
-            next_object = metar_data.find("latitude")
-            if next_object is not None:
-                metar_dict[station_id]["latitude"] = next_object.text
-            else:
-                metar_dict[station_id]["latitude"] = "Missing"
-
-            next_object = metar_data.find("longitude")
-            if next_object is not None:
-                metar_dict[station_id]["longitude"] = next_object.text
-            else:
-                metar_dict[station_id]["longitude"] = "Missing"
+            airport_metar_data = self.set_airport_metar(station_id, metar_data)
+            metar_dict[station_id].update(airport_metar_data)
 
         self.metar_xml_dict = metar_dict
         self.metar_update_time = datetime.now(pytz.utc)
         debugging.debug("Updating Airport METAR from XML")
         return True
+
 
     def update_airport_taf_xml(self):
         """Update Airport TAF DICT from XML."""
@@ -746,7 +759,7 @@ class AirportDB:
                 debugging.debug("Downloaded runways.csv")
                 self.import_runways()
                 # TODO: Do we have a race condition here ; if we update the runway data but the
-                # airport data isn't updated - we're not going to call this if the airport 
+                # airport data isn't updated - we're not going to call this if the airport
                 # is activated later. Do we need to run the self.update_airport_runways()
                 # outside this if block
                 self.update_airport_runways()

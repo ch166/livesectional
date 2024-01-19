@@ -206,8 +206,10 @@ class UpdateOLEDs:
         # draw = ImageDraw.Draw(image)
         # txt_w, txt_h = draw.textsize(txt, fnt)
         device = oled_dev["device"]
+        device_i2cbus_id = oled_dev["devid"]
+
         debugging.debug(f"OLED: Writing to device: {oled_id} : Msg : {txt}")
-        self.oled_select(oled_id)
+        self.oled_select(device_i2cbus_id)
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
             draw.rectangle(device.bounding_box, outline="white", fill="black")
@@ -228,12 +230,12 @@ class UpdateOLEDs:
         info_uptime = f"uptime:{self._sysdata.uptime()}"
 
         img = Image.new("RGB", (width, height), color=(73, 109, 137))
-        d = ImageDraw.Draw(img)
+        oled_canvas = ImageDraw.Draw(img)
 
-        d.text((10, 10), "Status Info", fill=(255, 255, 0))
-        d.text((10, 30), info_ipaddr, fill=(255, 255, 0))
-        d.text((10, 50), info_uptime, fill=(255, 255, 0))
-        d.text((10, height - 20), info_timestamp, fill=(255, 255, 0))
+        oled_canvas.text((10, 10), "Status Info", fill=(255, 255, 0))
+        oled_canvas.text((10, 30), info_ipaddr, fill=(255, 255, 0))
+        oled_canvas.text((10, 50), info_uptime, fill=(255, 255, 0))
+        oled_canvas.text((10, height - 20), info_timestamp, fill=(255, 255, 0))
 
         img.save(image_filename)
 
@@ -260,11 +262,11 @@ class UpdateOLEDs:
 
         img = Image.new("RGB", (width, height), color=(73, 109, 137))
 
-        d = ImageDraw.Draw(img)
-        d.text((10, 10), airport_details, fill=(255, 255, 0))
-        d.text((10, height - 20), information_timestamp, fill=(255, 255, 0))
-        d.polygon(wind_poly, fill="white", outline="white", width=1)
-        d.polygon(runway_poly, fill=None, outline="white", width=1)
+        oled_canvas = ImageDraw.Draw(img)
+        oled_canvas.text((10, 10), airport_details, fill=(255, 255, 0))
+        oled_canvas.text((10, height - 20), information_timestamp, fill=(255, 255, 0))
+        oled_canvas.polygon(wind_poly, fill="white", outline="white", width=1)
+        oled_canvas.polygon(runway_poly, fill=None, outline="white", width=1)
 
         img.save(image_filename)
 
@@ -281,6 +283,7 @@ class UpdateOLEDs:
         device = oled_dev["device"]
         width = oled_dev["size"]["w"]
         height = oled_dev["size"]["h"]
+        device_i2cbus_id = oled_dev["devid"]
 
         # Runway Dimensions
         rway_width = 6
@@ -292,6 +295,7 @@ class UpdateOLEDs:
             rway_x, rway_y, rway_width, rway_angle, width, height
         )
 
+        self.oled_select(device_i2cbus_id)
         self.i2cbus.bus_lock()
         with canvas(device) as draw:
             draw.text(
@@ -306,16 +310,20 @@ class UpdateOLEDs:
         """Draw WIND Info on designated OLED."""
         # FIXME: Hardcoded data
         airport_list = self._airport_database.get_airport_dict_led()
-        airport_record = airport_list[airportcode]["airport"]
-        if airport_record is None:
+        if airportcode not in airport_list:
+            debugging.debug(f"Skipping OLED update {airportcode} not found in airport_list")
+            # Stop here if we don't have airport data yet
+            return
+        airport_obj = airport_list[airportcode]
+        if airport_obj is None:
             debugging.debug(f"Skipping OLED update {airportcode} lookup returns :None:")
             # FIXME: We should not return here - we should update the OLED / Image with some signal that the information is out of date.
             return
-        windspeed = airport_record.get_wx_windspeed()
+        windspeed = airport_obj.get_wx_windspeed()
         if windspeed is None:
             windspeed = 0
-        winddir = airport_record.get_wx_dir_degrees()
-        best_runway = airport_record.best_runway()
+        winddir = airport_obj.winddir_degrees()
+        best_runway = airport_obj.best_runway()
         if best_runway is None:
             best_runway = default_rwy
         if (winddir is not None) and (best_runway is not None):
@@ -324,6 +332,11 @@ class UpdateOLEDs:
             )
             self.draw_wind(oled_id, airportcode, best_runway, winddir, windspeed)
             self.generate_image(oled_id, airportcode, best_runway, winddir, windspeed)
+        else:
+            debugging.info(
+                f"NOT Updating OLED: {airportcode} : rwy: {best_runway} : wind {winddir}"
+            )
+
         return
 
     def update_oled_status(self, oled_id):
@@ -338,7 +351,7 @@ class UpdateOLEDs:
         count = 0
         while outerloop:
             count += 1
-            debugging.info("OLED: Updating OLEDs")
+            debugging.info(f"OLED: Updating {self.device_count} OLEDs")
             for oled_id in range(0, (self.device_count)):
                 # TODO: This is hardcoded
                 if oled_id == 0:

@@ -155,17 +155,16 @@ class WebViews:
         airport_dict_data = {}
         for (
             airport_icao,
-            airportdb_row,
+            airport_obj,
         ) in self._airport_database.get_airport_dict_led().items():
-            airport_object = airportdb_row["airport"]
             airport_record = {}
-            airport_record["active"] = airport_object.active()
+            airport_record["active"] = airport_obj.active()
             airport_record["icaocode"] = airport_icao
-            airport_record["metarsrc"] = airport_object.wxsrc()
-            airport_record["ledindex"] = airport_object.get_led_index()
-            airport_record["rawmetar"] = airport_object.get_raw_metar()
-            airport_record["purpose"] = airport_object.purpose()
-            airport_record["hmindex"] = airport_object.heatmap_index()
+            airport_record["metarsrc"] = airport_obj.wxsrc()
+            airport_record["ledindex"] = airport_obj.get_led_index()
+            airport_record["rawmetar"] = airport_obj.get_raw_metar()
+            airport_record["purpose"] = airport_obj.purpose()
+            airport_record["hmindex"] = airport_obj.heatmap_index()
             airport_dict_data[airport_icao] = airport_record
 
         current_ledmode = self._led_strip.ledmode()
@@ -342,15 +341,14 @@ class WebViews:
         lon_list = []
         airports = self._airport_database.get_airport_dict_led()
         debugging.debug("Boundary Calc")
-        for icao, airportdb_row in airports.items():
-            arpt = airportdb_row["airport"]
-            if not arpt.active():
+        for icao, airport_obj in airports.items():
+            if not airport_obj.active():
                 continue
-            if not arpt.valid_coordinates():
+            if not airport_obj.valid_coordinates():
                 continue
-            lat = float(arpt.latitude())
+            lat = float(airport_obj.latitude())
             lat_list.append(lat)
-            lon = float(arpt.longitude())
+            lon = float(airport_obj.longitude())
             lon_list.append(lon)
             debugging.dprint(f"boundary:{icao}:{lat}:{lon}:")
         if len(lat_list) >= 1:
@@ -400,51 +398,57 @@ class WebViews:
         )
         # Set Marker Color by Flight Category
         airports = self._airport_database.get_airport_dict_led()
-        for icao, arptdb_row in airports.items():
-            arpt = arptdb_row["airport"]
-            if not arpt.active():
+        for icao, airport_obj in airports.items():
+            if not airport_obj.active():
+                debugging.info(f"LED MAP: Skipping rendering {icao}")
                 continue
-            if arpt.get_wx_category_str() == "VFR":
+            debugging.info(f"LED MAP: Rendering {icao}")
+            if airport_obj.flightcategory() == "VFR":
                 loc_color = "green"
-            elif arpt.get_wx_category_str() == "MVFR":
+            elif airport_obj.flightcategory() == "MVFR":
                 loc_color = "blue"
-            elif arpt.get_wx_category_str() == "IFR":
+            elif airport_obj.flightcategory() == "IFR":
                 loc_color = "red"
-            elif arpt.get_wx_category_str() == "LIFR":
+            elif airport_obj.flightcategory() == "LIFR":
                 loc_color = "violet"
             else:
                 loc_color = "black"
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.latitude()},{arpt.longitude()}]<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b><font size=+2 color={loc_color}>{loc_color}</font></b>"
+            popup = f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] / <br><br>LED=&nbsp;{airport_obj.get_led_index()}<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()} / {loc_color}</font></b>"
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
                 radius=7,
                 fill=True,
                 color=loc_color,
-                location=[arpt.latitude(), arpt.longitude()],
+                location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>Pin {str(arpt.get_led_index())}",
+                tooltip=f"{str(icao)}<br>LED {str(airport_obj.get_led_index())}",
                 weight=6,
             ).add_to(folium_map)
 
         airports = self._airport_database.get_airport_dict_led()
-        for icao, arptdb_row in airports.items():
-            arpt = arptdb_row["airport"]
-            if not arpt.active():
+        for icao, airport_obj in airports.items():
+            if not airport_obj.active():
                 # Inactive airports likely don't have valid lat/lon data
+                debugging.info(f"LED MAP: Skipping rendering inactive {icao}")
                 continue
-            if not arpt.valid_coordinates():
+            if not airport_obj.valid_coordinates():
+                debugging.info(f"LED MAP: Skipping rendering {icao} invalid coordinates")
                 continue
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
-            pin_index = int(arpt.get_led_index())
-            points.insert(pin_index, [arpt.latitude(), arpt.longitude()])
-            folium.PolyLine(
-                points, color="grey", weight=2.5, opacity=1, dash_array="10"
-            ).add_to(folium_map)
+            pin_index = int(airport_obj.get_led_index())
+            debugging.info(f"icao {icao} Lat:{airport_obj.latitude()}/Lon:{airport_obj.longitude()}")
+            points.insert(pin_index, [airport_obj.latitude(), airport_obj.longitude()])
+            ######
+            ## FIXME: This started generating a recursion depth exceeded error
+            #
+            # folium.PolyLine(
+            #    points, color="grey", weight=2.5, opacity=1, dash_array="10"
+            # ).add_to(folium_map)
 
         # Add Title to the top of the map
         folium.map.Marker(
@@ -530,23 +534,22 @@ class WebViews:
 
         # Set Marker Color by Flight Category
         airports = self._airport_database.get_airport_dict_led()
-        for icao, arptdb_row in airports.items():
-            arpt = arptdb_row["airport"]
-            if not arpt.active():
+        for icao, airport_obj in airports.items():
+            if not airport_obj.active():
                 continue
-            if arpt.get_wx_category_str() == "VFR":
+            if airport_obj.flightcategory() == "VFR":
                 loc_color = "green"
-            elif arpt.get_wx_category_str() == "MVFR":
+            elif airport_obj.flightcategory() == "MVFR":
                 loc_color = "blue"
-            elif arpt.get_wx_category_str() == "IFR":
+            elif airport_obj.flightcategory() == "IFR":
                 loc_color = "red"
-            elif arpt.get_wx_category_str() == "LIFR":
+            elif airport_obj.flightcategory() == "LIFR":
                 loc_color = "violet"
             else:
                 loc_color = "black"
 
             # Get Pin Number to display in popup
-            heatmap_scale = arpt.heatmap_index()
+            heatmap_scale = airport_obj.heatmap_index()
             if heatmap_scale == 0:
                 heatmap_radius = 10
             else:
@@ -555,8 +558,8 @@ class WebViews:
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
             popup = (
-                f"{pop_url}{icao}</a><b>{icao}</b><br>[{arpt.latitude()},{arpt.longitude()}]"
-                f"<br>Pin&nbsp; Number&nbsp;=&nbsp;{arpt.get_led_index()}<br><b>"
+                f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]<br>{airport_obj.flightcategory()}"
+                f"<br>LED&nbsp;=&nbsp;{airport_obj.get_led_index()}<br><b>"
                 f"<font size=+2 color={loc_color}>{loc_color}</font></b>"
             )
 
@@ -565,31 +568,30 @@ class WebViews:
                 radius=heatmap_radius,
                 fill=True,
                 color=loc_color,
-                location=[arpt.latitude(), arpt.longitude()],
+                location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>LED {str(arpt.get_led_index())}",
+                tooltip=f"{str(icao)}<br>LED {str(airport_obj.get_led_index())}",
                 weight=6,
             ).add_to(folium_map)
 
         airports = self._airport_database.get_airport_dict_led()
-        for icao, arptdb_row in airports.items():
-            arpt = arptdb_row["airport"]
+        for icao, airport_obj in airports.items():
             debugging.info(
-                f"Heatmap: {arpt.icaocode()} : Active: {arpt.active()} :"
-                f" Coords: {arpt.valid_coordinates()}"
+                f"Heatmap: {airport_obj.icaocode()} : Active: {airport_obj.active()} :"
+                f" Coords: {airport_obj.valid_coordinates()}"
             )
-            if not arpt.active():
+            if not airport_obj.active():
                 # Inactive airports likely don't have valid lat/lon data
                 continue
-            if not arpt.valid_coordinates():
+            if not airport_obj.valid_coordinates():
                 continue
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
-            pin_index = int(arpt.get_led_index())
+            pin_index = int(airport_obj.get_led_index())
             debugging.info(
-                f"HeatMap: {arpt.icaocode()} :{arpt.latitude()}:{arpt.longitude()}:{pin_index}:"
+                f"HeatMap: {airport_obj.icaocode()} :{airport_obj.latitude()}:{airport_obj.longitude()}:{pin_index}:"
             )
-            points.insert(pin_index, [arpt.latitude(), arpt.longitude()])
+            points.insert(pin_index, [airport_obj.latitude(), airport_obj.longitude()])
 
         # debugging.info(points)
         # No polyline on HeatMap
@@ -671,17 +673,18 @@ class WebViews:
         template_data = self.standardtemplate_data()
 
         # debugging.info(f"getwx: airport = {airport}")
-        template_data["airport"] = airport
 
         airport = airport.lower()
+        template_data["airport"] = airport
 
         if airport == "debug":
             # Debug request - dumping DB info
             with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
-                airportdb = self._airport_database.get_airportxmldb()
+                airportdb = self._airport_database.get_airportdb()
                 counter = 0
-                for icao, airport_id in airportdb.items():
-                    outfile.write(f"{icao}: {airport_id} :\n")
+                for icao, airport_obj in airportdb.items():
+                    airport_metar = airport_obj.get_raw_metar()
+                    outfile.write(f"{icao}: {airport_metar} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
             wx_data = {
@@ -690,15 +693,22 @@ class WebViews:
                 "flightcategory": "DB DUMPED",
             }
             return json.dumps(wx_data)
-        wx_data = {"airport": "Default Value", "metar": "", "flightcategory": "UNKN"}
+        wx_data = {"airport": "Default Value",
+                   "metar": "",
+                   "flightcategory": "UNKN",
+                   "latitude": "Not Set",
+                   "longitude": "Not Set",
+                   "get_wx_dir_degrees": "Not Set",
+                   "get_wx_windspeed": "Not Set"}
         try:
-            airport_entry = self._airport_database.get_airportxml(airport)
-            debugging.info(airport_entry)
-            wx_data["airport"] = airport_entry["stationId"]
-            wx_data["metar"] = airport_entry["raw_text"]
-            wx_data["flightcategory"] = airport_entry["flight_category"]
-            wx_data["latitude"] = airport_entry["latitude"]
-            wx_data["longitude"] = airport_entry["longitude"]
+            airport_obj = self._airport_database.get_airport(airport)
+            wx_data["airport"] = airport_obj.icaocode()
+            wx_data["metar"] = airport_obj.get_raw_metar()
+            wx_data["flightcategory"] = airport_obj.flightcategory()
+            wx_data["latitude"] = airport_obj.latitude()
+            wx_data["longitude"] = airport_obj.longitude()
+            wx_data["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
+            wx_data["get_wx_windspeed"] = airport_obj.get_wx_windspeed()
         except Exception as err:
             debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
 
@@ -708,29 +718,33 @@ class WebViews:
         """Flask Route: /metar - Get METAR for Airport."""
         template_data = self.standardtemplate_data()
 
-        debugging.info(f"getmetar: airport = {airport}")
+        debugging.info(f"getmetar: airport = :{airport}:")
         template_data["airport"] = airport
 
         airport = airport.lower()
 
         if airport == "debug":
             # Debug request - dumping DB info
+            debugging.info("getmetar: writing airport debug data")
             with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
-                airportdb = self._airport_database.get_airportxmldb()
+                airportdb = self._airport_database.get_airportdb()
                 counter = 0
-                for icao, airport_id in airportdb.items():
-                    outfile.write(f"{icao}: {airport_id} :\n")
+                for icao, airport_obj in airportdb.items():
+                    airport_metar = airport_obj.get_raw_metar()
+                    airport_icao = airport_obj.icaocode()
+                    outfile.write(f"{icao}: {airport_metar} / {airport_icao} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
-        try:
-            airport_entry = self._airport_database.get_airportxml(airport)
-            # debugging.info(airport_entry)
-            template_data["metar"] = airport_entry["raw_text"]
-        except Exception as err:
-            debugging.error(
-                f"Attempt to get metar for failed for :{airport}: ERR:{err}"
-            )
-            template_data["metar"] = "ERR - Not found"
+        else:
+            try:
+                debugging.info("Get Metar 1")
+                airport_obj = self._airport_database.get_airport(airport)
+                debugging.info(f"Get Metar 2: {airport_obj.get_raw_metar()}")
+                # debugging.info(airport_entry)
+                template_data["metar"] = airport_obj.get_raw_metar()
+            except Exception as err:
+                debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{err}")
+                template_data["metar"] = "ERR - Not found"
 
         return render_template("metar.html", **template_data)
 
@@ -748,14 +762,14 @@ class WebViews:
             with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
                 airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
-                for icao, airport_id in airportdb.items():
-                    outfile.write(f"{icao}: {airport_id} :\n")
+                for icao, airport_obj in airportdb.items():
+                    airport_metar = airport_obj.get_raw_metar()
+                    outfile.write(f"{icao}: {airport_metar} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
         try:
-            airport_entry = self._airport_database.get_airport_taf(airport)
-            debugging.info(airport_entry)
-            template_data["taf"] = airport_entry["raw_text"]
+            airport_obj = self._airport_database.get_airport_taf(airport)
+            template_data["taf"] = airport_obj.taf()
         except Exception as err:
             debugging.error(
                 f"Attempt to get metar for failed for :{airport}: ERR:{err}"
@@ -818,13 +832,12 @@ class WebViews:
             # This will update the data for all airports.
             # So we should iterate through the airport data set.
             airports = self._airport_database.get_airport_dict_led()
-            for icao, airportdb_row in airports.items():
-                arpt = airportdb_row["airport"]
-                if not arpt.active():
+            for icao, airport_obj in airports.items():
+                if not airport_obj.active():
                     continue
                 if icao in form_data:
                     hm_value = int(form_data[icao])
-                    arpt.set_heatmap_index(hm_value)
+                    airport_obj.set_heatmap_index(hm_value)
                     debugging.debug(f"hmpost: key {icao} : value {hm_value}")
 
         self._airport_database.save_airport_db()
@@ -860,7 +873,7 @@ class WebViews:
         if newnum < 0:
             self.airports = self.airports[:newnum]
         else:
-            for count_index in range(len(self.airports), loc_numap):
+            for __count_index in range(len(self.airports), loc_numap):
                 self.airports.append("NULL")
 
         template_data = self.standardtemplate_data()

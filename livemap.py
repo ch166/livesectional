@@ -46,13 +46,12 @@ import webviews
 
 # import update_oled
 
-
 if __name__ == "__main__":
     # Startup and run the threads to operate the LEDs, Displays etc.
 
     # Initialize configuration
-    conf = conf.Conf()
-    appinfo = appinfo.AppInfo()
+    app_conf = conf.Conf()
+    app_info = appinfo.AppInfo()
 
     # Setup Logging
     debugging.loginit()
@@ -69,30 +68,29 @@ if __name__ == "__main__":
     sysdata.refresh()
     ipaddr = sysdata.local_ip()
 
-    i2cbus = utils_i2c.I2CBus(conf)
+    i2cbus = utils_i2c.I2CBus(app_conf)
 
     # Setup Airport DB
-    airport_database = update_airports.AirportDB(conf)
-    airport_database.load_airport_db()
+    airport_database = update_airports.AirportDB(app_conf)
 
     # Setup LED Management
-    LEDmgmt = update_leds.UpdateLEDs(conf, airport_database)
+    LEDmgmt = update_leds.UpdateLEDs(app_conf, airport_database)
 
     # Setup LightSensor Management
-    LuxSensor = update_lightsensor.LightSensor(conf, i2cbus, LEDmgmt)
+    LuxSensor = update_lightsensor.LightSensor(app_conf, i2cbus, LEDmgmt)
 
     # Setup GPIO Monitoring
-    GPIOmon = update_gpio.UpdateGPIO(conf, airport_database)
+    GPIOmon = update_gpio.UpdateGPIO(app_conf, airport_database)
 
     # Setup OLED Management
-    OLEDmgmt = update_oled.UpdateOLEDs(conf, sysdata, airport_database, i2cbus)
+    OLEDmgmt = update_oled.UpdateOLEDs(app_conf, sysdata, airport_database, i2cbus)
 
     # Setup Flask APP
-    web_app = webviews.WebViews(conf, sysdata, airport_database, appinfo, LEDmgmt)
+    web_app = webviews.WebViews(app_conf, sysdata, airport_database, app_info, LEDmgmt)
 
     # Almost Setup
     debugging.info(f"Livemap Startup - IP: {ipaddr}")
-    debugging.info(f'Base Directory : {conf.get_string("filenames", "basedir")}')
+    debugging.info(f'Base Directory : {app_conf.get_string("filenames", "basedir")}')
 
     #
     # Setup Threads
@@ -101,7 +99,7 @@ if __name__ == "__main__":
     # Load Airports
     debugging.info("Starting Airport data management thread")
     airport_thread = threading.Thread(
-        target=airport_database.update_loop, name="airportdb", args=(conf,)
+        target=airport_database.update_loop, name="airportdb", args=(app_conf,)
     )
 
     # Updating LEDs
@@ -113,7 +111,7 @@ if __name__ == "__main__":
     # Updating LightSensor
     debugging.info("Starting Light Sensor thread")
     lightsensor_thread = threading.Thread(
-        target=LuxSensor.update_loop, name="lightsensor", args=(conf,)
+        target=LuxSensor.update_loop, name="lightsensor", args=(app_conf,)
     )
 
     # Updating OLEDs
@@ -153,7 +151,15 @@ if __name__ == "__main__":
         active_thread_count = threading.active_count()
         debugging.info(info_msg.format(active_thread_count, MAIN_LOOP_SLEEP))
 
+        for thread_obj in threading.enumerate():
+            debugging.info(f"ID:{thread_obj.ident}/name:{thread_obj.name}")
+
         sysdata.refresh()
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
+
+        debugging.info(
+            airport_database.stats()
+        )
+
         time.sleep(MAIN_LOOP_SLEEP * 60)

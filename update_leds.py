@@ -350,7 +350,8 @@ class UpdateLEDs:
             self.__led_strip,
         )
         self.strip.begin()
-        self.init_rainbow()
+        # self.init_rainbow()
+        debugging.info("LED Strip INIT complete")
 
     # Functions
     def init_rainbow(self):
@@ -422,6 +423,9 @@ class UpdateLEDs:
         rgb_color = utils_colors.rgb_color(hexcolor)
         color_ord = self.rgb_to_pixel(led_id, rgb_color, self.__rgb_grb)
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
+        if isinstance(led_id, str):
+            debugging.info(f"led_id : {led_id} str")
+            return
         self.strip.setPixelColor(led_id, pixel_data)
 
     def update_active_led_list(self):
@@ -432,12 +436,11 @@ class UpdateLEDs:
         airports = self.__airport_database.get_airport_dict_led()
         if airports is None:
             return
-        for icao, airportdb_row in airports.items():
-            arpt = airportdb_row["airport"]
-            if not arpt.active():
+        for icao, airport_obj in airports.items():
+            if not airport_obj.active():
                 debugging.debug(f"Airport Not Active {icao} : Not updating LED list")
                 continue
-            led_index = arpt.get_led_index()
+            led_index = airport_obj.get_led_index()
             active_led_dict[posn] = led_index
             posn = posn + 1
         self.__active_led_dict = active_led_dict
@@ -738,11 +741,10 @@ class UpdateLEDs:
 
         cycle_num = clocktick % len(self.__cycle_wait)
 
-        for airport_key in airport_list:
-            airport_record = airport_list[airport_key]["airport"]
-            airportcode = airport_record.icaocode()
-            airportled = airport_record.get_led_index()
-            airportwxsrc = airport_record.wxsrc()
+        for airport_key, airport_obj in airport_list.items():
+            airportcode = airport_obj.icaocode()
+            airportled = airport_obj.get_led_index()
+            airportwxsrc = airport_obj.wxsrc()
             if not airportcode:
                 continue
             if airportcode == "null":
@@ -753,14 +755,14 @@ class UpdateLEDs:
             # Initialize color
             ledcolor = utils_colors.off()
             # Pull the next flight category from dictionary.
-            flightcategory = airport_record.get_wx_category_str()
+            flightcategory = airport_obj.flightcategory()
             if not flightcategory:
                 flightcategory = "UNKN"
             # Pull the winds from the dictionary.
-            airportwinds = airport_record.get_wx_windspeed()
+            airportwinds = airport_obj.get_wx_windspeed()
             if not airportwinds:
                 airportwinds = -1
-            airport_conditions = airport_record.wxconditions()
+            airport_conditions = airport_obj.wxconditions()
             debugging.debug(
                 f"{airportcode}:{flightcategory}:{airportwinds}:cycle=={cycle_num}"
             )
@@ -957,13 +959,12 @@ class UpdateLEDs:
 
         for dummy_j in range(led_index):
             airports = self.__airport_database.get_airport_dict_led()
-            for dummy_key, airport_record in airports.items():
-                arpt = airport_record["airport"]
-                if not arpt.active():
+            for dummy_key, airport_obj in airports.items():
+                if not airport_obj.active():
                     continue
-                x_posn = float(arpt.longitude())
-                y_posn = float(arpt.latitude())
-                led_index = int(arpt.get_led_index())
+                x_posn = float(airport_obj.longitude())
+                y_posn = float(airport_obj.latitude())
+                led_index = int(airport_obj.get_led_index())
 
                 if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (
                     y_posn - circle_y
@@ -981,11 +982,10 @@ class UpdateLEDs:
         for dummy_j in range(led_index):
             rad = rad - rad_inc
             airports = self.__airport_database.get_airport_dict_led()
-            for dummy_key, airport_record in airports.items():
-                arpt = airport_record["airport"]
-                x_posn = float(arpt.longitude())
-                y_posn = float(arpt.latitude())
-                led_index = int(arpt.get_led_index())
+            for dummy_key, airport_obj in airports.items():
+                x_posn = float(airport_obj.longitude())
+                y_posn = float(airport_obj.latitude())
+                led_index = int(airport_obj.get_led_index())
 
                 if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (
                     y_posn - circle_y
@@ -1023,11 +1023,10 @@ class UpdateLEDs:
             y_2 = round(radius * math.cos(angle + sweepwidth) + centerlat, 2)
 
             airports = self.__airport_database.get_airport_dict_led()
-            for dummy_key, airport_record in airports.items():
-                arpt = airport_record["airport"]
-                px_1 = float(arpt.longitude())  # Lon
-                py_1 = float(arpt.latitude())  # Lat
-                led_index = int(arpt.get_led_index())  # LED Pin Num
+            for dummy_key, airport_obj in airports.items():
+                px_1 = float(airport_obj.longitude())  # Lon
+                py_1 = float(airport_obj.latitude())  # Lat
+                led_index = int(airport_obj.get_led_index())  # LED Pin Num
                 #           print (centerlon, centerlat, x_1, y_1, x_2, y_2, px_1, py_1, pin) #debug
 
                 if utils_gfx.is_inside(
@@ -1073,12 +1072,11 @@ class UpdateLEDs:
                 # inclon, inclat = Lower Right of box
                 for (
                     dummy_key,
-                    airport_record,
+                    airport_obj,
                 ) in self.__airport_database.get_airport_dict_led():
-                    arpt = airport_record["airport"]
-                    px_1 = float(arpt.longitude())  # Lon
-                    py_1 = float(arpt.latitude())  # Lat
-                    led_index = int(arpt.get_led_index())  # LED Pin Num
+                    px_1 = float(airport_obj.longitude())  # Lon
+                    py_1 = float(airport_obj.latitude())  # Lat
+                    led_index = int(airport_obj.get_led_index())  # LED Pin Num
 
                     #                print((declon, declat, inclon, inclat, px_1, py_1)) #debug
                     if utils_gfx.findpoint(declon, declat, inclon, inclat, px_1, py_1):
@@ -1102,12 +1100,11 @@ class UpdateLEDs:
                 # inclon, inclat = Lower Right of box
                 for (
                     dummy_key,
-                    airport_record,
+                    airport_obj,
                 ) in self.__airport_database.get_airport_dict_led():
-                    arpt = airport_record["airport"]
-                    px_1 = float(arpt.longitude())  # Lon
-                    py_1 = float(arpt.latitude())  # Lat
-                    led_index = int(arpt.get_led_index())  # LED Pin Num
+                    px_1 = float(airport_obj.longitude())  # Lon
+                    py_1 = float(airport_obj.latitude())  # Lat
+                    led_index = int(airport_obj.get_led_index())  # LED Pin Num
 
                     #                print((declon, declat, inclon, inclat, px_1, py_1)) #debug
                     if utils_gfx.findpoint(declon, declat, inclon, inclat, px_1, py_1):
@@ -1161,12 +1158,11 @@ class UpdateLEDs:
             for box in squarelist:
                 for (
                     dummy_key,
-                    airport_record,
+                    airport_obj,
                 ) in self.__airport_database.get_airport_dict_led():
-                    arpt = airport_record["airport"]
-                    px_1 = float(arpt.longitude())  # Lon
-                    py_1 = float(arpt.latitude())  # Lat
-                    led_index = int(arpt.get_led_index())  # LED Pin Num
+                    px_1 = float(airport_obj.longitude())  # Lon
+                    py_1 = float(airport_obj.latitude())  # Lat
+                    led_index = int(airport_obj.get_led_index())  # LED Pin Num
 
                     if utils_gfx.findpoint(
                         *box, px_1, py_1
@@ -1327,8 +1323,8 @@ class UpdateLEDs:
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = self.heatmap_color(0)
         for airport_key in airport_list:
-            airport_record = airport_list[airport_key]["airport"]
-            airportled = airport_record.get_led_index()
-            airportheat = airport_record.heatmap_index()
+            airport_obj = airport_list[airport_key]
+            airportled = airport_obj.get_led_index()
+            airportheat = airport_obj.heatmap_index()
             led_updated_dict[airportled] = self.heatmap_color(airportheat)
         return led_updated_dict

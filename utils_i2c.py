@@ -73,7 +73,7 @@ class I2CBus:
     current_enabled = 0x0
 
     def __init__(self, conf):
-        """Setup i2c bus - look for default hardware"""
+        """Do setup for i2c bus - look for default hardware."""
         self.conf = conf
         self.lock = Lock()
         self.bus = smbus2.SMBus(self.rpi_bus_number)

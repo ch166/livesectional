@@ -425,13 +425,13 @@ class AirportDB:
                         if cld_base_ft_agl < 500:
                             flightcategory = "LIFR"
                             break
-                        elif 500 <= cld_base_ft_agl < 1000:
+                        if 500 <= cld_base_ft_agl < 1000:
                             flightcategory = "IFR"
                             break
-                        elif 1000 <= cld_base_ft_agl <= 3000:
+                        if 1000 <= cld_base_ft_agl <= 3000:
                             flightcategory = "MVFR"
                             break
-                        elif cld_base_ft_agl > 3000:
+                        if cld_base_ft_agl > 3000:
                             flightcategory = "VFR"
                             break
 
@@ -521,7 +521,7 @@ class AirportDB:
         runways_master_data = self.__conf.get_string("filenames", "runways_master_data")
         runway_data = None
         index_counter = 0
-        with open(runways_master_data, "r") as rway_file:
+        with open(runways_master_data, "r", encoding="utf-8") as rway_file:
             runway_data = list(csv.DictReader(rway_file))
             index_counter += 1
         debugging.debug(f"CSV Load found {index_counter} rows")
@@ -535,7 +535,7 @@ class AirportDB:
         )
         airport_data = None
         index_counter = 0
-        with open(airport_master_metadata_set, "r") as aprt_file:
+        with open(airport_master_metadata_set, "r", encoding="utf-8") as aprt_file:
             airport_data = list(csv.DictReader(aprt_file))
             index_counter += 1
         debugging.debug(f"CSV Load found {index_counter} rows")

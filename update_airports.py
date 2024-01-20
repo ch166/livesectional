@@ -105,15 +105,12 @@ class AirportDB:
 
     def stats(self):
         """Return string containing pertinant stats."""
-        return  f"Statistics:\n\tairport master dict {len(self.airport_master_dict)} entries\n\tairport_web_dict: {len(self.airport_web_dict)}\n\tairport_led_dict: {len(self.airport_led_dict)}"
-
+        return f"Statistics:\n\tairport master dict {len(self.airport_master_dict)} entries\n\tairport_web_dict: {len(self.airport_web_dict)}\n\tairport_led_dict: {len(self.airport_led_dict)}"
 
     def create_new_airport_record(self, station_id, metar_data):
         """Create new DB record for station_id seeded with metar_data."""
         debugging.debug(f"New Airport DB Record :{station_id}:")
-        airport_obj = airport.Airport(
-            station_id,
-            metar_data)
+        airport_obj = airport.Airport(station_id, metar_data)
         return airport_obj
 
     def get_airport(self, airport_icao):
@@ -156,9 +153,7 @@ class AirportDB:
             try:
                 airport_obj.update_wx(self.metar_xml_dict)
             except Exception as err:
-                debug_string = (
-                    f"Error: update_airport_wx Exception handling for {airport_obj.icaocode()} ICAO:{icao}:"
-                )
+                debug_string = f"Error: update_airport_wx Exception handling for {airport_obj.icaocode()} ICAO:{icao}:"
                 debugging.error(debug_string)
                 debugging.crash(err)
 
@@ -197,7 +192,7 @@ class AirportDB:
             if airport_icao not in self.airport_master_dict.keys():
                 debugging.info(f"Adding {airport_icao} to airport_master_dict")
                 new_airport_object = self.create_new_airport_record(airport_icao, None)
-                self.airport_master_dict.update({airport_icao :new_airport_object})
+                self.airport_master_dict.update({airport_icao: new_airport_object})
             else:
                 new_airport_object = self.airport_master_dict[airport_icao]
 
@@ -213,14 +208,18 @@ class AirportDB:
                 new_airport_object.set_active()
             else:
                 new_airport_object.set_inactive()
-        debugging.info(f"Completed loading dict from json : {len(self.airport_master_dict)} items")
+        debugging.info(
+            f"Completed loading dict from json : {len(self.airport_master_dict)} items"
+        )
         return
 
     def airport_dicts_update(self):
         """Update master database sub-lists from master list."""
         # LED List ( purpose: LED / NULL / LGND )
         # WEB List ( purpose: WEB / LGND )
-        debugging.info(f"Copying master dict to other lists {len(self.airport_master_dict)} items")
+        debugging.info(
+            f"Copying master dict to other lists {len(self.airport_master_dict)} items"
+        )
         for airport_icao, airport_obj in self.airport_master_dict.items():
             debugging.info(f"Airport dicts update for : {airport_icao} :")
             airport_purpose = airport_obj.purpose()
@@ -260,7 +259,9 @@ class AirportDB:
         debugging.debug("Saving Airport DB")
         json_save_data = {}
         json_save_data_airport = []
-        airport_json_backup = self.__conf.get_string("filenames", "airports_json_backup")
+        airport_json_backup = self.__conf.get_string(
+            "filenames", "airports_json_backup"
+        )
         airport_json_new = self.__conf.get_string("filenames", "airports_json_new")
         airport_json = self.__conf.get_string("filenames", "airports_json")
 
@@ -282,7 +283,9 @@ class AirportDB:
         except etree.ParseError as err:
             debugging.error("Updating Airports: XML Parse METAR Error")
             debugging.error(err)
-            debugging.debug("Updating Airports: XML Parse Error - Not updating airport data")
+            debugging.debug(
+                "Updating Airports: XML Parse Error - Not updating airport data"
+            )
             return False
 
         debugging.debug("Updating Airports: XML Parse Complete")
@@ -303,13 +306,19 @@ class AirportDB:
                 msg = f"xml parsing: entry:{str(display_counter)}  station_id:{station_id}"
                 debugging.debug(msg)
             if station_id not in self.airport_master_dict:
-                new_airport_object = self.create_new_airport_record(station_id, metar_raw)
+                new_airport_object = self.create_new_airport_record(
+                    station_id, metar_raw
+                )
                 self.airport_master_dict[station_id] = new_airport_object
             self.airport_master_dict[station_id].set_metar(metar_raw)
-            self.airport_master_dict[station_id].update_airport_xml(station_id, metar_data)
+            self.airport_master_dict[station_id].update_airport_xml(
+                station_id, metar_data
+            )
 
             if station_id in ("kbfi", "ksea"):
-                debugging.info(f"***\nAIRPORT OF INTEREST\n\t{station_id}\t{metar_raw}\n\n")
+                debugging.info(
+                    f"***\nAIRPORT OF INTEREST\n\t{station_id}\t{metar_raw}\n\n"
+                )
 
         self.metar_xml_dict = metar_data
         self.metar_update_time = datetime.now(pytz.utc)
@@ -521,7 +530,9 @@ class AirportDB:
 
     def import_airport_geo_data(self):
         """Load CSV Airports metadata file."""
-        airport_master_metadata_set = self.__conf.get_string("filenames", "airports_master_data")
+        airport_master_metadata_set = self.__conf.get_string(
+            "filenames", "airports_master_data"
+        )
         airport_data = None
         index_counter = 0
         with open(airport_master_metadata_set, "r") as aprt_file:
@@ -541,9 +552,7 @@ class AirportDB:
                 runway_dataset = self.airport_runway_data(icao)
                 airport_obj.set_runway_data(runway_dataset)
             except Exception as err:
-                debug_string = (
-                    f"Error: update_airport_runways Exception handling for {airport_obj.icaocode()}"
-                )
+                debug_string = f"Error: update_airport_runways Exception handling for {airport_obj.icaocode()}"
                 debugging.error(debug_string)
                 debugging.crash(err)
 
@@ -561,9 +570,7 @@ class AirportDB:
             debugging.info("Do MOS refresh stuff... ")
             # TODO: do stuff here
         except Exception as err:
-            debugging.error(
-                "MOS Refresh: self. figure something out () exception"
-            )
+            debugging.error("MOS Refresh: self. figure something out () exception")
             debugging.error(err)
 
         return new_etag_mos
@@ -590,7 +597,9 @@ class AirportDB:
         runways_csv_url = conf.get_string("urls", "runways_csv_url")
         airports_csv_url = conf.get_string("urls", "airports_csv_url")
         runways_master_data = conf.get_string("filenames", "runways_master_data")
-        airport_master_metadata_set = conf.get_string("filenames", "airports_master_data")
+        airport_master_metadata_set = conf.get_string(
+            "filenames", "airports_master_data"
+        )
         tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
         tafs_file = conf.get_string("filenames", "tafs_xml_data")
         mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
@@ -668,10 +677,18 @@ class AirportDB:
             elif ret is False:
                 debugging.debug("Server side airports.csv older")
 
-            etag_mos00 = self.mos_refresh(https_session, etag_mos00, mos00_file, mos00_xml_url)
-            etag_mos06 = self.mos_refresh(https_session, etag_mos06, mos06_file, mos06_xml_url)
-            etag_mos12 = self.mos_refresh(https_session, etag_mos12, mos12_file, mos12_xml_url)
-            etag_mos18 = self.mos_refresh(https_session, etag_mos18, mos18_file, mos18_xml_url)
+            etag_mos00 = self.mos_refresh(
+                https_session, etag_mos00, mos00_file, mos00_xml_url
+            )
+            etag_mos06 = self.mos_refresh(
+                https_session, etag_mos06, mos06_file, mos06_xml_url
+            )
+            etag_mos12 = self.mos_refresh(
+                https_session, etag_mos12, mos12_file, mos12_xml_url
+            )
+            etag_mos18 = self.mos_refresh(
+                https_session, etag_mos18, mos18_file, mos18_xml_url
+            )
 
             kbfi_taf = self.__get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")

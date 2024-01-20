@@ -158,8 +158,6 @@ if __name__ == "__main__":
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
 
-        debugging.info(
-            airport_database.stats()
-        )
+        debugging.info(airport_database.stats())
 
         time.sleep(MAIN_LOOP_SLEEP * 60)

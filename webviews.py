@@ -436,12 +436,16 @@ class WebViews:
                 debugging.info(f"LED MAP: Skipping rendering inactive {icao}")
                 continue
             if not airport_obj.valid_coordinates():
-                debugging.info(f"LED MAP: Skipping rendering {icao} invalid coordinates")
+                debugging.info(
+                    f"LED MAP: Skipping rendering {icao} invalid coordinates"
+                )
                 continue
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(airport_obj.get_led_index())
-            debugging.info(f"icao {icao} Lat:{airport_obj.latitude()}/Lon:{airport_obj.longitude()}")
+            debugging.info(
+                f"icao {icao} Lat:{airport_obj.latitude()}/Lon:{airport_obj.longitude()}"
+            )
             points.insert(pin_index, [airport_obj.latitude(), airport_obj.longitude()])
             ######
             ## FIXME: This started generating a recursion depth exceeded error
@@ -693,13 +697,15 @@ class WebViews:
                 "flightcategory": "DB DUMPED",
             }
             return json.dumps(wx_data)
-        wx_data = {"airport": "Default Value",
-                   "metar": "",
-                   "flightcategory": "UNKN",
-                   "latitude": "Not Set",
-                   "longitude": "Not Set",
-                   "get_wx_dir_degrees": "Not Set",
-                   "get_wx_windspeed": "Not Set"}
+        wx_data = {
+            "airport": "Default Value",
+            "metar": "",
+            "flightcategory": "UNKN",
+            "latitude": "Not Set",
+            "longitude": "Not Set",
+            "get_wx_dir_degrees": "Not Set",
+            "get_wx_windspeed": "Not Set",
+        }
         try:
             airport_obj = self._airport_database.get_airport(airport)
             wx_data["airport"] = airport_obj.icaocode()
@@ -743,7 +749,9 @@ class WebViews:
                 # debugging.info(airport_entry)
                 template_data["metar"] = airport_obj.get_raw_metar()
             except Exception as err:
-                debugging.error(f"Attempt to get metar for failed for :{airport}: ERR:{err}")
+                debugging.error(
+                    f"Attempt to get metar for failed for :{airport}: ERR:{err}"
+                )
                 template_data["metar"] = "ERR - Not found"
 
         return render_template("metar.html", **template_data)

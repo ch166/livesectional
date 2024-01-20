@@ -41,6 +41,7 @@ import utils_wx
 
 from lxml import etree
 
+
 class AirportFlightCategory(Enum):
     """ENUM Flight Categories."""
 

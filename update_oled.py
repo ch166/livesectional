@@ -311,7 +311,9 @@ class UpdateOLEDs:
         # FIXME: Hardcoded data
         airport_list = self._airport_database.get_airport_dict_led()
         if airportcode not in airport_list:
-            debugging.debug(f"Skipping OLED update {airportcode} not found in airport_list")
+            debugging.debug(
+                f"Skipping OLED update {airportcode} not found in airport_list"
+            )
             # Stop here if we don't have airport data yet
             return
         airport_obj = airport_list[airportcode]

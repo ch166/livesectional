@@ -4,14 +4,14 @@
 import sys
 import socket
 import platform
-import psutil
-import flask
 import datetime
 import time
+import psutil
+import flask
 
 
 class SystemData:
-    """Gather useful information about this system"""
+    """Gather useful information about this system."""
 
     def __init__(self):
         """Start from zero."""
@@ -20,15 +20,15 @@ class SystemData:
         self._uptime = ""
 
     def system_uptime(self):
-        """Update system uptime"""
+        """Update system uptime."""
         return datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
 
     def uptime(self):
-        """Return Uptime"""
+        """Return Uptime."""
         return self._uptime
 
     def update_local_ip(self):
-        """Create Socket to the Internet, Query Local IP"""
+        """Create Socket to the Internet, Query Local IP."""
         ipaddr = "UNKN"
         try:
             # connect to the host -- tells us if the host is actually
@@ -45,23 +45,21 @@ class SystemData:
         return "0.0.0.0"
 
     def local_ip(self):
-        """Return IP addr"""
+        """Return IP addr."""
         return self.ipaddr
 
     def refresh(self):
-        """Update data"""
+        """Update data."""
         # TODO: Need to refresh this data on a regular basis
         self.sysinfo = self.query_system_information()
         self.update_local_ip()
         self._uptime = self.system_uptime()
 
     def get_size(self, bytes_size, suffix="B"):
-        """
-        Scale bytes to its proper format
-        e.g:
-        1253656 => '1.20MB'
-        1253656678 => '1.17GB'
-        """
+        """Scale bytes to its proper format."""
+        # e.g:
+        # 1253656 => '1.20MB'
+        # 1253656678 => '1.17GB'
         factor = 1024
         for unit in ["", "K", "M", "G", "T", "P"]:
             if bytes_size < factor:
@@ -70,7 +68,7 @@ class SystemData:
         return "ERR"
 
     def poll_system_information(self):
-        """Generate useful system description"""
+        """Generate useful system description."""
         uname = platform.uname()
         # Get system information
         sysinfo_text = "=" * 20 + "System Information" + "=" * 20 + "<br> \n"

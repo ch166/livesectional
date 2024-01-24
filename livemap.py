@@ -147,9 +147,9 @@ if __name__ == "__main__":
     MAIN_LOOP_SLEEP = 5
 
     while True:
-        info_msg = "In Main Loop - Threadcount ({}), Sleep for {}m"
         active_thread_count = threading.active_count()
-        debugging.info(info_msg.format(active_thread_count, MAIN_LOOP_SLEEP))
+        info_msg = f"In Main Loop - Threadcount ({active_thread_count}), Sleep for {MAIN_LOOP_SLEEP}m"
+        debugging.info(info_msg)
 
         for thread_obj in threading.enumerate():
             debugging.info(f"ID:{thread_obj.ident}/name:{thread_obj.name}")

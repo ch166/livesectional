@@ -13,7 +13,6 @@ i2c utils
 # /boot/config.txt
 # dtparam=i2c_arm=on,i2c_arm_baudrate=400000
 
-
 import time
 
 from threading import Lock
@@ -68,6 +67,8 @@ class I2CBus:
     lock = None
     lock_count = 0
 
+    bus_lock_owner = None
+
     # Channels that are always on
     always_enabled = 0x0
     current_enabled = 0x0
@@ -83,6 +84,8 @@ class I2CBus:
             self.i2c_mux_default()
         if not self.i2c_update():
             debugging.error("OLED: init - error calling i2c_update")
+        self.__lock_events = 0
+        self.lock_count = 0
 
     def select(self, channel_id):
         """Enable MUX."""
@@ -98,8 +101,8 @@ class I2CBus:
     def i2c_exists(self, device_id):
         """Iterate across the list of i2c devices."""
         found_device = False
-        with self.lock:
-            active_devices = self.i2c.scan()
+        # with self.lock:
+        active_devices = self.i2c.scan()
         # length = len(active_devices)
         # debugging.debug("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
@@ -109,23 +112,33 @@ class I2CBus:
                 found_device = True
         return found_device
 
-    def bus_lock(self):
+    def bus_lock(self, owner):
         """Grab bus lock."""
         if self.lock.locked():
             debugging.warn(
-                f"bus_lock: Lock already acquired: lock_count :{self.lock_count}:"
+                f"bus_lock: request by {owner} when lock is held: count:{self.lock_count}: events:{self.__lock_events}: owner:{self.bus_lock_owner}"
             )
+            return False
         else:
-            self.lock_count += 1
-            self.lock.acquire()
+            if self.lock.acquire(blocking=True, timeout=0.5):
+                self.__lock_events += 1
+                self.lock_count += 1
+                self.bus_lock_owner = owner
+                return True
+            return False
+        return False
 
     def bus_unlock(self):
         """Release bus lock."""
         if self.lock.locked():
-            self.lock.release()
+            self.lock_count -= 1
+            try:
+                self.lock.release()
+            except Exception as unlockErr:
+                debugging.error(f"bus_unlock release failed :{unlockErr}:")
         else:
             debugging.warn(
-                f"bus_unlock: Request to release lock that wasn't acquired - lock_count :{self.lock_count}:"
+                f"bus_unlock: Request to release lock that wasn't acquired - lock_count :{self.lock_count}:{self.__lock_events}:{self.bus_lock_owner}"
             )
 
     def set_always_on(self, channel_id):
@@ -158,8 +171,8 @@ class I2CBus:
         """Update MUX settings."""
         # This switches to channel 1
         if self.mux_active:
-            with self.lock:
-                self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
+            # with self.lock:
+            self.bus.write_byte(self.MUX_DEVICE_ID, self.always_enabled)
             if not self.i2c_update():
                 debugging.error("OLED: i2c_mux_default - error calling i2c_update")
 
@@ -168,10 +181,10 @@ class I2CBus:
         if self.mux_active:
             try:
                 mux_select_flags = self.always_enabled | self.current_enabled
-                with self.lock:
-                    self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, mux_select_flags)
+                # with self.lock:
+                self.bus.write_byte_data(self.MUX_DEVICE_ID, 0, mux_select_flags)
                 return True
             except Exception as err:
-                self.lock.release()
+                # self.lock.release()
                 debugging.error(err)
         return False

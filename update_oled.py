@@ -349,12 +349,13 @@ class UpdateOLEDs:
         info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
         info_uptime = f"uptime:{self._sysdata.uptime()}"
 
-        oled_status_text = f"Status Info\n{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
+        oled_status_text = (
+            f"Status Info\n{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
+        )
         # Update OLED
         self.oled_text(oled_id, oled_status_text)
         # Update saved image
         self.generate_info_image(oled_id)
-
 
     def update_loop(self):
         """Continuous Loop for Thread."""

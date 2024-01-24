@@ -136,9 +136,9 @@ class UpdateOLEDs:
     reentry_check = False
     _conf = None
     _airport_database = None
-    i2cbus = None
+    _i2cbus = None
 
-    device_count = 0
+    _device_count = 0
 
     oled_list = []
     oled_dict_default = {
@@ -154,12 +154,12 @@ class UpdateOLEDs:
         self._conf = conf
         self._sysdata = sysdata
         self._airport_database = airport_database
-        self.i2cbus = i2cbus
-        self.device_count = self._conf.get_int("oled", "oled_count")
+        self._i2cbus = i2cbus
+        self._device_count = self._conf.get_int("oled", "oled_count")
 
-        debugging.debug("OLED: Config setup for {self.device_count} devices")
+        debugging.debug("OLED: Config setup for {self._device_count} devices")
 
-        for device_idnum in range(0, (self.device_count)):
+        for device_idnum in range(0, (self._device_count)):
             debugging.debug(f"OLED: Polling for device: {device_idnum}")
             self.oled_list.insert(device_idnum, self.oled_device_init(device_idnum))
             self.oled_text(device_idnum, f"Init {device_idnum}")
@@ -174,7 +174,7 @@ class UpdateOLEDs:
         oled_dev["devid"] = device_idnum
         device = None
         self.oled_select(device_idnum)
-        if self.i2cbus.i2c_exists(self.OLEDI2CID):
+        if self._i2cbus.i2c_exists(self.OLEDI2CID):
             serial = i2c(port=1, address=self.OLEDI2CID)
             if oled_dev["chipset"] == "sh1106":
                 device = sh1106(serial)
@@ -186,10 +186,10 @@ class UpdateOLEDs:
         return oled_dev
 
     def oled_select(self, oled_id):
-        """Activate a specific OLED"""
+        """Activate a specific OLED."""
         # This should support a mapping of specific OLEDs to i2c channels
         # Simple for now - with a 1:1 mapping
-        self.i2cbus.select(oled_id)
+        self._i2cbus.select(oled_id)
 
     def oled_text(self, oled_id, txt):
         """Update oled_id with the message from txt."""
@@ -209,15 +209,17 @@ class UpdateOLEDs:
         device_i2cbus_id = oled_dev["devid"]
 
         debugging.debug(f"OLED: Writing to device: {oled_id} : Msg : {txt}")
-        self.oled_select(device_i2cbus_id)
-        self.i2cbus.bus_lock()
-        with canvas(device) as draw:
-            draw.rectangle(device.bounding_box, outline="white", fill="black")
-            draw.text((30, 40), txt, font=fnt, fill="white")
-        self.i2cbus.bus_unlock()
+        if self._i2cbus.bus_lock("oled_text"):
+            self.oled_select(device_i2cbus_id)
+            with canvas(device) as draw:
+                draw.rectangle(device.bounding_box, outline="white", fill="black")
+                draw.text((5, 5), txt, font=fnt, fill="white")
+            self._i2cbus.bus_unlock()
+        else:
+            debugging.info(f"Failed to grab lock for oled:{oled_id}")
 
     def generate_info_image(self, oled_id):
-        """Create the status/info image"""
+        """Create the status/info image."""
         # Image Dimensions
         width = 320
         height = 200
@@ -240,8 +242,7 @@ class UpdateOLEDs:
         img.save(image_filename)
 
     def generate_image(self, oled_id, airport, rway_angle, winddir, windspeed):
-        """Create and save Web version of OLED display image"""
-
+        """Create and save Web version of OLED display image."""
         # Image Dimensions
         width = 320
         height = 200
@@ -295,15 +296,15 @@ class UpdateOLEDs:
             rway_x, rway_y, rway_width, rway_angle, width, height
         )
 
-        self.oled_select(device_i2cbus_id)
-        self.i2cbus.bus_lock()
-        with canvas(device) as draw:
-            draw.text(
-                (1, 1), airport_details, font=ImageFont.load_default(), fill="white"
-            )
-            draw.polygon(wind_poly, fill="white", outline="white")
-            draw.polygon(runway_poly, fill=None, outline="white")
-        self.i2cbus.bus_unlock()
+        if self._i2cbus.bus_lock("draw_wind"):
+            self.oled_select(device_i2cbus_id)
+            with canvas(device) as draw:
+                draw.text(
+                    (1, 1), airport_details, font=ImageFont.load_default(), fill="white"
+                )
+                draw.polygon(wind_poly, fill="white", outline="white")
+                draw.polygon(runway_poly, fill=None, outline="white")
+            self._i2cbus.bus_unlock()
         return
 
     def update_oled_wind(self, oled_id, airportcode, default_rwy):
@@ -338,13 +339,22 @@ class UpdateOLEDs:
             debugging.info(
                 f"NOT Updating OLED: {airportcode} : rwy: {best_runway} : wind {winddir}"
             )
-
         return
 
     def update_oled_status(self, oled_id):
-        """Status Update Display"""
+        """Status Update Display."""
+        metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
+        currtime = utils.time_format_hms(utils.current_time(self._conf))
+        info_timestamp = f"time:{currtime} metar:{metarage}"
+        info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
+        info_uptime = f"uptime:{self._sysdata.uptime()}"
 
-        return
+        oled_status_text = f"Status Info\n{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
+        # Update OLED
+        self.oled_text(oled_id, oled_status_text)
+        # Update saved image
+        self.generate_info_image(oled_id)
+
 
     def update_loop(self):
         """Continuous Loop for Thread."""
@@ -353,11 +363,11 @@ class UpdateOLEDs:
         count = 0
         while outerloop:
             count += 1
-            debugging.info(f"OLED: Updating {self.device_count} OLEDs")
-            for oled_id in range(0, (self.device_count)):
+            debugging.info(f"OLED: Updating {self._device_count} OLEDs")
+            for oled_id in range(0, (self._device_count)):
                 # TODO: This is hardcoded
                 if oled_id == 0:
-                    self.generate_info_image(oled_id)
+                    self.update_oled_status(oled_id)
                 if oled_id == 1:
                     self.update_oled_wind(oled_id, "kbfi", 140)
                 if oled_id == 2:

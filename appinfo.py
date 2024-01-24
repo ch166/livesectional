@@ -2,8 +2,10 @@
 
 # import conf
 
+
 class AppInfo:
     """Class to store information and data about the install environment."""
+
     # Gather information about the currently installed version, and check for new versions.
     # As this gets smarter - we should be able to handle
     # - Hardware Info

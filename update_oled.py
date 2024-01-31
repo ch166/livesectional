@@ -140,7 +140,7 @@ class UpdateOLEDs:
 
     _device_count = 0
 
-    oled_list = [] # type: list[i2c]
+    oled_list = []  # type: list[i2c]
     oled_dict_default = {
         "size": OLED_128x64,
         "mode": MONOCHROME,

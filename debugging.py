@@ -44,7 +44,7 @@ def loginit():
 
     # Disable PIL debug logs by default
     # Should eliminate STREAM b'IHDR' and STREAM b'IDAT' unnecessary logs
-    logging.getLogger('PIL').setLevel(logging.WARNING)
+    logging.getLogger("PIL").setLevel(logging.WARNING)
 
 
 def crash(args):

@@ -42,6 +42,10 @@ def loginit():
     logfilehandler.setFormatter(formatter)
     logconsolehandler.setFormatter(formatter)
 
+    # Disable PIL debug logs by default
+    # Should eliminate STREAM b'IHDR' and STREAM b'IDAT' unnecessary logs
+    logging.getLogger('PIL').setLevel(logging.WARNING)
+
 
 def crash(args):
     """Handle Crash Data - Append to crash.log."""

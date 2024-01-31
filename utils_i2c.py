@@ -22,7 +22,6 @@ from board import SCL, SDA
 import busio
 
 import smbus2
-import utils
 import debugging
 
 
@@ -68,10 +67,19 @@ class I2CBus:
     lock_count = 0
 
     bus_lock_owner = None
+    _bus_lock_starttime = None
 
     # Channels that are always on
     always_enabled = 0x0
     current_enabled = 0x0
+
+    # Stats
+    _average_lock_count = 0
+    _average_lock_duration = 0
+    _average_lock_start = None
+    _average_lock_total = 0
+    _max_lock_duration = 0
+    _max_lock_owner = None
 
     def __init__(self, conf):
         """Do setup for i2c bus - look for default hardware."""
@@ -124,6 +132,8 @@ class I2CBus:
                 self.__lock_events += 1
                 self.lock_count += 1
                 self.bus_lock_owner = owner
+                self._average_lock_count += 1
+                self._average_lock_start = time.time()
                 return True
             return False
         return False
@@ -134,8 +144,14 @@ class I2CBus:
             self.lock_count -= 1
             try:
                 self.lock.release()
-            except Exception as unlockErr:
-                debugging.error(f"bus_unlock release failed :{unlockErr}:")
+                lock_duration = time.time() - self._average_lock_start
+                self._average_lock_total = self._average_lock_total + lock_duration
+                self._average_lock_duration = self._average_lock_total / self._average_lock_count
+                if lock_duration > self._max_lock_duration:
+                    self._max_lock_duration = lock_duration
+                    self._max_lock_owner = self.bus_lock_owner
+            except Exception as unlock_err:
+                debugging.error(f"bus_unlock release failed :{unlock_err}:")
         else:
             debugging.warn(
                 f"bus_unlock: Request to release lock that wasn't acquired - lock_count :{self.lock_count}:{self.__lock_events}:{self.bus_lock_owner}"
@@ -188,3 +204,8 @@ class I2CBus:
                 # self.lock.release()
                 debugging.error(err)
         return False
+
+    def stats(self):
+        """Return lock stats"""
+        stats_txt = f"i2cbus lock stats\n\tAverage duration:{self._average_lock_duration}\n\tMax:{self._max_lock_duration}/Owner:{self._max_lock_owner}"
+        return stats_txt

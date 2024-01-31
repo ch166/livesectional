@@ -79,7 +79,7 @@ class LightSensor:
             self.found_device = True
             if self.i2cbus.bus_lock("enable_i2c_device"):
                 self.tsl = tsl2591(i2c_bus=1)  # initialize
-                self.tsl.set_timing(5)
+                self.tsl.set_timing(1)
                 self.i2cbus.bus_unlock()
             # FIXME: This time interval should align to the thread cycle time
             # The current default interval is 60s
@@ -92,7 +92,13 @@ class LightSensor:
         while outerloop:
             if self.found_device:
                 if self.i2cbus.bus_lock("light sensor update loop"):
-                    current_light = self.tsl.get_current()
+                    try:
+                        current_light = self.tsl.get_current()
+                    except OSError as err:
+                        debugging.info(f"light sensor read failure: {err}")
+                        # Try reconnect the device
+                        self.i2cbus.bus_unlock()
+                        self.enable_i2c_device()
                     self.i2cbus.bus_unlock()
                 lux = current_light["lux"] * 2
                 lux = max(lux, 20)

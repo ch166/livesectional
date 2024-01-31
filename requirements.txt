@@ -2,10 +2,10 @@
 #
 # Using PIP3 directly - installs python libraries globally - not recommended
 # sudo pip3 install -r requirements.txt
-# 
+#
 # Setting up a Python3 Virtual Environment - Recommended
 # (requires python3-venv)
-# 
+#
 # sudo python3 -m venv /livemap-venv
 # source /livemap-venv/bin/activate
 # pip3 install -r requirements.txt
@@ -63,7 +63,7 @@ psutil>=5.8.0
 pytz
 metar
 pypng
-pyqrcode
+qrcode
 python-dateutil
 luma.core
 luma.oled

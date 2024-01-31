@@ -494,7 +494,9 @@ class Airport:
             # directly. This is unused for now - we may want to use it if the
             # adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geographies
-            debugging.info(f"Update USA Metar: {self.__icao} - {self.__wx_category_str}")
+            debugging.info(
+                f"Update USA Metar: {self.__icao} - {self.__wx_category_str}"
+            )
             freshness = utils_wx.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh

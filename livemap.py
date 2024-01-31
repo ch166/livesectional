@@ -157,7 +157,7 @@ if __name__ == "__main__":
         sysdata.refresh()
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
-
         debugging.info(airport_database.stats())
+        debugging.info(i2cbus.stats())
 
         time.sleep(MAIN_LOOP_SLEEP * 60)

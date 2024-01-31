@@ -140,7 +140,7 @@ class UpdateOLEDs:
 
     _device_count = 0
 
-    oled_list = []
+    oled_list = [] # type: list[i2c]
     oled_dict_default = {
         "size": OLED_128x64,
         "mode": MONOCHROME,
@@ -305,6 +305,8 @@ class UpdateOLEDs:
                 draw.polygon(wind_poly, fill="white", outline="white")
                 draw.polygon(runway_poly, fill=None, outline="white")
             self._i2cbus.bus_unlock()
+        else:
+            debugging.info(f"Failed to grab lock for oled:{oled_id}")
         return
 
     def update_oled_wind(self, oled_id, airportcode, default_rwy):

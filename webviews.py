@@ -35,7 +35,8 @@ from flask import (
 
 # from werkzeug.utils import secure_filename
 
-from pyqrcode import QRCode
+# from pyqrcode import QRCode
+import qrcode
 
 import utils
 
@@ -78,7 +79,7 @@ class WebViews:
         self.app.add_url_rule(
             "/oleddisplay", view_func=self.oled_display, methods=["GET"]
         )
-        self.app.add_url_rule("/qrcode", view_func=self.qrcode, methods=["GET"])
+        self.app.add_url_rule("/qrcode", view_func=self.gen_qrcode, methods=["GET"])
         self.app.add_url_rule(
             "/metar/<airport>", view_func=self.getmetar, methods=["GET"]
         )
@@ -416,7 +417,9 @@ class WebViews:
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] / <br><br>LED=&nbsp;{airport_obj.get_led_index()}<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()} / {loc_color}</font></b>"
+            popup = ( f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] /"
+                     "<br><br>LED=&nbsp;{airport_obj.get_led_index()}<br>"
+                     "<b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>" )
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -653,20 +656,27 @@ class WebViews:
 
         return render_template("heat_map.html", **template_data)
 
-    def qrcode(self):
+    def gen_qrcode(self):
         """Flask Route: /qrcode - Generate QRcode for site URL."""
         # Generates qrcode that maps to the mobileconfedit version of
         # the configuration generator
         template_data = self.standardtemplate_data()
 
         ipadd = self._sysdata.local_ip()
-        qraddress = "http://" + ipadd.strip() + ":5000/confmobile"
+        qraddress = f"http://{ipadd.strip()}:5000/confmobile"
         debugging.info("Opening qrcode in separate window")
         qrcode_file = self.conf.get_string("filenames", "qrcode")
         qrcode_url = self.conf.get_string("filenames", "qrcode_url")
 
-        my_qrcode = QRCode(qraddress)
-        my_qrcode.png(qrcode_file, scale=8)
+        qr_img = qrcode.QRCode(version=1,
+                           error_correction=qrcode.constants.ERROR_CORRECT_L,
+                           box_size=10,
+                           border=4,
+                           )
+        qr_img.add_data(qraddress)
+        qr_img.make(fit=True)
+        img = qr_img.make_image(fill_color="black", back_color="white")
+        img.save(qrcode_file)
 
         return render_template(
             "qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data
@@ -881,7 +891,7 @@ class WebViews:
         if newnum < 0:
             self.airports = self.airports[:newnum]
         else:
-            for __count_index in range(len(self.airports), loc_numap):
+            for dummy in range(len(self.airports), loc_numap):
                 self.airports.append("NULL")
 
         template_data = self.standardtemplate_data()

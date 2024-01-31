@@ -417,9 +417,11 @@ class WebViews:
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = ( f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] /"
-                     "<br><br>LED=&nbsp;{airport_obj.get_led_index()}<br>"
-                     "<b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>" )
+            popup = (
+                f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] /"
+                "<br><br>LED=&nbsp;{airport_obj.get_led_index()}<br>"
+                "<b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"
+            )
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -668,11 +670,12 @@ class WebViews:
         qrcode_file = self.conf.get_string("filenames", "qrcode")
         qrcode_url = self.conf.get_string("filenames", "qrcode_url")
 
-        qr_img = qrcode.QRCode(version=1,
-                           error_correction=qrcode.constants.ERROR_CORRECT_L,
-                           box_size=10,
-                           border=4,
-                           )
+        qr_img = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
         qr_img.add_data(qraddress)
         qr_img.make(fit=True)
         img = qr_img.make_image(fill_color="black", back_color="white")

@@ -146,7 +146,9 @@ class I2CBus:
                 self.lock.release()
                 lock_duration = time.time() - self._average_lock_start
                 self._average_lock_total = self._average_lock_total + lock_duration
-                self._average_lock_duration = self._average_lock_total / self._average_lock_count
+                self._average_lock_duration = (
+                    self._average_lock_total / self._average_lock_count
+                )
                 if lock_duration > self._max_lock_duration:
                     self._max_lock_duration = lock_duration
                     self._max_lock_owner = self.bus_lock_owner

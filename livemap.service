@@ -5,8 +5,8 @@ Documentation=man:livemap
 
 [Service]
 Type=simple
-WorkingDirectory=/NeoSectional
-ExecStart=/livemap-venv/bin/python3 /NeoSectional/livemap.py
+WorkingDirectory=/opt/NeoSectional
+ExecStart=/opt/venv/livemap/bin/python3 /opt/NeoSectional/livemap.py
 
 [Install]
 WantedBy=multi-user.target

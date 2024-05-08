@@ -12,7 +12,7 @@
 #
 
 # Beaglebone Devices
-Adafruit-BBIO>=1.2.0
+# Adafruit-BBIO>=1.2.0
 
 # CircuitPython API to support board devices
 Adafruit-Blinka>=8.6.1

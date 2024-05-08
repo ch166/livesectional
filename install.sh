@@ -17,7 +17,7 @@ fi
 # Enable errtrace or the error trap handler will not work as expected
 set -o errtrace         # Ensure the error trap handler is inherited
 
-INSTALLDIR=/NeoSectional
+INSTALLDIR=/opt/NeoSectional
 DATADIR=$INSTALLDIR/data
 TEMPLATEDIR=$INSTALLDIR/templates
 STATICDIR=$INSTALLDIR/static
@@ -27,17 +27,21 @@ INSTALL=/usr/bin/install
 
 # Copy the correct files into /NeoSectional
 
+# Create directories
+mkdir -p $INSTALLDIR
+mkdir -p $DATADIR
+mkdir -p $TEMPLATEDIR
+mkdir -p $STATICDIR
+mkdir -p $LOGDIR
+
+# Install files
 $INSTALL -D *.py $INSTALLDIR/
 $INSTALL -D config.ini $INSTALLDIR/
 $INSTALL -D requirements.txt $INSTALLDIR/
-
 $INSTALL -D data/airports.json $DATADIR/
-
 $INSTALL -D templates/*.html $TEMPLATEDIR/
 
 rsync -rav --relative static/ $INSTALLDIR/
-
-mkdir -p $LOGDIR
 
 cp livemap.service /etc/systemd/system/livemap.service
 systemctl daemon-reload

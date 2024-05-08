@@ -285,7 +285,7 @@ class WebViews:
         console_ips = []
         loc_timestr = utils.time_format(utils.current_time(self.conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
-        with open("/NeoSectional/data/console_ip.txt", "r", encoding="utf8") as file:
+        with open("/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf8") as file:
             for line in file.readlines()[-1:]:
                 line = line.rstrip()
                 console_ips.append(line)
@@ -328,7 +328,7 @@ class WebViews:
 
         def generate():
             # FIXME: Move logfile name to config file
-            with open("/NeoSectional/logs/debugging.log", encoding="utf8") as file:
+            with open("/opt/NeoSectional/logs/debugging.log", encoding="utf8") as file:
                 while True:
                     yield "{}\n".format(file.read())
                     time.sleep(1)
@@ -498,7 +498,7 @@ class WebViews:
         folium.LayerControl().add_to(folium_map)
 
         # FIXME: Move filename to config.ini
-        folium_map.save("/NeoSectional/static/led_map.html")
+        folium_map.save("/opt/NeoSectional/static/led_map.html")
         debugging.info("Opening led_map in separate window")
 
         template_data = self.standardtemplate_data()
@@ -645,7 +645,7 @@ class WebViews:
         folium.LayerControl().add_to(folium_map)
 
         # FIXME: Move filename to config.ini
-        folium_map.save("/NeoSectional/static/heat_map.html")
+        folium_map.save("/opt/NeoSectional/static/heat_map.html")
         debugging.info("Opening led_map in separate window")
 
         template_data = self.standardtemplate_data()
@@ -1271,7 +1271,7 @@ class WebViews:
     #    debugging.dprint(req_profile)
     #    debugging.dprint(self.config_profiles)
     #    tmp_profile = config_profiles[req_profile]
-    #    stored_profile = "/NeoSectional/profiles/" + tmp_profile
+    #    stored_profile = "/opt/NeoSectional/profiles/" + tmp_profile
     #
     #    flash(
     #        tmp_profile
@@ -1352,7 +1352,7 @@ class WebViews:
 
         # flash("Testing LED's")
         debugging.info("Running testled.py from " + url)
-        # os.system('sudo python3 /NeoSectional/testled.py')
+        # os.system('sudo python3 /opt/NeoSectional/testled.py')
         return redirect("/")
         # temp[3] holds name of page that called this route.
 
@@ -1377,5 +1377,5 @@ class WebViews:
         # flash("Testing OLEDs ")
         debugging.info("Running testoled.py from " + url)
         # FIXME: Call update_oled equivalent functions
-        # os.system('sudo python3 /NeoSectional/testoled.py')
+        # os.system('sudo python3 /opt/NeoSectional/testoled.py')
         return redirect("/")

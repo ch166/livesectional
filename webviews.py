@@ -417,11 +417,9 @@ class WebViews:
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = (
-                f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] /"
-                "<br><br>LED=&nbsp;{airport_obj.get_led_index()}<br>"
-                "<b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"
-            )
+            popup = (f'''{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]
+<br>LED=&nbsp;{airport_obj.get_led_index()}
+<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>''')
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -430,7 +428,7 @@ class WebViews:
                 color=loc_color,
                 location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>LED {str(airport_obj.get_led_index())}",
+                tooltip=f"{str(icao)}<br>led:{str(airport_obj.get_led_index())}",
                 weight=6,
             ).add_to(folium_map)
 

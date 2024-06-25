@@ -285,7 +285,9 @@ class WebViews:
         console_ips = []
         loc_timestr = utils.time_format(utils.current_time(self.conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
-        with open("/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf8") as file:
+        with open(
+            "/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf8"
+        ) as file:
             for line in file.readlines()[-1:]:
                 line = line.rstrip()
                 console_ips.append(line)
@@ -417,9 +419,9 @@ class WebViews:
 
             # FIXME - Move URL to config file
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = (f'''{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]
+            popup = f"""{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]
 <br>LED=&nbsp;{airport_obj.get_led_index()}
-<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>''')
+<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"""
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(

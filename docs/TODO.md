@@ -14,7 +14,7 @@ This is the overall list of things to do - with notes on progress / blockers
 ### Not Run As Root
 
 Unix permissions for GPIO operations are now available by running code as a user with gpio group membership.
-That doesn't work for WS2812 PWM signaling.
+That doesn't work for WS2812 PWM signaling. Until the PWM signaling is available to non-root users; we're still constrained to run as root.
 
 
 ## Simpler Code
@@ -46,7 +46,7 @@ Moving code that is used a lot into a shared function allows the more complex co
 ## OS Integration
 
 ### Run at boot
-- systemd vs init investigation
+- Now installed as a script managed by systemd
 
 ### howto bootstrap networking
 - is it possible to run a hotspot on all the raspberry pi systems ?
@@ -54,8 +54,8 @@ Moving code that is used a lot into a shared function allows the more complex co
 -- does the initial default web page take care of that configuration
 
 ### Package management
-- support softare upgrades
-- perhaps run as docker container
+- support software upgrades
+- perhaps run as docker container - need to see what that does for permissions and access to GPIO and PWN pins
 
 ## New Features
 

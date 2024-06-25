@@ -3,7 +3,6 @@
 
 # Update i2c attached devices
 
-
 # RPI GPIO Pinouts reference
 ###########################
 #    3V3  (1) (2)  5V     #
@@ -31,15 +30,10 @@
 
 import time
 
-# import datetime
-
 from python_tsl2591 import tsl2591
 
 import random
 import debugging
-
-# import utils
-# import utils_i2c
 
 
 class LightSensor:
@@ -90,13 +84,14 @@ class LightSensor:
         """Thread Main Loop"""
         outerloop = True  # Set to TRUE for infinite outerloop
         while outerloop:
+            current_light = None
             if self.found_device:
                 if self.i2cbus.bus_lock("light sensor update loop"):
                     try:
                         current_light = self.tsl.get_current()
                     except OSError as err:
                         debugging.info(f"light sensor read failure: {err}")
-                        # Try reconnect the device
+                        # Try to rediscover the device on the i2c bus
                         self.i2cbus.bus_unlock()
                         self.enable_i2c_device()
                     self.i2cbus.bus_unlock()

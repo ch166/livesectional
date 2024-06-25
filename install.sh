@@ -35,7 +35,7 @@ mkdir -p $STATICDIR
 mkdir -p $LOGDIR
 
 # Install files
-$INSTALL -D *.py $INSTALLDIR/
+$INSTALL -D ./*.py $INSTALLDIR/
 $INSTALL -D config.ini $INSTALLDIR/
 $INSTALL -D requirements.txt $INSTALLDIR/
 $INSTALL -D data/airports.json $DATADIR/

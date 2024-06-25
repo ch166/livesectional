@@ -63,6 +63,7 @@ class UpdateOLEDs:
     # Writing code to automatically handle all of them would make the code very complex, as the
     # code would need to do discovery and verification - and handle different IDs for
     # the devices.
+    #
     # TODO: It's not even clear that we could query an i2c display and deduce the correct driver to use.
     #
     # The initial versions of this code are going to make some simplifying hardware assumptions.
@@ -95,14 +96,14 @@ class UpdateOLEDs:
     # Broad patterns of access should look like
     # prep data
     # do work
-    # update i2c device
+    # update data for i2c device
     #   lock i2c bus
-    #   select i2c device
-    #   push changes
-    #   release i2c lock
+    #    select i2c device
+    #    push changes
+    #   release i2c bus lock
     #
     # the time spent inside the critical lock portion should be minimized
-    # This is to allow other threads to make requests to update data
+    # This is to allow other threads to have as much time as possible to use the i2c bus
 
     # Looking to track data about individual OLED screens ; to allow support for multiple options
     #
@@ -140,11 +141,11 @@ class UpdateOLEDs:
 
     _device_count = 0
 
-    oled_list = []  # type: list[i2c]
+    oled_list = []
     oled_dict_default = {
         "size": OLED_128x64,
         "mode": MONOCHROME,
-        "chipset": "sh1106",
+        "chipset": OLEDCHIPSET.SH1106,
         "device": None,
         "active": False,
         "devid": 0,
@@ -159,7 +160,7 @@ class UpdateOLEDs:
 
         debugging.debug("OLED: Config setup for {self._device_count} devices")
 
-        for device_idnum in range(0, (self._device_count)):
+        for device_idnum in range(0, self._device_count):
             debugging.debug(f"OLED: Polling for device: {device_idnum}")
             self.oled_list.insert(device_idnum, self.oled_device_init(device_idnum))
             self.oled_text(device_idnum, f"Init {device_idnum}")
@@ -168,18 +169,25 @@ class UpdateOLEDs:
 
     def oled_device_init(self, device_idnum):
         """Initialize individual OLED devices."""
-        # Initial version just assumes all OLED devices are the same.
+        # This initial version just assumes all OLED devices are the same.
+        # TODO: Get OLED config information from config.ini
         oled_dev = self.oled_dict_default.copy()
         oled_dev["active"] = False
         oled_dev["devid"] = device_idnum
         device = None
-        self.oled_select(device_idnum)
+        self.oled_select(oled_dev["devid"])
         if self._i2cbus.i2c_exists(self.OLEDI2CID):
             serial = i2c(port=1, address=self.OLEDI2CID)
-            if oled_dev["chipset"] == "sh1106":
+            if oled_dev["chipset"] == OLEDCHIPSET.SH1106:
                 device = sh1106(serial)
-            elif oled_dev["chipset"] == "ssd1306":
+            elif oled_dev["chipset"] == OLEDCHIPSET.SSD1306:
                 device = ssd1306(serial)
+            elif oled_dev["chipset"] == OLEDCHIPSET.SSD1309:
+                device = ssd1309(serial)
+            elif oled_dev["chipset"] == OLEDCHIPSET.SSD1325:
+                device = ssd1325(serial)
+            elif oled_dev["chipset"] == OLEDCHIPSET.SSD1331:
+                device = ssd1331(serial)
             oled_dev["device"] = device
             oled_dev["active"] = True
             debugging.debug("OLED: Activating: {device_idnum}")
@@ -202,7 +210,8 @@ class UpdateOLEDs:
             return
 
         fnt = ImageFont.load_default()
-        # image = Image.new(oled_dev["mode"], (width, height))  # Make sure to create image with mode '1' for 1-bit color.
+        # Make sure to create image with mode '1' for 1-bit color.
+        # image = Image.new(oled_dev["mode"], (width, height))
         # draw = ImageDraw.Draw(image)
         # txt_w, txt_h = draw.textsize(txt, fnt)
         device = oled_dev["device"]
@@ -234,10 +243,10 @@ class UpdateOLEDs:
         img = Image.new("RGB", (width, height), color=(73, 109, 137))
         oled_canvas = ImageDraw.Draw(img)
 
-        oled_canvas.text((10, 10), "Status Info", fill=(255, 255, 0))
-        oled_canvas.text((10, 30), info_ipaddr, fill=(255, 255, 0))
-        oled_canvas.text((10, 50), info_uptime, fill=(255, 255, 0))
-        oled_canvas.text((10, height - 20), info_timestamp, fill=(255, 255, 0))
+        # oled_canvas.text((10, 10), "Status Info", fill=(255, 255, 0))
+        oled_canvas.text((10, 10), info_ipaddr, fill=(255, 255, 0))
+        oled_canvas.text((10, 30), info_uptime, fill=(255, 255, 0))
+        oled_canvas.text((10, 50), info_timestamp, fill=(255, 255, 0))
 
         img.save(image_filename)
 
@@ -352,7 +361,7 @@ class UpdateOLEDs:
         info_uptime = f"uptime:{self._sysdata.uptime()}"
 
         oled_status_text = (
-            f"Status Info\n{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
+            f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
         )
         # Update OLED
         self.oled_text(oled_id, oled_status_text)
@@ -367,7 +376,7 @@ class UpdateOLEDs:
         while outerloop:
             count += 1
             debugging.info(f"OLED: Updating {self._device_count} OLEDs")
-            for oled_id in range(0, (self._device_count)):
+            for oled_id in range(0, self._device_count):
                 # TODO: This is hardcoded
                 if oled_id == 0:
                     self.update_oled_status(oled_id)

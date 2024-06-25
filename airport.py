@@ -14,7 +14,7 @@ Created on Sat Jun 15 08:01:44 2019
 # The airport object stores all of the interesting data for an airport
 # - Airport ICAO code
 # - Weather Source ( adds , metar URL, future options)
-# - Airport Code to use for WX data (future - for airports without active ASOS/AWOS reporting)
+# - Airport Code to use for WX data (future - for airports without active ASOS/AWOSporting)
 # - Current conditions
 # - etc.
 
@@ -128,6 +128,7 @@ class Airport:
 
     def save_in_config(self):
         """Airport to be saved in config file."""
+        # FIXME: What is this trying to do ?
         self.__loaded_from_config
 
     def purpose(self):

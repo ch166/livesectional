@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {# djlint:off D004 #}
+<!--suppress HtmlUnknownTarget -->
 <html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Language" content="en" />
@@ -78,8 +79,6 @@
                     <a class="dropdown-item"
                        href="https://www.rocketroute.com/airports"
                        rel
-                       noreferrer
-                       noopener
                        target="aplookup">Lookup Airports <i class="fas fa-external-link-alt"></i></a>
                     <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
                        href="/apedit">Restore Airports from File <i class="far fa-window-restore"></i></a>
@@ -127,8 +126,6 @@
                       <a class="dropdown-item"
                          href="https://www.livesectional.com/downloads/"
                          rel
-                         noreferrer
-                         noopener
                          target="_blank"><b>Click to Download Latest Image</b> <i class="far fa-check-square"></i></a>
                     {% endif %}
                     <a class="dropdown-item" href="/">Homepage <i class="fas fa-home"></i></a>
@@ -161,14 +158,10 @@
                     <a class="dropdown-item"
                        href="https://www.livesectional.com/community/ls-schematics/"
                        rel
-                       noreferrer
-                       noopener
                        target="_blank">View Schematics <i class="fas fa-external-link-alt">&nbsp;</i></a>
                     <a class="dropdown-item"
                        href="https://www.livesectional.com/community/main-forum/"
                        rel
-                       noreferrer
-                       noopener
                        target="_blank">Help <i class="fas fa-external-link-alt">&nbsp;</i></a>
                   </div>
                 </li>
@@ -181,8 +174,6 @@
                         <a class="dropdown-item"
                            href="http://{{ ip_add[0] }}:5000"
                            rel
-                           noreferrer
-                           noopener
                            target="_blank">{{ machines[i] }} <i class="fas fa-external-link-alt"></i></a>
                       {% endfor %}
                     </div>
@@ -214,7 +205,6 @@
               <br />
             </span>
           </div>
-        </div>
       </nav>
     </div>
     <div class="modal fade"
@@ -317,22 +307,18 @@
           </tr>
           <tr>
             <td colspan="6">
-              <center>
                 <span style="font-size:12px">
-                  Copyright 2021, 2022, 2023 - Bill Bryson III, Mark Harris - <a href="http://www.livesectional.com"
-    rel
-    noreferrer
-    noopener
-    target="_blank">www.livesectional.com</a>
+                  Copyright 2021, 2022, 2023 - Bill Bryson III, Mark Harris - <a href="http://www.livesectional.com" rel target="_blank">www.livesectional.com</a>
                   <br />
                   Tweaks by Chris Higgins
                   <br />
                 </span>
-              </center>
             </td>
           </tr>
         </table>
       </div>
       <script src="/static/base_body_scripts.js"></script>
-    </body>
+        </div>
+    </div>
+  </body>
   </html>

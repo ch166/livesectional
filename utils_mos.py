@@ -13,6 +13,10 @@ import debugging
 # Moved this here from other places ..
 # This needs to be restructured before it can be used in the new code layout.
 
+# TODO:
+#  Open question on the appropriateness of using MOS data formats, or switching
+#  to the newer NBM data sets - https://vlab.noaa.gov/web/mdl/nbm
+# 
 
 def mos_decode_routine(
     conf,

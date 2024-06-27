@@ -17,7 +17,7 @@
             </tr>
 
             <tr>
-              <td width="33%">
+              <td style="width: 33%">
                 <div>
                   <label for="tzoption"><b>Choose Your Timezone:</b></label>
                 </div>
@@ -40,25 +40,24 @@
               </td>
             </tr>
 
-
             <tr>
               <td style="margin: auto;">
                 <div class="flashes">
                   {% with messages = get_flashed_messages() %}
                   {% if messages %}
-                  <div class=flashes>
-			  <ul>
-                    {% for message in messages %}
-                    <li>{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-		  </div>
-                    {% endif %}
-                    {% endwith %}
-                  </div>
+                    <div class=flashes>
+			          <ul>
+                          {% for message in messages %}
+                          <li>{{ message }}</li>
+                          {% endfor %}
+                      </ul>
+                    </div>
+                  {% endif %}
+                  {% endwith %}
+                </div>
               </td>
             </tr>
-
+          </form>
         </table>
 
       </div>

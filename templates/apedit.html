@@ -4,13 +4,12 @@
     <table>
       <tr>
         <form action="numap" method="post">
-          <td width="33%" class="submitbuttons">
+          <td style="width: 33%" class="submitbuttons">
             <b>Number of LEDs</b>
             <input type="text" name="numofap" size="4" value="{{ airports|length }}" />
             <input type="submit" class="button1" value="Update Number" />
           </td>
-          <td width="33%" class="submitbuttons">
-            <center>
+          <td style="width: 33%" class="submitbuttons">
               <div class="flashes">
                 {% with messages = get_flashed_messages() %}
                   {% if messages %}
@@ -20,10 +19,9 @@
                   {% endif %}
                 {% endwith %}
               </div>
-            </center>
           </td>
         </form>
-        <td width="33%" class="submitbuttons">
+        <td style="width: 33%" class="submitbuttons">
           <form action="importap" method="POST" enctype="multipart/form-data">
             <b>Import Airports</b>
             <input type="file" class="button1" name="file" />
@@ -40,7 +38,7 @@
         <td colspan=5 style="font-size:small;">
           <b>NOTE:</b> Enter the appropriate 4 character airport identifier. If identifier is only 3 characters, precede
           it with proper country code, i.e. 'K' for US. If the LED position will not be used, enter <font color="red">
-          'NULL'</font>. Enter <font color="red">'LGND'</font> for LED's used as a legend. <b>
+          'NULL'</font>. Enter <font color="red">'LGND'</font> for LED's used as a legend.
           <font color="red">'Enter' will save airport change. 'Tab' will not. Save each airport change if using LED
           on/off</font>
         </td>
@@ -55,10 +53,10 @@
       </tr>
       {% for aprt_icao, aprt_data in airports.items() %}
         <tr class="config" id="{{ loop.index - 1 }}">
-          <td width="5%" style="text-align:center;">
+          <td style="width: 5%; text-align:center;">
             <b>{{ aprt_data['ledindex'] }}</b>
           </td>
-          <td width="10%" style="text-align:center;">
+          <td style="width: 10%; text-align:center;">
             <input title="{{ aprt_icao|join(", ") }}"
                    onkeydown="upperCaseF(this)"
                    type="text"
@@ -72,7 +70,7 @@
                    value="{{ aprt_icao }}"/>
             <!--onfocus="this.value=''"-->
           </td>
-          <td width="10%" style="text-align:center">
+          <td style="width: 10%; text-align:center">
             <label for="purpose">Purpose:</label>
             <select name="purpose" id="purpose">
               {% set purposelist = ["off", "led", "lgnd", "all"] %}
@@ -89,10 +87,10 @@
               {% endfor %}
             </select>
           </td>
-          <td width="10%" style="text-align:center">
+          <td style="width: 10%; text-align:center">
             <b>{{ aprt_data['metarsrc'] }}</b>
           </td>
-          <td width="15%" id="msg{{ loop.index-1 }}">
+          <td style="width: 15%" id="msg{{ loop.index-1 }}">
             {% if aprt_icao.startswith('lgnd') %}
               <font color="green">LED at pin {{ loop.index -1 }} will be used as a <b>Legend</b> item.</font>
               <td></td>
@@ -105,7 +103,7 @@
               <!--Display airport name and city, region and link to info page-->
               <a href=http://www.fltplan.com/Airport.cgi?{{ aprt_icao }} rel=”noreferrer noopener” target="_blank"><b>{{ aprt_icao }}</b></a>
             </td>
-            <td width="60%" style="text-align:left">
+            <td style="width: 60%; text-align:left">
               <!--Grab Flight Category and raw METAR from api.weather.gov and display badge-->
               <span id="fcloc{{ loop.index-1 }}"></span>
               <script>get_badge('{{ aprt_icao }}', 'fcloc{{ loop.index-1 }}');</script>

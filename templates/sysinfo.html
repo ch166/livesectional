@@ -1,32 +1,33 @@
 {% extends "base_lite.html" %}
 {% block content %}
-  <div class="container-fluid card border-primary mb-3">
-    <section class="py-5">
-      <div class="container">
-        <h2 class="display-4">System Information</h2>
-        <table>
-          <tr>
-            <td>
-              <div class="flashes">
-                <ul>
-                  {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                      {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-                    {% endif %}
-                  {% endwith %}
-                </ul>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <h1>Host Information</h1>
-              {{ sysinfo | safe }}
-              <br />
-            </td>
-          </tr>
-        </table>
-      </div>
-    </section>
-  </div>
+    <div class="container-fluid card border-primary mb-3">
+        <section class="py-5">
+            <div class="container">
+                <h2 class="display-4">System Information</h2>
+                <table>
+                    <tr>
+                        <td>
+                            <div class="flashes">
+                                <ul>
+                                    {% with messages = get_flashed_messages() %}
+                                        {% if messages %}
+                                            {% for message in messages %}
+                                                <li>{{ message }}</li>{% endfor %}
+                                        {% endif %}
+                                    {% endwith %}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <h1>Host Information</h1>
+                            {{ sysinfo | safe }}
+                            <br/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+    </div>
 {% endblock content %}

@@ -36,6 +36,7 @@ import sysinfo
 
 # import appinfo
 
+import update_datasets
 import update_airports
 import update_leds
 import update_gpio
@@ -70,6 +71,9 @@ if __name__ == "__main__":
 
     i2cbus = utils_i2c.I2CBus(app_conf)
 
+    # Download Datasets
+    dataset_sync = update_datasets.DataSets(app_conf)
+
     # Setup Airport DB
     airport_database = update_airports.AirportDB(app_conf)
 
@@ -96,10 +100,21 @@ if __name__ == "__main__":
     # Setup Threads
     #
 
+    # Get datasets
+    debugging.info("Starting DataSet download thread")
+    dataset_thread = threading.Thread(
+        target=dataset_sync.update_loop, name="datasetsync", args=(app_conf,)
+    )
+
     # Load Airports
     debugging.info("Starting Airport data management thread")
     airport_thread = threading.Thread(
-        target=airport_database.update_loop, name="airportdb", args=(app_conf,)
+        target=airport_database.update_loop,
+        name="airportdb",
+        args=(
+            app_conf,
+            dataset_thread,
+        ),
     )
 
     # Updating LEDs
@@ -137,6 +152,7 @@ if __name__ == "__main__":
     #
 
     debugging.info("Starting threads")
+    dataset_thread.start()
     airport_thread.start()
     led_thread.start()
     gpio_thread.start()
@@ -159,5 +175,6 @@ if __name__ == "__main__":
         # metrics in this loop.
         debugging.info(airport_database.stats())
         debugging.info(i2cbus.stats())
+        debugging.info(dataset_sync.stats())
 
         time.sleep(MAIN_LOOP_SLEEP * 60)

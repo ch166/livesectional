@@ -186,7 +186,10 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
                 download = True
             else:
                 # Server side file is same or older, our file is up to date
-                msg = f"Timestamp check - Server side: {datetime.fromtimestamp(url_date.timestamp())} Local : {datetime.fromtimestamp(file_time.timestamp())}"
+                msg = (
+                    f"Timestamp check - Server side: {datetime.fromtimestamp(url_date.timestamp())}"
+                    f"Local : {datetime.fromtimestamp(file_time.timestamp())}"
+                )
                 debugging.debug(msg)
         if (url_etag is not None) and (etag != url_etag):
             # Check to see if downloaded etag and value passed in are the same. If not - download is true
@@ -344,9 +347,8 @@ def current_time(conf):
 
 def current_time_taf_offset(conf):
     """Get time for TAF period selected (UTC)."""
-    UTC = pytz.utc
     offset = conf.get_int("rotaryswitch", "hour_to_display")
-    curr_time = datetime.now(UTC) + timedelta(hours=offset)
+    curr_time = datetime.now(pytz.utc) + timedelta(hours=offset)
     return curr_time
 
 

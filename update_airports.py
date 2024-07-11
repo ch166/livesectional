@@ -40,9 +40,6 @@ import json
 
 import pytz
 
-# Moving to use requests instead of urllib
-import requests
-
 # XML Handling
 # import xml.etree.ElementTree as ET
 
@@ -60,7 +57,7 @@ import airport
 class AirportDB:
     """Airport Database - Keeping track of interesting sets of airport data."""
 
-    def __init__(self, conf):
+    def __init__(self, conf, dataset_thread):
         """Create a database of Airports to be tracked."""
         # TODO: A lot of the class local variables are extras,
         # left over from the restructuring of the code.
@@ -70,6 +67,13 @@ class AirportDB:
 
         # Reference to Global Configuration Data
         self.__conf = conf
+        self.__dataset = dataset_thread
+
+        self._metar_serial = -1
+        self._taf_serial = -1
+        self._mos_serial = -1
+        self._runway_serial = -1
+        self._airport_serial = -1
 
         # Active Airport Information
         # All lists use lowercase key information to identify airports
@@ -211,7 +215,7 @@ class AirportDB:
         debugging.info(
             f"Completed loading dict from json : {len(self.airport_master_dict)} items"
         )
-        return
+        return True
 
     def airport_dicts_update(self):
         """Update master database sub-lists from master list."""
@@ -414,6 +418,7 @@ class AirportDB:
                         except Exception as err:
                             # get cloud base AGL from XML
                             # debugging.error(err)
+                            debugging.debug(err)
                             cld_base_ft_agl = forecast.find("vert_vis_ft")
                             if cld_base_ft_agl is not None:
                                 cld_base_ft_agl = cld_base_ft_agl.text
@@ -589,113 +594,47 @@ class AirportDB:
         """
         aviation_weather_adds_timer = conf.get_int("metar", "wx_update_interval")
 
-        # TODO: Do we really need these, or can we just do the conf lookup when needed
-        # Might be better to pull them from the conf file on demand,
-        # to allow the config to be dynamically updated without needing a restart
-        metar_xml_url = conf.get_string("urls", "metar_xml_gz")
-        metar_file = conf.get_string("filenames", "metar_xml_data")
-        runways_csv_url = conf.get_string("urls", "runways_csv_url")
-        airports_csv_url = conf.get_string("urls", "airports_csv_url")
-        runways_master_data = conf.get_string("filenames", "runways_master_data")
-        airport_master_metadata_set = conf.get_string(
-            "filenames", "airports_master_data"
-        )
-        tafs_xml_url = conf.get_string("urls", "tafs_xml_gz")
-        tafs_file = conf.get_string("filenames", "tafs_xml_data")
-        mos00_xml_url = conf.get_string("urls", "mos00_data_gz")
-        mos00_file = conf.get_string("filenames", "mos00_xml_data")
-        mos06_xml_url = conf.get_string("urls", "mos06_data_gz")
-        mos06_file = conf.get_string("filenames", "mos06_xml_data")
-        mos12_xml_url = conf.get_string("urls", "mos12_data_gz")
-        mos12_file = conf.get_string("filenames", "mos12_xml_data")
-        mos18_xml_url = conf.get_string("urls", "mos18_data_gz")
-        mos18_file = conf.get_string("filenames", "mos18_xml_data")
-
-        etag_metar = None
-        etag_tafs = None
-        etag_mos00 = None
-        etag_mos06 = None
-        etag_mos12 = None
-        etag_mos18 = None
-        etag_runways = None
-        etag_airports = None
+        # TODO: Should these files be updated in a separate thread
+        # should this update loop focus on creating and managing complete database records for only the
+        # airports that we currently care about ?
 
         while True:
             debugging.debug(
                 f"Updating Airport Data .. every aviation_weather_adds_timer ({aviation_weather_adds_timer})m)"
             )
 
-            https_session = requests.Session()
-
-            ret, etag_metar = utils.download_newer_file(
-                https_session,
-                metar_xml_url,
-                metar_file,
-                decompress=True,
-                etag=etag_metar,
-            )
-            if ret is True:
-                debugging.debug("Downloaded METAR file")
+            if self._metar_serial < self.__dataset.metar_serial():
+                debugging.debug("Processing updated METAR data")
+                self._metar_serial = self.__dataset.metar_serial()
                 self.update_airportdb_metar_xml()
-            elif ret is False:
-                debugging.debug("Server side METAR older")
 
-            ret, etag_tafs = utils.download_newer_file(
-                https_session, tafs_xml_url, tafs_file, decompress=True, etag=etag_tafs
-            )
-            if ret is True:
-                debugging.debug("Downloaded TAFS file")
+            if self._taf_serial < self.__dataset.taf_serial():
+                debugging.debug("Processing updated TAF data")
+                self._taf_serial = self.__dataset.taf_serial()
                 self.update_airport_taf_xml()
-            elif ret is False:
-                debugging.debug("Server side TAFS older")
 
-            ret, etag_runways = utils.download_newer_file(
-                https_session, runways_csv_url, runways_master_data, etag=etag_runways
-            )
-            if ret is True:
-                debugging.debug("Downloaded runways.csv")
+            if self._runway_serial < self.__dataset.runway_serial():
+                debugging.debug("Processing updated Runway data")
+                self._runway_serial = self.__dataset.runway_serial()
                 self.import_runways()
-                # TODO: Do we have a race condition here ; if we update the runway data but the
-                # airport data isn't updated - we're not going to call this if the airport
-                # is activated later. Do we need to run the self.update_airport_runways()
-                # outside this if block
+                # TODO: Figure out when this should be run - if not every time
                 self.update_airport_runways()
-            elif ret is False:
-                debugging.debug("Server side runways.csv older")
 
-            ret, etag_airports = utils.download_newer_file(
-                https_session,
-                airports_csv_url,
-                airport_master_metadata_set,
-                etag=etag_airports,
-            )
-            if ret is True:
-                debugging.debug("Downloaded airports.csv")
+            if self._airport_serial < self.__dataset.airport_serial():
+                debugging.debug("Processing updated Airport data")
+                self._airport_serial = self.__dataset.airport_serial()
                 self.import_airport_geo_data()
                 # self.update_airport_lat_lon()
                 # Need to use the data in airports.csv to provide lat/lon data for any airports..
-            elif ret is False:
-                debugging.debug("Server side airports.csv older")
 
-            etag_mos00 = self.mos_refresh(
-                https_session, etag_mos00, mos00_file, mos00_xml_url
-            )
-            etag_mos06 = self.mos_refresh(
-                https_session, etag_mos06, mos06_file, mos06_xml_url
-            )
-            etag_mos12 = self.mos_refresh(
-                https_session, etag_mos12, mos12_file, mos12_xml_url
-            )
-            etag_mos18 = self.mos_refresh(
-                https_session, etag_mos18, mos18_file, mos18_xml_url
-            )
+            # TODO: Add back in MOS processing in whatever new form it takes
 
+            # FIXME: Key airport data - useful for debugging / health updates
+            # Remove eventually
             kbfi_taf = self.__get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
             kbfi_runway = self.airport_runway_data("kbfi")
             debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")
             time.sleep(aviation_weather_adds_timer * 60)
 
-            # Clean UP HTTPS_Session
-            https_session.close()
         debugging.error("Hit the exit of the airport update loop")

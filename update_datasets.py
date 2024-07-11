@@ -84,7 +84,7 @@ class DataSets:
 
     def stats(self):
         """Return string containing pertinant stats."""
-        return f"Statistics:\n\tMetar Refresh {self._metar_update_time}\n\tMOS refresh: {self._mos_update_time}\n\tTAF Refresh: {self._taf_update_time}"
+        return f"Statistics:\n\tMetar Refresh {self.metar_serial()}/{self._metar_update_time}\n\tMOS refresh: {self.mos_serial()}/{self._mos_update_time}\n\tTAF Refresh: {self.taf_serial()}/{self._taf_update_time}"
 
     def mos_refresh(self, https_session, etag_mos, mos_file, mos_xml_url):
         """Refresh MOS Data."""

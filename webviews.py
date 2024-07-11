@@ -686,6 +686,7 @@ class WebViews:
             "qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data
         )
 
+
     def getwx(self, airport):
         """Flask Route: /wx - Get WX JSON for Airport."""
         template_data = self.standardtemplate_data()
@@ -702,7 +703,8 @@ class WebViews:
                 counter = 0
                 for icao, airport_obj in airportdb.items():
                     airport_metar = airport_obj.get_raw_metar()
-                    outfile.write(f"{icao}: {airport_metar} :\n")
+                    flight_category = airport_obj.flightcategory()
+                    outfile.write(f"{icao}::{airport_metar}::{flight_category}:\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
             wx_data = {

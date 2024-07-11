@@ -75,7 +75,7 @@ if __name__ == "__main__":
     dataset_sync = update_datasets.DataSets(app_conf)
 
     # Setup Airport DB
-    airport_database = update_airports.AirportDB(app_conf)
+    airport_database = update_airports.AirportDB(app_conf, dataset_sync)
 
     # Setup LED Management
     LEDmgmt = update_leds.UpdateLEDs(app_conf, airport_database)

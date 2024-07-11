@@ -113,7 +113,6 @@ if __name__ == "__main__":
         name="airportdb",
         args=(
             app_conf,
-            dataset_thread,
         ),
     )
 

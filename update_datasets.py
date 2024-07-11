@@ -86,6 +86,25 @@ class DataSets:
         """Return string containing pertinant stats."""
         return f"Statistics:\n\tMetar Refresh {self._metar_update_time}\n\tMOS refresh: {self._mos_update_time}\n\tTAF Refresh: {self._taf_update_time}"
 
+    def mos_refresh(self, https_session, etag_mos, mos_file, mos_xml_url):
+        """Refresh MOS Data."""
+        ret, new_etag_mos = utils.download_newer_file(
+            https_session, mos_xml_url, mos_file, etag=etag_mos
+        )
+        if ret is True:
+            debugging.debug(f"Downloaded :{mos_file}: file")
+        elif ret is False:
+            debugging.debug(f"Server side :{mos_file}: older")
+
+        try:
+            debugging.info("Do MOS refresh stuff... ")
+            # TODO: do stuff here
+        except Exception as err:
+            debugging.error("MOS Refresh: self. figure something out () exception")
+            debugging.error(err)
+
+        return new_etag_mos
+
     def update_loop(self, conf):
         """Master loop for keeping the data set current.
 

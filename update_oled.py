@@ -261,6 +261,7 @@ class UpdateOLEDs:
         rway_width = 16
         rway_x = 15  # 15 pixel border
         rway_y = int(height / 2 - rway_width / 2)
+        # TODO: Need to be smart about what we display ; use the current data to report important information.
         airport_details = f"{airport} {winddir}@{windspeed}"
         metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
         currtime = utils.time_format_hms(utils.current_time(self._conf))
@@ -282,6 +283,7 @@ class UpdateOLEDs:
 
     def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
         """Draw Wind Arrow and Runway."""
+        # TODO: This code assumes a single runway direction only. Need to handle airports with multiple runways
         if oled_id > len(self.oled_list):
             debugging.warn("OLED: Attempt to access index beyond list length {oled_id}")
             return
@@ -360,9 +362,7 @@ class UpdateOLEDs:
         info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
         info_uptime = f"uptime:{self._sysdata.uptime()}"
 
-        oled_status_text = (
-            f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
-        )
+        oled_status_text = f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
         # Update OLED
         self.oled_text(oled_id, oled_status_text)
         # Update saved image

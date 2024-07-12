@@ -23,13 +23,13 @@ export VENVDIR=/opt/venv/livemap
 mkdir -p $VENVDIR
 
 if test -f $VENVDIR/bin/activate; then
-	echo "Environment appears to already exist"
-	echo "Trying pip3 install --upgrade of requirements.txt"
-	$VENVDIR/bin/pip3 install --upgrade -r $INSTALLDIR/requirements.txt
-	echo "Complete."
+    echo "Environment appears to already exist"
+    echo "Trying pip3 install --upgrade of requirements.txt"
+    $VENVDIR/bin/pip3 install --upgrade -r $INSTALLDIR/requirements.txt
+    echo "Complete."
 else
-	echo "Creating Environment"
-	python -m venv $VENVDIR
-	echo "Install packages in environment"
-	$VENVDIR/bin/pip3 install -r $INSTALLDIR/requirements.txt
+    echo "Creating Environment"
+    python3 -m venv $VENVDIR
+    echo "Install packages in environment"
+    $VENVDIR/bin/pip3 install -r $INSTALLDIR/requirements.txt
 fi

@@ -2,6 +2,7 @@
 """ Collection of shared utility functions for all of the modules ."""
 
 import os
+import os.path
 import time
 import shutil
 import socket
@@ -21,7 +22,11 @@ import pytz
 
 import debugging
 
-# import conf
+def file_exists(filename):
+    """Check if a file exists."""
+    if os.path.isfile(filename):
+        return True
+    return False
 
 
 def is_connected():

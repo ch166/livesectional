@@ -37,19 +37,12 @@ import shutil
 
 import csv
 import json
-
 import pytz
-
-# XML Handling
-# import xml.etree.ElementTree as ET
 
 from lxml import etree
 
-# from metar import Metar
-
 import debugging
 
-# import ledstrip
 import utils
 import airport
 
@@ -242,7 +235,10 @@ class AirportDB:
         debugging.debug("Loading Airport List")
         airport_json = self.__conf.get_string("filenames", "airports_json")
         # Opening JSON file
-        # FIXME: Error Handling for this being missing
+        if not utils.file_exists(airport_json):
+            debugging.debug(f"Airport json does not exist: {airport_json}")
+            return False
+
         json_file = open(airport_json, encoding="utf8")
         # returns JSON object as a dictionary
         new_airport_json_dict = json.load(json_file)
@@ -282,6 +278,10 @@ class AirportDB:
         # Consider extracting only interesting airports from dict first
         debugging.debug("Updating Airports: Starting")
         metar_file = self.__conf.get_string("filenames", "metar_xml_data")
+        if not utils.file_exists(metar_file):
+            debugging.info(f"File missing {metar_file} - skipping xml parsing")
+            return
+
         try:
             root = etree.parse(metar_file)
         except etree.ParseError as err:
@@ -289,6 +289,13 @@ class AirportDB:
             debugging.error(err)
             debugging.debug(
                 "Updating Airports: XML Parse Error - Not updating airport data"
+            )
+            return False
+        except OSError as err:
+            debugging.error("Updating Airports: OS Error")
+            debugging.error(err)
+            debugging.debug(
+                "Updating Airports: OS - Not updating airport data"
             )
             return False
 
@@ -349,6 +356,10 @@ class AirportDB:
         taf_dict = {}
 
         taf_file = self.__conf.get_string("filenames", "tafs_xml_data")
+
+        if not utils.file_exists(taf_file):
+            debugging.info(f"File missing {taf_file} - skipping xml parsing")
+            return
         try:
             root = etree.parse(taf_file)
         except etree.ParseError as err:
@@ -524,6 +535,9 @@ class AirportDB:
     def import_runways(self):
         """Load CSV Runways file."""
         runways_master_data = self.__conf.get_string("filenames", "runways_master_data")
+        if not utils.file_exists(runways_master_data):
+            debugging.debug(f"Runways file does not exist: {runways_master_data}")
+            return False
         runway_data = None
         index_counter = 0
         with open(runways_master_data, "r", encoding="utf-8") as rway_file:
@@ -538,6 +552,10 @@ class AirportDB:
         airport_master_metadata_set = self.__conf.get_string(
             "filenames", "airports_master_data"
         )
+        if not utils.file_exists(airport_master_metadata_set):
+            debugging.debug(f"Airport dataset does not exist: {airport_master_metadata_set}")
+            return False
+
         airport_data = None
         index_counter = 0
         with open(airport_master_metadata_set, "r", encoding="utf-8") as aprt_file:

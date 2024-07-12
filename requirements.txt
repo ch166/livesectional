@@ -58,9 +58,9 @@ metar~=1.11.0
 pypng
 qrcode~=7.4.2
 python-dateutil~=2.8.0
-luma~=12
-luma.core
-luma.oled
+# Installing Luma libraries
+luma.core~=12
+luma.oled~=12
 webcolors
 python_tsl2591
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

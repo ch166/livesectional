@@ -2,6 +2,9 @@ __pycache__/
 *.pyc
 .spyproject
 .vscode
+.idea
+
+.mypy_cache
 
 logfile.log.1
 logfile.log.2

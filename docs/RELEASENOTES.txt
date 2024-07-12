@@ -1,3 +1,16 @@
+Version 4.4.07.11.24
+07-11-2024
+Lots of stability improvements and performance improvements to the overall code
+Added some bugs, and found them, and them removed them.
+Updated to use latest version of python dependencies to address security issues
+Restructured processing of Metar data to associate it with the airport object
+Using black as python formatter consistently
+Improved cross thread lock handling
+Better startup handling for machines that don't have active i2c buses
+Improved documentation
+Added scripting to create/update python environments
+Added capability to use METAR from adjacent airport
+
 Version 4.4.07.16.23
 07-16-2023
 Significant restructuring of code

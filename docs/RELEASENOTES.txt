@@ -7,6 +7,7 @@ Restructured processing of Metar data to associate it with the airport object
 Using black as python formatter consistently
 Improved cross thread lock handling
 Better startup handling for machines that don't have active i2c buses
+Better first boot handling - gracefully handles missing data files
 Improved documentation
 Added scripting to create/update python environments
 Added capability to use METAR from adjacent airport

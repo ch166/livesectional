@@ -294,9 +294,7 @@ class AirportDB:
         except OSError as err:
             debugging.error("Updating Airports: OS Error")
             debugging.error(err)
-            debugging.debug(
-                "Updating Airports: OS - Not updating airport data"
-            )
+            debugging.debug("Updating Airports: OS - Not updating airport data")
             return False
 
         debugging.debug("Updating Airports: XML Parse Complete")
@@ -553,7 +551,9 @@ class AirportDB:
             "filenames", "airports_master_data"
         )
         if not utils.file_exists(airport_master_metadata_set):
-            debugging.debug(f"Airport dataset does not exist: {airport_master_metadata_set}")
+            debugging.debug(
+                f"Airport dataset does not exist: {airport_master_metadata_set}"
+            )
             return False
 
         airport_data = None

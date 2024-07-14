@@ -111,9 +111,7 @@ if __name__ == "__main__":
     airport_thread = threading.Thread(
         target=airport_database.update_loop,
         name="airportdb",
-        args=(
-            app_conf,
-        ),
+        args=(app_conf,),
     )
 
     # Updating LEDs

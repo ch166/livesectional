@@ -108,9 +108,12 @@ class UpdateLEDs:
 
     __active_led_dict = {}
 
-    # List of METAR weather categories to designate weather in area. Many Metars will report multiple conditions, i.e. '-RA BR'.
-    # The code pulls the first/main weather reported to compare against the lists below. In this example it uses the '-RA' and ignores the 'BR'.
+    # List of METAR weather categories to designate weather in area.
+    # Many Metars will report multiple conditions, i.e. '-RA BR'.
+    # The code pulls the first/main weather reported to compare against the lists below.
+    # In this example it uses the '-RA' and ignores the 'BR'.
     # See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
+
     # Thunderstorm and lightning
     wx_lghtn_ck = [
         "TS",
@@ -350,12 +353,13 @@ class UpdateLEDs:
             self.__led_strip,
         )
         self.strip.begin()
-        # self.init_rainbow()
+        self.turnoff()
+        self.init_rainbow()
         debugging.info("LED Strip INIT complete")
 
     # Functions
     def init_rainbow(self):
-        """Define Rainbow Color List."""
+        """Define set of colors to create the Rainbow effect."""
         rainbow_index = 30
         hsv_tuples = [
             (x * 1.0 / rainbow_index, 0.85, 0.5) for x in range(rainbow_index)
@@ -416,22 +420,26 @@ class UpdateLEDs:
 
     def set_led_color(self, led_id, hexcolor):
         """Convert color from HEX to RGB or GRB and apply to LED String."""
-        # TODO: Add capability here to manage 'nullpins' and remove any mention of nullpins from
-        # the rest of the code
-        #
-        # This function should do all the color conversions
-        rgb_color = utils_colors.rgb_color(hexcolor)
+        if isinstance(led_id, str):
+            debugging.info(f"led_id : Unexpected {led_id} as str")
+            return
+        # Input should be a HEX color; and then we should convert to the appropriate signaling
+        # for the individual LED - this should allow us to support LEDs that use RGB as well as GRB color signaling
+        if str(led_id) in self.__nullpins:
+            rgb_color = utils_colors.off()
+        else:
+            rgb_color = utils_colors.rgb_color(hexcolor)
+
         color_ord = self.rgb_to_pixel(led_id, rgb_color, self.__rgb_grb)
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
-        if isinstance(led_id, str):
-            debugging.info(f"led_id : {led_id} str")
-            return
+
         self.strip.setPixelColor(led_id, pixel_data)
 
     def update_active_led_list(self):
         """Update Active LED list."""
         active_led_dict = {}
-        led_index = 0
+        for index in range(self.__led_count):
+            active_led_dict[index] = None
         posn = 0
         airports = self.__airport_database.get_airport_dict_led()
         if airports is None:
@@ -460,7 +468,8 @@ class UpdateLEDs:
         debugging.info("Fill: In the fill loop")
         led_updated_dict = {}
         for led_posn, active_led in enumerate(self.__active_led_dict):
-            led_updated_dict[self.__active_led_dict[led_posn]] = color
+            if active_led is not None:
+                led_updated_dict[self.__active_led_dict[led_posn]] = color
         return led_updated_dict
 
     def num_pixels(self):
@@ -540,7 +549,6 @@ class UpdateLEDs:
                 color = self.__conf.get_string("colors", "color_vfr")
         elif "1" <= visits <= "50":  # Working
             if self.__conf.get_bool("rotaryswitch", "bin_grad"):
-                red = 255
                 grn = 0
                 blu = 0
                 red = int(int(visits) * 5.1)
@@ -551,7 +559,6 @@ class UpdateLEDs:
             if self.__conf.get_bool("rotaryswitch", "bin_grad"):
                 red = 255
                 grn = 0
-                blu = 0
                 blu = 255 - int((int(visits) - 50) * 5.1)
                 color = utils_colors.rgb2hex((red, grn, blu))
             else:
@@ -562,11 +569,14 @@ class UpdateLEDs:
 
     def update_loop(self):
         """LED Display Loop - supporting multiple functions."""
-        clocktick = 0
         sleeping = False
         original_state = LedMode.METAR
         self.update_active_led_list()
+        self.turnoff()
+        # Tick values are used to provide a ticking clock interval that can be used by functions that want to have
+        # time or interval based sequences without blocking to complete the entire sequence in one go
         rainbowtick = 0
+        clocktick = 0
         while True:
             # Going to use an index counter as a pseudo clock tick for
             # each LED module. It's going to continually increase through
@@ -893,10 +903,13 @@ class UpdateLEDs:
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
         for led_index in self.__active_led_dict.values():
-            rainbow_index = (clocktick + led_index) % len(self.__rgb_rainbow)
-            rainbow_color = utils_colors.hex_tuple(self.__rgb_rainbow[rainbow_index])
-            # print(f"Rainbow loop {led_index} / {rainbow_index} / {rainbow_color} ")
-            led_updated_dict[led_index] = rainbow_color
+            if self.__active_led_dict[led_index] is not None:
+                rainbow_index = (clocktick + led_index) % len(self.__rgb_rainbow)
+                rainbow_color = utils_colors.hex_tuple(
+                    self.__rgb_rainbow[rainbow_index]
+                )
+                # print(f"Rainbow loop {led_index} / {rainbow_index} / {rainbow_color} ")
+                led_updated_dict[led_index] = rainbow_color
         return led_updated_dict
 
     # Wipe routines based on Lat/Lons of airports on map.
@@ -1288,14 +1301,15 @@ class UpdateLEDs:
         debugging.info("Rabbit: In the rabbit loop")
 
         for led_posn, active_led in enumerate(self.__active_led_dict):
-            # debugging.info(f"posn:{rabbit_posn}/index:{led_index}")
-            led_updated_dict[self.__active_led_dict[led_posn]] = utils_colors.off()
-            if led_posn == rabbit_posn - 2:
-                led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_1
-            if led_posn == rabbit_posn - 1:
-                led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_2
-            if led_posn == rabbit_posn:
-                led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_3
+            if active_led is not None:
+                # debugging.info(f"posn:{rabbit_posn}/index:{led_index}")
+                led_updated_dict[self.__active_led_dict[led_posn]] = utils_colors.off()
+                if led_posn == rabbit_posn - 2:
+                    led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_1
+                if led_posn == rabbit_posn - 1:
+                    led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_2
+                if led_posn == rabbit_posn:
+                    led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_3
         return led_updated_dict
 
     def ledmode_shuffle(self, clocktick):
@@ -1304,7 +1318,8 @@ class UpdateLEDs:
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
         for led_index in self.__active_led_dict.values():
-            led_updated_dict[led_index] = utils_colors.randomcolor()
+            if self.__active_led_dict[led_index] is not None:
+                led_updated_dict[led_index] = utils_colors.randomcolor()
         return led_updated_dict
 
     def ledmode_fade(self, clocktick):
@@ -1313,7 +1328,8 @@ class UpdateLEDs:
         fade_val = clocktick % 255
         fade_col = utils_colors.hexcode(fade_val, 255 - fade_val, fade_val)
         for led_index in range(self.num_pixels()):
-            led_updated_dict[led_index] = fade_col
+            if self.__active_led_dict[led_index] is not None:
+                led_updated_dict[led_index] = fade_col
         return led_updated_dict
 
     def ledmode_heatmap(self, clocktick):

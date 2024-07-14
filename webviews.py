@@ -686,7 +686,6 @@ class WebViews:
             "qrcode.html", qraddress=qraddress, qrimage=qrcode_url, **template_data
         )
 
-
     def getwx(self, airport):
         """Flask Route: /wx - Get WX JSON for Airport."""
         template_data = self.standardtemplate_data()

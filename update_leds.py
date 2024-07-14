@@ -460,12 +460,12 @@ class UpdateLEDs:
     def turnoff(self):
         """Set color to 0,0,0  - turning off LED."""
         for i in range(self.num_pixels()):
-            self.set_led_color(i, utils_colors.black())
+            self.set_led_color(i, utils_colors.off())
         self.show()
 
     def fill(self, color):
         """Return led_updated_dict containing single color only"""
-        debugging.info("Fill: In the fill loop")
+        debugging.info(f"Fill: In the fill loop for {color}")
         led_updated_dict = {}
         for led_posn, active_led in enumerate(self.__active_led_dict):
             if active_led is not None:
@@ -585,13 +585,13 @@ class UpdateLEDs:
             # clock cycles to cover every LED.
             clocktick = (clocktick + 1) % self.BIGNUM
 
-            if (clocktick % 1000) == 1:
+            if (clocktick % 1000) == 0:
                 # Make sure the active LED list is updated
                 self.update_active_led_list()
 
             # Check for nighttime every 1000 times through the loop
             # Keep the CPU load down
-            if ((clocktick % 200) == 1) and self.nightsleep:
+            if ((clocktick % 200) == 0) and self.nightsleep:
                 debugging.info(f"Checking if it's time for sleep mode: {clocktick}")
                 datetime_now = utils.current_time(self.__conf)
                 time_now = datetime_now.time()
@@ -615,11 +615,14 @@ class UpdateLEDs:
                 continue
             if self.__led_mode == LedMode.METAR:
                 led_color_dict = self.ledmode_metar(clocktick)
+                if ((clocktick % 100) == 0):
+                    debugging.info(f"ledmode_metar: {led_color_dict}")
                 self.update_ledstring(led_color_dict)
                 continue
             if self.__led_mode == LedMode.TEST:
-                self.ledmode_test(clocktick)
+                # self.ledmode_test(clocktick)
                 led_color_dict = self.colorwipe(clocktick)
+                self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self.__led_mode == LedMode.RAINBOW:
@@ -757,10 +760,13 @@ class UpdateLEDs:
             airportwxsrc = airport_obj.wxsrc()
             if not airportcode:
                 continue
-            if airportcode == "null":
+            if airportcode.startswith("null"):
+                led_updated_dict[airportled] = utils_colors.off()
                 continue
-            if airportcode == "lgnd":
+            if airportcode.startswith("lgnd"):
                 ledcolor = self.legend_color(airportwxsrc, cycle_num)
+                led_updated_dict[airportled] = ledcolor
+                continue
 
             # Initialize color
             ledcolor = utils_colors.off()
@@ -877,6 +883,8 @@ class UpdateLEDs:
             #    norm_color = ledcolor
             #    # ledcolor = utils_colors.hexcode(norm_color[0], norm_color[1], norm_color[2])
 
+            if ((clocktick % 150) == 0):
+                debugging.info(f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airportled}:{ledcolor}")
             led_updated_dict[airportled] = ledcolor
         # Add cycle delay to this loop
         time.sleep(self.__cycle_wait[cycle_num])
@@ -902,8 +910,9 @@ class UpdateLEDs:
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
-        for led_index in self.__active_led_dict.values():
-            if self.__active_led_dict[led_index] is not None:
+        for led_key in self.__active_led_dict.keys():
+            if self.__active_led_dict[led_key] is not None:
+                led_index = self.__active_led_dict[led_key]
                 rainbow_index = (clocktick + led_index) % len(self.__rgb_rainbow)
                 rainbow_color = utils_colors.hex_tuple(
                     self.__rgb_rainbow[rainbow_index]
@@ -1317,8 +1326,9 @@ class UpdateLEDs:
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
-        for led_index in self.__active_led_dict.values():
-            if self.__active_led_dict[led_index] is not None:
+        for led_key in self.__active_led_dict.keys():
+            if self.__active_led_dict[led_key] is not None:
+                led_index = self.__active_led_dict[led_key]
                 led_updated_dict[led_index] = utils_colors.randomcolor()
         return led_updated_dict
 

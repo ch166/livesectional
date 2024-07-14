@@ -615,7 +615,7 @@ class UpdateLEDs:
                 continue
             if self.__led_mode == LedMode.METAR:
                 led_color_dict = self.ledmode_metar(clocktick)
-                if ((clocktick % 100) == 0):
+                if (clocktick % 100) == 0:
                     debugging.info(f"ledmode_metar: {led_color_dict}")
                 self.update_ledstring(led_color_dict)
                 continue
@@ -883,8 +883,10 @@ class UpdateLEDs:
             #    norm_color = ledcolor
             #    # ledcolor = utils_colors.hexcode(norm_color[0], norm_color[1], norm_color[2])
 
-            if ((clocktick % 150) == 0):
-                debugging.info(f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airportled}:{ledcolor}")
+            if (clocktick % 150) == 0:
+                debugging.info(
+                    f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airportled}:{ledcolor}"
+                )
             led_updated_dict[airportled] = ledcolor
         # Add cycle delay to this loop
         time.sleep(self.__cycle_wait[cycle_num])

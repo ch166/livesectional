@@ -95,7 +95,10 @@ class LightSensor:
                         self.i2cbus.bus_unlock()
                         self.enable_i2c_device()
                     self.i2cbus.bus_unlock()
-                lux = current_light["lux"] * 2
+                if current_light is not None:
+                    lux = current_light["lux"] * 2
+                else:
+                    lux = 250
                 lux = max(lux, 20)
                 lux = min(lux, 255)
                 debugging.debug(f"Setting light levels: {lux}")

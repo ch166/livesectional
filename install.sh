@@ -23,7 +23,7 @@ TEMPLATEDIR=$INSTALLDIR/templates
 STATICDIR=$INSTALLDIR/static
 LOGDIR=$INSTALLDIR/logs
 
-INSTALL=/usr/bin/install
+INSTALL=/usr/bin/install -v
 
 # Copy the correct files into /NeoSectional
 

@@ -83,8 +83,8 @@ class LightSensor:
     def update_loop(self, conf):
         """Thread Main Loop"""
         outerloop = True  # Set to TRUE for infinite outerloop
+        current_light = None
         while outerloop:
-            current_light = None
             if self.found_device:
                 if self.i2cbus.bus_lock("light sensor update loop"):
                     try:

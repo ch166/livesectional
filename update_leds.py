@@ -297,7 +297,8 @@ class UpdateLEDs:
         # Specific Variables to default data to display if Rotary Switch is not installed.
         # hour_to_display # Offset in HOURS to choose which TAF/MOS to display
         self.hour_to_display = self.__conf.get_int("rotaryswitch", "time_sw0")
-        # metar_taf_mos    # 0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
+        # metar_taf_mos
+        # 0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
         self.__metar_taf_mos = self.__conf.get_int("rotaryswitch", "data_sw0")
 
         self.nightsleep = self.__conf.get_bool("schedule", "usetimer")
@@ -322,7 +323,8 @@ class UpdateLEDs:
         # Number of LED pixels. Change this value to match the number of LED's being used on map
         self.__led_count = self.__conf.get_int("default", "led_count")
 
-        # 1 = RGB color codes. 0 = GRB color codes. Populate color codes below with normal RGB codes and script will change if necessary
+        # 1 = RGB color codes. 0 = GRB color codes.
+        # Populate color codes below with normal RGB codes and script will change if necessary
         self.__rgb_grb = self.__conf.get_int("lights", "rgb_grb")
 
         self.homeport_toggle = False
@@ -467,9 +469,10 @@ class UpdateLEDs:
         """Return led_updated_dict containing single color only"""
         debugging.info(f"Fill: In the fill loop for {color}")
         led_updated_dict = {}
-        for led_posn, active_led in enumerate(self.__active_led_dict):
-            if active_led is not None:
-                led_updated_dict[self.__active_led_dict[led_posn]] = color
+        for led_key in self.__active_led_dict.keys():
+            if self.__active_led_dict[led_key] is not None:
+                led_index = self.__active_led_dict[led_key]
+                led_updated_dict[led_index] = color
         return led_updated_dict
 
     def num_pixels(self):
@@ -483,6 +486,7 @@ class UpdateLEDs:
     def dim(self, color_data, value):
         """DIM LED.
 
+        # TODO: Move this to utils_color.py
         # Reduces the brightness of the colors for every airport except for
         # the "homeport_pin" designated airport, which remains at the brightness set by
         # "bright_value" above in user setting. "data" is the airport color to display
@@ -532,7 +536,8 @@ class UpdateLEDs:
             data = [grn, red, blu]
         return data
 
-    # For Heat Map. Based on visits, assign color. Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
+    # For Heat Map. Based on visits, assign color.
+    # Using a 0 to 100 scale where 0 is never visted and 100 is home airport.
     # Can choose to display binary colors with homeap.
     def heatmap_color(self, visits):
         """Color codes assigned with heatmap."""
@@ -567,6 +572,25 @@ class UpdateLEDs:
             color = utils_colors.black()
         return color
 
+    def check_for_sleep_time(self, clocktick, sleeping, original_state):
+        debugging.info(f"Checking if it's time for sleep mode: {clocktick}")
+        datetime_now = utils.current_time(self.__conf)
+        time_now = datetime_now.time()
+        if utils.time_in_range(self.__offtime, self.__ontime, time_now):
+            if not sleeping:
+                debugging.info("Enabling sleeping mode...")
+                original_state = self.__led_mode
+                self.__led_mode = LedMode.SLEEP
+                sleeping = True
+            else:
+                # It's night time; we're already sleeping. Take a break.
+                debugging.info(f"Sleeping .. {clocktick}")
+        elif sleeping:
+            debugging.info(f"Disabling sleeping mode... {clocktick} ")
+            self.__led_mode = original_state
+            sleeping = False
+        return sleeping
+
     def update_loop(self):
         """LED Display Loop - supporting multiple functions."""
         sleeping = False
@@ -586,28 +610,13 @@ class UpdateLEDs:
             clocktick = (clocktick + 1) % self.BIGNUM
 
             if (clocktick % 1000) == 0:
+                # Execute things that need to be done occasionally
                 # Make sure the active LED list is updated
                 self.update_active_led_list()
-
-            # Check for nighttime every 1000 times through the loop
-            # Keep the CPU load down
-            if ((clocktick % 200) == 0) and self.nightsleep:
-                debugging.info(f"Checking if it's time for sleep mode: {clocktick}")
-                datetime_now = utils.current_time(self.__conf)
-                time_now = datetime_now.time()
-                if utils.time_in_range(self.__offtime, self.__ontime, time_now):
-                    if not sleeping:
-                        debugging.info("Enabling sleeping mode...")
-                        original_state = self.__led_mode
-                        self.__led_mode = LedMode.SLEEP
-                        sleeping = True
-                    else:
-                        # It's night time; we're already sleeping. Take a break.
-                        debugging.info(f"Sleeping .. {clocktick}")
-                elif sleeping:
-                    debugging.info(f"Disabling sleeping mode... {clocktick} ")
-                    self.__led_mode = original_state
-                    sleeping = False
+                if self.nightsleep:
+                    sleeping = self.check_for_sleep_time(
+                        clocktick, sleeping, original_state
+                    )
 
             if self.__led_mode in (LedMode.OFF, LedMode.SLEEP):
                 self.turnoff()
@@ -1311,16 +1320,17 @@ class UpdateLEDs:
 
         debugging.info("Rabbit: In the rabbit loop")
 
-        for led_posn, active_led in enumerate(self.__active_led_dict):
-            if active_led is not None:
+        for led_key in self.__active_led_dict.keys():
+            if self.__active_led_dict[led_key] is not None:
+                led_index = self.__active_led_dict[led_key]
                 # debugging.info(f"posn:{rabbit_posn}/index:{led_index}")
-                led_updated_dict[self.__active_led_dict[led_posn]] = utils_colors.off()
-                if led_posn == rabbit_posn - 2:
-                    led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_1
-                if led_posn == rabbit_posn - 1:
-                    led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_2
-                if led_posn == rabbit_posn:
-                    led_updated_dict[self.__active_led_dict[led_posn]] = rabbit_color_3
+                led_updated_dict[led_index] = utils_colors.off()
+                if led_index == rabbit_posn - 2:
+                    led_updated_dict[led_index] = rabbit_color_1
+                if led_index == rabbit_posn - 1:
+                    led_updated_dict[led_index] = rabbit_color_2
+                if led_index == rabbit_posn:
+                    led_updated_dict[led_index] = rabbit_color_3
         return led_updated_dict
 
     def ledmode_shuffle(self, clocktick):

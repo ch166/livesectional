@@ -515,7 +515,7 @@ class AirportDB:
 
         self.taf_xml_dict = taf_dict
         self.taf_update_time = datetime.now(pytz.utc)
-        debugging.debug("Updating Airport TAF from XML")
+        debugging.info("Updating Airport TAF from XML")
         return True
 
     def airport_runway_data(self, airport_id):

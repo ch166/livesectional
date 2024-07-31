@@ -782,7 +782,9 @@ class WebViews:
 
         if airport == "debug":
             # Debug request - dumping DB info
-            with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
+            with open(
+                "logs/airport_database_taf.txt", "w", encoding="ascii"
+            ) as outfile:
                 airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_obj in airportdb.items():
@@ -791,8 +793,9 @@ class WebViews:
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
         try:
-            airport_obj = self._airport_database.get_airport_taf(airport)
-            template_data["taf"] = airport_obj.taf()
+            airport_taf_dict = self._airport_database.__get_airport_taf(airport)
+            debugging.info(f"{airport}:taf:{airport_taf_dict}")
+            template_data["taf"] = airport_taf_dict
         except Exception as err:
             debugging.error(
                 f"Attempt to get metar for failed for :{airport}: ERR:{err}"

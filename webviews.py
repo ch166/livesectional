@@ -775,7 +775,7 @@ class WebViews:
         """Flask Route: /taf - Get TAF for Airport."""
         template_data = self.standardtemplate_data()
 
-        debugging.info(f"getmetar: airport = {airport}")
+        debugging.info(f"gettaf: airport = {airport}")
         template_data["airport"] = airport
 
         airport = airport.lower()
@@ -793,13 +793,13 @@ class WebViews:
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
         try:
-            airport_taf_dict = self._airport_database.__get_airport_taf(airport)
+            airport_taf_dict = self._airport_database.get_airport_taf(airport)
             debugging.info(f"{airport}:taf:{airport_taf_dict}")
-            template_data["taf"] = airport_taf_dict
+            airport_taf_future = self._airport_database.airport_taf_future(airport, 5)
+            debugging.info(f"{airport}:forecast:{airport_taf_future}")
+            template_data["taf"] = airport_taf_future
         except Exception as err:
-            debugging.error(
-                f"Attempt to get metar for failed for :{airport}: ERR:{err}"
-            )
+            debugging.error(f"Attempt to get TAF for :{airport}: ERR:{err}")
             template_data["taf"] = "ERR - Not found"
 
         return render_template("taf.html", **template_data)

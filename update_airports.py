@@ -114,7 +114,7 @@ class AirportDB:
         """Return a single Airport."""
         return self.airport_master_dict[airport_icao]
 
-    def __get_airport_taf(self, airport_icao):
+    def get_airport_taf(self, airport_icao):
         """Return a single Airport TAF."""
         result = None
         if airport_icao in self.taf_xml_dict:
@@ -347,8 +347,6 @@ class AirportDB:
         # A query against an airport TAF record at a point X hours in the future
         # should return the expected conditions at that time
         #
-        # TODO: Add file error handling
-
         debugging.debug("Updating Airport TAF DICT")
 
         taf_dict = {}
@@ -381,6 +379,7 @@ class AirportDB:
 
             debugging.debug(f"TAF: {station_id} - {issue_time}")
             fcast_index = 0
+            next_val = 0
             taf_forecast = []
 
             for forecast in taf.findall("forecast"):
@@ -518,6 +517,28 @@ class AirportDB:
         debugging.info("Updating Airport TAF from XML")
         return True
 
+    def airport_taf_future(self, airport_id, hour_increment):
+        airport_taf = self.get_airport_taf(airport_id)
+        if airport_taf is None:
+            debugging.info(f"Airport TAF {airport_id} not found")
+            return None
+        debugging.info(f"airport_taf_future:{airport_id}:+{hour_increment}hr")
+        time_taf = utils.future_taf_time(self.__conf, hour_increment)
+        debugging.info(f"airport_taf time_taf:{airport_id}:{time_taf}")
+        future_taf = None
+        for forecast in airport_taf["forecast"]:
+            fcast_start = datetime.strptime(forecast["start"], "%Y-%m-%dT%H:%M:%SZ")
+            fcast_end = datetime.strptime(forecast["end"], "%Y-%m-%dT%H:%M:%SZ")
+            debugging.info(
+                f"airport_taf forecast:{airport_id}:  s:{fcast_start}:  e:{fcast_end}"
+            )
+            if utils.time_in_range(fcast_start, fcast_end, time_taf):
+                debugging.info(f"{airport_id}:*:{forecast}")
+                future_taf = forecast
+            else:
+                debugging.info(f"{airport_id}:.:{forecast}")
+        return future_taf
+
     def airport_runway_data(self, airport_id):
         """Find Airport data in Runway DICT."""
         runway_set = []
@@ -630,7 +651,7 @@ class AirportDB:
 
             # FIXME: Key airport data - useful for debugging / health updates
             # Remove eventually
-            kbfi_taf = self.__get_airport_taf("kbfi")
+            kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
             kbfi_runway = self.airport_runway_data("kbfi")
             debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")

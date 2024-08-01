@@ -86,6 +86,12 @@ class LedMode(Enum):
     SQUAREWIPE = auto()
     WHEELWIPE = auto()
     CIRCLEWIPE = auto()
+    TAF_1 = auto()
+    TAF_2 = auto()
+    TAF_3 = auto()
+    TAF_4 = auto()
+    TAF_5 = auto()
+    TAF_6 = auto()
 
 
 class UpdateLEDs:
@@ -655,6 +661,26 @@ class UpdateLEDs:
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
+            if self.__led_mode == LedMode.TAF_1:
+                led_color_dict = self.ledmode_taf(clocktick, 1)
+                self.update_ledstring(led_color_dict)
+                time.sleep(self.DELAYMEDIUM)
+                continue
+            if self.__led_mode == LedMode.TAF_2:
+                led_color_dict = self.ledmode_taf(clocktick, 2)
+                self.update_ledstring(led_color_dict)
+                time.sleep(self.DELAYMEDIUM)
+                continue
+            if self.__led_mode == LedMode.TAF_3:
+                led_color_dict = self.ledmode_taf(clocktick, 3)
+                self.update_ledstring(led_color_dict)
+                time.sleep(self.DELAYMEDIUM)
+                continue
+            if self.__led_mode == LedMode.TAF_4:
+                led_color_dict = self.ledmode_taf(clocktick, 4)
+                self.update_ledstring(led_color_dict)
+                time.sleep(self.DELAYMEDIUM)
+                continue
             #
             # Rewrite complete as far as here
             #
@@ -689,6 +715,20 @@ class UpdateLEDs:
             self.set_led_color(ledindex, led_color)
         self.strip.setBrightness(self.__led_brightness)
         self.show()
+
+    def airport_taf_flightcategory(self, airport, hr_offset):
+        """Get Flight Category for TAF data"""
+        airport_taf_dict = self.__airport_database.get_airport_taf(airport)
+        if airport_taf_dict is None:
+            return None
+        debugging.info(f"{airport}:taf:{airport_taf_dict}")
+        airport_taf_future = self.__airport_database.airport_taf_future(
+            airport, hr_offset
+        )
+        if airport_taf_future is None:
+            return None
+        debugging.info(f"{airport}:forecast:{airport_taf_future}")
+        return airport_taf_future["flightcategory"]
 
     def ledmode_test(self, clocktick):
         """Run self test sequences."""
@@ -930,6 +970,56 @@ class UpdateLEDs:
                 )
                 # print(f"Rainbow loop {led_index} / {rainbow_index} / {rainbow_color} ")
                 led_updated_dict[led_index] = rainbow_color
+        return led_updated_dict
+
+    def ledmode_taf(self, clocktick, hr_offset):
+        """Update LEDs based on TAF data."""
+        airport_list = self.__airport_database.get_airport_dict_led()
+        led_updated_dict = {}
+        for led_index in range(self.num_pixels()):
+            led_updated_dict[led_index] = utils_colors.off()
+
+        cycle_num = clocktick % len(self.__cycle_wait)
+
+        for airport_key, airport_obj in airport_list.items():
+            airportcode = airport_obj.icaocode()
+            airportled = airport_obj.get_led_index()
+            airportwxsrc = airport_obj.wxsrc()
+            if not airportcode:
+                continue
+            if airportcode.startswith("null"):
+                led_updated_dict[airportled] = utils_colors.off()
+                continue
+            if airportcode.startswith("lgnd"):
+                ledcolor = self.legend_color(airportwxsrc, cycle_num)
+                led_updated_dict[airportled] = ledcolor
+                continue
+
+            # Initialize color
+            ledcolor = utils_colors.off()
+            # Pull the next flight category from dictionary.
+            flightcategory = self.airport_taf_flightcategory(airportcode, hr_offset)
+            if not flightcategory:
+                flightcategory = "UNKN"
+
+            # Start of weather display code for each airport in the "airports" file
+            # Check flight category and set the appropriate color to display
+            if flightcategory == "VFR":  # Visual Flight Rules
+                ledcolor = self.__confcache["vfr_color"]
+            elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
+                ledcolor = self.__confcache["mvfr_color"]
+            elif flightcategory == "IFR":  # Instrument Flight Rules
+                ledcolor = self.__confcache["ifr_color"]
+            elif flightcategory == "LIFR":  # Low Instrument Flight Rules
+                ledcolor = self.__confcache["lifr_color"]
+            elif flightcategory == "UNKN":
+                ledcolor = self.__confcache["unkn_color"]
+
+            if (clocktick % 150) == 0:
+                debugging.info(
+                    f"ledmode_taf: {airportcode}:{flightcategory}:{airportwinds}:{airportled}:{ledcolor}"
+                )
+            led_updated_dict[airportled] = ledcolor
         return led_updated_dict
 
     # Wipe routines based on Lat/Lons of airports on map.

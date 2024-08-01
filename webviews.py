@@ -263,7 +263,18 @@ class WebViews:
             debugging.info(f"LEDMode set to {newledmode}")
             return redirect("ledmodeset")
 
-        ledmodelist = ["METAR", "Off", "Test", "Rabbit", "Shuffle", "Rainbow", "TAF 1", "TAF 2", "TAF 3", "TAF 4"]
+        ledmodelist = [
+            "METAR",
+            "Off",
+            "Test",
+            "Rabbit",
+            "Shuffle",
+            "Rainbow",
+            "TAF 1",
+            "TAF 2",
+            "TAF 3",
+            "TAF 4",
+        ]
         current_ledmode = self._led_strip.ledmode()
 
         template_data = self.standardtemplate_data()

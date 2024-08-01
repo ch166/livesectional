@@ -943,6 +943,7 @@ class UpdateLEDs:
 
     def colorwipe(self, clocktick):
         """Run a color wipe test."""
+        new_color = utils_colors.colordict["BLACK"]
         wipe_steps = clocktick % 5
         if wipe_steps == 0:
             new_color = utils_colors.colordict["RED"]
@@ -1017,7 +1018,7 @@ class UpdateLEDs:
 
             if (clocktick % 150) == 0:
                 debugging.info(
-                    f"ledmode_taf: {airportcode}:{flightcategory}:{airportwinds}:{airportled}:{ledcolor}"
+                    f"ledmode_taf: {airportcode}:{flightcategory}:{airportled}:{ledcolor}"
                 )
             led_updated_dict[airportled] = ledcolor
         return led_updated_dict

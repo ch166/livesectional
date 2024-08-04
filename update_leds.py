@@ -1017,7 +1017,7 @@ class UpdateLEDs:
                 ledcolor = self.__confcache["unkn_color"]
 
             if (clocktick % 150) == 0:
-                debugging.info(
+                debugging.debug(
                     f"ledmode_taf: {airportcode}:{flightcategory}:{airportled}:{ledcolor}"
                 )
             led_updated_dict[airportled] = ledcolor

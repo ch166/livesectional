@@ -423,7 +423,12 @@ class WebViews:
         airports = self._airport_database.get_airport_dict_led()
         for icao, airport_obj in airports.items():
             if not airport_obj.active():
-                debugging.info(f"LED MAP: Skipping rendering {icao}")
+                debugging.info(f"LED MAP: Skipping rendering inactive {icao}")
+                continue
+            if not airport_obj.valid_coordinates():
+                debugging.info(
+                    f"LED MAP: Skipping rendering {icao} invalid coordinates"
+                )
                 continue
             debugging.info(f"LED MAP: Rendering {icao}")
             if airport_obj.flightcategory() == "VFR":
@@ -454,17 +459,6 @@ class WebViews:
                 weight=6,
             ).add_to(folium_map)
 
-        airports = self._airport_database.get_airport_dict_led()
-        for icao, airport_obj in airports.items():
-            if not airport_obj.active():
-                # Inactive airports likely don't have valid lat/lon data
-                debugging.info(f"LED MAP: Skipping rendering inactive {icao}")
-                continue
-            if not airport_obj.valid_coordinates():
-                debugging.info(
-                    f"LED MAP: Skipping rendering {icao} invalid coordinates"
-                )
-                continue
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(airport_obj.get_led_index())
@@ -502,11 +496,14 @@ class WebViews:
             force_separate_button=True,
         ).add_to(folium_map)
 
-        # FIXME: Move URL to configuration
+        # FIXME: Chartbundle is gone
+        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer
+        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/
+        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/tile
         folium.TileLayer(
-            "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
-            attr="chartbundle.com",
-            name="ChartBundle Sectional",
+            "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/tile/{z}/{x}/{y}.png?origin=nw",
+            attr="FAA Sectional",
+            name="FAA ArcGIS Sectional",
         ).add_to(folium_map)
         folium.TileLayer(
             "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"

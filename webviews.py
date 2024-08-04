@@ -443,7 +443,8 @@ class WebViews:
                 loc_color = "black"
 
             # FIXME - Move URL to config file
-            pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
+            # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
+            pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao} target="_blank">'
             popup = f"""{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]
 <br>LED=&nbsp;{airport_obj.get_led_index()}
 <br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"""
@@ -500,8 +501,9 @@ class WebViews:
         # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer
         # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/
         # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/tile
+        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}
         folium.TileLayer(
-            "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/tile/{z}/{x}/{y}.png?origin=nw",
+            "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/default/8/{z}/{x}/{y}",
             attr="FAA Sectional",
             name="FAA ArcGIS Sectional",
         ).add_to(folium_map)

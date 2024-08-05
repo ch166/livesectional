@@ -506,6 +506,7 @@ class WebViews:
             "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/default/default028mm/{z}/{x}/{y}",
             attr="FAA Sectional",
             name="FAA ArcGIS Sectional",
+            zoom_start=8,
         ).add_to(folium_map)
         folium.TileLayer(
             "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"

@@ -74,6 +74,15 @@ class WebViews:
         # This needs to happen really early in the process to take effect
         self.app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+        self.ssl_enabled = False
+        self.__ssl_cert = None
+        self.__ssl_key = None
+
+        if self.conf.get_bool("default", "ssl_enabled"):
+            self.ssl_enabled = True
+            self.__ssl_cert = self.conf.get_string("default", "ssl_cert")
+            self.__ssl_key = self.conf.get_string("default", "ssl_key")
+
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
         self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
@@ -148,7 +157,11 @@ class WebViews:
 
         If debug is True, we need to make sure that auto-reload is disabled in threads
         """
-        self.app.run(debug=False, host="0.0.0.0")
+        if self.ssl_enabled:
+            context = (self.__ssl_cert, self.__ssl_key)
+        else:
+            context = None
+        self.app.run(debug=False, host="0.0.0.0", ssl_context=context)
 
     def standardtemplate_data(self):
         """Generate a standardized template_data."""
@@ -503,10 +516,9 @@ class WebViews:
         # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/tile
         # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}
         folium.TileLayer(
-            "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/default/default028mm/{z}/{x}/{y}",
+            "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/default/default028mm/{z}/{y}/{x}",
             attr="FAA Sectional",
             name="FAA ArcGIS Sectional",
-            zoom_start=8,
         ).add_to(folium_map)
         folium.TileLayer(
             "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
@@ -650,11 +662,11 @@ class WebViews:
         ).add_to(folium_map)
 
         # FIXME: Move URL to configuration
-        folium.TileLayer(
-            "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
-            attr="chartbundle.com",
-            name="ChartBundle Sectional",
-        ).add_to(folium_map)
+        # folium.TileLayer(
+        #    "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
+        #    attr="chartbundle.com",
+        #    name="ChartBundle Sectional",
+        # ).add_to(folium_map)
         folium.TileLayer(
             "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
         ).add_to(folium_map)
@@ -685,7 +697,7 @@ class WebViews:
         template_data = self.standardtemplate_data()
 
         ipadd = self._sysdata.local_ip()
-        qraddress = f"http://{ipadd.strip()}:5000/confmobile"
+        qraddress = f"https://{ipadd.strip()}:5000/confmobile"
         debugging.info("Opening qrcode in separate window")
         qrcode_file = self.conf.get_string("filenames", "qrcode")
         qrcode_url = self.conf.get_string("filenames", "qrcode_url")
@@ -1147,7 +1159,7 @@ class WebViews:
 
             url = request.referrer
             if url is None:
-                url = "http://" + ipadd + ":5000/"
+                url = "https://" + ipadd + ":5000/"
                 # Use index if called from URL and not page.
 
             # temp = url.split("/")
@@ -1311,7 +1323,7 @@ class WebViews:
         ipadd = self._sysdata.local_ip()
         url = request.referrer
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         flash("Rebooting System")
@@ -1349,7 +1361,7 @@ class WebViews:
         url = request.referrer
         ipadd = self._sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
@@ -1369,7 +1381,7 @@ class WebViews:
         ipadd = self._sysdata.local_ip()
 
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
@@ -1388,7 +1400,7 @@ class WebViews:
         url = request.referrer
         ipadd = self._sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         # temp = url.split("/")

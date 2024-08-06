@@ -21,7 +21,7 @@ The current intent is to
 </head>
 <body>
      <p class="lead">
-        Version v4 of LiveSectional adds many new features for builders to take advantage of. Visit <a class="text-danger" href="http://livesectional.com" target="_blank">livesectional.com</a> for build and software installation instructions.
+        Version v4 of LiveSectional adds many new features for builders to take advantage of. Visit <a class="text-danger" href="https://livesectional.com" target="_blank">livesectional.com</a> for build and software installation instructions.
         <ul>
           <li>Updated to run under <a class="text-danger" href="https://docs.python.org/3/howto/pyporting.html" target="_blank">Python 3.7</a>
           <li>Added the ability to display <a class="text-danger" href="https://aviationweather.gov/taf/decoder" target="_blank">TAF (Terminal Aerodrome Forecasts)</a>.
@@ -42,7 +42,7 @@ The current intent is to
           <li>The user interface was improved to optimize for mobile applications.
           <li>Config Profiles available to load to help start the configuration process.
           <li>Many new Transitional Wipes were added for when the FAA weather is being updated. Some are still a work in process.
-          <li>Ability to setup wifi remotely through the use of Android or IPhone app thanks to  <a class="text-danger" href="http://berrylan.org" target="_blank">Berrylan.org</a>.
+          <li>Ability to setup wifi remotely through the use of Android or IPhone app thanks to  <a class="text-danger" href="https://berrylan.org" target="_blank">Berrylan.org</a>.
           <li>A System Information page was added to help with diagnosis if necessary.
           <li>A Phone App was added to allow the casual user to control the data displayed on the map if a Rotary Switch was not installed. (Thank you Lance B.)
           <li>To help the casual user to access the App, a 'Create QR Code' feature was added to Utilities to display next to the map.
@@ -170,7 +170,7 @@ The current intent is to
 
   <p>The software may NOT be sold or distributed on its own, or with other products
      for sale without express permission from the author.
-     Visit; http://www.livesectional.com/contact/ to contact the author.</p>
+     Visit; https://www.livesectional.com/contact/ to contact the author.</p>
 
   <p>The above copyright notice and this permission notice shall be included in all
      copies or substantial portions of the Software.</p>

@@ -420,7 +420,7 @@ class WebViews:
         # Initialize Map
         folium_map = folium.Map(
             location=start_coords,
-            zoom_start=5,
+            zoom_start=8,
             height="100%",
             width="100%",
             control_scale=True,
@@ -499,7 +499,9 @@ class WebViews:
 
         # Extra features to add if desired
         folium_map.add_child(folium.LatLngPopup())
-        #    folium.plugins.Terminator().add_to(folium_map)
+        # Terminator plugin adds overlay showing daylight/nighttime
+        # folium.plugins.Terminator().add_to(folium_map)
+
         #    folium_map.add_child(folium.ClickForMarker(popup='Marker'))
         folium.plugins.Geocoder().add_to(folium_map)
 
@@ -510,21 +512,19 @@ class WebViews:
             force_separate_button=True,
         ).add_to(folium_map)
 
-        # FIXME: Chartbundle is gone
-        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer
-        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/
-        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/tile
-        # https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}
         folium.TileLayer(
             "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/default/default028mm/{z}/{y}/{x}",
             attr="FAA Sectional",
             name="FAA ArcGIS Sectional",
+            overlay=True,
         ).add_to(folium_map)
         folium.TileLayer(
-            "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            attr="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
         ).add_to(folium_map)
         folium.TileLayer(
-            "CartoDB positron", name="CartoDB Positron", attr="carto.com"
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+            attr="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012",
         ).add_to(folium_map)
 
         folium.LayerControl().add_to(folium_map)
@@ -559,7 +559,7 @@ class WebViews:
         # Initialize Map
         folium_map = folium.Map(
             location=start_coords,
-            zoom_start=5,
+            zoom_start=8,
             height="90%",
             width="90%",
             control_scale=True,

@@ -74,14 +74,17 @@ class WebViews:
         # This needs to happen really early in the process to take effect
         self.app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+        self.__http_port = self.conf.get_string("default", "http_port")
         self.ssl_enabled = False
         self.__ssl_cert = None
         self.__ssl_key = None
+        self.__ssl_port = self.__http_port
 
         if self.conf.get_bool("default", "ssl_enabled"):
             self.ssl_enabled = True
             self.__ssl_cert = self.conf.get_string("default", "ssl_cert")
             self.__ssl_key = self.conf.get_string("default", "ssl_key")
+            self.__ssl_port = self.conf.get_string("default", "ssl_port")
 
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
@@ -159,9 +162,13 @@ class WebViews:
         """
         if self.ssl_enabled:
             context = (self.__ssl_cert, self.__ssl_key)
+            active_port = self.__ssl_port
         else:
             context = None
-        self.app.run(debug=False, host="0.0.0.0", ssl_context=context)
+            active_port = self.__http_port
+        self.app.run(
+            debug=False, host="0.0.0.0", ssl_context=context, port=active_port)
+        )
 
     def standardtemplate_data(self):
         """Generate a standardized template_data."""
@@ -429,6 +436,7 @@ class WebViews:
             attr="OpenStreetMap",
         )
         # Place map within bounds of screen
+        # This will override the zoom_start; which possibly prevents the sectional chart from displaying
         folium_map.fit_bounds(
             [[self.min_lat - 1, self.min_lon - 1], [self.max_lat + 1, self.max_lon + 1]]
         )

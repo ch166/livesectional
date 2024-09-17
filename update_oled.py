@@ -134,6 +134,13 @@ class UpdateOLEDs:
     OLED_96x16 = {"w": 96, "h": 16}
     OLED_240x320 = {"w": 240, "h": 320}
 
+    ACTIVITY = [
+        "|",
+        "/",
+        "-",
+        "\\",
+    ]
+
     reentry_check = False
     _conf = None
     _airport_database = None
@@ -354,7 +361,7 @@ class UpdateOLEDs:
             )
         return
 
-    def update_oled_status(self, oled_id):
+    def update_oled_status(self, oled_id, counter):
         """Status Update Display."""
         metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
         currtime = utils.time_format_hms(utils.current_time(self._conf))
@@ -362,7 +369,11 @@ class UpdateOLEDs:
         info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
         info_uptime = f"uptime:{self._sysdata.uptime()}"
 
-        oled_status_text = f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}"
+        activity_char = self.ACTIVITY[counter % len(self.ACTIVITY)]
+
+        oled_status_text = (
+            f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}\n   {activity_char}"
+        )
         # Update OLED
         self.oled_text(oled_id, oled_status_text)
         # Update saved image
@@ -379,7 +390,7 @@ class UpdateOLEDs:
             for oled_id in range(0, self._device_count):
                 # TODO: This is hardcoded
                 if oled_id == 0:
-                    self.update_oled_status(oled_id)
+                    self.update_oled_status(oled_id, count)
                 if oled_id == 1:
                     self.update_oled_wind(oled_id, "kbfi", 140)
                 if oled_id == 2:

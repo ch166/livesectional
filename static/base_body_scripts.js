@@ -55,10 +55,10 @@ function myFunction(selectObject) {
 
     if (x === 'NULL') {
         document.getElementById(field).innerHTML =
-            'LED will be turned off, set to: ' + x
+            'LED will be turned off'
     } else if (x === 'LGND') {
         document.getElementById(field).innerHTML =
-            'LED will be used as a Legend, set to; ' + x
+            'LED will be used as a Legend'
     } else {
         document.getElementById(field).innerHTML =
             '<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=' +

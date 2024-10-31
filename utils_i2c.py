@@ -15,7 +15,7 @@ i2c utils
 
 import time
 
-from threading import Lock
+import threading
 
 import board
 from board import SCL, SDA
@@ -84,7 +84,7 @@ class I2CBus:
     def __init__(self, conf):
         """Do setup for i2c bus - look for default hardware."""
         self.conf = conf
-        self.lock = Lock()
+        self.lock = threading.Lock()
         try:
             self.bus = smbus2.SMBus(self.rpi_bus_number)
         except IOError:
@@ -135,8 +135,9 @@ class I2CBus:
         if self.bus is None:
             return
         if self.lock.locked():
+            lock_duration = time.time() - self._average_lock_start
             debugging.warn(
-                f"bus_lock: request by {owner} when lock is held: count:{self.lock_count}: events:{self.__lock_events}: owner:{self.bus_lock_owner}"
+                    f"bus_lock: request by {owner} when lock is held: count:{self.lock_count}: events:{self.__lock_events}: owner:{self.bus_lock_owner} duration:{lock_duration}"
             )
             return False
         else:

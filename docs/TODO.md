@@ -64,3 +64,5 @@ Moving code that is used a lot into a shared function allows the more complex co
 -- This should be a version of the existing LED map ; with additional information (legend / status )
 
 
+[![Code style: djlint](https://img.shields.io/badge/html%20style-djlint-blue.svg)](https://www.djlint.com)
+

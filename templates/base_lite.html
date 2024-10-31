@@ -10,9 +10,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="shortcut icon" href="/static/tab.ico"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <link href="/static/fontawesome/css/all.css" rel="stylesheet"/>
     {% if update_available == 3 %}
         <script>
@@ -46,10 +46,10 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="/">
                     <img src="/static/LS-32x32.png"
-                         width="32"
-                         height="32"
-                         class="d-inline-block align-top"
-                         alt=""/>
+                        width="32"
+                        height="32"
+                        class="d-inline-block align-top"
+                        alt=""/>
                     {{ title }}
                 </a>
                 <button type="button"
@@ -67,10 +67,10 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="/">Load Profile <i class="fas fa-home"></i></a>
                                 <a class="dropdown-item {% if enable != 3 %} {{ 'disabled' }}{% endif %}"
-                                   href="/restoreconf">Restore Settings from File <i class="far fa-window-restore"></i></a>
+                                    href="/restoreconf">Restore Settings from File <i class="far fa-window-restore"></i></a>
                                 <a class="dropdown-item {% if enable != 3 %} {{ 'disabled' }}{% endif %}"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('post').submit(); return false;">Save Config File <i
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('post').submit(); return false;">Save Config File <i
                                         class="far fa-save"></i></a>
                             </div>
                         </li>
@@ -80,14 +80,14 @@
                                 <a class="dropdown-item" href="/apedit">Editor <i class="far fa-edit"></i></a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item"
-                                   href="https://www.rocketroute.com/airports"
-                                   rel
-                                   target="aplookup">Lookup Airports <i class="fas fa-external-link-alt"></i></a>
+                                    href="https://www.rocketroute.com/airports"
+                                    rel
+                                    target="aplookup">Lookup Airports <i class="fas fa-external-link-alt"></i></a>
                                 <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
-                                   href="/apedit">Restore Airports from File <i class="far fa-window-restore"></i></a>
+                                    href="/apedit">Restore Airports from File <i class="far fa-window-restore"></i></a>
                                 <a class="dropdown-item {% if enable != 2 %} {{ "disabled" }}{% endif %}"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('appost').submit(); return false;">Save Airport File
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('appost').submit(); return false;">Save Airport File
                                     <i class="far fa-save"></i></a>
                             </div>
                         </li>
@@ -106,21 +106,21 @@
                                 <a class="dropdown-item" href="/ledmodeset">Set LED Mode <i
                                         class="far fa-rabbit">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('mapturnon').submit(); return false;">Turn On Map <i
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('mapturnon').submit(); return false;">Turn On Map <i
                                         class="far fa-sun">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('mapturnoff').submit(); return false;">Turn Off Map
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('mapturnoff').submit(); return false;">Turn Off Map
                                     <i class="fas fa-sun">&nbsp;</i></a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('system_reboot').submit(); return false;">Reboot
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('system_reboot').submit(); return false;">Reboot
                                     System <i class="fas fa-laptop">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('shutoffnow1').submit(); return false;">Shutdown RPI
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('shutoffnow1').submit(); return false;">Shutdown RPI
                                     <i class="fas fa-power-off">&nbsp;</i></a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="/led_map" target="_blank">Map Layout <i
@@ -136,9 +136,9 @@
                                 {% endif %}
                                 {% if update_available == 2 %}
                                     <a class="dropdown-item"
-                                       href="https://www.livesectional.com/downloads/"
-                                       rel
-                                       target="_blank"><b>Click to Download Latest Image</b> <i
+                                        href="https://www.livesectional.com/downloads/"
+                                        rel
+                                        target="_blank"><b>Click to Download Latest Image</b> <i
                                             class="far fa-check-square"></i></a>
                                 {% endif %}
                                 <a class="dropdown-item" href="/">Homepage <i class="fas fa-home"></i></a>
@@ -146,20 +146,20 @@
                                         class="far fa-clock">&nbsp;</i></a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('download_cf').submit(); return false;">Download
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('download_cf').submit(); return false;">Download
                                     Config File <i class="fas fa-download">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('download_ap').submit(); return false;">Download
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('download_ap').submit(); return false;">Download
                                     Airports File <i class="fas fa-download">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('download_hm').submit(); return false;">Download
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('download_hm').submit(); return false;">Download
                                     Heat Map File <i class="fas fa-download">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="javascript:{}"
-                                   onclick="document.getElementById('download_log').submit(); return false;">Download
+                                    href="javascript:{}"
+                                    onclick="document.getElementById('download_log').submit(); return false;">Download
                                     Logfile <i class="fas fa-download">&nbsp;</i></a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="/testled">Run LED Test Script <i class="fas fa-cogs">&nbsp;</i></a>
@@ -180,13 +180,13 @@
                                         class="fas fa-code">&nbsp;</i></a>
                                 <a class="dropdown-item" href="/update_info">Update History <i class="fa fa-history">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="https://www.livesectional.com/community/ls-schematics/"
-                                   rel
-                                   target="_blank">View Schematics <i class="fas fa-external-link-alt">&nbsp;</i></a>
+                                    href="https://www.livesectional.com/community/ls-schematics/"
+                                    rel
+                                    target="_blank">View Schematics <i class="fas fa-external-link-alt">&nbsp;</i></a>
                                 <a class="dropdown-item"
-                                   href="https://www.livesectional.com/community/main-forum/"
-                                   rel
-                                   target="_blank">Help <i class="fas fa-external-link-alt">&nbsp;</i></a>
+                                    href="https://www.livesectional.com/community/main-forum/"
+                                    rel
+                                    target="_blank">Help <i class="fas fa-external-link-alt">&nbsp;</i></a>
                             </div>
                         </li>
                         {% if machines|length > 1 %}
@@ -196,9 +196,9 @@
                                     {% for i in range(machines|length) %}
                                         {% set ip_add = machines[i].split(' ') %}
                                         <a class="dropdown-item"
-                                           href="https://{{ ip_add[0] }}:5000"
-                                           rel
-                                           target="_blank">{{ machines[i] }} <i
+                                            href="https://{{ ip_add[0] }}:5000"
+                                            rel
+                                            target="_blank">{{ machines[i] }} <i
                                                 class="fas fa-external-link-alt"></i></a>
                                     {% endfor %}
                                 </div>
@@ -209,35 +209,30 @@
                 <br/>
                 <a class="navbar-brand" href="/confmobile" target="_blank">
                     <img src="/static/lsremotefav.png"
-                         width="32"
-                         height="32"
-                         class="d-inline-block align-top"
-                         alt=""/>
+                        width="32"
+                        height="32"
+                        class="d-inline-block align-top"
+                        alt=""/>
                     Web Remote
                 </a>
                 <span class="navbar-text"
-                      title="{{ current_timezone }}"
-                      style="font-size:x-small;">
-              <b>IP :</b>{{ ipadd }}
-              <br/>
-              <b>LOC:</b>{{ timestr }}
-              <br/>
-              <b>UTC:</b>{{ timestrutc }}
-              <br/>
-              <b>METAR:</b>{{ timemetarage }}
-              <br/>
-              <b>MAP:</b>{{ current_ledmode }}
-              <br/>
-            </span>
+                    title="{{ current_timezone }}"
+                    style="font-size:x-small;">
+                    <b>IP :</b>{{ ipadd }}<br/>
+                    <b>LOC:</b>{{ timestr }}<br/>
+                    <b>UTC:</b>{{ timestrutc }}<br/>
+                    <b>METAR:</b>{{ timemetarage }}<br/>
+                    <b>MAP:</b>{{ current_ledmode }}<br/>
+                </span>
             </div>
         </nav>
     </div>
     <div class="modal fade"
-         id="myModal"
-         tabindex="-1"
-         role="dialog"
-         aria-labelledby="exampleModalCenterTitle"
-         aria-hidden="true">
+        id="myModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalCenterTitle"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -302,8 +297,8 @@
         <tr>
             <td class="submitbuttons">
                 <a href="https://www.livesectional.com/community/main-forum/"
-                   rel
-                   target="_blank">
+                    rel
+                    target="_blank">
                     <input type="button" class="button" value="Help"/>
                 </a>
             </td>
@@ -331,17 +326,14 @@
         <tr>
             <td colspan="6">
                 <span style="font-size:12px;">
-                  Original Copyright 2021-2023 - Bill Bryson III, Mark Harris - <a href="https://www.livesectional.com" rel
-                                                                                 target="_blank">www.livesectional.com</a>
-                  <br/>
-                  Copyright - Chris Higgins
-                  <br/>
+                Original Copyright 2021-2023 - Bill Bryson III, Mark Harris - <a href="https://www.livesectional.com" rel target="_blank">www.livesectional.com</a>
+                <br/> Copyright - Chris Higgins <br/>
                 </span>
             </td>
         </tr>
     </table>
     </div>
-    <script src="/static/base_body_scripts.js"></script>
+        <script src="/static/base_body_scripts.js"></script>
     </div>
 </div>
 </body>

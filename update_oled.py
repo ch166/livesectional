@@ -135,10 +135,25 @@ class UpdateOLEDs:
     OLED_240x320 = {"w": 240, "h": 320}
 
     ACTIVITY = [
-        "|",
-        "/",
-        "-",
-        "\\",
+        "(*---------)",  # moving -->
+        "(-*--------)",  # moving -->
+        "(--*-------)",  # moving -->
+        "(---*------)",  # moving -->
+        "(----*-----)",  # moving -->
+        "(-----*----)",  # moving -->
+        "(------*---)",  # moving -->
+        "(-------*--)",  # moving -->
+        "(--------*-)",  # moving -->
+        "(---------*)",  # moving -->
+        "(---------*)",  # moving -->
+        "(--------*-)",  # moving <--
+        "(-------*--)",  # moving <--
+        "(------*---)",  # moving <--
+        "(-----*----)",  # moving <--
+        "(----*-----)",  # moving <--
+        "(---*------)",  # moving <--
+        "(--*-------)",  # moving <--
+        "(-*--------)",  # moving <--
     ]
 
     reentry_check = False
@@ -226,13 +241,16 @@ class UpdateOLEDs:
 
         debugging.debug(f"OLED: Writing to device: {oled_id} : Msg : {txt}")
         if self._i2cbus.bus_lock("oled_text"):
-            self.oled_select(device_i2cbus_id)
-            with canvas(device) as draw:
-                draw.rectangle(device.bounding_box, outline="white", fill="black")
-                draw.text((5, 5), txt, font=fnt, fill="white")
-            self._i2cbus.bus_unlock()
+            try:
+                self.oled_select(device_i2cbus_id)
+                with canvas(device) as draw:
+                    draw.rectangle(device.bounding_box, outline="white", fill="black")
+                    draw.text((5, 5), txt, font=fnt, fill="white")
+            finally:
+                self._i2cbus.bus_unlock()
         else:
             debugging.info(f"Failed to grab lock for oled:{oled_id}")
+            self._i2cbus.bus_unlock()
 
     def generate_info_image(self, oled_id):
         """Create the status/info image."""
@@ -288,6 +306,36 @@ class UpdateOLEDs:
 
         img.save(image_filename)
 
+    def draw_nowx(self, oled_id, airport, rway_angle, winddir, windspeed):
+        """Draw NOWX message."""
+        # TODO: This code assumes a single runway direction only. Need to handle airports with multiple runways
+        if oled_id > len(self.oled_list):
+            debugging.warn("OLED: Attempt to access index beyond list length {oled_id}")
+            return
+        oled_dev = self.oled_list[oled_id]
+        if oled_dev["active"] is False:
+            debugging.warn(f"OLED: Attempting to update disabled OLED : {oled_id}")
+            return
+
+        device = oled_dev["device"]
+        width = oled_dev["size"]["w"]
+        height = oled_dev["size"]["h"]
+        device_i2cbus_id = oled_dev["devid"]
+        display_font=ImageFont.load_default(20)
+
+        airport_details = f"{airport} NOWX"
+
+        if self._i2cbus.bus_lock("draw_nowx"):
+            self.oled_select(device_i2cbus_id)
+            with canvas(device) as draw:
+                draw.text(
+                    (5, height/2), airport_details, font=display_font, fill="white"
+                )
+            self._i2cbus.bus_unlock()
+        else:
+            debugging.info(f"Failed to grab lock for oled:{oled_id}")
+        return
+
     def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
         """Draw Wind Arrow and Runway."""
         # TODO: This code assumes a single runway direction only. Need to handle airports with multiple runways
@@ -308,7 +356,7 @@ class UpdateOLEDs:
         rway_width = 6
         rway_x = 5  # 5 pixel border
         rway_y = int(height / 2 - rway_width / 2)
-        airport_details = f"{airport} {winddir}@{windspeed}"
+        airport_details = f"{airport}\n{winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
         runway_poly = utils_gfx.create_runway(
             rway_x, rway_y, rway_width, rway_angle, width, height
@@ -318,7 +366,7 @@ class UpdateOLEDs:
             self.oled_select(device_i2cbus_id)
             with canvas(device) as draw:
                 draw.text(
-                    (1, 1), airport_details, font=ImageFont.load_default(), fill="white"
+                    (5, 1), airport_details, font=ImageFont.load_default(size=12), fill="white"
                 )
                 draw.polygon(wind_poly, fill="white", outline="white")
                 draw.polygon(runway_poly, fill=None, outline="white")
@@ -356,6 +404,8 @@ class UpdateOLEDs:
             self.draw_wind(oled_id, airportcode, best_runway, winddir, windspeed)
             self.generate_image(oled_id, airportcode, best_runway, winddir, windspeed)
         else:
+            self.draw_nowx(oled_id, airportcode, best_runway, winddir, windspeed)
+            # FIXME: self.generate_nowx_image(oled_id, airportcode, best_runway, winddir, windspeed)
             debugging.info(
                 f"NOT Updating OLED: {airportcode} : rwy: {best_runway} : wind {winddir}"
             )
@@ -384,22 +434,31 @@ class UpdateOLEDs:
         debugging.debug("OLED: Entering Update Loop")
         outerloop = True  # Set to TRUE for infinite outerloop
         count = 0
+        update_oled_flag = False
+        # FIXME: Move these values to config.ini
+        oled_update_frequency = 180  # Every 3 minutes
+        oled_loop_interval = 5
+        oled_loop_per_interval = int(oled_update_frequency / oled_loop_interval)
+        #
         while outerloop:
             count += 1
-            debugging.info(f"OLED: Updating {self._device_count} OLEDs")
+            update_oled_flag = (count % oled_loop_per_interval) == 1
+            if update_oled_flag:
+                debugging.info(f"OLED: Updating {self._device_count} OLEDs")
+            else:
+                debugging.info(f"OLED: Updating info OLED loopcount:{count}")
             for oled_id in range(0, self._device_count):
                 # TODO: This is hardcoded
                 if oled_id == 0:
                     self.update_oled_status(oled_id, count)
-                if oled_id == 1:
+                if (oled_id == 1) and update_oled_flag:
                     self.update_oled_wind(oled_id, "kbfi", 140)
-                if oled_id == 2:
+                if (oled_id == 2) and update_oled_flag:
                     self.update_oled_wind(oled_id, "ksea", 160)
-                if oled_id == 3:
+                if (oled_id == 3) and update_oled_flag:
                     self.update_oled_wind(oled_id, "kpae", 160)
-                if oled_id == 4:
+                if (oled_id == 4) and update_oled_flag:
                     self.update_oled_wind(oled_id, "kpwt", 200)
-                if oled_id == 5:
+                if (oled_id == 5) and update_oled_flag:
                     self.update_oled_wind(oled_id, "kfhr", 340)
-            # time.sleep(20)
-            time.sleep(180)
+            time.sleep(oled_loop_interval)

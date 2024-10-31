@@ -92,9 +92,12 @@ class LightSensor:
                     except OSError as err:
                         debugging.info(f"light sensor read failure: {err}")
                         # Try to rediscover the device on the i2c bus
-                        self.i2cbus.bus_unlock()
+                        # self.i2cbus.bus_unlock()
                         self.enable_i2c_device()
-                    self.i2cbus.bus_unlock()
+                    except Exception as e:
+                        debugging.error(traceback.format_exc())
+                    finally:
+                        self.i2cbus.bus_unlock()
                 if current_light is not None:
                     lux = current_light["lux"] * 2
                 else:

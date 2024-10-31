@@ -72,7 +72,16 @@ def mos_decode_routine(
                 ap_flag = 1
                 # used to determine if a category is being reported in MOS or not. If not, need to inject it.
                 cat_counter = 0
-                (dat0, dat1, dat2, dat3, dat4, dat5, dat6, dat7,) = (
+                (
+                    dat0,
+                    dat1,
+                    dat2,
+                    dat3,
+                    dat4,
+                    dat5,
+                    dat6,
+                    dat7,
+                ) = (
                     [] for i in range(8)
                 )  # Clear lists
             continue

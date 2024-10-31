@@ -321,7 +321,7 @@ class UpdateOLEDs:
         width = oled_dev["size"]["w"]
         height = oled_dev["size"]["h"]
         device_i2cbus_id = oled_dev["devid"]
-        display_font=ImageFont.load_default(20)
+        display_font = ImageFont.load_default(20)
 
         airport_details = f"{airport} NOWX"
 
@@ -329,7 +329,7 @@ class UpdateOLEDs:
             self.oled_select(device_i2cbus_id)
             with canvas(device) as draw:
                 draw.text(
-                    (5, height/2), airport_details, font=display_font, fill="white"
+                    (5, height / 2), airport_details, font=display_font, fill="white"
                 )
             self._i2cbus.bus_unlock()
         else:
@@ -366,7 +366,10 @@ class UpdateOLEDs:
             self.oled_select(device_i2cbus_id)
             with canvas(device) as draw:
                 draw.text(
-                    (5, 1), airport_details, font=ImageFont.load_default(size=12), fill="white"
+                    (5, 1),
+                    airport_details,
+                    font=ImageFont.load_default(size=12),
+                    fill="white",
                 )
                 draw.polygon(wind_poly, fill="white", outline="white")
                 draw.polygon(runway_poly, fill=None, outline="white")

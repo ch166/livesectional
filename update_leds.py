@@ -745,7 +745,7 @@ class UpdateLEDs:
             ledcolor = self.__confcache["ifr_color"]
         if airportwxsrc == "lifr":
             ledcolor = self.__confcache["lifr_color"]
-        if airportwxsrc == "nowx":
+        if airportwxsrc == "unkn":
             ledcolor = self.__confcache["unkn_color"]
         if airportwxsrc == "hiwind":
             if cycle_num in (3, 4, 5):

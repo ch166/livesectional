@@ -173,8 +173,9 @@ class UpdateOLEDs:
         "devid": 0,
     }
 
-    def __init__(self, conf, sysdata, airport_database, i2cbus):
+    def __init__(self, conf, sysdata, airport_database, i2cbus, led_mgmt):
         self._conf = conf
+        self._led_mgmt = led_mgmt
         self._sysdata = sysdata
         self._airport_database = airport_database
         self._i2cbus = i2cbus
@@ -264,6 +265,7 @@ class UpdateOLEDs:
         info_timestamp = f"time:{currtime} metar:{metarage}"
         info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
         info_uptime = f"uptime:{self._sysdata.uptime()}"
+        info_lightlevel = f"brt:{self._led_mgmt.get_brightness_level()}%"
 
         img = Image.new("RGB", (width, height), color=(73, 109, 137))
         oled_canvas = ImageDraw.Draw(img)
@@ -272,6 +274,7 @@ class UpdateOLEDs:
         oled_canvas.text((10, 10), info_ipaddr, fill=(255, 255, 0))
         oled_canvas.text((10, 30), info_uptime, fill=(255, 255, 0))
         oled_canvas.text((10, 50), info_timestamp, fill=(255, 255, 0))
+        oled_canvas.text((10, 50), info_lightlevel, fill=(255, 255, 0))
 
         img.save(image_filename)
 
@@ -421,11 +424,12 @@ class UpdateOLEDs:
         info_timestamp = f"time:{currtime} metar:{metarage}"
         info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
         info_uptime = f"uptime:{self._sysdata.uptime()}"
+        info_lightlevel = f"brt:{self._led_mgmt.get_brightness_level()}%"
 
         activity_char = self.ACTIVITY[counter % len(self.ACTIVITY)]
 
         oled_status_text = (
-            f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}\n   {activity_char}"
+                f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}\n{activity_char} {info_lightlevel}"
         )
         # Update OLED
         self.oled_text(oled_id, oled_status_text)

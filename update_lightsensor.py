@@ -106,7 +106,7 @@ class LightSensor:
                 lux = min(lux, 255)
                 debugging.debug(f"Setting light levels: {lux}")
                 self.led_mgmt.set_brightness(lux)
-                sleep_interval = 30 + random.randint(0, 5)
+                sleep_interval = 5 + random.randint(0, 5)
                 time.sleep(sleep_interval)
             else:
                 # No device found - longer sleeping

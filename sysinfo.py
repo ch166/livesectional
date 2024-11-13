@@ -20,8 +20,9 @@ class SystemData:
         self._uptime = ""
 
     def system_uptime(self):
-        """Update system uptime."""
-        return datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
+        """Update system uptime, in (days, hh:mm:ss) format"""
+        uptime = datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
+        return (datetime.timedelta(days=uptime.days, seconds=uptime.seconds))
 
     def uptime(self):
         """Return Uptime."""

@@ -428,9 +428,7 @@ class UpdateOLEDs:
 
         activity_char = self.ACTIVITY[counter % len(self.ACTIVITY)]
 
-        oled_status_text = (
-                f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}\n{activity_char} {info_lightlevel}"
-        )
+        oled_status_text = f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}\n{activity_char} {info_lightlevel}"
         # Update OLED
         self.oled_text(oled_id, oled_status_text)
         # Update saved image

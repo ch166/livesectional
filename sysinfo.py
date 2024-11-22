@@ -13,6 +13,7 @@ import utils
 
 class SystemData:
     """Gather useful information about this system."""
+
     sysinfo = None
     ipaddr = None
     _uptime = None
@@ -29,7 +30,7 @@ class SystemData:
     def system_uptime(self):
         """Update system uptime, in (days, hh:mm:ss) format"""
         uptime = datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
-        return (datetime.timedelta(days=uptime.days, seconds=uptime.seconds))
+        return datetime.timedelta(days=uptime.days, seconds=uptime.seconds)
 
     def uptime(self):
         """Return Uptime."""

@@ -487,7 +487,7 @@ class UpdateLEDs:
 
     def get_brightness_level(self):
         """Get Light Percentage Level."""
-        return(round(self.__led_brightness/255*100))
+        return round(self.__led_brightness / 255 * 100)
 
     def set_brightness(self, lux):
         """Update saved brightness value."""

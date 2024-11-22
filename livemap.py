@@ -174,4 +174,10 @@ if __name__ == "__main__":
         debugging.info(i2cbus.stats())
         debugging.info(dataset_sync.stats())
 
+        (online_status, ipaddr) = utils.is_connected()
+        if online_status:
+            debugging.debug("Internet Connected")
+        else:
+            debugging.debug("Internet NOT Connected")
+
         time.sleep(MAIN_LOOP_SLEEP * 60)

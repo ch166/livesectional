@@ -35,14 +35,14 @@ def is_connected():
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
-        sock = socket.create_connection(("ipv4.google.com", 80))
+        sock = socket.create_connection(("ipv4.google.com", 80), timeout=3)
         if sock is not None:
-            print("Closing socket")
+            ipaddr = sock.getsockname()[0]
             sock.close()
-        return True
+        return (True, ipaddr)
     except OSError:
         pass
-    return False
+    return (False, "0.0.0.0")
 
 
 def str2bool(input_str):

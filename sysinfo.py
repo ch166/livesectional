@@ -12,6 +12,10 @@ import flask
 
 class SystemData:
     """Gather useful information about this system."""
+    sysinfo = None
+    ipaddr = None
+    _uptime = None
+    _internet_active = None
 
     def __init__(self):
         """Start from zero."""
@@ -30,20 +34,9 @@ class SystemData:
 
     def update_local_ip(self):
         """Create Socket to the Internet, Query Local IP."""
-        ipaddr = "UNKN"
-        try:
-            # connect to the host -- tells us if the host is actually
-            # reachable
-            sock = socket.create_connection(("ipv4.google.com", 80))
-            if sock is not None:
-                ipaddr = sock.getsockname()[0]
-                print("Closing socket")
-                sock.close()
-            self.ipaddr = ipaddr
-            return ipaddr
-        except OSError:
-            pass
-        return "0.0.0.0"
+        (online_status, ipaddr) = utils.is_connected()
+        self.ipaddr = ipaddr
+        return ipaddr
 
     def local_ip(self):
         """Return IP addr."""
@@ -53,8 +46,10 @@ class SystemData:
         """Update data."""
         # TODO: Need to refresh this data on a regular basis
         self.sysinfo = self.query_system_information()
-        self.update_local_ip()
         self._uptime = self.system_uptime()
+        (online_status, ipaddr) = utils.is_connected()
+        self._internet_active = online_status
+        self.ipaddr = ipaddr
 
     def get_size(self, bytes_size, suffix="B"):
         """Scale bytes to its proper format."""

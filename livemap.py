@@ -87,7 +87,9 @@ if __name__ == "__main__":
     GPIOmon = update_gpio.UpdateGPIO(app_conf, airport_database)
 
     # Setup OLED Management
-    OLEDmgmt = update_oled.UpdateOLEDs(app_conf, sysdata, airport_database, i2cbus, LEDmgmt)
+    OLEDmgmt = update_oled.UpdateOLEDs(
+        app_conf, sysdata, airport_database, i2cbus, LEDmgmt
+    )
 
     # Setup Flask APP
     web_app = webviews.WebViews(app_conf, sysdata, airport_database, app_info, LEDmgmt)

@@ -54,12 +54,15 @@ def wait_for_internet():
     """Delay until Internet is up (return True) - or (return False)."""
     wait_count = 0
     while True:
-        if is_connected():
+        (online_status, ipaddr) = is_connected()
+        if online_status:
             return True
         wait_count += 1
         if wait_count == 6:
             return False
-        time.sleep(30)
+        internet_delay = 30
+        debugging.debug(f"Waiting {internet_delay} seconds for Internet")
+        time.sleep(internet_delay)
 
 
 def get_local_ip():

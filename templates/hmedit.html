@@ -1,77 +1,79 @@
 {% extends "base_lite.html" %}
 {% block content %}
-  <!--Heat Map File Data-->
-  <table>
-    <tr>
-      <td width="60%" class="submitbuttons" style="font-size:small">
-        Enter value from <b>0 to 100</b>. Key: 0 = Never Landed, 100 = Home Airport and values between <b>1 and 99</b> are a relative number of how often an airport has been landed at. So 10 = a few landings and 90 would be a lot of landings.
-      </td>
-      <td width="40%" class="submitbuttons">
-        <center>
-          {% with messages = get_flashed_messages() %}
-            {% if messages %}
-              <ul class="flashes">
-                {% for message in messages %}{{ message }}{% endfor %}
-              </ul>
-            {% endif %}
-          {% endwith %}
-        </center>
-      </td>
-    </tr>
-  </table>
-  <form action="hmpost" id="hmpost" method="post">
+    <!--Heat Map File Data-->
     <table>
-      <tr>
-        <th class="config">LED Pin #</th>
-        <th class="config">Airport ID</th>
-        <th class="config">Landings</th>
-        <th></th>
-        <th class="config">Select Value from 0 to 100</th>
-        <th></th>
-      </tr>
-      {% for aprt_icao, aprt_data in airports.items() %}
-        {% set hm = aprt_data["hmindex"] %}
-        {% set aprt_active = aprt_data["active"] %}
-        {% if (aprt_data["active"]) %}
-          <tr id="{{ loop.index - 1 }}">
-            <td width="10%" class="config">
-              <b>{{ loop.index - 1 }}</b>
+        <tr>
+            <td class="submitbuttons" style="width: 60%; font-size:small;">
+                Enter value from <b>0 to 100</b>. Key: 0 = Never Landed, 100 = Home Airport and values between <b>1 and
+                99</b> are a relative number of how often an airport has been landed at. So 10 = a few landings and 90
+                would be a lot of landings.
             </td>
-            <td width="10%" class="config">
-              <div title='{{ aprt_icao|join(", ") }}'>
-                <b>{{ aprt_icao }}</b>
-              <br />
-            </div>
-          </td>
-          <td width="10%" class="config">
-            <input type="number"
-                   min="0"
-                   max="100"
-                   id="hm{{ loop.index-1 }}"
-                   size="5"
-                   name="{{ aprt_icao }}"
-                   value="{{ hm }}"
-                   oninput="rangeInput{{ loop.index-1 }}.value=hm{{ loop.index-1 }}.value"/>
-          </td>
-          <td style="text-align:right" width="3%">
-            <b>0%</b>
-          </td>
-          <td width="64%">
-            <div>
-              <input class="slider" id="rangeInput{{ loop.index-1 }}" type="range" min="0" max="100" oninput="hm{{ loop.index-1 }}.value=rangeInput{{ loop.index-1 }}.value" value={{ hm }} />
-            </div>
-          </td>
-          <td style="text-align:left" width="3%">
-            <b>100%</b>
-          </td>
+            <td class="submitbuttons" style="width: 40%;">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <ul class="flashes">
+                            {% for message in messages %}{{ message }}{% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+            </td>
         </tr>
-      {% endif %}
-    {% endfor %}
-    <tr>
-      <td width="100%" style="text-align:center" colspan=6>
-        <input type="submit" class="button1" value="Save" />
-      </td>
-    </tr>
-  </table>
-</form>
+    </table>
+    <form action="hmpost" id="hmpost" method="post">
+        <table>
+            <tr>
+                <th class="config">LED Pin #</th>
+                <th class="config">Airport ID</th>
+                <th class="config">Landings</th>
+                <th></th>
+                <th class="config">Select Value from 0 to 100</th>
+                <th></th>
+            </tr>
+            {% for aprt_icao, aprt_data in airports.items() %}
+                {% set hm = aprt_data["hmindex"] %}
+                {% set aprt_active = aprt_data["active"] %}
+                {% if (aprt_data["active"]) %}
+                    <tr id="{{ loop.index - 1 }}">
+                        <td style="width: 10%;" class="config">
+                            <b>{{ loop.index - 1 }}</b>
+                        </td>
+                        <td style="width: 10%;" class="config">
+                            <div title='{{ aprt_icao|join(", ") }}'>
+                                <b>{{ aprt_icao }}</b>
+                                <br/>
+                            </div>
+                        </td>
+                        <td style="width: 10%;" class="config">
+                            <input type="number"
+                                   min="0"
+                                   max="100"
+                                   id="hm{{ loop.index - 1 }}"
+                                   size="5"
+                                   name="{{ aprt_icao }}"
+                                   value="{{ hm }}"
+                                   oninput="rangeInput{{ loop.index - 1 }}.value=hm{{ loop.index - 1 }}.value"/>
+                        </td>
+                        <td style="width: 3%; text-align:right;">
+                            <b>0%</b>
+                        </td>
+                        <td style="width:64%;">
+                            <div>
+                                <input class="slider" id="rangeInput{{ loop.index - 1 }}" type="range" min="0" max="100"
+                                       oninput="hm{{ loop.index - 1 }}.value=rangeInput{{ loop.index - 1 }}.value"
+                                       value={{ hm }}/>
+                            </div>
+                        </td>
+                        <td style="width: 3%; text-align:left;">
+                            <b>100%</b>
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            <tr>
+                <td style="width: 100%; text-align:center;" colspan=6>
+                    <input type="submit" class="button1" value="Save"/>
+                </td>
+            </tr>
+        </table>
+    </form>
 {% endblock content %}

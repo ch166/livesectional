@@ -19,9 +19,9 @@ from urllib.request import urlopen
 import urllib.error
 import socket
 
-
 from metar import Metar
 import debugging
+
 
 # import utils
 
@@ -151,6 +151,8 @@ def update_wx(airport_data, metar_xml_dict):
         try:
             debugging.debug("Update USA Metar: ADDS " + airport_data.icao)
             freshness = airport_data.get_adds_metar(metar_xml_dict)
+            if freshness:
+                return
         except Exception as err:
             debugging.error(err)
     elif airport_data.wxsrc == "usa-metar":

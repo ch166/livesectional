@@ -47,6 +47,9 @@ import debugging
 class UpdateGPIO:
     """Class to manage GPIO pins"""
 
+    # Pin reservations in docs/HARDWARE.md
+    #
+
     def __init__(self, conf, airport_database):
         # ****************************************************************************
         # * User defined items to be set below - Make changes to config.py, not here *
@@ -76,16 +79,15 @@ class UpdateGPIO:
 
         # Misc settings
         # 0 = No, 1 = Yes, use wipes. Defined by configurator
-        self.usewipes = self.conf.get_int("rotaryswitch", "usewipes")
+        self.usewipe = None
         # 1 = RGB color codes. 0 = GRB color codes.
         # Populate color codes below with normal RGB codes and script will change if necessary
 
         # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
         GPIO.setmode(GPIO.BCM)
-        # set pin 4 as input for light sensor, if one is used. If no sensor used board remains at high brightness always.
-        GPIO.setup(4, GPIO.IN)
-        # set pin 22 to momentary push button to force FAA Weather Data update if button is used.
-        GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # set pin 12 to momentary push button to trigger FAA Weather Data update if button is used.
+        GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         # Setup GPIO pins for rotary switch to choose between Metars, or Tafs and which hour of TAF
         # Not all the pins are required to be used. If only METARS are desired, then no Rotary Switch is needed.
@@ -114,8 +116,6 @@ class UpdateGPIO:
         # set pin 7 to ground for TAF + 11 hours
         GPIO.setup(7, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        # True to invert the signal (when using NPN transistor level shift)
-        self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
         # Timer calculations
         self.lights_out = time_(
             self.conf.get_int("schedule", "offhour"),
@@ -255,21 +255,4 @@ class UpdateGPIO:
                     "Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data"
                 )
 
-            # Light sensor has ability to send interrupts..
-            # TODO: Come back to here and figure out if we're handling that code here
-            # or if we should handle it elsewhere
-            #
-            # Bright light will provide a low state (0) on GPIO. Dark light will provide a high state (1).
-            # Full brightness will be used if no light sensor is installed.
-            #
-            # if GPIO.input(4) == 1:
-            #     self.LED_BRIGHTNESS = self.conf.get_int("lights", "dimmed_value")
-            #    if self.ambient_toggle == 1:
-            #        debugging.info("Ambient Sensor set brightness to dimmed_value")
-            #        self.ambient_toggle = 0
-            # else:
-            #    self.LED_BRIGHTNESS = self.conf.get_int("lights", "bright_value")
-            #    if self.ambient_toggle == 0:
-            #        debugging.info("Ambient Sensor set brightness to bright_value")
-            #        self.ambient_toggle = 1
             time.sleep(5)

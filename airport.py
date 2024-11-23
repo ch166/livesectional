@@ -432,6 +432,8 @@ class Airport:
         if next_object is not None:
             self.__flight_category = next_object.text
         else:
+            # This may be legitimately empty; if the metar has incomplete data.
+            # No visibility information is a case where flight_category is not set
             self.__flight_category = "Missing"
 
         next_object = metar_data.find("ceiling")

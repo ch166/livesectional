@@ -2,6 +2,7 @@
 """ Collection of shared utility functions for all of the modules ."""
 
 import os
+import os.path
 import time
 import shutil
 import socket
@@ -10,7 +11,7 @@ import urllib
 import gzip
 import tempfile
 
-from datetime import datetime
+import datetime
 from datetime import timedelta
 from dateutil.parser import parse as parsedate
 
@@ -21,7 +22,12 @@ import pytz
 
 import debugging
 
-# import conf
+
+def file_exists(filename):
+    """Check if a file exists."""
+    if os.path.isfile(filename):
+        return True
+    return False
 
 
 def is_connected():
@@ -29,14 +35,14 @@ def is_connected():
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
-        sock = socket.create_connection(("ipv4.google.com", 80))
+        sock = socket.create_connection(("ipv4.google.com", 80), timeout=3)
         if sock is not None:
-            print("Closing socket")
+            ipaddr = sock.getsockname()[0]
             sock.close()
-        return True
+        return (True, ipaddr)
     except OSError:
         pass
-    return False
+    return (False, "0.0.0.0")
 
 
 def str2bool(input_str):
@@ -48,12 +54,15 @@ def wait_for_internet():
     """Delay until Internet is up (return True) - or (return False)."""
     wait_count = 0
     while True:
-        if is_connected():
+        (online_status, ipaddr) = is_connected()
+        if online_status:
             return True
         wait_count += 1
         if wait_count == 6:
             return False
-        time.sleep(30)
+        internet_delay = 30
+        debugging.debug(f"Waiting {internet_delay} seconds for Internet")
+        time.sleep(internet_delay)
 
 
 def get_local_ip():
@@ -180,13 +189,16 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
         # File exists - we might have a last-modified header
         # or we might be using etag comparisons to decide if something is newer/different
         if url_time is not None:
-            file_time = datetime.fromtimestamp(os.path.getmtime(filename))
+            file_time = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
             if url_date.timestamp() > file_time.timestamp():
                 # Time stamp of local file is older than timestamp on server
                 download = True
             else:
                 # Server side file is same or older, our file is up to date
-                msg = f"Timestamp check - Server side: {datetime.fromtimestamp(url_date.timestamp())} Local : {datetime.fromtimestamp(file_time.timestamp())}"
+                msg = (
+                    f"Timestamp check - Server side: {datetime.datetime.fromtimestamp(url_date.timestamp())}"
+                    f"Local : {datetime.datetime.fromtimestamp(file_time.timestamp())}"
+                )
                 debugging.debug(msg)
         if (url_etag is not None) and (etag != url_etag):
             # Check to see if downloaded etag and value passed in are the same. If not - download is true
@@ -227,9 +239,9 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
             # Set the timestamp of the downloaded file to match
             # match the HEAD date stamp / or 'now' for etag headers
             if url_date is None:
-                file_timestamp = datetime.now().timestamp()
+                file_timestamp = datetime.datetime.now().timestamp()
             else:
-                file_timestamp = datetime.timestamp(url_date)
+                file_timestamp = datetime.datetime.timestamp(url_date)
             os.utime(filename, (file_timestamp, file_timestamp))
             return download, url_etag
         except Exception as err:
@@ -256,9 +268,9 @@ def decompress_file_gz(srcfile, dstfile):
 def time_in_range(start_time, end_time, check_time):
     """See if a time falls within range."""
     if start_time < end_time:
-        return check_time >= start_time <= end_time
+        return start_time <= check_time <= end_time
     else:  # overnight
-        return check_time >= start_time or check_time <= end_time
+        return (check_time >= start_time) or (check_time <= end_time)
 
 
 # Compare current time plus offset to TAF's time period and return difference
@@ -268,9 +280,9 @@ def comp_time(zulu_time, taf_time):
     date_time_format = "%Y-%m-%dT%H:%M:%SZ"
     date1 = taf_time
     date2 = zulu_time
-    diff = datetime.strptime(date1, date_time_format) - datetime.strptime(
-        date2, date_time_format
-    )
+    diff = datetime.datetime.strptime(
+        date1, date_time_format
+    ) - datetime.datetime.strptime(date2, date_time_format)
     diff_minutes = int(diff.seconds / 60)
     diff_hours = int(diff_minutes / 60)
     return diff.seconds, diff_minutes, diff_hours, diff.days
@@ -284,7 +296,7 @@ def reboot_if_time(conf):
     use_autorun = conf.get_bool("default", "autorun")
     reboot_time = conf.get_string("default", "nightly_reboot_hr")
     if use_reboot and use_autorun:
-        now = datetime.now()
+        now = datetime.datetime.now()
         rb_time = now.strftime("%H:%M")
         debugging.debug(
             "**Current Time=" + str(rb_time) + " - **Reboot Time=" + str(reboot_time)
@@ -308,46 +320,65 @@ def reboot_if_time(conf):
 def time_format_taf(raw_time):
     """Convert raw time into TAF formatted printable string."""
     if raw_time is None:
-        raw_time = datetime(1970, 1, 1)
+        raw_time = datetime.datetime(1970, 1, 1)
     return raw_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def time_format_hm(raw_time):
+    """Convert raw time into standardized printable string."""
+    if raw_time is None:
+        raw_time = datetime.datetime(1970, 1, 1)
+    return raw_time.strftime("%H:%M")
 
 
 def time_format_hms(raw_time):
     """Convert raw time into standardized printable string."""
     if raw_time is None:
-        raw_time = datetime(1970, 1, 1)
+        raw_time = datetime.datetime(1970, 1, 1)
     return raw_time.strftime("%H:%M:%S")
 
 
 def time_format(raw_time):
     """Convert raw time into standardized printable string."""
     if raw_time is None:
-        raw_time = datetime(1970, 1, 1)
+        raw_time = datetime.datetime(1970, 1, 1)
     return raw_time.strftime("%H:%M:%S - %b %d, %Y")
 
 
 def current_time_hr_utc(conf):
     """Get current HR in UTC."""
-    curr_time = datetime.now(pytz.utc)
+    curr_time = datetime.datetime.now(pytz.utc)
     return int(curr_time.strftime("%H"))
 
 
 def current_time_utc(conf):
     """Get time in UTC."""
-    return datetime.now(pytz.utc)
+    return datetime.datetime.now(pytz.utc)
 
 
 def current_time(conf):
     """Get time Now."""
-    return datetime.now(pytz.timezone(conf.get_string("default", "timezone")))
+    return datetime.datetime.now(pytz.timezone(conf.get_string("default", "timezone")))
+
+
+def future_taf_time(conf, hr_increment):
+    """Compute time hr_increment hours in the future"""
+    taf_time = datetime.datetime.now(pytz.utc) + datetime.timedelta(hours=hr_increment)
+    return datetime.datetime(
+        taf_time.year,
+        taf_time.month,
+        taf_time.day,
+        taf_time.hour,
+        taf_time.minute,
+        taf_time.second,
+    )
 
 
 def current_time_taf_offset(conf):
     """Get time for TAF period selected (UTC)."""
-    UTC = pytz.utc
     offset = conf.get_int("rotaryswitch", "hour_to_display")
-    curr_time = datetime.now(UTC) + timedelta(hours=offset)
-    return curr_time
+    curr_time = datetime.datetime.now(pytz.utc) + timedelta(hours=offset)
+    return pytz.UTC.localize(curr_time)
 
 
 def set_timezone(conf, newtimezone):

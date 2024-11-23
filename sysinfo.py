@@ -36,6 +36,10 @@ class SystemData:
         """Return Uptime."""
         return self._uptime
 
+    def internet_connected(self):
+        """Internet Connected Status"""
+        return self._internet_active
+
     def update_local_ip(self):
         """Create Socket to the Internet, Query Local IP."""
         (online_status, ipaddr) = utils.is_connected()

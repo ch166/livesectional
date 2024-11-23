@@ -324,6 +324,13 @@ def time_format_taf(raw_time):
     return raw_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def time_format_hm(raw_time):
+    """Convert raw time into standardized printable string."""
+    if raw_time is None:
+        raw_time = datetime.datetime(1970, 1, 1)
+    return raw_time.strftime("%H:%M")
+
+
 def time_format_hms(raw_time):
     """Convert raw time into standardized printable string."""
     if raw_time is None:

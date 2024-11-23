@@ -135,3 +135,17 @@ def is_inside(x_1, y_1, x_2, y_2, x_3, y_3, x_posn, y_posn):
     a_3 = area(x_1, y_1, x_2, y_2, x_posn, y_posn)
     # Check if sum of A_1, A_2 and A_3 is same as A
     return ((a_1 + a_2 + a_3) - 1) >= a_0 <= ((a_1 + a_2 + a_3) + 1)
+
+
+def sector_check_point(x, y, sector_count, initial_angle, radius):
+    """Check to see if a point is inside a sector."""
+    end_angle = (360 / sector_count) + initial_angle
+
+    # Calculate polar co-ordinates
+    polarradius = math.sqrt(x * x + y * y)
+    angle = math.atan(y / x)
+
+    if (angle >= initial_angle) and (angle <= end_angle) and (polarradius < radius):
+        return True
+    else:
+        return False

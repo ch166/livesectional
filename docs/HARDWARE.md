@@ -40,3 +40,30 @@ ssd3306 displays work
 ### Light Sensor
 
 TSL 2591 works
+
+## GPIO Port Reservations
+
+Raspberry Pi 
+3.3V - Pin 1, 17
+5V   - Pin 2, 4
+GND  - Pin 6, 9, 14, 20, 25, 30, 34, 39
+
+i2c  - Pin 3, 5
+
+LED PWM - Pin 18
+
+Rotary Switch 
+ 8->3 encoder - GPIO 5(pin 29),6(pin 31),13(pin 33)
+
+Feature Jumpers
+ GPIO 17 (pin 11)
+ GPIO 27 (pin 13)
+ GPIO 22 (pin 15)
+ GPIO 23 (pin 16)
+ GPIO 24 (pin 18)
+ GPIO 25 (pin 22)
+
+Momentary Switch
+ Wake Up/Refresh - GPIO 12 (pin 32)
+ Next Mode - GPIO 16 (pin 36)
+

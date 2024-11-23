@@ -1,4 +1,4 @@
 
-Tracking known depdenencies 
+Tracking known system level library dependencies 
 
 - lxml needs libxslt1

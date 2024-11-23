@@ -44,6 +44,7 @@ import utils
 from update_leds import LedMode
 import debugging
 
+
 # import sysinfo
 
 
@@ -72,6 +73,18 @@ class WebViews:
         # self.app.jinja_env.auto_reload = True
         # This needs to happen really early in the process to take effect
         self.app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+        self.__http_port = self.conf.get_string("default", "http_port")
+        self.ssl_enabled = False
+        self.__ssl_cert = None
+        self.__ssl_key = None
+        self.__ssl_port = self.__http_port
+
+        if self.conf.get_bool("default", "ssl_enabled"):
+            self.ssl_enabled = True
+            self.__ssl_cert = self.conf.get_string("default", "ssl_cert")
+            self.__ssl_key = self.conf.get_string("default", "ssl_key")
+            self.__ssl_port = self.conf.get_string("default", "ssl_port")
 
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
@@ -147,7 +160,13 @@ class WebViews:
 
         If debug is True, we need to make sure that auto-reload is disabled in threads
         """
-        self.app.run(debug=False, host="0.0.0.0")
+        if self.ssl_enabled:
+            context = (self.__ssl_cert, self.__ssl_key)
+            active_port = self.__ssl_port
+        else:
+            context = None
+            active_port = self.__http_port
+        self.app.run(debug=False, host="0.0.0.0", ssl_context=context, port=active_port)
 
     def standardtemplate_data(self):
         """Generate a standardized template_data."""
@@ -249,12 +268,31 @@ class WebViews:
                 self._led_strip.set_ledmode(LedMode.SHUFFLE)
             if newledmode_upper == "RAINBOW":
                 self._led_strip.set_ledmode(LedMode.RAINBOW)
+            if newledmode_upper == "TAF 1":
+                self._led_strip.set_ledmode(LedMode.TAF_1)
+            if newledmode_upper == "TAF 2":
+                self._led_strip.set_ledmode(LedMode.TAF_2)
+            if newledmode_upper == "TAF 3":
+                self._led_strip.set_ledmode(LedMode.TAF_3)
+            if newledmode_upper == "TAF 4":
+                self._led_strip.set_ledmode(LedMode.TAF_4)
 
             flash(f"LED Mode set to {newledmode}")
             debugging.info(f"LEDMode set to {newledmode}")
             return redirect("ledmodeset")
 
-        ledmodelist = ["METAR", "Off", "Test", "Rabbit", "Shuffle", "Rainbow"]
+        ledmodelist = [
+            "METAR",
+            "Off",
+            "Test",
+            "Rabbit",
+            "Shuffle",
+            "Rainbow",
+            "TAF 1",
+            "TAF 2",
+            "TAF 3",
+            "TAF 4",
+        ]
         current_ledmode = self._led_strip.ledmode()
 
         template_data = self.standardtemplate_data()
@@ -285,7 +323,9 @@ class WebViews:
         console_ips = []
         loc_timestr = utils.time_format(utils.current_time(self.conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
-        with open("/NeoSectional/data/console_ip.txt", "r", encoding="utf8") as file:
+        with open(
+            "/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf8"
+        ) as file:
             for line in file.readlines()[-1:]:
                 line = line.rstrip()
                 console_ips.append(line)
@@ -328,7 +368,7 @@ class WebViews:
 
         def generate():
             # FIXME: Move logfile name to config file
-            with open("/NeoSectional/logs/debugging.log", encoding="utf8") as file:
+            with open("/opt/NeoSectional/logs/debugging.log", encoding="utf8") as file:
                 while True:
                     yield "{}\n".format(file.read())
                     time.sleep(1)
@@ -385,7 +425,7 @@ class WebViews:
         # Initialize Map
         folium_map = folium.Map(
             location=start_coords,
-            zoom_start=5,
+            zoom_start=8,
             height="100%",
             width="100%",
             control_scale=True,
@@ -394,6 +434,7 @@ class WebViews:
             attr="OpenStreetMap",
         )
         # Place map within bounds of screen
+        # This will override the zoom_start; which possibly prevents the sectional chart from displaying
         folium_map.fit_bounds(
             [[self.min_lat - 1, self.min_lon - 1], [self.max_lat + 1, self.max_lon + 1]]
         )
@@ -401,7 +442,12 @@ class WebViews:
         airports = self._airport_database.get_airport_dict_led()
         for icao, airport_obj in airports.items():
             if not airport_obj.active():
-                debugging.info(f"LED MAP: Skipping rendering {icao}")
+                debugging.info(f"LED MAP: Skipping rendering inactive {icao}")
+                continue
+            if not airport_obj.valid_coordinates():
+                debugging.info(
+                    f"LED MAP: Skipping rendering {icao} invalid coordinates"
+                )
                 continue
             debugging.info(f"LED MAP: Rendering {icao}")
             if airport_obj.flightcategory() == "VFR":
@@ -416,12 +462,11 @@ class WebViews:
                 loc_color = "black"
 
             # FIXME - Move URL to config file
-            pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao}target="_blank">'
-            popup = (
-                f"{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}] /"
-                "<br><br>LED=&nbsp;{airport_obj.get_led_index()}<br>"
-                "<b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"
-            )
+            # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
+            pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao} target="_blank">'
+            popup = f"""{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]
+<br>LED=&nbsp;{airport_obj.get_led_index()}
+<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"""
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -430,21 +475,10 @@ class WebViews:
                 color=loc_color,
                 location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>LED {str(airport_obj.get_led_index())}",
+                tooltip=f"{str(icao)}<br>led:{str(airport_obj.get_led_index())}",
                 weight=6,
             ).add_to(folium_map)
 
-        airports = self._airport_database.get_airport_dict_led()
-        for icao, airport_obj in airports.items():
-            if not airport_obj.active():
-                # Inactive airports likely don't have valid lat/lon data
-                debugging.info(f"LED MAP: Skipping rendering inactive {icao}")
-                continue
-            if not airport_obj.valid_coordinates():
-                debugging.info(
-                    f"LED MAP: Skipping rendering {icao} invalid coordinates"
-                )
-                continue
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(airport_obj.get_led_index())
@@ -471,7 +505,9 @@ class WebViews:
 
         # Extra features to add if desired
         folium_map.add_child(folium.LatLngPopup())
-        #    folium.plugins.Terminator().add_to(folium_map)
+        # Terminator plugin adds overlay showing daylight/nighttime
+        # folium.plugins.Terminator().add_to(folium_map)
+
         #    folium_map.add_child(folium.ClickForMarker(popup='Marker'))
         folium.plugins.Geocoder().add_to(folium_map)
 
@@ -482,23 +518,25 @@ class WebViews:
             force_separate_button=True,
         ).add_to(folium_map)
 
-        # FIXME: Move URL to configuration
         folium.TileLayer(
-            "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
-            attr="chartbundle.com",
-            name="ChartBundle Sectional",
+            "https://tiles.arcgis.com/tiles/ssFJjBXIUyZDrSYZ/arcgis/rest/services/VFR_Sectional/MapServer/WMTS/tile/1.0.0/VFR_Sectional/default/default028mm/{z}/{y}/{x}",
+            attr="FAA Sectional",
+            name="FAA ArcGIS Sectional",
+            overlay=True,
         ).add_to(folium_map)
         folium.TileLayer(
-            "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            attr="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
         ).add_to(folium_map)
         folium.TileLayer(
-            "CartoDB positron", name="CartoDB Positron", attr="carto.com"
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+            attr="Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012",
         ).add_to(folium_map)
 
         folium.LayerControl().add_to(folium_map)
 
         # FIXME: Move filename to config.ini
-        folium_map.save("/NeoSectional/static/led_map.html")
+        folium_map.save("/opt/NeoSectional/static/led_map.html")
         debugging.info("Opening led_map in separate window")
 
         template_data = self.standardtemplate_data()
@@ -527,7 +565,7 @@ class WebViews:
         # Initialize Map
         folium_map = folium.Map(
             location=start_coords,
-            zoom_start=5,
+            zoom_start=8,
             height="90%",
             width="90%",
             control_scale=True,
@@ -630,11 +668,11 @@ class WebViews:
         ).add_to(folium_map)
 
         # FIXME: Move URL to configuration
-        folium.TileLayer(
-            "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
-            attr="chartbundle.com",
-            name="ChartBundle Sectional",
-        ).add_to(folium_map)
+        # folium.TileLayer(
+        #    "https://wms.chartbundle.com/tms/1.0.0/sec/{z}/{x}/{y}.png?origin=nw",
+        #    attr="chartbundle.com",
+        #    name="ChartBundle Sectional",
+        # ).add_to(folium_map)
         folium.TileLayer(
             "Stamen Terrain", name="Stamen Terrain", attr="stamen.com"
         ).add_to(folium_map)
@@ -645,7 +683,7 @@ class WebViews:
         folium.LayerControl().add_to(folium_map)
 
         # FIXME: Move filename to config.ini
-        folium_map.save("/NeoSectional/static/heat_map.html")
+        folium_map.save("/opt/NeoSectional/static/heat_map.html")
         debugging.info("Opening led_map in separate window")
 
         template_data = self.standardtemplate_data()
@@ -665,7 +703,7 @@ class WebViews:
         template_data = self.standardtemplate_data()
 
         ipadd = self._sysdata.local_ip()
-        qraddress = f"http://{ipadd.strip()}:5000/confmobile"
+        qraddress = f"https://{ipadd.strip()}:5000/confmobile"
         debugging.info("Opening qrcode in separate window")
         qrcode_file = self.conf.get_string("filenames", "qrcode")
         qrcode_url = self.conf.get_string("filenames", "qrcode_url")
@@ -701,7 +739,8 @@ class WebViews:
                 counter = 0
                 for icao, airport_obj in airportdb.items():
                     airport_metar = airport_obj.get_raw_metar()
-                    outfile.write(f"{icao}: {airport_metar} :\n")
+                    flight_category = airport_obj.flightcategory()
+                    outfile.write(f"{icao}::{airport_metar}::{flight_category}:\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
             wx_data = {
@@ -773,14 +812,16 @@ class WebViews:
         """Flask Route: /taf - Get TAF for Airport."""
         template_data = self.standardtemplate_data()
 
-        debugging.info(f"getmetar: airport = {airport}")
+        debugging.info(f"gettaf: airport = {airport}")
         template_data["airport"] = airport
 
         airport = airport.lower()
 
         if airport == "debug":
             # Debug request - dumping DB info
-            with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
+            with open(
+                "logs/airport_database_taf.txt", "w", encoding="ascii"
+            ) as outfile:
                 airportdb = self._airport_database.get_airportxmldb()
                 counter = 0
                 for icao, airport_obj in airportdb.items():
@@ -789,12 +830,13 @@ class WebViews:
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
         try:
-            airport_obj = self._airport_database.get_airport_taf(airport)
-            template_data["taf"] = airport_obj.taf()
+            airport_taf_dict = self._airport_database.get_airport_taf(airport)
+            debugging.info(f"{airport}:taf:{airport_taf_dict}")
+            airport_taf_future = self._airport_database.airport_taf_future(airport, 5)
+            debugging.info(f"{airport}:forecast:{airport_taf_future}")
+            template_data["taf"] = airport_taf_future
         except Exception as err:
-            debugging.error(
-                f"Attempt to get metar for failed for :{airport}: ERR:{err}"
-            )
+            debugging.error(f"Attempt to get TAF for :{airport}: ERR:{err}")
             template_data["taf"] = "ERR - Not found"
 
         return render_template("taf.html", **template_data)
@@ -1123,7 +1165,7 @@ class WebViews:
 
             url = request.referrer
             if url is None:
-                url = "http://" + ipadd + ":5000/"
+                url = "https://" + ipadd + ":5000/"
                 # Use index if called from URL and not page.
 
             # temp = url.split("/")
@@ -1271,7 +1313,7 @@ class WebViews:
     #    debugging.dprint(req_profile)
     #    debugging.dprint(self.config_profiles)
     #    tmp_profile = config_profiles[req_profile]
-    #    stored_profile = "/NeoSectional/profiles/" + tmp_profile
+    #    stored_profile = "/opt/NeoSectional/profiles/" + tmp_profile
     #
     #    flash(
     #        tmp_profile
@@ -1287,7 +1329,7 @@ class WebViews:
         ipadd = self._sysdata.local_ip()
         url = request.referrer
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         flash("Rebooting System")
@@ -1325,7 +1367,7 @@ class WebViews:
         url = request.referrer
         ipadd = self._sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
@@ -1345,14 +1387,14 @@ class WebViews:
         ipadd = self._sysdata.local_ip()
 
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
 
         # flash("Testing LED's")
         debugging.info("Running testled.py from " + url)
-        # os.system('sudo python3 /NeoSectional/testled.py')
+        # os.system('sudo python3 /opt/NeoSectional/testled.py')
         return redirect("/")
         # temp[3] holds name of page that called this route.
 
@@ -1364,7 +1406,7 @@ class WebViews:
         url = request.referrer
         ipadd = self._sysdata.local_ip()
         if url is None:
-            url = "http://" + ipadd + ":5000/"
+            url = "https://" + ipadd + ":5000/"
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
@@ -1377,5 +1419,5 @@ class WebViews:
         # flash("Testing OLEDs ")
         debugging.info("Running testoled.py from " + url)
         # FIXME: Call update_oled equivalent functions
-        # os.system('sudo python3 /NeoSectional/testoled.py')
+        # os.system('sudo python3 /opt/NeoSectional/testoled.py')
         return redirect("/")

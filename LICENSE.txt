@@ -10,7 +10,7 @@ persons to whom the Software is furnished to do so, subject to the following con
 
 The software may NOT be sold or distributed on its own, or with other products
 for sale without express permission from the author.
-Visit; http://www.livesectional.com/contact/ to contact the author.
+Visit; https://www.livesectional.com/contact/ to contact the author.
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.

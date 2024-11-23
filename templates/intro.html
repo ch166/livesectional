@@ -1,83 +1,84 @@
 {% extends "base_lite.html" %}
 {% block content %}
-  <section class="intro">
-    <table>
-      <tr class="flashes">
-        <td class="flashes">
-          <div class="flashes">
-            <ul>
-              {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                  {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-                {% endif %}
-              {% endwith %}
-            </ul>
-          </div>
-        </td>
-      </tr>
-    </table>
-    <div class="row cols-sm-3">
-      <div class="col align-items-center">
-        <div class="card-deck">
-          <div class="container text-center">
-            <div class="row">
-              <div class="col">
-                <div class="card">
-                  <img class="card-img-top"
-                       src="/static/sysinfo.png"
-                       height="190"
-                       width="190"
-                       alt="Card image cap">
-                  <div class="card-body">
-                    <h5 class="card-title">System Details</h5>
-                    <p class="card-text">
-                      System / OS and Hardware information.
-                    </p>
-                  </div>
-                  <div class="card-footer">
-                    <a class="btn btn-primary" href="/sysinfo" role="button">System Info</a>
-                  </div>
+    <section class="intro">
+        <table>
+            <tr class="flashes">
+                <td class="flashes">
+                    <div class="flashes">
+                        <ul>
+                            {% with messages = get_flashed_messages() %}
+                                {% if messages %}
+                                    {% for message in messages %}
+                                        <li>{{ message }}</li>{% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div class="row cols-sm-3">
+            <div class="col align-items-center">
+                <div class="card-deck">
+                    <div class="container text-center">
+                        <div class="row">
+                            <div class="col">
+                                <div class="card">
+                                    <img class="card-img-top"
+                                         src="/static/sysinfo.png"
+                                         height="190"
+                                         width="190"
+                                         alt="Card image cap">
+                                    <div class="card-body">
+                                        <h5 class="card-title">System Details</h5>
+                                        <p class="card-text">
+                                            System / OS and Hardware information.
+                                        </p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a class="btn btn-primary" href="/sysinfo" role="button">System Info</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card">
+                                    <img class="card-img-top"
+                                         src="/static/wifi.jpg"
+                                         height="190"
+                                         width="190"
+                                         alt="Card image cap">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Wifi Settings</h5>
+                                        <p class="card-text">
+                                            Wi-Fi Settings Utility
+                                        </p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a class="btn btn-primary" href="/wifi" role="button">Wi-Fi</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card">
+                                    <img class="card-img-top"
+                                         src="/static/runway-public-airport.png"
+                                         height="190"
+                                         width="190"
+                                         alt="Card image cap">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Edit Airports</h5>
+                                        <p class="card-text">
+                                            Edit active list of Airports</p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a class="btn btn-primary" href="/apedit" role="button">Airports</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div class="col">
-                <div class="card">
-                  <img class="card-img-top"
-                       src="/static/wifi.jpg"
-                       height="190"
-                       width="190"
-                       alt="Card image cap">
-                  <div class="card-body">
-                    <h5 class="card-title">Wifi Settings</h5>
-                    <p class="card-text">
-                      Wifi Settings Utility
-                    </p>
-                  </div>
-                  <div class="card-footer">
-                    <a class="btn btn-primary" href="/wifi" role="button">WiFi</a>
-                  </div>
-                </div>
-              </div>
-              <div class="col">
-                <div class="card">
-                  <img class="card-img-top"
-                       src="/static/runway-public-airport.png"
-                       height="190"
-                       width="190"
-                       alt="Card image cap">
-                  <div class="card-body">
-                    <h5 class="card-title">Edit Airports</h5>
-                    <p class="card-text">
-Edit active list of Airports</p>
-                  </div>
-                  <div class="card-footer">
-                    <a class="btn btn-primary" href="/apedit" role="button">Airports</a>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-</section>
+    </section>
 {% endblock content %}

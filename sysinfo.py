@@ -8,41 +8,43 @@ import datetime
 import time
 import psutil
 import flask
+import utils
 
 
 class SystemData:
     """Gather useful information about this system."""
 
+    sysinfo = None
+    ipaddr = None
+    _uptime = None
+    _internet_active = None
+
     def __init__(self):
         """Start from zero."""
-        self.sysinfo = ""
-        self.ipaddr = ""
-        self._uptime = ""
+        self.sysinfo = self.query_system_information()
+        self._uptime = self.system_uptime()
+        (online_status, ipaddr) = utils.is_connected()
+        self.ipaddr = ipaddr
+        self._internet_active = online_status
 
     def system_uptime(self):
-        """Update system uptime."""
-        return datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
+        """Update system uptime, in (days, hh:mm:ss) format"""
+        uptime = datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
+        return datetime.timedelta(days=uptime.days, seconds=uptime.seconds)
 
     def uptime(self):
         """Return Uptime."""
         return self._uptime
 
+    def internet_connected(self):
+        """Internet Connected Status"""
+        return self._internet_active
+
     def update_local_ip(self):
         """Create Socket to the Internet, Query Local IP."""
-        ipaddr = "UNKN"
-        try:
-            # connect to the host -- tells us if the host is actually
-            # reachable
-            sock = socket.create_connection(("ipv4.google.com", 80))
-            if sock is not None:
-                ipaddr = sock.getsockname()[0]
-                print("Closing socket")
-                sock.close()
-            self.ipaddr = ipaddr
-            return ipaddr
-        except OSError:
-            pass
-        return "0.0.0.0"
+        (online_status, ipaddr) = utils.is_connected()
+        self.ipaddr = ipaddr
+        return ipaddr
 
     def local_ip(self):
         """Return IP addr."""
@@ -52,8 +54,10 @@ class SystemData:
         """Update data."""
         # TODO: Need to refresh this data on a regular basis
         self.sysinfo = self.query_system_information()
-        self.update_local_ip()
         self._uptime = self.system_uptime()
+        (online_status, ipaddr) = utils.is_connected()
+        self._internet_active = online_status
+        self.ipaddr = ipaddr
 
     def get_size(self, bytes_size, suffix="B"):
         """Scale bytes to its proper format."""
@@ -123,16 +127,16 @@ class SystemData:
             sysinfo_text += (
                 f"  Total Size: {self.get_size(partition_usage.total)}" + "<br> \n"
             )
-            sysinfo_text += f"  Used: {self.get_size(partition_usage.used)}" + "<br> \n"
-            sysinfo_text += f"  Free: {self.get_size(partition_usage.free)}" + "<br> \n"
-            sysinfo_text += f"  Percentage: {partition_usage.percent}%" + "<br> \n"
+            sysinfo_text += f"  Used: {self.get_size(partition_usage.used)}" + "<br>\n"
+            sysinfo_text += f"  Free: {self.get_size(partition_usage.free)}" + "<br>\n"
+            sysinfo_text += f"  Percentage: {partition_usage.percent}%" + "<br>\n"
         # get IO statistics since boot
         disk_io = psutil.disk_io_counters()
-        sysinfo_text += f"Total read: {self.get_size(disk_io.read_bytes)}" + "<br> \n"
-        sysinfo_text += f"Total write: {self.get_size(disk_io.write_bytes)}" + "<br> \n"
+        sysinfo_text += f"Total read: {self.get_size(disk_io.read_bytes)}" + "<br>\n"
+        sysinfo_text += f"Total write: {self.get_size(disk_io.write_bytes)}" + "<br>\n"
 
         # Network information
-        sysinfo_text += "=" * 20 + "IPv4 Network Information" + "=" * 20 + "<br> \n"
+        sysinfo_text += "=" * 20 + "IPv4 Network Information" + "=" * 20 + "<br>\n"
         # get all network interfaces (virtual and physical)
         if_addrs = psutil.net_if_addrs()
         for interface_name, interface_addresses in if_addrs.items():
@@ -140,17 +144,17 @@ class SystemData:
                 if str(address.family) == "AddressFamily.AF_INET":
                     sysinfo_text += (
                         f"=== Interface: {interface_name} ({address.family}) ==="
-                        + "<br> \n"
+                        + "<br>\n"
                     )
-                    sysinfo_text += f"  IP Address: {address.address}" + "<br> \n"
-                    sysinfo_text += f"  Netmask: {address.netmask}" + "<br> \n"
+                    sysinfo_text += f"  IP Address: {address.address}" + "<br>\n"
+                    sysinfo_text += f"  Netmask: {address.netmask}" + "<br>\n"
         # get IO statistics since boot
         net_io = psutil.net_io_counters()
         sysinfo_text += (
-            f"Total Bytes Sent: {self.get_size(net_io.bytes_sent)}" + "<br> \n"
+            f"Total Bytes Sent: {self.get_size(net_io.bytes_sent)}" + "<br>\n"
         )
         sysinfo_text += (
-            f"Total Bytes Received: {self.get_size(net_io.bytes_recv)}" + "<br> \n"
+            f"Total Bytes Received: {self.get_size(net_io.bytes_recv)}" + "<br>\n"
         )
         self.sysinfo = sysinfo_text
 

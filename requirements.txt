@@ -9,7 +9,11 @@
 # sudo python3 -m venv /livemap-venv
 # source /livemap-venv/bin/activate
 # pip3 install -r requirements.txt
+
+# Versions in this file are available (July 2024) for Python 3.7 on Raspberry PI
 #
+
+python-dateutil
 
 # Beaglebone Devices
 # Adafruit-BBIO>=1.2.0
@@ -21,31 +25,24 @@ adafruit-circuitpython-framebuf>=1.4.14
 adafruit-circuitpython-ssd1306>=2.12.11
 Adafruit-GPIO>=1.0.3
 
-
 # Adafruit-PlatformDetect>=1.3.8
 # Adafruit-PureIO>=1.1.9
 Adafruit-SSD1306>=1.6.2
 
 ## beautifulsoup4>=4.11.1
-Flask>=2.2.2
+Flask>=2.2.5
 folium>=0.13.0
 gpiozero>=1.6.2
-
 
 ## html5lib>=1.1
 Jinja2>=3.1.2
 logzero>=1.7.0
 lxml>=4.9.1
 numpy
-Pillow>=10.0.1
-
-
-## pysftp>=0.2.9
-## python-nmap>=0.7.1
-# requests>=2.21.0
+Pillow>=9.5.0
 
 # RPI Library for WS281x LEDs
-rpi-ws281x>=4.3.4
+rpi_ws281x>=5.0.0
 
 # RPI GPIO Library
 RPi.GPIO>=0.7.1
@@ -53,22 +50,27 @@ RPi.GPIO>=0.7.1
 # RPI LCD DRiver for Hitachi HD44780
 RPLCD>=1.3.0
 
-
 ## seashells>=0.1.2
 smbus2>=0.4.2
 urllib3>=1.26.12
-## Werkzeug>=2.2.2
+
 ## wget
 psutil>=5.8.0
-pytz
-metar
+pytz>=2024.1
+metar>=1.11.0
 pypng
-qrcode
-python-dateutil
-luma.core
-luma.oled
+qrcode>=7.4.2
+python-dateutil>=2.8.0
+# Installing Luma libraries
+
+luma.core>=2.4
+luma.oled>=2.4
 webcolors
 python_tsl2591
+
+## SNYK
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
 werkzeug>=3.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
 zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
+
+requests>=2.31.0

@@ -35,11 +35,11 @@ mkdir -p $STATICDIR
 mkdir -p $LOGDIR
 
 # Install files
-$INSTALL -D ./*.py $INSTALLDIR/
-$INSTALL -D config.ini $INSTALLDIR/
-$INSTALL -D requirements.txt $INSTALLDIR/
-$INSTALL -D data/airports.json $DATADIR/
-$INSTALL -D templates/*.html $TEMPLATEDIR/
+$INSTALL -v -D ./*.py $INSTALLDIR/
+$INSTALL -v -D config.ini $INSTALLDIR/
+$INSTALL -v -D requirements.txt $INSTALLDIR/
+$INSTALL -v -D data/airports.json $DATADIR/
+$INSTALL -v -D templates/*.html $TEMPLATEDIR/
 
 rsync -rav --relative static/ $INSTALLDIR/
 

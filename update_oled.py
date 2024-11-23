@@ -135,25 +135,26 @@ class UpdateOLEDs:
     OLED_240x320 = {"w": 240, "h": 320}
 
     ACTIVITY = [
-        "(*---------)",  # moving -->
-        "(-*--------)",  # moving -->
-        "(--*-------)",  # moving -->
-        "(---*------)",  # moving -->
-        "(----*-----)",  # moving -->
-        "(-----*----)",  # moving -->
-        "(------*---)",  # moving -->
-        "(-------*--)",  # moving -->
-        "(--------*-)",  # moving -->
+        "(>---------)",  # moving -->
+        "(->--------)",  # moving -->
+        "(-->-------)",  # moving -->
+        "(--->------)",  # moving -->
+        "(---->-----)",  # moving -->
+        "(----->----)",  # moving -->
+        "(------>---)",  # moving -->
+        "(------->--)",  # moving -->
+        "(-------->-)",  # moving -->
         "(---------*)",  # moving -->
-        "(---------*)",  # moving -->
-        "(--------*-)",  # moving <--
-        "(-------*--)",  # moving <--
-        "(------*---)",  # moving <--
-        "(-----*----)",  # moving <--
-        "(----*-----)",  # moving <--
-        "(---*------)",  # moving <--
-        "(--*-------)",  # moving <--
-        "(-*--------)",  # moving <--
+        "(---------<)",  # moving -->
+        "(--------<-)",  # moving <--
+        "(-------<--)",  # moving <--
+        "(------<---)",  # moving <--
+        "(-----<----)",  # moving <--
+        "(----<-----)",  # moving <--
+        "(---<------)",  # moving <--
+        "(--<-------)",  # moving <--
+        "(-<--------)",  # moving <--
+        "(*---------)",  # moving <--
     ]
 
     reentry_check = False
@@ -419,11 +420,15 @@ class UpdateOLEDs:
 
     def update_oled_status(self, oled_id, counter):
         """Status Update Display."""
-        metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
-        currtime = utils.time_format_hms(utils.current_time(self._conf))
-        info_timestamp = f"time:{currtime} metar:{metarage}"
-        info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
-        info_uptime = f"uptime:{self._sysdata.uptime()}"
+        metarage = utils.time_format_hm(self._airport_database.get_metar_update_time())
+        currtime = utils.time_format_hm(utils.current_time(self._conf))
+        info_timestamp = f"tm:{currtime} metar:{metarage}"
+        if self._sysdata.internet_connected():
+            info_internet = "Y"
+        else:
+            info_internet = "N"
+        info_ipaddr = f"ip:{self._sysdata.local_ip()} inet:{info_internet}"
+        info_uptime = f"up:{self._sysdata.uptime()} "
         info_lightlevel = f"brt:{self._led_mgmt.get_brightness_level()}%"
 
         activity_char = self.ACTIVITY[counter % len(self.ACTIVITY)]

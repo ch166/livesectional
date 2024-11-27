@@ -2,13 +2,8 @@
 """Flask Module for WEB Interface."""
 
 import os
-
-# import datetime
 import time
-
 import json
-
-# import subprocess
 import secrets
 import pytz
 
@@ -18,11 +13,7 @@ from rpi_ws281x import (
 
 import folium
 import folium.plugins
-
-# from folium.features import CustomIcon
 from folium.features import DivIcon
-
-# from folium.vector_layers import Circle, CircleMarker, PolyLine, Polygon, Rectangle
 
 from flask import (
     Flask,
@@ -33,7 +24,6 @@ from flask import (
     send_file,
 )
 
-# from werkzeug.utils import secure_filename
 
 # from pyqrcode import QRCode
 import qrcode
@@ -44,9 +34,7 @@ import utils
 from update_leds import LedMode
 import debugging
 
-
 # import sysinfo
-
 
 class WebViews:
     """Class to contain all the Flask WEB functionality."""
@@ -166,7 +154,9 @@ class WebViews:
         else:
             context = None
             active_port = self.__http_port
-        self.app.run(debug=False, host="0.0.0.0", ssl_context=context, port=active_port) # no sec
+        self.app.run(
+            debug=False, host="0.0.0.0", ssl_context=context, port=active_port
+        )  # no sec
 
     def standardtemplate_data(self):
         """Generate a standardized template_data."""
@@ -177,14 +167,9 @@ class WebViews:
             airport_icao,
             airport_obj,
         ) in self._airport_database.get_airport_dict_led().items():
-            airport_record = {}
-            airport_record["active"] = airport_obj.active()
-            airport_record["icaocode"] = airport_icao
-            airport_record["metarsrc"] = airport_obj.wxsrc()
-            airport_record["ledindex"] = airport_obj.get_led_index()
-            airport_record["rawmetar"] = airport_obj.get_raw_metar()
-            airport_record["purpose"] = airport_obj.purpose()
-            airport_record["hmindex"] = airport_obj.heatmap_index()
+            airport_record = {"active": airport_obj.active(), "icaocode": airport_icao, "metarsrc": airport_obj.wxsrc(),
+                              "ledindex": airport_obj.get_led_index(), "rawmetar": airport_obj.get_raw_metar(),
+                              "purpose": airport_obj.purpose(), "hmindex": airport_obj.heatmap_index()}
             airport_dict_data[airport_icao] = airport_record
 
         current_ledmode = self._led_strip.ledmode()
@@ -231,7 +216,6 @@ class WebViews:
         """Flask Route: /tzset - Display and Set Timezone Information."""
         if request.method == "POST":
             timezone = request.form["tzselected"]
-
             flash("Timezone set to " + timezone)
             debugging.info("Request to update timezone to: " + timezone)
             self.conf.set_string("default", "timezone", timezone)
@@ -240,12 +224,10 @@ class WebViews:
 
         tzlist = pytz.common_timezones
         current_timezone = self.conf.get_string("default", "timezone")
-
         template_data = self.standardtemplate_data()
         template_data["title"] = "TZset"
         template_data["tzoptionlist"] = tzlist
         template_data["current_timezone"] = current_timezone
-
         debugging.info("Opening Time Zone Set page")
         return render_template("tzset.html", **template_data)
 

@@ -36,10 +36,13 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import time as time_
 
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    import fakeRPI.GPIO as GPIO
+# try:
+#     import RPi.GPIO as GPIO
+# except ImportError:
+#     import fakeRPI.GPIO as GPIO
+
+# Migrating to gpiozero
+import gpiozero
 
 import debugging
 
@@ -50,7 +53,132 @@ class UpdateGPIO:
     # Pin reservations in docs/HARDWARE.md
     #
 
+    conf = None
+    airport_database = None
+
+    # Hardware Features
+    led_enabled = False
+    led_style = "RGB"
+    light_sensor = False
+    oled_enabled = False
+    oled_count = 0
+
+    encoder0 = None
+    encoder1 = None
+    encoder2 = None
+
+    feature0 = None
+    feature1 = None
+    feature2 = None
+    feature3 = None
+    feature4 = None
+    feature5 = None
+
     def __init__(self, conf, airport_database):
+        # ****************************************************************************
+        # * User defined items to be set below - Make changes to config.py, not here *
+        # ****************************************************************************
+
+        self.conf = conf
+        self.airport_database = airport_database
+
+        # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
+        # Not required as gpiozero defaults to BCM numbering
+        # GPIO.setmode(GPIO.BCM)
+
+        # Setup GPIO pins for rotary switch connected through 8-3 octal encoder
+        #  8->3 encoder - GPIO 5(pin 29),6(pin 31),13(pin 33)
+        self.encoder0 = gpiozero.Button(5, pull_up=False)
+        self.encoder1 = gpiozero.Button(6, pull_up=False)
+        self.encoder2 = gpiozero.Button(13, pull_up=False)
+
+        # Setup GPIO pins for Hardware Feature jumpers
+        self.feature0 = gpiozero.Button(17, pull_up=False)
+        self.feature1 = gpiozero.Button(27, pull_up=False)
+        self.feature2 = gpiozero.Button(22, pull_up=False)
+        self.feature3 = gpiozero.Button(23, pull_up=False)
+        self.feature4 = gpiozero.Button(24, pull_up=False)
+        self.feature5 = gpiozero.Button(25, pull_up=False)
+
+        # Setup Interrupt monitoring for pin 32 (GPIO12)
+        # Wake UP / Refresh
+        self.wakeup = gpiozero.Button(12, pull_up=False)
+        self.wakeup.when_pressed = self.intr_handler_wakeup
+
+        # Setup Interrupt monitoring for pin 36 (GPIO16)
+        # Wake UP / Refresh
+        self.modechange = gpiozero.Button(16, pull_up=False)
+        self.modechange.when_pressed = self.intr_handler_mode
+
+        self.read_hardware_settings()
+
+    def rotary_switch_value(self):
+        """Read current value from octal encoder on pins 29/31/33"""
+        pin0 = 0
+        pin1 = 0
+        pin2 = 0
+        if self.encoder0.is_pressed:
+            pin0 = 1
+        if self.encoder1.is_pressed:
+            pin1 = 1
+        if self.encoder2.is_pressed:
+            pin2 = 1
+        switch_value = int(f"{pin2}{pin1}{pin0}", 2)
+        return switch_value
+
+    def intr_handler_wakeup(self):
+        """Interrupt Handler for Wakeup button"""
+        debugging.debug("Interrupt handling for wakeup button")
+        # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
+        # Set to turn lights on two seconds ago to make sure we hit the loop next time through
+        #
+        # self.end_time = (datetime.now() - timedelta(seconds=2)).time()
+        # self.timeoff = (datetime.now() + timedelta(minutes=tempsleepon)).time()
+        # self.temp_lights_on = 1  # Set this to 1 if button is pressed
+        # return
+
+    def intr_handler_mode(self):
+        """Interrupt Handler for LED Mode button"""
+        debugging.debug("Interrupt handling for mode button")
+        return
+
+    def read_hardware_settings(self):
+        """Read current value from pins"""
+        if self.feature0.is_pressed:
+            self.led_enabled = True
+        else:
+            self.led_enabled = False
+        if self.feature1.is_pressed:
+            self.led_style = "GRB"
+        else:
+            self.led_style = "RGB"
+        if self.feature2.is_pressed:
+            self.light_sensor = True
+        else:
+            self.light_sensor = False
+
+        # Process the OLED flags
+        pin0 = 0
+        pin1 = 0
+        if self.feature3.is_pressed:
+            pin0 = 1
+        if self.feature4.is_pressed:
+            pin1 = 1
+        oled_flags = int(f"{pin1}{pin0}", 2)
+
+        if oled_flags == 0:
+            self.oled_enabled = False
+        else:
+            self.oled_enabled = True
+        self.oled_count = 0
+        if oled_flags == 1:
+            self.oled_count = 4
+        elif oled_flags == 2:
+            self.oled_count = 6
+        elif oled_flags == 3:
+            self.oled_count = 8
+
+    def old_original__init__(self, conf, airport_database):
         # ****************************************************************************
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************
@@ -74,17 +202,6 @@ class UpdateGPIO:
         self.onminutes = self.conf.get_int("schedule", "onminutes")
         self.offminutes = self.conf.get_int("schedule", "offminutes")
 
-        # delay in fading the home airport if used
-        self.fade_delay = conf.get_float("rotaryswitch", "fade_delay")
-
-        # Misc settings
-        # 0 = No, 1 = Yes, use wipes. Defined by configurator
-        self.usewipe = None
-        # 1 = RGB color codes. 0 = GRB color codes.
-        # Populate color codes below with normal RGB codes and script will change if necessary
-
-        # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
-        GPIO.setmode(GPIO.BCM)
         # set pin 12 to momentary push button to trigger FAA Weather Data update if button is used.
         GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -132,12 +249,10 @@ class UpdateGPIO:
         # Toggle used for logging when ambient sensor changes from bright to dim.
         self.ambient_toggle = 0
 
-    def update_gpio_flags(self, toggle_value, time_sw, data_sw):
-        self.toggle_sw = toggle_value
+    def update_gpio_flags(self, time_sw, data_sw):
         # Offset in HOURS to choose which TAF to display
         self.hour_to_display = time_sw
-        self.metar_taf_mos = data_sw  # 0 = Display TAF.
-        # debugging.info( 'Switch in position ' )
+        self.metar_taf_mos = data_sw
 
     def update_loop(self):
         # #########################
@@ -147,112 +262,54 @@ class UpdateGPIO:
         tempsleepon = self.conf.get_int("schedule", "tempsleepon")
 
         while outerloop:
-            # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
-            if GPIO.input(22) is False:
-                # Set to turn lights on two seconds ago to make sure we hit the loop next time through
-                self.end_time = (datetime.now() - timedelta(seconds=2)).time()
-                self.timeoff = (datetime.now() + timedelta(minutes=tempsleepon)).time()
-                self.temp_lights_on = 1  # Set this to 1 if button is pressed
 
+            self.read_hardware_settings()
+            rotary_switch = self.rotary_switch_value()
+
+            # FIXME: Do an initial import of this data into an array, and then index the array rather than this cumbersome case-style statement.
             # Check if rotary switch is used, and what position it is in. This will determine what to display, METAR, TAF and MOS data.
             # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
             # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
-            if GPIO.input(0) is False and self.toggle_sw != 0:
+            if rotary_switch == 1:
                 self.update_gpio_flags(
-                    0,
                     self.conf.get_int("rotaryswitch", "time_sw0"),
                     self.conf.get_int("rotaryswitch", "data_sw0"),
                 )
-
-            elif GPIO.input(5) is False and self.toggle_sw != 1:
+            elif rotary_switch == 2:
                 self.update_gpio_flags(
-                    1,
                     self.conf.get_int("rotaryswitch", "time_sw1"),
                     self.conf.get_int("rotaryswitch", "data_sw1"),
                 )
-
-            elif GPIO.input(6) is False and self.toggle_sw != 2:
+            elif rotary_switch == 3:
                 self.update_gpio_flags(
-                    2,
                     self.conf.get_int("rotaryswitch", "time_sw2"),
                     self.conf.get_int("rotaryswitch", "data_sw2"),
                 )
 
-            elif GPIO.input(13) is False and self.toggle_sw != 3:
+            elif rotary_switch == 4:
                 self.update_gpio_flags(
-                    3,
                     self.conf.get_int("rotaryswitch", "time_sw3"),
                     self.conf.get_int("rotaryswitch", "data_sw3"),
                 )
-
-            elif GPIO.input(19) is False and self.toggle_sw != 4:
+            elif rotary_switch == 5:
                 self.update_gpio_flags(
-                    4,
                     self.conf.get_int("rotaryswitch", "time_sw4"),
                     self.conf.get_int("rotaryswitch", "data_sw4"),
                 )
-
-            elif GPIO.input(26) is False and self.toggle_sw != 5:
+            elif rotary_switch == 6:
                 self.update_gpio_flags(
-                    5,
                     self.conf.get_int("rotaryswitch", "time_sw5"),
                     self.conf.get_int("rotaryswitch", "data_sw5"),
                 )
-
-            elif GPIO.input(21) is False and self.toggle_sw != 6:
+            elif rotary_switch == 7:
                 self.update_gpio_flags(
-                    6,
                     self.conf.get_int("rotaryswitch", "time_sw6"),
                     self.conf.get_int("rotaryswitch", "data_sw6"),
                 )
-
-            elif GPIO.input(20) is False and self.toggle_sw != 7:
+            elif rotary_switch == 8:
                 self.update_gpio_flags(
-                    7,
                     self.conf.get_int("rotaryswitch", "time_sw7"),
                     self.conf.get_int("rotaryswitch", "data_sw7"),
-                )
-
-            elif GPIO.input(16) is False and self.toggle_sw != 8:
-                self.update_gpio_flags(
-                    8,
-                    self.conf.get_int("rotaryswitch", "time_sw8"),
-                    self.conf.get_int("rotaryswitch", "data_sw8"),
-                )
-
-            elif GPIO.input(12) is False and self.toggle_sw != 9:
-                self.update_gpio_flags(
-                    9,
-                    self.conf.get_int("rotaryswitch", "time_sw9"),
-                    self.conf.get_int("rotaryswitch", "data_sw9"),
-                )
-
-            elif GPIO.input(1) is False and self.toggle_sw != 10:
-                self.update_gpio_flags(
-                    10,
-                    self.conf.get_int("rotaryswitch", "time_sw10"),
-                    self.conf.get_int("rotaryswitch", "data_sw10"),
-                )
-
-            elif GPIO.input(7) is False and self.toggle_sw != 11:
-                self.update_gpio_flags(
-                    11,
-                    self.conf.get_int("rotaryswitch", "time_sw11"),
-                    self.conf.get_int("rotaryswitch", "data_sw11"),
-                )
-
-            elif self.toggle_sw == -1:  # used if no Rotary Switch is installed
-                self.update_gpio_flags(
-                    12,
-                    self.conf.get_int("rotaryswitch", "time_sw0"),
-                    self.conf.get_int("rotaryswitch", "data_sw0"),
-                )
-
-                # Check to see if pushbutton is pressed to force an update of FAA Weather
-                # If no button is connected, then this is bypassed and will only update when 'update_interval' is met
-            if GPIO.input(22) is False:
-                debugging.info(
-                    "Refresh Pushbutton Pressed. Breaking out of loop to refresh FAA Data"
                 )
 
             time.sleep(5)

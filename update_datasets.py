@@ -153,7 +153,7 @@ class DataSets:
 
         while True:
             debugging.debug(
-                f"Updating Airport Data .. every aviation_weather_adds_timer ({aviation_weather_adds_timer})m)"
+                f"Updating Airport Data .. every aviation_weather_adds_timer {aviation_weather_adds_timer}m)"
             )
 
             https_session = requests.Session()

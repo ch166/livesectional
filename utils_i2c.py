@@ -61,7 +61,7 @@ class I2CBus:
     conf = None
 
     bus = None
-    i2c = None
+    i2c_device = None
 
     lock = None
     lock_count = 0
@@ -92,7 +92,7 @@ class I2CBus:
             self.bus = None
         if self.bus is None:
             return
-        self.i2c = busio.I2C(board.SCL, board.SDA)
+        self.i2c_device = busio.I2C(board.SCL, board.SDA)
         if self.i2c_exists(self.MUX_DEVICE_ID):
             self.mux_active = True
             self.i2c_mux_default()
@@ -120,7 +120,7 @@ class I2CBus:
             return
         found_device = False
         # with self.lock:
-        active_devices = self.i2c.scan()
+        active_devices = self.i2c_device.scan()
         # length = len(active_devices)
         # debugging.debug("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
@@ -129,6 +129,10 @@ class I2CBus:
                 # debugging.debug("i2c: device id match " + hex(dev_id))
                 found_device = True
         return found_device
+
+    def i2cdevice(self):
+        """Return i2c bus device to be used in init of components"""
+        return self.i2c_device
 
     def bus_lock(self, owner):
         """Grab bus lock."""
@@ -236,5 +240,7 @@ class I2CBus:
 
     def stats(self):
         """Return lock stats"""
-        stats_txt = f"i2cbus lock stats\n\tAverage duration:{self._average_lock_duration}\n\tMax:{self._max_lock_duration}/Owner:{self._max_lock_owner}"
+        average = round(self._average_lock_duration, 2)
+        maxlock = round(self._max_lock_duration, 2)
+        stats_txt = f"i2cbus lock stats\n\tAverage duration:{average}\n\tMax:{maxlock}/Owner:{self._max_lock_owner}"
         return stats_txt

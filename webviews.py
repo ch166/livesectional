@@ -36,6 +36,7 @@ import debugging
 
 # import sysinfo
 
+
 class WebViews:
     """Class to contain all the Flask WEB functionality."""
 
@@ -167,9 +168,15 @@ class WebViews:
             airport_icao,
             airport_obj,
         ) in self._airport_database.get_airport_dict_led().items():
-            airport_record = {"active": airport_obj.active(), "icaocode": airport_icao, "metarsrc": airport_obj.wxsrc(),
-                              "ledindex": airport_obj.get_led_index(), "rawmetar": airport_obj.get_raw_metar(),
-                              "purpose": airport_obj.purpose(), "hmindex": airport_obj.heatmap_index()}
+            airport_record = {
+                "active": airport_obj.active(),
+                "icaocode": airport_icao,
+                "metarsrc": airport_obj.wxsrc(),
+                "ledindex": airport_obj.get_led_index(),
+                "rawmetar": airport_obj.get_raw_metar(),
+                "purpose": airport_obj.purpose(),
+                "hmindex": airport_obj.heatmap_index(),
+            }
             airport_dict_data[airport_icao] = airport_record
 
         current_ledmode = self._led_strip.ledmode()

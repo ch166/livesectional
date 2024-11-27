@@ -31,7 +31,7 @@ from enum import Enum, auto
 
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
-from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106, ws0010
+from luma.oled.device import ssd1306, ssd1309, ssd1325, ssd1331, sh1106
 
 import debugging
 
@@ -182,7 +182,7 @@ class UpdateOLEDs:
         self._i2cbus = i2cbus
         self._device_count = self._conf.get_int("oled", "oled_count")
 
-        debugging.debug("OLED: Config setup for {self._device_count} devices")
+        debugging.debug(f"OLED: Config setup for {self._device_count} devices")
 
         for device_idnum in range(0, self._device_count):
             debugging.debug(f"OLED: Polling for device: {device_idnum}")

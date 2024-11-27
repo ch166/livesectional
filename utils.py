@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Collection of shared utility functions for all of the modules ."""
+""" Collection of shared utility functions for all modules ."""
 
 import os
 import os.path
@@ -32,6 +32,7 @@ def file_exists(filename):
 
 def is_connected():
     """Check to see if we can reach an endpoint on the Internet."""
+    ipaddr = "unset"
     try:
         # connect to the host -- tells us if the host is actually
         # reachable
@@ -88,7 +89,7 @@ def get_local_ip():
 # 1. extreme-ip-lookup wants an API key
 # 2. extreme-ip-lookup.com is on some pihole blocklists
 #
-# IP to Geo mapping is notoriously error prone
+# IP to Geo mapping is notoriously error-prone
 # Going to look at python-geoip as a data source
 def get_loc():
     """Try figure out approximate location from IP data."""
@@ -236,7 +237,7 @@ def download_newer_file(session, url, filename, decompress=False, etag=None):
 
             shutil.copyfile(download_object.name, filename)
             os.remove(download_object.name)
-            # Set the timestamp of the downloaded file to match
+            # Set the timestamp of the downloaded file to
             # match the HEAD date stamp / or 'now' for etag headers
             if url_date is None:
                 file_timestamp = datetime.datetime.now().timestamp()

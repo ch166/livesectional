@@ -4,7 +4,7 @@
 """
 Main livemap program
 
-Takes care of all of the setup needed for each component in the system
+Takes care of the setup needed for each component in the system
 
 Start individual threads
  a) update_airport thread - to keep METAR/TAF/MOS data up to date
@@ -17,8 +17,6 @@ Start individual threads
 
 # livemap.py - Main engine ; running threads to keep the data updated
 
-# import os
-# import sys
 import threading
 import time
 
@@ -26,15 +24,9 @@ import time
 import debugging
 import conf  # Config.py holds user settings used by the various scripts
 
-# import admin
-
-# from flask import Flask
-
 import utils
 import utils_i2c
 import sysinfo
-
-# import appinfo
 
 import update_datasets
 import update_airports
@@ -44,8 +36,6 @@ import update_oled
 import update_lightsensor
 import appinfo
 import webviews
-
-# import update_oled
 
 if __name__ == "__main__":
     # Startup and run the threads to operate the LEDs, Displays etc.

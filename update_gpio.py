@@ -88,26 +88,26 @@ class UpdateGPIO:
 
         # Setup GPIO pins for rotary switch connected through 8-3 octal encoder
         #  8->3 encoder - GPIO 5(pin 29),6(pin 31),13(pin 33)
-        self.encoder0 = gpiozero.Button(5, pull_up=False)
-        self.encoder1 = gpiozero.Button(6, pull_up=False)
-        self.encoder2 = gpiozero.Button(13, pull_up=False)
+        self.encoder0 = gpiozero.Button(5, pull_up=False, bounce_time=1)
+        self.encoder1 = gpiozero.Button(6, pull_up=False, bounce_time=1)
+        self.encoder2 = gpiozero.Button(13, pull_up=False, bounce_time=1)
 
         # Setup GPIO pins for Hardware Feature jumpers
-        self.feature0 = gpiozero.Button(17, pull_up=False)
-        self.feature1 = gpiozero.Button(27, pull_up=False)
-        self.feature2 = gpiozero.Button(22, pull_up=False)
-        self.feature3 = gpiozero.Button(23, pull_up=False)
-        self.feature4 = gpiozero.Button(24, pull_up=False)
-        self.feature5 = gpiozero.Button(25, pull_up=False)
+        self.feature0 = gpiozero.Button(17, pull_up=False, bounce_time=1)
+        self.feature1 = gpiozero.Button(27, pull_up=False, bounce_time=1)
+        self.feature2 = gpiozero.Button(22, pull_up=False, bounce_time=1)
+        self.feature3 = gpiozero.Button(23, pull_up=False, bounce_time=1)
+        self.feature4 = gpiozero.Button(24, pull_up=False, bounce_time=1)
+        self.feature5 = gpiozero.Button(25, pull_up=False, bounce_time=1)
 
         # Setup Interrupt monitoring for pin 32 (GPIO12)
         # Wake UP / Refresh
-        self.wakeup = gpiozero.Button(12, pull_up=False)
+        self.wakeup = gpiozero.Button(12, pull_up=False, bounce_time=2)
         self.wakeup.when_pressed = self.intr_handler_wakeup
 
         # Setup Interrupt monitoring for pin 36 (GPIO16)
         # Wake UP / Refresh
-        self.modechange = gpiozero.Button(16, pull_up=False)
+        self.modechange = gpiozero.Button(16, pull_up=False, bounce_time=2)
         self.modechange.when_pressed = self.intr_handler_mode
 
         self.read_hardware_settings()
@@ -128,7 +128,7 @@ class UpdateGPIO:
 
     def intr_handler_wakeup(self):
         """Interrupt Handler for Wakeup button"""
-        debugging.debug("Interrupt handling for wakeup button")
+        debugging.info("Interrupt handling for wakeup button")
         # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
         # Set to turn lights on two seconds ago to make sure we hit the loop next time through
         #
@@ -139,7 +139,7 @@ class UpdateGPIO:
 
     def intr_handler_mode(self):
         """Interrupt Handler for LED Mode button"""
-        debugging.debug("Interrupt handling for mode button")
+        debugging.info("Interrupt handling for mode button")
         return
 
     def read_hardware_settings(self):

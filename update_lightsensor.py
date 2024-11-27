@@ -13,6 +13,7 @@ import random
 
 import debugging
 
+
 class LightSensor:
     """Class to manage Light Sensors"""
 
@@ -143,7 +144,7 @@ class LightSensor:
             if self.hardware_veml7700:
                 lux = self.read_veml7700()
                 debugging.debug(f"veml7700 lux [{lux}]")
-            lux = round(lux,0)
+            lux = round(lux, 0)
             if (lux < old_lux_min) or (lux > old_lux_max):
                 debugging.info(f"Light sensor LUX change > 10%: {old_lux} -> {lux}")
             debugging.debug(f"Setting light levels: {lux}")

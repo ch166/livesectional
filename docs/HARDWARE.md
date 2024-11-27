@@ -56,12 +56,12 @@ Rotary Switch
  8->3 encoder - GPIO 5(pin 29),6(pin 31),13(pin 33)
 
 Feature Jumpers
- GPIO 17 (pin 11)
- GPIO 27 (pin 13)
- GPIO 22 (pin 15)
- GPIO 23 (pin 16)
- GPIO 24 (pin 18)
- GPIO 25 (pin 22)
+ GPIO 17 (pin 11) = LED Enabled(1) / Disabled(0)
+ GPIO 27 (pin 13) = RGB(0) / GRB (1)
+ GPIO 22 (pin 15) = i2c Light Sensor Enabled(1) / Disabled (2)
+ GPIO 23 (pin 16) = 
+ GPIO 24 (pin 18) = OLED Count (0 = 0, 1 = 4, 2 = 6, 3 = 8)
+ GPIO 25 (pin 22) = OLED Count
 
 Momentary Switch
  Wake Up/Refresh - GPIO 12 (pin 32)

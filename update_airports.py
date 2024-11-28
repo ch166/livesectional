@@ -226,7 +226,6 @@ class AirportDB:
             if airport_purpose in ("web", "all"):
                 self.airport_web_dict.update({airport_icao: airport_obj})
                 debugging.info(f"Adding airport to airport_web_dict : {airport_icao}")
-
         return True
 
     def load_airport_db(self):
@@ -237,7 +236,7 @@ class AirportDB:
         # Opening JSON file
         if not utils.file_exists(airport_json):
             debugging.debug(f"Airport json does not exist: {airport_json}")
-            return False
+            return
 
         json_file = open(airport_json, encoding="utf8")
         # returns JSON object as a dictionary
@@ -280,8 +279,7 @@ class AirportDB:
         metar_file = self.__conf.get_string("filenames", "metar_xml_data")
         if not utils.file_exists(metar_file):
             debugging.info(f"File missing {metar_file} - skipping xml parsing")
-            return
-
+            return False
         try:
             root = etree.parse(metar_file)
         except etree.ParseError as err:
@@ -296,7 +294,6 @@ class AirportDB:
             debugging.error(err)
             debugging.debug("Updating Airports: OS - Not updating airport data")
             return False
-
         debugging.debug("Updating Airports: XML Parse Complete")
         metar_data = []
         display_counter = 0
@@ -355,7 +352,7 @@ class AirportDB:
 
         if not utils.file_exists(taf_file):
             debugging.info(f"File missing {taf_file} - skipping xml parsing")
-            return
+            return False
         try:
             root = etree.parse(taf_file)
         except etree.ParseError as err:
@@ -518,6 +515,7 @@ class AirportDB:
         return True
 
     def airport_taf_future(self, airport_id, hour_increment):
+        """Get taf for future state"""
         airport_taf = self.get_airport_taf(airport_id)
         if airport_taf is None:
             debugging.info(f"Airport TAF {airport_id} not found")

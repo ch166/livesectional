@@ -23,11 +23,7 @@ from datetime import timedelta
 
 # from distutils import util
 from enum import Enum, auto
-
-# from urllib.request import urlopen
-# import urllib.error
-# import socket
-
+from lxml import etree
 
 # XML Handling
 # import json
@@ -38,8 +34,6 @@ import debugging
 
 import utils
 import utils_wx
-
-from lxml import etree
 
 
 class AirportFlightCategory(Enum):

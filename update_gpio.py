@@ -74,7 +74,10 @@ class UpdateGPIO:
     feature4 = None
     feature5 = None
 
+    switch_positions = None
+
     def __init__(self, conf, airport_database):
+        """Init"""
         # ****************************************************************************
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************
@@ -112,46 +115,43 @@ class UpdateGPIO:
 
         self.read_hardware_settings()
 
-        self.conf.get_int("rotaryswitch", "time_sw0"),
-        self.conf.get_int("rotaryswitch", "data_sw0"),
-
         # Switch Position Controls
         # time = Future Offset Hours
         # data = 0:Metar ; 1:TAF ; 2:MOS
-        switch_positions = {
-            0: {
+        switch_positions = [
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw0"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw0"),
             },
-            1: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw1"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw1"),
             },
-            2: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw2"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw2"),
             },
-            3: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw3"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw3"),
             },
-            4: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw4"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw4"),
             },
-            5: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw5"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw5"),
             },
-            6: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw6"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw6"),
             },
-            7: {
+            {
                 "data": self.conf.get_int("rotaryswitch", "data_sw7"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw7"),
-            },
-        }
+            }
+        ]
 
     def rotary_switch_value(self):
         """Read current value from octal encoder on pins 29/31/33"""
@@ -220,6 +220,7 @@ class UpdateGPIO:
             self.oled_count = 8
 
     def old_original__init__(self, conf, airport_database):
+        """Deleting this.."""
         # ****************************************************************************
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************
@@ -253,11 +254,12 @@ class UpdateGPIO:
         self.temp_lights_on = 0
 
     def update_gpio_flags(self, time_sw, data_sw):
-        # Offset in HOURS to choose which TAF to display
+        """Offset in HRS to select appropriate TAF"""
         self.hour_to_display = time_sw
         self.metar_taf_mos = data_sw
 
     def update_loop(self):
+        """Main thread loop"""
         # #########################
         # Start of executed code  #
         # #########################
@@ -272,8 +274,8 @@ class UpdateGPIO:
             # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
             # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
             self.update_gpio_flags(
-                self.switch_positions[rotary_switch]["time"],
-                self.switch_positions[rotary_switch]["data"],
+                self.switch_positions[rotary_switch]['time'],
+                self.switch_positions[rotary_switch]['data'],
             )
 
             time.sleep(5)

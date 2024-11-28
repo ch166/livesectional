@@ -12,8 +12,6 @@ Created on Mon Sept 5 08:01:44 2022.
 
 from datetime import datetime
 from datetime import timedelta
-
-# from distutils import util
 from enum import Enum
 from urllib.request import urlopen
 import urllib.error
@@ -21,9 +19,6 @@ import socket
 
 from metar import Metar
 import debugging
-
-
-# import utils
 
 
 class WxConditions(Enum):

@@ -33,6 +33,8 @@ unsafe-load-any-extension=no
 # be loaded. Extensions are loading into the active Python interpreter and may
 # run arbitrary code
 extension-pkg-whitelist=
+extension-pkg-allow-list=lxml
+
 
 
 [MESSAGES CONTROL]
@@ -138,7 +140,6 @@ contextmanager-decorators=contextlib.contextmanager
 
 
 [FORMAT]
-
 # Maximum number of characters on a single line.
 max-line-length=200
 
@@ -171,18 +172,15 @@ expected-line-ending-format=
 
 
 [MISCELLANEOUS]
-
 # List of note tags to take in consideration, separated by a comma.
 notes=FIXME,XXX,TODO
 
 
 [VARIABLES]
-
 # Tells whether we should check for unused import in __init__ files.
 init-import=no
 
-# A regular expression matching the name of dummy variables (i.e. expectedly
-# not used).
+# A regular expression matching the name of dummy variables (i.e. expectedly not used).
 dummy-variables-rgx=(_+[a-zA-Z0-9]*?$)|dummy
 
 # List of additional names supposed to be defined in builtins. Remember that
@@ -199,14 +197,12 @@ redefining-builtins-modules=six.moves,future.builtins
 
 
 [LOGGING]
-
 # Logging modules to check that the string format arguments are in logging
 # function parameter format
 logging-modules=logging
 
 
 [SIMILARITIES]
-
 # Minimum lines number of a similarity.
 min-similarity-lines=4
 
@@ -221,7 +217,6 @@ ignore-imports=no
 
 
 [SPELLING]
-
 # Spelling dictionary name. Available dictionaries: none. To make it working
 # install python-enchant package.
 spelling-dict=
@@ -238,7 +233,6 @@ spelling-store-unknown-words=no
 
 
 [IMPORTS]
-
 # Deprecated modules which should not be used, separated by a comma
 deprecated-modules=regsub,TERMIOS,Bastion,rexec
 
@@ -268,7 +262,6 @@ analyse-fallback-blocks=no
 
 
 [DESIGN]
-
 # Maximum number of arguments for function / method
 max-args=7
 
@@ -305,7 +298,6 @@ max-bool-expr=5
 
 
 [CLASSES]
-
 # List of method names used to declare (i.e. assign) instance attributes.
 defining-attr-methods=__init__,__new__,setUp
 
@@ -320,8 +312,8 @@ valid-metaclass-classmethod-first-arg=mcs
 exclude-protected=_asdict,_fields,_replace,_source,_make
 
 
-[EXCEPTIONS]
+#[EXCEPTIONS]
 
 # Exceptions that will emit a warning when being caught. Defaults to
 # "Exception"
-overgeneral-exceptions=Exception
+#overgeneral-exceptions=Exception

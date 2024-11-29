@@ -157,7 +157,7 @@ class WebViews:
             active_port = self.__http_port
         self.app.run(
             debug=False, host="0.0.0.0", ssl_context=context, port=active_port
-        )  # no sec
+        )  # nosec
 
     def standardtemplate_data(self):
         """Generate a standardized template_data."""

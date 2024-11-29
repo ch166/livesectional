@@ -150,7 +150,7 @@ class UpdateGPIO:
             {
                 "data": self.conf.get_int("rotaryswitch", "data_sw7"),
                 "time": self.conf.get_int("rotaryswitch", "time_sw7"),
-            }
+            },
         ]
 
     def rotary_switch_value(self):
@@ -274,8 +274,8 @@ class UpdateGPIO:
             # If TAF or MOS data, what time offset should be displayed, i.e. 0 hour, 1 hour, 2 hour etc.
             # If there is no rotary switch installed, then all these tests will fail and will display the defaulted data from switch position 0
             self.update_gpio_flags(
-                self.switch_positions[rotary_switch]['time'],
-                self.switch_positions[rotary_switch]['data'],
+                self.switch_positions[rotary_switch]["time"],
+                self.switch_positions[rotary_switch]["data"],
             )
 
             time.sleep(5)

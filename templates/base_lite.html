@@ -207,14 +207,6 @@
                     </ul>
                 </div>
                 <br/>
-                <a class="navbar-brand" href="/confmobile" target="_blank">
-                    <img src="/static/lsremotefav.png"
-                        width="32"
-                        height="32"
-                        class="d-inline-block align-top"
-                        alt=""/>
-                    Web Remote
-                </a>
                 <span class="navbar-text"
                     title="{{ current_timezone }}"
                     style="font-size:x-small;">
@@ -249,6 +241,17 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div class=flash>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class=flashentry>
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
     </div>
     <!--This ends the Header/Navbar and starts the main page-->
     {% block content %}{% endblock %}
@@ -327,7 +330,7 @@
             <td colspan="6">
                 <span style="font-size:12px;">
                 Original Copyright 2021-2023 - Bill Bryson III, Mark Harris - <a href="https://www.livesectional.com" rel target="_blank">www.livesectional.com</a>
-                <br/> Copyright - Chris Higgins <br/>
+                <br/> Copyright 2022-2024 Chris Higgins <br/>
                 </span>
             </td>
         </tr>

@@ -124,8 +124,7 @@ def cloud_height(wx_metar):
         )
         if key in ("OVC", "BKN"):
             # Overcast or Broken are considered ceiling
-            if layer_altitude < lowest_ceiling:
-                lowest_ceiling = layer_altitude
+            lowest_ceiling = min(layer_altitude, lowest_ceiling)
         if key == "VV":
             # """
             # From the AIM - Vertical Visibility (indefinite ceilingheight).
@@ -133,8 +132,7 @@ def cloud_height(wx_metar):
             # by three digits indicating the vertical visibility in hundreds of feet.
             # This layer indicates total obscuration
             # """
-            if layer_altitude < lowest_ceiling:
-                lowest_ceiling = layer_altitude
+            lowest_ceiling = min(layer_altitude, lowest_ceiling)
         debugging.debug("Ceiling : " + str(lowest_ceiling))
     return lowest_ceiling
 

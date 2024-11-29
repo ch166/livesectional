@@ -131,6 +131,7 @@ tr.config:nth-child(odd) {
 .button:hover {
   background-color: #808080;
 }
+
 .content {
   padding: 0 18px;
   max-height: 0;
@@ -176,8 +177,8 @@ tr.config:nth-child(odd) {
 }
 
 li.message {
-	display: inline-block
-	width: auto
+  display: inline-block; 
+  width: auto;
 }
 
 .flash {
@@ -399,7 +400,7 @@ div.headertxt {
 }
 
 .navbar-text {
-	flex-grow: 1;
+  flex-grow: 1;
 }
 
 .dropdown-toggle::after {
@@ -428,7 +429,8 @@ div.headertxt {
 .badge-vfr {
   padding: 3px 6px 3px;
   font-size: 12.025px;
-;  font-weight: bold;
+  ;
+  font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #01b001;

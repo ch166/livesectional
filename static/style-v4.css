@@ -152,7 +152,6 @@ tr.config:nth-child(odd) {
   margin: 4px 2px;
   cursor: pointer;
   border-radius: 24px;
-  display: none;
 }
 
 
@@ -176,11 +175,26 @@ tr.config:nth-child(odd) {
   background-color: #808080;
 }
 
-.flashes {
-  font-family: arial, sans-serif;
-  font-weight: bold;
+li.message {
+	display: inline-block
+	width: auto
+}
+
+.flash {
+  align-items: center;
+  justify-content: center;
+}
+
+.flashentry {
   color: red;
-  border: 0px;
+  border: 2px solid rgb(75 70 74);
+  border-radius: 3em;
+  font: 1.2em sans-serif;
+  font-weight: bold;
+
+  height: auto;
+  align-items: center;
+  justify-content: center;
 }
 
 div.sticky {
@@ -384,6 +398,10 @@ div.headertxt {
   margin-right: 10px;
 }
 
+.navbar-text {
+	flex-grow: 1;
+}
+
 .dropdown-toggle::after {
   transition: transform 0.15s linear;
 }
@@ -394,6 +412,7 @@ div.headertxt {
 
 .dropdown-menu {
   margin-top: 0;
+  z-index: 9500;
 }
 
 .carousel-item {

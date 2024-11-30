@@ -45,7 +45,7 @@ if __name__ == "__main__":
     app_info = appinfo.AppInfo()
 
     # Setup Logging
-    debugging.loginit()
+    debugging.loginit(app_conf)
 
     # Check for working Internet
     if utils.wait_for_internet():

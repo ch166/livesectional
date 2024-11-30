@@ -860,7 +860,7 @@ class WebViews:
     def downloadlog(self):
         """Flask Route: /download_log - Export log file."""
         debugging.info("Downloaded Logfile")
-        path = self.conf.get_string("filenames", "config_file")
+        path = self.conf.get_string("filenames", "log_file")
         return send_file(path, as_attachment=True)
 
     # Routes for Heat Map Editor

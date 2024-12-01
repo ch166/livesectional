@@ -77,7 +77,7 @@ class UpdateGPIO:
     switch_positions = None
 
     def __init__(self, conf, airport_database):
-        """Init"""
+        """Init."""
         # ****************************************************************************
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************
@@ -154,7 +154,7 @@ class UpdateGPIO:
         ]
 
     def rotary_switch_value(self):
-        """Read current value from octal encoder on pins 29/31/33"""
+        """Read current value from octal encoder on pins 29/31/33."""
         pin0 = 0
         pin1 = 0
         pin2 = 0
@@ -168,7 +168,7 @@ class UpdateGPIO:
         return switch_value
 
     def intr_handler_wakeup(self):
-        """Interrupt Handler for Wakeup button"""
+        """Interrupt Handler for Wakeup button."""
         debugging.info("Interrupt handling for wakeup button")
         # Pushbutton for Refresh. check to see if we should turn on temporarily during sleep mode
         # Set to turn lights on two seconds ago to make sure we hit the loop next time through
@@ -179,12 +179,12 @@ class UpdateGPIO:
         # return
 
     def intr_handler_mode(self):
-        """Interrupt Handler for LED Mode button"""
+        """Interrupt Handler for LED Mode button."""
         debugging.info("Interrupt handling for mode button")
         return
 
     def read_hardware_settings(self):
-        """Read current value from pins"""
+        """Read current value from pins."""
         if self.feature0.is_pressed:
             self.led_enabled = True
         else:
@@ -254,12 +254,12 @@ class UpdateGPIO:
         self.temp_lights_on = 0
 
     def update_gpio_flags(self, time_sw, data_sw):
-        """Offset in HRS to select appropriate TAF"""
+        """Offset in HRS to select appropriate TAF."""
         self.hour_to_display = time_sw
         self.metar_taf_mos = data_sw
 
     def update_loop(self):
-        """Main thread loop"""
+        """Main thread loop."""
         # #########################
         # Start of executed code  #
         # #########################

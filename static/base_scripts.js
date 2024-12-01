@@ -29,9 +29,9 @@ function get_badge(ap, loc) {
         }
 
         outp =
-            '<a href="https://www.aviationweather.gov/metar/data?ids=' +
+            '<a href="https://www.aviationweather.gov/data/metar?ids=' +
             ap +
-            '&format=decoded&hours=0&taf=on&layout=on" target="_blank">'
+            '&hours=0&decoded=yes&include_taf=yes" target="_blank">'
         if (flightcategory === 'VFR') {
             outp = outp + '<h6><span class="badge-vfr">'
         } else if (flightcategory === 'MVFR') {

@@ -606,8 +606,8 @@ class WebViews:
                 color=loc_color,
                 location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>LED {str(airport_obj.get_led_index())}",
-                weight=6,
+                tooltip=f"{str(icao)}<br>Size {str(heatmap_radius)}",
+                weight=4,
             ).add_to(folium_map)
 
         airports = self._airport_database.get_airport_dict_led()

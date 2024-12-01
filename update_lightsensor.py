@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Manage i2c Light Sensors """
+""" Manage i2c Light Sensors. """
 
 # Update i2c attached devices
 import time
@@ -15,7 +15,7 @@ import debugging
 
 
 class LightSensor:
-    """Class to manage Light Sensors"""
+    """Class to manage Light Sensors."""
 
     # This started with support for the TSL2591 only.
     # It now supports either the TSL2591 or the VEML7700
@@ -65,14 +65,14 @@ class LightSensor:
         return
 
     def activate_veml7700(self):
-        """VEML7700 Device Setup"""
+        """VEML7700 Device Setup."""
         self.dev_veml7700 = adafruit_veml7700.VEML7700(self.i2cbus.i2cdevice())
         # Setting Gain to 2 and Integration time to 400ms
         self.dev_veml7700.light_gain = self.dev_veml7700.ALS_GAIN_2
         self.dev_veml7700.light_integration_time = self.dev_veml7700.ALS_400MS
 
     def activate_tsl2591(self):
-        """TSL2591 Device Enable"""
+        """TSL2591 Device Enable."""
         # FIXME: Remove assumption about device behind i2c mux once test lab hardware updated
         self.i2cbus.set_always_on(7)  # Enable Channel 7
         if self.i2cbus.i2c_exists(0x29):
@@ -87,7 +87,7 @@ class LightSensor:
             self.found_device = False
 
     def read_tsl2591(self):
-        """Read LUX value from tsl2591"""
+        """Read LUX value from tsl2591."""
         lux = 0
         if self.i2cbus.bus_lock("light sensor update loop : tsl2591"):
             try:
@@ -106,7 +106,7 @@ class LightSensor:
         return lux
 
     def read_veml7700(self):
-        """Read LUX value from veml7700"""
+        """Read LUX value from veml7700."""
         lux = 0
         if self.i2cbus.bus_lock("light sensor update loop : veml7700"):
             try:
@@ -126,7 +126,7 @@ class LightSensor:
         return lux
 
     def update_loop(self, conf):
-        """Thread Main Loop"""
+        """Thread Main Loop."""
         self.conf = conf
         outerloop = True  # Set to TRUE for infinite outerloop
         lux = 250

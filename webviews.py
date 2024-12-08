@@ -45,6 +45,7 @@ class WebViews:
     max_lon = 0
     min_lon = 0
 
+    _app_conf = None
     airports = []  # type: list[object]
     update_vers = None
     machines = []  # type: list[str]
@@ -54,7 +55,7 @@ class WebViews:
     led_map_dict = {}  # type: dict
 
     def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt):
-        self.conf = config
+        self._app_conf = config
         self._sysdata = sysdata
         self._airport_database = airport_database
         self._appinfo = appinfo
@@ -63,17 +64,17 @@ class WebViews:
         # This needs to happen really early in the process to take effect
         self.app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-        self.__http_port = self.conf.get_string("default", "http_port")
+        self.__http_port = self._app_conf.get_string("default", "http_port")
         self.ssl_enabled = False
         self.__ssl_cert = None
         self.__ssl_key = None
         self.__ssl_port = self.__http_port
 
-        if self.conf.get_bool("default", "ssl_enabled"):
+        if self._app_conf.get_bool("default", "ssl_enabled"):
             self.ssl_enabled = True
-            self.__ssl_cert = self.conf.get_string("default", "ssl_cert")
-            self.__ssl_key = self.conf.get_string("default", "ssl_key")
-            self.__ssl_port = self.conf.get_string("default", "ssl_port")
+            self.__ssl_cert = self._app_conf.get_string("default", "ssl_cert")
+            self.__ssl_key = self._app_conf.get_string("default", "ssl_key")
+            self.__ssl_port = self._app_conf.get_string("default", "ssl_port")
 
         self.app.secret_key = secrets.token_hex(16)
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
@@ -142,7 +143,7 @@ class WebViews:
 
         self._led_strip = led_mgmt
 
-        self.num = self.conf.get_int("default", "led_count")
+        self.num = self._app_conf.get_int("default", "led_count")
 
     def run(self):
         """Run Flask Application.
@@ -184,15 +185,15 @@ class WebViews:
         template_data = {
             "title": "NOT SET - " + self._appinfo.current_version(),
             "airports": airport_dict_data,
-            "settings": self.conf.gen_settings_dict(),
+            "settings": self._app_conf.gen_settings_dict(),
             "ipadd": self._sysdata.local_ip(),
             "strip": self._led_strip,
-            "timestr": utils.time_format(utils.current_time(self.conf)),
-            "timestrutc": utils.time_format(utils.current_time_utc(self.conf)),
+            "timestr": utils.time_format(utils.current_time(self._app_conf)),
+            "timestrutc": utils.time_format(utils.current_time_utc(self._app_conf)),
             "timemetarage": utils.time_format(
                 self._airport_database.get_metar_update_time()
             ),
-            "current_timezone": self.conf.get_string("default", "timezone"),
+            "current_timezone": self._app_conf.get_string("default", "timezone"),
             "current_ledmode": current_ledmode,
             "num": self.num,
             "version": self._appinfo.current_version(),
@@ -225,12 +226,12 @@ class WebViews:
             timezone = request.form["tzselected"]
             flash("Timezone set to " + timezone)
             debugging.info("Request to update timezone to: " + timezone)
-            self.conf.set_string("default", "timezone", timezone)
-            self.conf.save_config()
+            self._app_conf.set_string("default", "timezone", timezone)
+            self._app_conf.save_config()
             return redirect("tzset")
 
         tzlist = pytz.common_timezones
-        current_timezone = self.conf.get_string("default", "timezone")
+        current_timezone = self._app_conf.get_string("default", "timezone")
         template_data = self.standardtemplate_data()
         template_data["title"] = "TZset"
         template_data["tzoptionlist"] = tzlist
@@ -310,8 +311,8 @@ class WebViews:
     def open_console(self):
         """Flask Route: /open_console - Launching Console in discrete window."""
         console_ips = []
-        loc_timestr = utils.time_format(utils.current_time(self.conf))
-        loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
+        loc_timestr = utils.time_format(utils.current_time(self._app_conf))
+        loc_timestr_utc = utils.time_format(utils.current_time_utc(self._app_conf))
         with open(
             "/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf8"
         ) as file:
@@ -337,8 +338,8 @@ class WebViews:
     # Works with stream_log1
     def stream_log(self):
         """Flask Route: /stream_log - Watch logs live."""
-        loc_timestr = utils.time_format(utils.current_time(self.conf))
-        loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
+        loc_timestr = utils.time_format(utils.current_time(self._app_conf))
+        loc_timestr_utc = utils.time_format(utils.current_time_utc(self._app_conf))
         ipadd = self._sysdata.local_ip()
         debugging.info("Opening stream_log in separate window")
         return render_template(
@@ -694,8 +695,8 @@ class WebViews:
         ipadd = self._sysdata.local_ip()
         qraddress = f"https://{ipadd.strip()}:5000/confmobile"
         debugging.info("Opening qrcode in separate window")
-        qrcode_file = self.conf.get_string("filenames", "qrcode")
-        qrcode_url = self.conf.get_string("filenames", "qrcode_url")
+        qrcode_file = self._app_conf.get_string("filenames", "qrcode")
+        qrcode_url = self._app_conf.get_string("filenames", "qrcode_url")
 
         qr_img = qrcode.QRCode(
             version=1,
@@ -846,21 +847,21 @@ class WebViews:
     def downloadairports(self):
         """Flask Route: /download_ap - Export airports file."""
         debugging.info("Downloaded Airport File")
-        path = self.conf.get_string("filenames", "airports_json")
+        path = self._app_conf.get_string("filenames", "airports_json")
         return send_file(path, as_attachment=True)
 
     # @app.route('/download_cf', methods=["GET", "POST"])
     def downloadconfig(self):
         """Flask Route: /download_cf - Export configuration file."""
         debugging.info("Downloaded Config File")
-        path = self.conf.get_string("filenames", "config_file")
+        path = self._app_conf.get_string("filenames", "config_file")
         return send_file(path, as_attachment=True)
 
     # @app.route('/download_log', methods=["GET", "POST"])
     def downloadlog(self):
         """Flask Route: /download_log - Export log file."""
         debugging.info("Downloaded Logfile")
-        path = self.conf.get_string("filenames", "log_file")
+        path = self._app_conf.get_string("filenames", "log_file")
         return send_file(path, as_attachment=True)
 
     # Routes for Heat Map Editor
@@ -903,7 +904,7 @@ class WebViews:
         """Flask Route: /apedit - Airport Editor."""
         debugging.info("Opening apedit.html")
 
-        # self.readairports(self.conf.get_string("filenames", "airports_file"))
+        # self.readairports(self._app_conf.get_string("filenames", "airports_file"))
         template_data = self.standardtemplate_data()
         template_data["title"] = "Airports Editor"
         return render_template("apedit.html", **template_data)
@@ -918,7 +919,7 @@ class WebViews:
             loc_numap = int(request.form["numofap"])
             debugging.dprint(loc_numap)
 
-        # self.readairports(self.conf.get_string("filenames", "airports_file"))
+        # self.readairports(self._app_conf.get_string("filenames", "airports_file"))
 
         # FIXME: self.airports is retired
         newnum = loc_numap - int(len(self.airports))
@@ -945,9 +946,9 @@ class WebViews:
             debugging.debug(data)  # debug
 
             debugging.debug("FIXME: NEED TO PROCESS handle_appost_request")
-            # self.writeairports(data, self.conf.get_string("filenames", "airports_file"))
+            # self.writeairports(data, self._app_conf.get_string("filenames", "airports_file"))
 
-            # self.readairports(self.conf.get_string("filenames", "airports_file"))
+            # self.readairports(self._app_conf.get_string("filenames", "airports_file"))
 
         # flash("Airports Successfully Saved")
         return redirect("apedit")
@@ -1072,60 +1073,84 @@ class WebViews:
         template_data["title"] = "Settings Editor"
 
         # FIXME: Needs a better way
-        template_data["color_vfr_hex"] = self.conf.color("colors", "color_vfr")
-        template_data["color_mvfr_hex"] = self.conf.color("colors", "color_mvfr")
-        template_data["color_ifr_hex"] = self.conf.color("colors", "color_ifr")
-        template_data["color_lifr_hex"] = self.conf.color("colors", "color_lifr")
-        template_data["color_nowx_hex"] = self.conf.color("colors", "color_nowx")
-        template_data["color_black_hex"] = self.conf.color("colors", "color_black")
-        template_data["color_lghtn_hex"] = self.conf.color("colors", "color_lghtn")
-        template_data["color_snow1_hex"] = self.conf.color("colors", "color_snow1")
-        template_data["color_snow2_hex"] = self.conf.color("colors", "color_snow2")
-        template_data["color_rain1_hex"] = self.conf.color("colors", "color_rain1")
-        template_data["color_rain2_hex"] = self.conf.color("colors", "color_rain2")
-        template_data["color_frrain1_hex"] = self.conf.color("colors", "color_frrain1")
-        template_data["color_frrain2_hex"] = self.conf.color("colors", "color_frrain2")
-        template_data["color_dustsandash1_hex"] = self.conf.color(
+        template_data["color_vfr_hex"] = self._app_conf.color("colors", "color_vfr")
+        template_data["color_mvfr_hex"] = self._app_conf.color("colors", "color_mvfr")
+        template_data["color_ifr_hex"] = self._app_conf.color("colors", "color_ifr")
+        template_data["color_lifr_hex"] = self._app_conf.color("colors", "color_lifr")
+        template_data["color_nowx_hex"] = self._app_conf.color("colors", "color_nowx")
+        template_data["color_black_hex"] = self._app_conf.color("colors", "color_black")
+        template_data["color_lghtn_hex"] = self._app_conf.color("colors", "color_lghtn")
+        template_data["color_snow1_hex"] = self._app_conf.color("colors", "color_snow1")
+        template_data["color_snow2_hex"] = self._app_conf.color("colors", "color_snow2")
+        template_data["color_rain1_hex"] = self._app_conf.color("colors", "color_rain1")
+        template_data["color_rain2_hex"] = self._app_conf.color("colors", "color_rain2")
+        template_data["color_frrain1_hex"] = self._app_conf.color(
+            "colors", "color_frrain1"
+        )
+        template_data["color_frrain2_hex"] = self._app_conf.color(
+            "colors", "color_frrain2"
+        )
+        template_data["color_dustsandash1_hex"] = self._app_conf.color(
             "colors", "color_dustsandash1"
         )
-        template_data["color_dustsandash2_hex"] = self.conf.color(
+        template_data["color_dustsandash2_hex"] = self._app_conf.color(
             "colors", "color_dustsandash2"
         )
-        template_data["color_fog1_hex"] = self.conf.color("colors", "color_fog1")
-        template_data["color_fog2_hex"] = self.conf.color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self.conf.color(
+        template_data["color_fog1_hex"] = self._app_conf.color("colors", "color_fog1")
+        template_data["color_fog2_hex"] = self._app_conf.color("colors", "color_fog2")
+        template_data["color_homeport_hex"] = self._app_conf.color(
             "colors", "color_homeport"
         )
 
-        template_data["fade_color1_hex"] = self.conf.color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self.conf.color(
+        template_data["fade_color1_hex"] = self._app_conf.color("colors", "fade_color1")
+        template_data["allsame_color1_hex"] = self._app_conf.color(
             "colors", "allsame_color1"
         )
-        template_data["allsame_color2_hex"] = self.conf.color(
+        template_data["allsame_color2_hex"] = self._app_conf.color(
             "colors", "allsame_color2"
         )
-        template_data["shuffle_color1_hex"] = self.conf.color(
+        template_data["shuffle_color1_hex"] = self._app_conf.color(
             "colors", "shuffle_color1"
         )
-        template_data["shuffle_color2_hex"] = self.conf.color(
+        template_data["shuffle_color2_hex"] = self._app_conf.color(
             "colors", "shuffle_color2"
         )
-        template_data["radar_color1_hex"] = self.conf.color("colors", "radar_color1")
-        template_data["radar_color2_hex"] = self.conf.color("colors", "radar_color2")
-        template_data["circle_color1_hex"] = self.conf.color("colors", "circle_color1")
-        template_data["circle_color2_hex"] = self.conf.color("colors", "circle_color2")
-        template_data["square_color1_hex"] = self.conf.color("colors", "square_color1")
-        template_data["square_color2_hex"] = self.conf.color("colors", "square_color2")
-        template_data["updn_color1_hex"] = self.conf.color("colors", "updn_color1")
-        template_data["updn_color2_hex"] = self.conf.color("colors", "updn_color2")
-        template_data["morse_color1_hex"] = self.conf.color("colors", "morse_color1")
-        template_data["morse_color2_hex"] = self.conf.color("colors", "morse_color2")
-        template_data["rabbit_color1_hex"] = self.conf.color("colors", "rabbit_color1")
-        template_data["rabbit_color2_hex"] = self.conf.color("colors", "rabbit_color2")
-        template_data["checker_color1_hex"] = self.conf.color(
+        template_data["radar_color1_hex"] = self._app_conf.color(
+            "colors", "radar_color1"
+        )
+        template_data["radar_color2_hex"] = self._app_conf.color(
+            "colors", "radar_color2"
+        )
+        template_data["circle_color1_hex"] = self._app_conf.color(
+            "colors", "circle_color1"
+        )
+        template_data["circle_color2_hex"] = self._app_conf.color(
+            "colors", "circle_color2"
+        )
+        template_data["square_color1_hex"] = self._app_conf.color(
+            "colors", "square_color1"
+        )
+        template_data["square_color2_hex"] = self._app_conf.color(
+            "colors", "square_color2"
+        )
+        template_data["updn_color1_hex"] = self._app_conf.color("colors", "updn_color1")
+        template_data["updn_color2_hex"] = self._app_conf.color("colors", "updn_color2")
+        template_data["morse_color1_hex"] = self._app_conf.color(
+            "colors", "morse_color1"
+        )
+        template_data["morse_color2_hex"] = self._app_conf.color(
+            "colors", "morse_color2"
+        )
+        template_data["rabbit_color1_hex"] = self._app_conf.color(
+            "colors", "rabbit_color1"
+        )
+        template_data["rabbit_color2_hex"] = self._app_conf.color(
+            "colors", "rabbit_color2"
+        )
+        template_data["checker_color1_hex"] = self._app_conf.color(
             "colors", "checker_color1"
         )
-        template_data["checker_color2_hex"] = self.conf.color(
+        template_data["checker_color2_hex"] = self._app_conf.color(
             "colors", "checker_color2"
         )
         return render_template("confedit.html", **template_data)
@@ -1148,8 +1173,8 @@ class WebViews:
                     data[key] = data[key].lstrip("0")
                     # if so, then self.strip the leading zero before writing to file.
 
-            self.conf.parse_config_input(data)
-            self.conf.save_config()
+            self._app_conf.parse_config_input(data)
+            self._app_conf.save_config()
             flash("Settings Successfully Saved")
 
             url = request.referrer
@@ -1171,68 +1196,92 @@ class WebViews:
         debugging.info("Opening lsremote.html")
 
         # ipadd = self._sysdata.local_ip()
-        # current_timezone = self.conf.get_string("default", "timezone")
-        # settings = self.conf.gen_settings_dict()
-        # loc_timestr = utils.time_format(utils.current_time(self.conf))
-        # loc_timestr_utc = utils.time_format(utils.current_time_utc(self.conf))
+        # current_timezone = self._app_conf.get_string("default", "timezone")
+        # settings = self._app_conf.gen_settings_dict()
+        # loc_timestr = utils.time_format(utils.current_time(self._app_conf))
+        # loc_timestr_utc = utils.time_format(utils.current_time_utc(self._app_conf))
 
         # Pass data to html document
         template_data = self.standardtemplate_data()
         template_data["title"] = "Mobile Settings Editor"
-        template_data["color_vfr_hex"] = self.conf.color("colors", "color_vfr")
-        template_data["color_mvfr_hex"] = self.conf.color("colors", "color_mvfr")
-        template_data["color_ifr_hex"] = self.conf.color("colors", "color_ifr")
-        template_data["color_lifr_hex"] = self.conf.color("colors", "color_lifr")
-        template_data["color_nowx_hex"] = self.conf.color("colors", "color_nowx")
-        template_data["color_black_hex"] = self.conf.color("colors", "color_black")
-        template_data["color_lghtn_hex"] = self.conf.color("colors", "color_lghtn")
-        template_data["color_snow1_hex"] = self.conf.color("colors", "color_snow1")
-        template_data["color_snow2_hex"] = self.conf.color("colors", "color_snow2")
-        template_data["color_rain1_hex"] = self.conf.color("colors", "color_rain1")
-        template_data["color_rain2_hex"] = self.conf.color("colors", "color_rain2")
-        template_data["color_frrain1_hex"] = self.conf.color("colors", "color_frrain1")
-        template_data["color_frrain2_hex"] = self.conf.color("colors", "color_frrain2")
-        template_data["color_dustsandash1_hex"] = self.conf.color(
+        template_data["color_vfr_hex"] = self._app_conf.color("colors", "color_vfr")
+        template_data["color_mvfr_hex"] = self._app_conf.color("colors", "color_mvfr")
+        template_data["color_ifr_hex"] = self._app_conf.color("colors", "color_ifr")
+        template_data["color_lifr_hex"] = self._app_conf.color("colors", "color_lifr")
+        template_data["color_nowx_hex"] = self._app_conf.color("colors", "color_nowx")
+        template_data["color_black_hex"] = self._app_conf.color("colors", "color_black")
+        template_data["color_lghtn_hex"] = self._app_conf.color("colors", "color_lghtn")
+        template_data["color_snow1_hex"] = self._app_conf.color("colors", "color_snow1")
+        template_data["color_snow2_hex"] = self._app_conf.color("colors", "color_snow2")
+        template_data["color_rain1_hex"] = self._app_conf.color("colors", "color_rain1")
+        template_data["color_rain2_hex"] = self._app_conf.color("colors", "color_rain2")
+        template_data["color_frrain1_hex"] = self._app_conf.color(
+            "colors", "color_frrain1"
+        )
+        template_data["color_frrain2_hex"] = self._app_conf.color(
+            "colors", "color_frrain2"
+        )
+        template_data["color_dustsandash1_hex"] = self._app_conf.color(
             "colors", "color_dustsandash1"
         )
-        template_data["color_dustsandash2_hex"] = self.conf.color(
+        template_data["color_dustsandash2_hex"] = self._app_conf.color(
             "colors", "color_dustsandash2"
         )
-        template_data["color_fog1_hex"] = self.conf.color("colors", "color_fog1")
-        template_data["color_fog2_hex"] = self.conf.color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self.conf.color(
+        template_data["color_fog1_hex"] = self._app_conf.color("colors", "color_fog1")
+        template_data["color_fog2_hex"] = self._app_conf.color("colors", "color_fog2")
+        template_data["color_homeport_hex"] = self._app_conf.color(
             "colors", "color_homeport"
         )
 
-        template_data["fade_color1_hex"] = self.conf.color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self.conf.color(
+        template_data["fade_color1_hex"] = self._app_conf.color("colors", "fade_color1")
+        template_data["allsame_color1_hex"] = self._app_conf.color(
             "colors", "allsame_color1"
         )
-        template_data["allsame_color2_hex"] = self.conf.color(
+        template_data["allsame_color2_hex"] = self._app_conf.color(
             "colors", "allsame_color2"
         )
-        template_data["shuffle_color1_hex"] = self.conf.color(
+        template_data["shuffle_color1_hex"] = self._app_conf.color(
             "colors", "shuffle_color1"
         )
-        template_data["shuffle_color2_hex"] = self.conf.color(
+        template_data["shuffle_color2_hex"] = self._app_conf.color(
             "colors", "shuffle_color2"
         )
-        template_data["radar_color1_hex"] = self.conf.color("colors", "radar_color1")
-        template_data["radar_color2_hex"] = self.conf.color("colors", "radar_color2")
-        template_data["circle_color1_hex"] = self.conf.color("colors", "circle_color1")
-        template_data["circle_color2_hex"] = self.conf.color("colors", "circle_color2")
-        template_data["square_color1_hex"] = self.conf.color("colors", "square_color1")
-        template_data["square_color2_hex"] = self.conf.color("colors", "square_color2")
-        template_data["updn_color1_hex"] = self.conf.color("colors", "updn_color1")
-        template_data["updn_color2_hex"] = self.conf.color("colors", "updn_color2")
-        template_data["morse_color1_hex"] = self.conf.color("colors", "morse_color1")
-        template_data["morse_color2_hex"] = self.conf.color("colors", "morse_color2")
-        template_data["rabbit_color1_hex"] = self.conf.color("colors", "rabbit_color1")
-        template_data["rabbit_color2_hex"] = self.conf.color("colors", "rabbit_color2")
-        template_data["checker_color1_hex"] = self.conf.color(
+        template_data["radar_color1_hex"] = self._app_conf.color(
+            "colors", "radar_color1"
+        )
+        template_data["radar_color2_hex"] = self._app_conf.color(
+            "colors", "radar_color2"
+        )
+        template_data["circle_color1_hex"] = self._app_conf.color(
+            "colors", "circle_color1"
+        )
+        template_data["circle_color2_hex"] = self._app_conf.color(
+            "colors", "circle_color2"
+        )
+        template_data["square_color1_hex"] = self._app_conf.color(
+            "colors", "square_color1"
+        )
+        template_data["square_color2_hex"] = self._app_conf.color(
+            "colors", "square_color2"
+        )
+        template_data["updn_color1_hex"] = self._app_conf.color("colors", "updn_color1")
+        template_data["updn_color2_hex"] = self._app_conf.color("colors", "updn_color2")
+        template_data["morse_color1_hex"] = self._app_conf.color(
+            "colors", "morse_color1"
+        )
+        template_data["morse_color2_hex"] = self._app_conf.color(
+            "colors", "morse_color2"
+        )
+        template_data["rabbit_color1_hex"] = self._app_conf.color(
+            "colors", "rabbit_color1"
+        )
+        template_data["rabbit_color2_hex"] = self._app_conf.color(
+            "colors", "rabbit_color2"
+        )
+        template_data["checker_color1_hex"] = self._app_conf.color(
             "colors", "checker_color1"
         )
-        template_data["checker_color2_hex"] = self.conf.color(
+        template_data["checker_color2_hex"] = self._app_conf.color(
             "colors", "checker_color2"
         )
         return render_template("lsremote.html", **template_data)
@@ -1300,7 +1349,7 @@ class WebViews:
     #
     #    req_profile = request.form["profile"]
     #    debugging.dprint(req_profile)
-    #    debugging.dprint(self.config_profiles)
+    #    debugging.dprint(self._app_config_profiles)
     #    tmp_profile = config_profiles[req_profile]
     #    stored_profile = "/opt/NeoSectional/profiles/" + tmp_profile
     #
@@ -1399,8 +1448,8 @@ class WebViews:
             # Use index if called from URL and not page.
 
         # temp = url.split("/")
-        if (self.conf.get_int("oled", "displayused") != 1) or (
-            self.conf.get_int("oled", "oledused") != 1
+        if (self._app_conf.get_int("oled", "displayused") != 1) or (
+            self._app_conf.get_int("oled", "oledused") != 1
         ):
             return redirect("/")
             # temp[3] holds name of page that called this route.

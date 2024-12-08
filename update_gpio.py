@@ -53,7 +53,7 @@ class UpdateGPIO:
     # Pin reservations in docs/HARDWARE.md
     #
 
-    conf = None
+    _app_conf = None
     airport_database = None
 
     # Hardware Features
@@ -82,7 +82,7 @@ class UpdateGPIO:
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************
 
-        self.conf = conf
+        self._app_conf = conf
         self.airport_database = airport_database
 
         # set mode to BCM and use BCM pin numbering, rather than BOARD pin numbering.
@@ -118,38 +118,38 @@ class UpdateGPIO:
         # Switch Position Controls
         # time = Future Offset Hours
         # data = 0:Metar ; 1:TAF ; 2:MOS
-        switch_positions = [
+        self.switch_positions = [
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw0"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw0"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw0"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw0"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw1"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw1"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw1"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw1"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw2"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw2"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw2"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw2"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw3"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw3"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw3"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw3"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw4"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw4"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw4"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw4"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw5"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw5"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw5"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw5"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw6"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw6"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw6"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw6"),
             },
             {
-                "data": self.conf.get_int("rotaryswitch", "data_sw7"),
-                "time": self.conf.get_int("rotaryswitch", "time_sw7"),
+                "data": self._app_conf.get_int("rotaryswitch", "data_sw7"),
+                "time": self._app_conf.get_int("rotaryswitch", "time_sw7"),
             },
         ]
 
@@ -227,24 +227,24 @@ class UpdateGPIO:
 
         # Specific Variables to default data to display if Rotary Switch is not installed.
         # hour_to_display # Offset in HOURS to choose which TAF/MOS to display
-        self.hour_to_display = self.conf.get_int("rotaryswitch", "time_sw0")
+        self.hour_to_display = self._app_conf.get_int("rotaryswitch", "time_sw0")
         # metar_taf_mos
         # 0 = Display TAF,
         # 1 = Display METAR,
         # 2 = Display MOS,
         # 3 = Heat Map (Heat map not controlled by rotary switch)
-        self.metar_taf_mos = self.conf.get_int("rotaryswitch", "data_sw0")
+        self.metar_taf_mos = self._app_conf.get_int("rotaryswitch", "data_sw0")
         # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
         self.toggle_sw = -1
-        self.onhour = self.conf.get_int("schedule", "onhour")
-        self.offhour = self.conf.get_int("schedule", "offhour")
-        self.onminutes = self.conf.get_int("schedule", "onminutes")
-        self.offminutes = self.conf.get_int("schedule", "offminutes")
+        self.onhour = self._app_conf.get_int("schedule", "onhour")
+        self.offhour = self._app_conf.get_int("schedule", "offhour")
+        self.onminutes = self._app_conf.get_int("schedule", "onminutes")
+        self.offminutes = self._app_conf.get_int("schedule", "offminutes")
 
         # Timer calculations
         self.lights_out = time_(
-            self.conf.get_int("schedule", "offhour"),
-            self.conf.get_int("schedule", "offminutes"),
+            self._app_conf.get_int("schedule", "offhour"),
+            self._app_conf.get_int("schedule", "offminutes"),
             0,
         )
         self.timeoff = self.lights_out
@@ -264,7 +264,7 @@ class UpdateGPIO:
         # Start of executed code  #
         # #########################
         outerloop = True  # Set to TRUE for infinite outerloop
-        tempsleepon = self.conf.get_int("schedule", "tempsleepon")
+        tempsleepon = self._app_conf.get_int("schedule", "tempsleepon")
 
         while outerloop:
             self.read_hardware_settings()

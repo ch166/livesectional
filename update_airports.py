@@ -59,7 +59,7 @@ class AirportDB:
         # config file directly as needed
 
         # Reference to Global Configuration Data
-        self.__conf = conf
+        self._app_conf = conf
         self.__dataset = dataset_thread
 
         self._metar_serial = -1
@@ -232,7 +232,7 @@ class AirportDB:
         """Load Airport Data file."""
         # FIXME: Add file error handling
         debugging.debug("Loading Airport List")
-        airport_json = self.__conf.get_string("filenames", "airports_json")
+        airport_json = self._app_conf.get_string("filenames", "airports_json")
         # Opening JSON file
         if not utils.file_exists(airport_json):
             debugging.debug(f"Airport json does not exist: {airport_json}")
@@ -258,11 +258,11 @@ class AirportDB:
         debugging.debug("Saving Airport DB")
         json_save_data = {}
         json_save_data_airport = []
-        airport_json_backup = self.__conf.get_string(
+        airport_json_backup = self._app_conf.get_string(
             "filenames", "airports_json_backup"
         )
-        airport_json_new = self.__conf.get_string("filenames", "airports_json_new")
-        airport_json = self.__conf.get_string("filenames", "airports_json")
+        airport_json_new = self._app_conf.get_string("filenames", "airports_json_new")
+        airport_json = self._app_conf.get_string("filenames", "airports_json")
 
         shutil.move(airport_json, airport_json_backup)
         json_save_data_airport = self.save_data_from_db()
@@ -276,7 +276,7 @@ class AirportDB:
         # TODO: Add file error handling
         # Consider extracting only interesting airports from dict first
         debugging.debug("Updating Airports: Starting")
-        metar_file = self.__conf.get_string("filenames", "metar_xml_data")
+        metar_file = self._app_conf.get_string("filenames", "metar_xml_data")
         if not utils.file_exists(metar_file):
             debugging.info(f"File missing {metar_file} - skipping xml parsing")
             return False
@@ -348,7 +348,7 @@ class AirportDB:
 
         taf_dict = {}
 
-        taf_file = self.__conf.get_string("filenames", "tafs_xml_data")
+        taf_file = self._app_conf.get_string("filenames", "tafs_xml_data")
 
         if not utils.file_exists(taf_file):
             debugging.info(f"File missing {taf_file} - skipping xml parsing")
@@ -521,7 +521,7 @@ class AirportDB:
             debugging.info(f"Airport TAF {airport_id} not found")
             return None
         debugging.info(f"airport_taf_future:{airport_id}:+{hour_increment}hr")
-        time_taf = utils.future_taf_time(self.__conf, hour_increment)
+        time_taf = utils.future_taf_time(self._app_conf, hour_increment)
         debugging.info(f"airport_taf time_taf:{airport_id}:{time_taf}")
         future_taf = None
         for forecast in airport_taf["forecast"]:
@@ -551,7 +551,9 @@ class AirportDB:
 
     def import_runways(self):
         """Load CSV Runways file."""
-        runways_master_data = self.__conf.get_string("filenames", "runways_master_data")
+        runways_master_data = self._app_conf.get_string(
+            "filenames", "runways_master_data"
+        )
         if not utils.file_exists(runways_master_data):
             debugging.debug(f"Runways file does not exist: {runways_master_data}")
             return False
@@ -566,7 +568,7 @@ class AirportDB:
 
     def import_airport_geo_data(self):
         """Load CSV Airports metadata file."""
-        airport_master_metadata_set = self.__conf.get_string(
+        airport_master_metadata_set = self._app_conf.get_string(
             "filenames", "airports_master_data"
         )
         if not utils.file_exists(airport_master_metadata_set):

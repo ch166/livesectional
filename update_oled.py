@@ -325,7 +325,7 @@ class UpdateOLEDs:
         width = oled_dev["size"]["w"]
         height = oled_dev["size"]["h"]
         device_i2cbus_id = oled_dev["devid"]
-        display_font = ImageFont.load_default(20)
+        display_font = ImageFont.load_default(size=20)
 
         airport_details = f"{airport} NOWX"
 

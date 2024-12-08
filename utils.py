@@ -289,13 +289,13 @@ def comp_time(zulu_time, taf_time):
     return diff.seconds, diff_minutes, diff_hours, diff.days
 
 
-def reboot_if_time(conf):
+def reboot_if_time(app_conf):
     """Check to see if it's time to reboot."""
     # Check time and reboot machine if time equals
     # time_reboot and if use_reboot along with autorun are both set to 1
-    use_reboot = conf.get_bool("default", "nightly_reboot")
-    use_autorun = conf.get_bool("default", "autorun")
-    reboot_time = conf.get_string("default", "nightly_reboot_hr")
+    use_reboot = app_conf.get_bool("default", "nightly_reboot")
+    use_autorun = app_conf.get_bool("default", "autorun")
+    reboot_time = app_conf.get_string("default", "nightly_reboot_hr")
     if use_reboot and use_autorun:
         now = datetime.datetime.now()
         rb_time = now.strftime("%H:%M")
@@ -346,23 +346,25 @@ def time_format(raw_time):
     return raw_time.strftime("%H:%M:%S - %b %d, %Y")
 
 
-def current_time_hr_utc(conf):
+def current_time_hr_utc(app_conf):
     """Get current HR in UTC."""
     curr_time = datetime.datetime.now(pytz.utc)
     return int(curr_time.strftime("%H"))
 
 
-def current_time_utc(conf):
+def current_time_utc(app_conf):
     """Get time in UTC."""
     return datetime.datetime.now(pytz.utc)
 
 
-def current_time(conf):
+def current_time(app_conf):
     """Get time Now."""
-    return datetime.datetime.now(pytz.timezone(conf.get_string("default", "timezone")))
+    return datetime.datetime.now(
+        pytz.timezone(app_conf.get_string("default", "timezone"))
+    )
 
 
-def future_taf_time(conf, hr_increment):
+def future_taf_time(app_conf, hr_increment):
     """Compute time hr_increment hours in the future"""
     taf_time = datetime.datetime.now(pytz.utc) + datetime.timedelta(hours=hr_increment)
     return datetime.datetime(
@@ -375,20 +377,20 @@ def future_taf_time(conf, hr_increment):
     )
 
 
-def current_time_taf_offset(conf):
+def current_time_taf_offset(app_conf):
     """Get time for TAF period selected (UTC)."""
-    offset = conf.get_int("rotaryswitch", "hour_to_display")
+    offset = app_conf.get_int("rotaryswitch", "hour_to_display")
     curr_time = datetime.datetime.now(pytz.utc) + timedelta(hours=offset)
     return pytz.UTC.localize(curr_time)
 
 
-def set_timezone(conf, newtimezone):
+def set_timezone(app_conf, newtimezone):
     """Set timezone configuration string."""
     # Doo stuff to set the timezone
-    conf.set_string("default", "timezone", newtimezone)
-    conf.save_config()
+    app_conf.set_string("default", "timezone", newtimezone)
+    app_conf.save_config()
 
 
-def get_timezone(conf):
+def get_timezone(app_conf):
     """Return timezone configuration."""
-    return conf.get_string("default", "timezone")
+    return app_conf.get_string("default", "timezone")

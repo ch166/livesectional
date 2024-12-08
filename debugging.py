@@ -6,6 +6,7 @@ import sys
 import datetime
 import logging
 import logging.handlers
+import pprint
 
 
 # FIXME: Move these flags to configuration
@@ -132,3 +133,6 @@ def debug(args):
     else:
         return
 
+
+def prettify_dict(args):
+    return pprint.pformat(args, indent=2, compact=True, width=240)

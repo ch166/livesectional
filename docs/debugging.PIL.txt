@@ -1,0 +1,34 @@
+
+livemap require the freetype2 feature support in pillow.
+It's possible on some systems for a local fresh install of pillow to build without freetype2 support.
+
+If pillow builds on a system, but the freetype dev libraries aren't installed, it will build without freetype support.
+Fixing this requires uninstalling PIL/pillow ; installing the base OS freetype2-dev libraries, clearing the pip build cache, and then installing pythong again so that it builds fresh, discovers the freetype2 libraries, and adds support for them.
+
+# python3 -m PIL --report
+
+--------------------------------------------------------------------
+Pillow 11.0.0
+Python 3.11.2 (main, Sep 14 2024, 03:00:30) [GCC 12.2.0]
+--------------------------------------------------------------------
+Python executable is /opt/venv/livemap/bin/python3
+Environment Python files loaded from /opt/venv/livemap
+System Python files loaded from /usr
+--------------------------------------------------------------------
+Python Pillow modules loaded from /opt/venv/livemap/lib/python3.11/site-packages/PIL
+Binary Pillow modules loaded from /opt/venv/livemap/lib/python3.11/site-packages/PIL
+--------------------------------------------------------------------
+--- PIL CORE support ok, compiled for 11.0.0
+*** TKINTER support not installed
+--- FREETYPE2 support ok, loaded 2.13.2
+--- LITTLECMS2 support ok, loaded 2.16
+--- WEBP support ok, loaded 1.4.0
+--- JPEG support ok, compiled for libjpeg-turbo 3.0.4
+--- OPENJPEG (JPEG2000) support ok, loaded 2.5.2
+--- ZLIB (PNG/ZIP) support ok, loaded 1.2.13
+--- LIBTIFF support ok, loaded 4.6.0
+--- RAQM (Bidirectional Text) support ok, loaded 0.10.1, fribidi 1.0.8, harfbuzz 10.0.1
+*** LIBIMAGEQUANT (Quantization method) support not installed
+--- XCB (X protocol) support ok
+--------------------------------------------------------------------
+

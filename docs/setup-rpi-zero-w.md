@@ -36,6 +36,9 @@ root@<hostmame>: apt install libopenjp2-7
 
 root@<hostname>: apt install libopenblas0
 
+### Pillow 11.0.0.0 requirements
+root@<hostname>: apt install libjpeg-dev libpython3-dev zlib1g-dev
+
 
 # Activate
 

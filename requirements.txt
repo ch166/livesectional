@@ -31,11 +31,13 @@ adafruit-circuitpython-tca9548a
 Adafruit-SSD1306>=1.6.2
 
 adafruit-circuitpython-veml7700
+adafruit-circuitpython-tsl2591
 
 ## beautifulsoup4>=4.11.1
 Flask>=2.2.5
 folium>=0.13.0
 gpiozero>=1.6.2
+lgpio
 
 ## html5lib>=1.1
 Jinja2>=3.1.2
@@ -73,7 +75,7 @@ python-dateutil>=2.8.0
 luma.core>=2.4
 luma.oled>=2.4
 webcolors
-python_tsl2591
+# python_tsl2591
 
 ## SNYK
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

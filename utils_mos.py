@@ -143,7 +143,7 @@ def mos_analyze_datafile(
     except IOError as err:
         debugging.error("MOS data file could not be loaded.")
         debugging.error(err)
-        return err
+        return False, err
 
     mos_dict = parse_mos_data(lines)
 
@@ -305,7 +305,7 @@ def mos_analyze_datafile(
     debugging.info("Decoded MOS Data for Display")
     debugging.info(debugging.prettify_dict(mos_forecast))
     debugging.info("=-=-Decoded MOS Data for Display=-=-")
-    return mos_forecast
+    return True, mos_forecast
 
 
 def parse_mos_data(lines):

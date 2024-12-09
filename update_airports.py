@@ -49,6 +49,42 @@ import airport
 
 class AirportDB:
     """Airport Database - Keeping track of interesting sets of airport data."""
+    _app_conf = None
+    __dataset = None
+
+    _metar_serial = -1
+    _taf_serial = -1
+    _mos_serial = -1
+    _runway_serial = -1
+    _airport_serial = -1
+
+    airport_master_dict = {}
+
+    # Subset of airport_json_list that is active for live HTML page
+    airport_web_dict = {}
+
+    # Subset of airport_json_list that is active for LEDs
+    airport_led_dict = {}
+
+    # Copy of raw json entries loaded from config
+    airport_master_list = []
+
+    # Primary WX Data Sources
+    # Live RAW XML Data
+    metar_xml_dict = {}
+    metar_update_time = None
+
+    # Live RAW XML Data
+    taf_xml_dict = {}
+    taf_update_time = None
+
+    # Primary Data Sets - Imported from Internet/External Sources
+    # Runway Data
+    runway_data = None
+    # Airport Data
+    airport_data = None
+
+    _mos_forecast = None
 
     def __init__(self, conf, dataset_thread):
         """Create a database of Airports to be tracked."""
@@ -98,7 +134,17 @@ class AirportDB:
         self.airport_data = None
 
         self.load_airport_db()
+
+        self.__dataset = dataset_thread
+
+        self.populate_mos_data()
         debugging.info("AirportDB : init complete")
+
+    def populate_mos_data(self):
+        """Populate MOS data into ."""
+        if self.__dataset.mos_forecast_updated():
+            debugging.info(f"Updating MOS data into Airport datasets")
+            self._mos_forecast = self.__dataset.mos_forecast()
 
     def stats(self):
         """Return string containing pertinant stats."""
@@ -647,7 +693,10 @@ class AirportDB:
                 # self.update_airport_lat_lon()
                 # Need to use the data in airports.csv to provide lat/lon data for any airports..
 
-            # TODO: Add back in MOS processing in whatever new form it takes
+            if self._mos_serial < self.__dataset.mos_serial():
+                debugging.debug("Processing updated MOS data")
+                self._mos_serial = self.__dataset.mos_serial()
+                self.populate_mos_data()
 
             # FIXME: Key airport data - useful for debugging / health updates
             # Remove eventually

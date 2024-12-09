@@ -38,6 +38,7 @@ class DataSets:
     _airport_update_time = None
     _airport_serial_num = 0
 
+    _mos_forecast_updated = False
     _mos_forecast = None
 
     def __init__(self, app_conf):
@@ -73,6 +74,14 @@ class DataSets:
     def mos_serial(self):
         """Get dataset serial number."""
         return self._mos_serial_num
+
+    def mos_forecast_updated(self):
+        """Check if MOS forecast has been updated."""
+        return self._mos_forecast_updated
+
+    def mos_forecast(self):
+        """Get MOS Forecast."""
+        return self._mos_forecast
 
     def taf_update_time(self):
         """Get last time TAF data was updated."""
@@ -114,7 +123,7 @@ class DataSets:
             return False, etag_mos
 
         try:
-            self._mos_forecast = utils_mos.mos_analyze_datafile(
+            self._mos_forecast_updated, self._mos_forecast = utils_mos.mos_analyze_datafile(
                 self._app_conf,
             )
             # For each airplane in airplanedb ;
@@ -171,6 +180,13 @@ class DataSets:
         # etag_mos18 = None
         etag_runways = None
         etag_airports = None
+
+        # Initial load of MOS data set
+        if self._mos_forecast_updated == False:
+            self._mos_forecast_updated,  self._mos_forecast = utils_mos.mos_analyze_datafile(
+                self._app_conf,
+            )
+
 
         while True:
             debugging.debug(

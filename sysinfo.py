@@ -2,7 +2,6 @@
 """ Use psutil to query system information """
 
 import sys
-import socket
 import platform
 import datetime
 import time
@@ -28,7 +27,7 @@ class SystemData:
         self._internet_active = online_status
 
     def system_uptime(self):
-        """Update system uptime, in (days, hh:mm:ss) format"""
+        """Update system uptime, in (days, hh:mm:ss) format."""
         uptime = datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
         return datetime.timedelta(days=uptime.days, seconds=uptime.seconds)
 
@@ -37,7 +36,7 @@ class SystemData:
         return self._uptime
 
     def internet_connected(self):
-        """Internet Connected Status"""
+        """Internet Connected Status."""
         return self._internet_active
 
     def update_local_ip(self):

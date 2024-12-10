@@ -155,7 +155,7 @@ def mos_analyze_datafile(
         # Process HR line to get the hour values
         # Then for each of the collections ; process that line if it exists ; or fill in blanks if it doesn't.
         if "HR" not in mos_dict[airport_code]:
-            debugging.info(f"HR line missing for {airport_code}")
+            debugging.debug(f"HR line missing for {airport_code}")
             continue
         hour_keys_array = parse_hr_row(mos_dict[airport_code]["HR"])
 
@@ -180,7 +180,7 @@ def mos_analyze_datafile(
                 )
 
         if airport_code == "KBFI":
-            debugging.info(
+            debugging.debug(
                 f"MOS DICT {airport_code}\n{debugging.prettify_dict(result_dict[airport_code])}"
             )
 
@@ -303,8 +303,7 @@ def mos_analyze_datafile(
             mos_forecast[airport_code][index]["flightcategory"] = flightcategory
 
     debugging.info("Decoded MOS Data for Display")
-    debugging.info(debugging.prettify_dict(mos_forecast))
-    debugging.info("=-=-Decoded MOS Data for Display=-=-")
+    debugging.debug(debugging.prettify_dict(mos_forecast))
     return True, mos_forecast
 
 
@@ -329,9 +328,11 @@ def parse_mos_data(lines):
         # Check for and grab the Airport ID of the current MOS.
         if "MOS" in line:
             _unused1, loc_apid, mos_date = line.split(" ", 2)
-            debugging.info(f"::{line}")
+            # debugging.info(f"::{line}")
             mos_line_dict[loc_apid] = {}
             mos_line_dict[loc_apid]["MOS"] = line
+            mos_line_dict[loc_apid]["MOSDATE"] = mos_date
+
             ap_flag = 1
             continue
         # If we just found an airport, grab the appropriate weather data from it's MOS
@@ -430,11 +431,29 @@ def parse_hr_row(mos_row):
     return hour_array
 
 
-def get_mos_weather(mos_dict, app_conf, airport_id, hour_offset):
+def get_mos_weather(mos_forecast, app_conf, hour_offset):
     """Lookup forecast weather at airport_id, at hour_offset from now."""
-    mos_time = utils.current_time_hr_utc(app_conf) + hour_offset
-    if airport_id not in mos_dict:
-        return "UNKN"
-    if hour_offset in mos_dict[airport_id][hour_offset]:
-        return mos_dict[airport_id][hour_offset]["flightcategory"]
+    mos_time = utils.current_time_utc_plus_hr(app_conf, hour_offset)
+    debugging.info(f"get mos weather {mos_forecast}, {hour_offset}, {mos_time}")
+    target_month = mos_time.strftime("%b").upper()
+    debugging.info(f"MOS month: {target_month}")
+    target_day = mos_time.day
+    debugging.info(f"MOS day: {target_day}")
+    target_hour = mos_time.hour
+    debugging.info(f"MOS hour: {target_hour}")
+    debugging.info(f"Starting mos scan loop")
+    for index in range(len(mos_forecast)):
+        forecast_day = int(mos_forecast[index]["day"])
+        forecast_month = mos_forecast[index]["month"]
+        forecast_hour = int(mos_forecast[index]["hour"])
+        debugging.info(
+            f"get mos weather {index},{hour_offset} :{forecast_day}/{forecast_month}/{forecast_hour}:{target_day}/{target_month}/{target_hour}"
+        )
+        if (
+            (forecast_day == target_day)
+            and (forecast_month == target_month)
+            and (forecast_hour <= target_hour)
+            and (forecast_hour+3 >= target_hour)
+        ):
+            return mos_forecast[index]["flightcategory"]
     return "UNKN"

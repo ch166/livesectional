@@ -103,6 +103,8 @@ class Airport:
         self.__wx_category_str = "UNSET"
         self.__ceiling = None
 
+        self._mos_forecast = None
+
         # HeatMap
         self.hm_index = 0
 
@@ -164,6 +166,22 @@ class Airport:
         self.__metar = metartext
         self.__metar_date = datetime.now()
         self.updated_time = datetime.now()
+
+    def set_mos_forecast(self, mos_forecast):
+        """Update MOS forecast."""
+        self._mos_forecast = mos_forecast
+
+    def get_full_mos_forecast(self):
+        """Update MOS forecast."""
+        return self._mos_forecast
+
+    def get_mos_forecast(self, hour_offset):
+        """Get MOS data for future time."""
+        # Verify hour_offset is in future
+        # time_now = utils.current_time_utc
+        if hour_offset in self._mos_forecast:
+            return self._mos_forecast[hour_offset]
+        return "UNKN"
 
     def get_raw_metar(self):
         """Return raw METAR data."""

@@ -123,8 +123,10 @@ class DataSets:
             return False, etag_mos
 
         try:
-            self._mos_forecast_updated, self._mos_forecast = utils_mos.mos_analyze_datafile(
-                self._app_conf,
+            self._mos_forecast_updated, self._mos_forecast = (
+                utils_mos.mos_analyze_datafile(
+                    self._app_conf,
+                )
             )
             # For each airplane in airplanedb ;
             # get MOS data
@@ -183,10 +185,11 @@ class DataSets:
 
         # Initial load of MOS data set
         if self._mos_forecast_updated == False:
-            self._mos_forecast_updated,  self._mos_forecast = utils_mos.mos_analyze_datafile(
-                self._app_conf,
+            self._mos_forecast_updated, self._mos_forecast = (
+                utils_mos.mos_analyze_datafile(
+                    self._app_conf,
+                )
             )
-
 
         while True:
             debugging.debug(

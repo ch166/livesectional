@@ -49,6 +49,7 @@ import airport
 
 class AirportDB:
     """Airport Database - Keeping track of interesting sets of airport data."""
+
     _app_conf = None
     __dataset = None
 
@@ -144,7 +145,13 @@ class AirportDB:
         """Populate MOS data into ."""
         if self.__dataset.mos_forecast_updated():
             debugging.info(f"Updating MOS data into Airport datasets")
-            self._mos_forecast = self.__dataset.mos_forecast()
+            mos_forecast = self.__dataset.mos_forecast()
+            for airport_icao, airport_obj in self.airport_master_dict.items():
+                debugging.debug(f"Trying to update MOS for {airport_icao}")
+                airport_icao = airport_icao.upper()
+                if airport_icao in mos_forecast:
+                    # debugging.debug( f"Found MOS for {airport_icao}/{mos_forecast[airport_icao]}")
+                    airport_obj.set_mos_forecast(mos_forecast[airport_icao])
 
     def stats(self):
         """Return string containing pertinant stats."""
@@ -159,6 +166,13 @@ class AirportDB:
     def get_airport(self, airport_icao):
         """Return a single Airport."""
         return self.airport_master_dict[airport_icao]
+
+    def get_airport_mos(self, airport_icao):
+        """Return a single Airport MOS."""
+        result = None
+        if airport_icao in self._mos_forecast:
+            result = self._mos_forecast[airport_icao]
+        return result
 
     def get_airport_taf(self, airport_icao):
         """Return a single Airport TAF."""

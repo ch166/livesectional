@@ -136,7 +136,7 @@ def hex2rgb(value):
     value = value.lstrip("#")
     length_v = len(value)
     return tuple(
-        int(value[i : i + length_v // 3], 16) for i in range(0, length_v, length_v // 3)
+        int(value[ir: i + length_v // 3], 16) for i in range(0, length_v, length_v // 3)
     )
 
 
@@ -357,6 +357,11 @@ def current_time_utc(app_conf):
     return datetime.datetime.now(pytz.utc)
 
 
+def current_time_utc_plus_hr(app_conf, hour_interval):
+    """Get time in UTC."""
+    return datetime.datetime.now(pytz.utc) + datetime.timedelta(hours=hour_interval)
+
+
 def current_time(app_conf):
     """Get time Now."""
     return datetime.datetime.now(
@@ -380,7 +385,7 @@ def future_taf_time(app_conf, hr_increment):
 def current_time_taf_offset(app_conf):
     """Get time for TAF period selected (UTC)."""
     offset = app_conf.get_int("rotaryswitch", "hour_to_display")
-    curr_time = datetime.datetime.now(pytz.utc) + timedelta(hours=offset)
+    curr_time = datetime.datetime.now(pytz.utc) + datetime.timedelta(hours=offset)
     return pytz.UTC.localize(curr_time)
 
 

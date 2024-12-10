@@ -2,3 +2,6 @@
 Tracking known system level library dependencies 
 
 - lxml needs libxslt1
+
+swig liblgpio1 liblgpio-dev
+libjpeg-dev libpython3-dev

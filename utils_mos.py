@@ -453,7 +453,7 @@ def get_mos_weather(mos_forecast, app_conf, hour_offset):
             (forecast_day == target_day)
             and (forecast_month == target_month)
             and (forecast_hour <= target_hour)
-            and (forecast_hour+3 >= target_hour)
+            and (forecast_hour + 3 >= target_hour)
         ):
             return mos_forecast[index]["flightcategory"]
     return "UNKN"

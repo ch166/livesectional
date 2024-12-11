@@ -760,8 +760,12 @@ class WebViews:
             wx_data["longitude"] = airport_obj.longitude()
             wx_data["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
             wx_data["get_wx_windspeed"] = airport_obj.get_wx_windspeed()
-            wx_data["mos_1hr"] = utils_mos.get_mos_weather(airport_obj.get_full_mos_forecast(), self._app_conf, 1)
-            wx_data["mos_8hr"] = utils_mos.get_mos_weather(airport_obj.get_full_mos_forecast(), self._app_conf, 8)
+            wx_data["mos_1hr"] = utils_mos.get_mos_weather(
+                airport_obj.get_full_mos_forecast(), self._app_conf, 1
+            )
+            wx_data["mos_8hr"] = utils_mos.get_mos_weather(
+                airport_obj.get_full_mos_forecast(), self._app_conf, 8
+            )
         except Exception as err:
             debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
 

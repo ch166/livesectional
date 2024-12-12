@@ -51,9 +51,23 @@ class WebViews:
     update_vers = None
     machines = []  # type: list[str]
     update_available = None
-    ap_info = None
-    settings = None
     led_map_dict = {}  # type: dict
+    _ledmodelist = [
+        "METAR",
+        "Off",
+        "Test",
+        "Rabbit",
+        "Shuffle",
+        "Rainbow",
+        "TAF 1",
+        "TAF 2",
+        "TAF 3",
+        "TAF 4",
+        "MOS 1",
+        "MOS 2",
+        "MOS 3",
+        "MOS 4",
+    ]
 
     def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt):
         self._app_conf = config
@@ -267,28 +281,24 @@ class WebViews:
                 self._led_strip.set_ledmode(LedMode.TAF_3)
             if newledmode_upper == "TAF 4":
                 self._led_strip.set_ledmode(LedMode.TAF_4)
+            if newledmode_upper == "MOS 1":
+                self._led_strip.set_ledmode(LedMode.MOS_1)
+            if newledmode_upper == "MOS 2":
+                self._led_strip.set_ledmode(LedMode.MOS_2)
+            if newledmode_upper == "MOS 3":
+                self._led_strip.set_ledmode(LedMode.MOS_3)
+            if newledmode_upper == "MOS 4":
+                self._led_strip.set_ledmode(LedMode.MOS_4)
 
             flash(f"LED Mode set to {newledmode}")
             debugging.info(f"LEDMode set to {newledmode}")
             return redirect("ledmodeset")
 
-        ledmodelist = [
-            "METAR",
-            "Off",
-            "Test",
-            "Rabbit",
-            "Shuffle",
-            "Rainbow",
-            "TAF 1",
-            "TAF 2",
-            "TAF 3",
-            "TAF 4",
-        ]
         current_ledmode = self._led_strip.ledmode()
 
         template_data = self.standardtemplate_data()
         template_data["title"] = "LEDModeSet"
-        template_data["ledoptionlist"] = ledmodelist
+        template_data["ledoptionlist"] = self._ledmodelist
         template_data["current_ledmode"] = current_ledmode
 
         debugging.info("Opening LEDode Set page")

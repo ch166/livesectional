@@ -143,7 +143,7 @@ def mos_analyze_datafile(
     except IOError as err:
         debugging.error("MOS data file could not be loaded.")
         debugging.error(err)
-        return False, err
+        return False, None
 
     mos_dict = parse_mos_data(lines)
 
@@ -434,21 +434,13 @@ def parse_hr_row(mos_row):
 def get_mos_weather(mos_forecast, app_conf, hour_offset):
     """Lookup forecast weather at airport_id, at hour_offset from now."""
     mos_time = utils.current_time_utc_plus_hr(app_conf, hour_offset)
-    debugging.info(f"get mos weather {mos_forecast}, {hour_offset}, {mos_time}")
     target_month = mos_time.strftime("%b").upper()
-    debugging.info(f"MOS month: {target_month}")
     target_day = mos_time.day
-    debugging.info(f"MOS day: {target_day}")
     target_hour = mos_time.hour
-    debugging.info(f"MOS hour: {target_hour}")
-    debugging.info(f"Starting mos scan loop")
     for index in range(len(mos_forecast)):
         forecast_day = int(mos_forecast[index]["day"])
         forecast_month = mos_forecast[index]["month"]
         forecast_hour = int(mos_forecast[index]["hour"])
-        debugging.info(
-            f"get mos weather {index},{hour_offset} :{forecast_day}/{forecast_month}/{forecast_hour}:{target_day}/{target_month}/{target_hour}"
-        )
         if (
             (forecast_day == target_day)
             and (forecast_month == target_month)

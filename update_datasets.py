@@ -128,9 +128,6 @@ class DataSets:
                     self._app_conf,
                 )
             )
-            # For each airplane in airplanedb ;
-            # get MOS data
-            # push to airplane db
         except Exception as err:
             debugging.error("MOS Refresh")
             debugging.error(err)
@@ -184,12 +181,11 @@ class DataSets:
         etag_airports = None
 
         # Initial load of MOS data set
-        if self._mos_forecast_updated == False:
-            self._mos_forecast_updated, self._mos_forecast = (
-                utils_mos.mos_analyze_datafile(
-                    self._app_conf,
-                )
+        self._mos_forecast_updated, self._mos_forecast = (
+            utils_mos.mos_analyze_datafile(
+                self._app_conf,
             )
+        )
 
         while True:
             debugging.debug(

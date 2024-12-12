@@ -9,14 +9,14 @@ Created on Sat Jun 15 08:01:44 2019.
 # products. It's initially focused on processing METARs, but will end up including all of the functions
 # related to TAFs and MOS data.
 #
-# It is comprised of an AirportDB class - which provides collections of Airport objects
+# It comprises an AirportDB class - which provides collections of Airport objects
 # - List of airports associated with LED Strings (airports, null, legend etc)
 # - List of airports associated with OLED displays
 # - List of airports associated with HDMI displays (future)
 # - List of airports associated with Web Pages (future)
 #
-# Each list is comprised of an Airport object ( airport.py )
-# The airport object stores all of the interesting data for an airport
+# Each list comprises an Airport object ( airport.py )
+# The airport object stores all the interesting data for an airport
 # - Airport ICAO code
 # - Weather Source ( adds , metar URL, future options)
 # - Airport Code to use for WX data (future - for airports without active ASOS/AWOS reporting)
@@ -51,7 +51,7 @@ class AirportDB:
     """Airport Database - Keeping track of interesting sets of airport data."""
 
     _app_conf = None
-    __dataset = None
+    _dataset = None
 
     _metar_serial = -1
     _taf_serial = -1
@@ -97,7 +97,7 @@ class AirportDB:
 
         # Reference to Global Configuration Data
         self._app_conf = conf
-        self.__dataset = dataset_thread
+        self._dataset = dataset_thread
 
         self._metar_serial = -1
         self._taf_serial = -1
@@ -136,22 +136,25 @@ class AirportDB:
 
         self.load_airport_db()
 
-        self.__dataset = dataset_thread
+        self._dataset = dataset_thread
 
         self.populate_mos_data()
         debugging.info("AirportDB : init complete")
 
     def populate_mos_data(self):
-        """Populate MOS data into ."""
-        if self.__dataset.mos_forecast_updated():
-            debugging.info(f"Updating MOS data into Airport datasets")
-            mos_forecast = self.__dataset.mos_forecast()
-            for airport_icao, airport_obj in self.airport_master_dict.items():
-                debugging.debug(f"Trying to update MOS for {airport_icao}")
-                airport_icao = airport_icao.upper()
-                if airport_icao in mos_forecast:
-                    # debugging.debug( f"Found MOS for {airport_icao}/{mos_forecast[airport_icao]}")
-                    airport_obj.set_mos_forecast(mos_forecast[airport_icao])
+        """Populate MOS data into airport records ."""
+        debugging.info(f"Updating MOS data into Airport datasets")
+        mos_forecast = self._dataset.mos_forecast()
+        if mos_forecast is None:
+            debugging.info(f"populate_mos_data failed: MOS data is None")
+            return
+        debugging.info(f"populate_mos_data :{mos_forecast}:")
+        for airport_icao, airport_obj in self.airport_master_dict.items():
+            debugging.debug(f"Trying to update MOS for {airport_icao}")
+            airport_icao = airport_icao.upper()
+            if airport_icao in mos_forecast:
+                # debugging.info(f"Found MOS for {airport_icao}/{mos_forecast[airport_icao]}")
+                airport_obj.set_mos_forecast(mos_forecast[airport_icao])
 
     def stats(self):
         """Return string containing pertinant stats."""
@@ -170,8 +173,9 @@ class AirportDB:
     def get_airport_mos(self, airport_icao):
         """Return a single Airport MOS."""
         result = None
-        if airport_icao in self._mos_forecast:
-            result = self._mos_forecast[airport_icao]
+        airport_obj = self.get_airport(airport_icao.lower())
+        if airport_obj is not None:
+            result = airport_obj.get_full_mos_forecast()
         return result
 
     def get_airport_taf(self, airport_icao):
@@ -683,33 +687,33 @@ class AirportDB:
                 f"Updating Airport Data .. every aviation_weather_adds_timer ({aviation_weather_adds_timer})m)"
             )
 
-            if self._metar_serial < self.__dataset.metar_serial():
+            if self._metar_serial < self._dataset.metar_serial():
                 debugging.debug("Processing updated METAR data")
-                self._metar_serial = self.__dataset.metar_serial()
+                self._metar_serial = self._dataset.metar_serial()
                 self.update_airportdb_metar_xml()
 
-            if self._taf_serial < self.__dataset.taf_serial():
+            if self._taf_serial < self._dataset.taf_serial():
                 debugging.debug("Processing updated TAF data")
-                self._taf_serial = self.__dataset.taf_serial()
+                self._taf_serial = self._dataset.taf_serial()
                 self.update_airport_taf_xml()
 
-            if self._runway_serial < self.__dataset.runway_serial():
+            if self._runway_serial < self._dataset.runway_serial():
                 debugging.debug("Processing updated Runway data")
-                self._runway_serial = self.__dataset.runway_serial()
+                self._runway_serial = self._dataset.runway_serial()
                 self.import_runways()
                 # TODO: Figure out when this should be run - if not every time
                 self.update_airport_runways()
 
-            if self._airport_serial < self.__dataset.airport_serial():
+            if self._airport_serial < self._dataset.airport_serial():
                 debugging.debug("Processing updated Airport data")
-                self._airport_serial = self.__dataset.airport_serial()
+                self._airport_serial = self._dataset.airport_serial()
                 self.import_airport_geo_data()
                 # self.update_airport_lat_lon()
                 # Need to use the data in airports.csv to provide lat/lon data for any airports..
 
-            if self._mos_serial < self.__dataset.mos_serial():
+            if self._mos_serial < self._dataset.mos_serial():
                 debugging.debug("Processing updated MOS data")
-                self._mos_serial = self.__dataset.mos_serial()
+                self._mos_serial = self._dataset.mos_serial()
                 self.populate_mos_data()
 
             # FIXME: Key airport data - useful for debugging / health updates

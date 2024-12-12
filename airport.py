@@ -34,6 +34,7 @@ import debugging
 
 import utils
 import utils_wx
+import utils_mos
 
 
 class AirportFlightCategory(Enum):
@@ -175,13 +176,11 @@ class Airport:
         """Update MOS forecast."""
         return self._mos_forecast
 
-    def get_mos_forecast(self, hour_offset):
+    def get_mos_forecast(self, app_conf, hour_offset):
         """Get MOS data for future time."""
-        # Verify hour_offset is in future
-        # time_now = utils.current_time_utc
-        if hour_offset in self._mos_forecast:
-            return self._mos_forecast[hour_offset]
-        return "UNKN"
+        flightcategory = "UNKN"
+        flightcategory = utils_mos.get_mos_weather(self._mos_forecast, app_conf, hour_offset)
+        return flightcategory
 
     def get_raw_metar(self):
         """Return raw METAR data."""

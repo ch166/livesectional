@@ -65,6 +65,7 @@ import debugging
 import utils
 import utils_colors
 import utils_gfx
+import utils_mos
 
 
 class LedMode(Enum):
@@ -742,20 +743,16 @@ class UpdateLEDs:
 
     def airport_mos_flightcategory(self, airport, hr_offset):
         """Get Flight Category for MOS data"""
-
-        # FIXME: This needs to lookup the airport's MOS data
-        # Currently taking an hr_offset ;
-        airport_taf_dict = self._airport_database.get_airport_taf(airport)
-        if airport_taf_dict is None:
+        airport_mos_dict = self._airport_database.get_airport_mos(airport)
+        if airport_mos_dict is None:
+            debugging.debug(f"airport_mos_flightcategory: airport_mos_dict is NONE")
             return None
-        debugging.info(f"{airport}:taf:{airport_taf_dict}")
-        airport_taf_future = self._airport_database.airport_taf_future(
-            airport, hr_offset
-        )
-        if airport_taf_future is None:
+        airport_mos_future = utils_mos.get_mos_weather(self._airport_database.get_airport_mos(airport.upper()), self._app_conf, hr_offset)
+        if airport_mos_future is None:
+            debugging.info(f"airport_mos_future: airport_mos_future is NONE")
             return None
-        debugging.info(f"{airport}:forecast:{airport_taf_future}")
-        return airport_taf_future["flightcategory"]
+        # debugging.info(f"{airport}:forecast:{airport_mos_future}")
+        return airport_mos_future
 
     def ledmode_test(self, clocktick):
         """Run self test sequences."""
@@ -1092,7 +1089,7 @@ class UpdateLEDs:
                 ledcolor = self._app_confcache["unkn_color"]
 
             if (clocktick % 150) == 0:
-                debugging.debug(
+                debugging.info(
                     f"ledmode_mos: {airportcode}:{flightcategory}:{airportled}:{ledcolor}"
                 )
             led_updated_dict[airportled] = ledcolor

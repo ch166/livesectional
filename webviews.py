@@ -758,11 +758,13 @@ class WebViews:
             "longitude": "Not Set",
             "get_wx_dir_degrees": "Not Set",
             "get_wx_windspeed": "Not Set",
-            "mos_1hr": "Not Set",
-            "mos_8hr": "Not Set",
+            "taf": "No TAF Set",
+            "mos_1hr": "No MOS 1hr set",
+            "mos_8hr": "No MOS 8hr set",
         }
         try:
             airport_obj = self._airport_database.get_airport(airport)
+            airport_taf = self._airport_database.get_airport_taf(airport)
             wx_data["airport"] = airport_obj.icaocode()
             wx_data["metar"] = airport_obj.get_raw_metar()
             wx_data["flightcategory"] = airport_obj.flightcategory()
@@ -770,6 +772,7 @@ class WebViews:
             wx_data["longitude"] = airport_obj.longitude()
             wx_data["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
             wx_data["get_wx_windspeed"] = airport_obj.get_wx_windspeed()
+            wx_data["taf"] = airport_taf
             wx_data["mos_1hr"] = utils_mos.get_mos_weather(
                 airport_obj.get_full_mos_forecast(), self._app_conf, 1
             )
@@ -831,7 +834,7 @@ class WebViews:
             with open(
                 "logs/airport_database_taf.txt", "w", encoding="ascii"
             ) as outfile:
-                airportdb = self._airport_database.get_airportxmldb()
+                airportdb = self._airport_database.get_airport_xmldb()
                 counter = 0
                 for icao, airport_obj in airportdb.items():
                     airport_metar = airport_obj.get_raw_metar()
@@ -933,6 +936,8 @@ class WebViews:
     def numap(self):
         """Flask Route: /numap."""
         debugging.info("Updating Number of airports in airport file")
+
+        loc_numap = 0
 
         if request.method == "POST":
             loc_numap = int(request.form["numofap"])

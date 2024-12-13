@@ -55,11 +55,7 @@ from enum import Enum, auto
 import colorsys
 import ast
 
-from rpi_ws281x import (
-    Color,
-    PixelStrip,
-    ws,
-)  # works with python 3.7. sudo pip3 install rpi_ws281x
+from rpi_ws281x import Color, PixelStrip, ws
 
 import debugging
 import utils
@@ -569,14 +565,13 @@ class UpdateLEDs:
             color = utils_colors.black()
         return color
 
-    def check_for_sleep_time(self, clocktick, sleeping, original_state):
+    def check_for_sleep_time(self, clocktick, sleeping, default_led_mode):
         debugging.info(f"Checking if it's time for sleep mode: {clocktick}")
         datetime_now = utils.current_time(self._app_conf)
         time_now = datetime_now.time()
         if utils.time_in_range(self._offtime, self._ontime, time_now):
             if not sleeping:
                 debugging.info("Enabling sleeping mode...")
-                original_state = self._led_mode
                 self._led_mode = LedMode.SLEEP
                 sleeping = True
             else:
@@ -584,14 +579,14 @@ class UpdateLEDs:
                 debugging.info(f"Sleeping .. {clocktick}")
         elif sleeping:
             debugging.info(f"Disabling sleeping mode... {clocktick} ")
-            self._led_mode = original_state
+            self._led_mode = default_led_mode
             sleeping = False
         return sleeping
 
     def update_loop(self):
         """LED Display Loop - supporting multiple functions."""
         sleeping = False
-        original_state = LedMode.METAR
+        default_led_mode = LedMode.METAR
         self.update_active_led_list()
         self.turnoff()
         # Tick values are used to provide a ticking clock interval that can be used by functions that want to have
@@ -612,7 +607,7 @@ class UpdateLEDs:
                 self.update_active_led_list()
                 if self.nightsleep:
                     sleeping = self.check_for_sleep_time(
-                        clocktick, sleeping, original_state
+                        clocktick, sleeping, default_led_mode
                     )
 
             if self._led_mode in (LedMode.OFF, LedMode.SLEEP):
@@ -747,7 +742,11 @@ class UpdateLEDs:
         if airport_mos_dict is None:
             debugging.debug(f"airport_mos_flightcategory: airport_mos_dict is NONE")
             return None
-        airport_mos_future = utils_mos.get_mos_weather(self._airport_database.get_airport_mos(airport.upper()), self._app_conf, hr_offset)
+        airport_mos_future = utils_mos.get_mos_weather(
+            self._airport_database.get_airport_mos(airport.upper()),
+            self._app_conf,
+            hr_offset,
+        )
         if airport_mos_future is None:
             debugging.info(f"airport_mos_future: airport_mos_future is NONE")
             return None
@@ -758,63 +757,63 @@ class UpdateLEDs:
         """Run self test sequences."""
         return self.colorwipe(clocktick)
 
-    def legend_color(self, airportwxsrc, cycle_num):
+    def legend_color(self, airport_wxsrc, cycle_num):
         """Work out the color for the legend LEDs."""
         ledcolor = utils_colors.off()
-        if airportwxsrc == "vfr":
+        if airport_wxsrc == "vfr":
             ledcolor = self._app_confcache["vfr_color"]
-        if airportwxsrc == "mvfr":
+        if airport_wxsrc == "mvfr":
             ledcolor = self._app_confcache["mvfr_color"]
-        if airportwxsrc == "ifr":
+        if airport_wxsrc == "ifr":
             ledcolor = self._app_confcache["ifr_color"]
-        if airportwxsrc == "lifr":
+        if airport_wxsrc == "lifr":
             ledcolor = self._app_confcache["lifr_color"]
-        if airportwxsrc == "unkn":
+        if airport_wxsrc == "unkn":
             ledcolor = self._app_confcache["unkn_color"]
-        if airportwxsrc == "hiwind":
-            if cycle_num in (3, 4, 5):
+        if airport_wxsrc == "hiwind":
+            if cycle_num in [3, 4, 5]:
                 ledcolor = utils_colors.off()
             else:
                 ledcolor = self._app_confcache["ifr_color"]
-        if airportwxsrc == "lghtn":
-            if cycle_num in (2, 4):
+        if airport_wxsrc == "lghtn":
+            if cycle_num in [2, 4]:
                 ledcolor = utils_colors.wx_lightning(self._app_conf)
             else:
                 ledcolor = self._app_confcache["mvfr_color"]
-        if airportwxsrc == "snow":
-            if cycle_num in (3, 5):  # Check for Snow
+        if airport_wxsrc == "snow":
+            if cycle_num in [3, 5]:  # Check for Snow
                 ledcolor = utils_colors.wx_snow(self._app_conf, 1)
-            if cycle_num == 4:
+            elif cycle_num == 4:
                 ledcolor = utils_colors.wx_snow(self._app_conf, 2)
             else:
                 ledcolor = self._app_confcache["lifr_color"]
-        if airportwxsrc == "rain":
-            if cycle_num in (3, 5):  # Check for Rain
+        if airport_wxsrc == "rain":
+            if cycle_num in [3, 5]:  # Check for Rain
                 ledcolor = utils_colors.wx_rain(self._app_conf, 1)
-            if cycle_num == 4:
+            elif cycle_num == 4:
                 ledcolor = utils_colors.wx_rain(self._app_conf, 2)
             else:
                 ledcolor = self._app_confcache["vfr_color"]
-        if airportwxsrc == "frrain":
-            if cycle_num in (3, 5):  # Check for Freezing Rain
+        if airport_wxsrc == "frrain":
+            if cycle_num in [3, 5]:  # Check for Freezing Rain
                 ledcolor = utils_colors.wx_frzrain(self._app_conf, 1)
-            if cycle_num == 4:
+            elif cycle_num == 4:
                 ledcolor = utils_colors.wx_frzrain(self._app_conf, 2)
             else:
                 ledcolor = self._app_confcache["mvfr_color"]
-        if airportwxsrc == "dust":
-            if cycle_num in (3, 5):  # Check for Dust, Sand or Ash
+        if airport_wxsrc == "dust":
+            if cycle_num in [3, 5]:  # Check for Dust, Sand or Ash
                 ledcolor = utils_colors.wx_dust_sand_ash(self._app_conf, 1)
-            if cycle_num == 4:
+            elif cycle_num == 4:
                 ledcolor = utils_colors.wx_dust_sand_ash(self._app_conf, 2)
             else:
                 ledcolor = self._app_confcache["vfr_color"]
-        if airportwxsrc == "fog":
-            if cycle_num in (3, 5):  # Check for Fog
+        if airport_wxsrc == "fog":
+            if cycle_num in [3, 5]:  # Check for Fog
                 ledcolor = utils_colors.wx_fog(self._app_conf, 1)
-            if cycle_num == 4:
+            elif cycle_num == 4:
                 ledcolor = utils_colors.wx_fog(self._app_conf, 2)
-            elif cycle_num in (0, 1, 2):
+            elif cycle_num in [0, 1, 2]:
                 ledcolor = self._app_confcache["ifr_color"]
         return ledcolor
 
@@ -829,16 +828,16 @@ class UpdateLEDs:
 
         for airport_key, airport_obj in airport_list.items():
             airportcode = airport_obj.icaocode()
-            airportled = airport_obj.get_led_index()
-            airportwxsrc = airport_obj.wxsrc()
+            airport_led = airport_obj.get_led_index()
+            airport_wxsrc = airport_obj.wxsrc()
             if not airportcode:
                 continue
             if airportcode.startswith("null"):
-                led_updated_dict[airportled] = utils_colors.off()
+                led_updated_dict[airport_led] = utils_colors.off()
                 continue
             if airportcode.startswith("lgnd"):
-                ledcolor = self.legend_color(airportwxsrc, cycle_num)
-                led_updated_dict[airportled] = ledcolor
+                ledcolor = self.legend_color(airport_wxsrc, cycle_num)
+                led_updated_dict[airport_led] = ledcolor
                 continue
 
             # Initialize color
@@ -873,33 +872,33 @@ class UpdateLEDs:
             if self._app_confcache["lights_highwindblink"]:
                 # bypass if "hiwindblink" is set to 0
                 if int(airportwinds) >= self._app_confcache["metar_maxwindspeed"] and (
-                    cycle_num in (3, 4, 5)
+                    cycle_num in [3, 4, 5]
                 ):
                     ledcolor = utils_colors.off()
                     debugging.debug(f"HIGH WINDS {airportcode} : {airportwinds} kts")
 
             if self._app_confcache["lights_lghtnflash"]:
                 # Check for Thunderstorms
-                if airport_conditions in self.wx_lghtn_ck and (cycle_num in (2, 4)):
+                if airport_conditions in self.wx_lghtn_ck and (cycle_num in [2, 4]):
                     ledcolor = utils_colors.wx_lightning(self._app_conf)
 
             if self._app_confcache["lights_snowshow"]:
                 # Check for Snow
-                if airport_conditions in self.wx_snow_ck and (cycle_num in (3, 5)):
+                if airport_conditions in self.wx_snow_ck and (cycle_num in [3, 5]):
                     ledcolor = utils_colors.wx_snow(self._app_conf, 1)
                 if airport_conditions in self.wx_snow_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_snow(self._app_conf, 2)
 
             if self._app_confcache["lights_rainshow"]:
                 # Check for Rain
-                if airport_conditions in self.wx_rain_ck and (cycle_num in (3, 4)):
+                if airport_conditions in self.wx_rain_ck and (cycle_num in [3, 4]):
                     ledcolor = utils_colors.wx_rain(self._app_conf, 1)
                 if airport_conditions in self.wx_rain_ck and cycle_num == 5:
                     ledcolor = utils_colors.wx_rain(self._app_conf, 2)
 
             if self._app_confcache["lights_frrainshow"]:
                 # Check for Freezing Rain
-                if airport_conditions in self.wx_frrain_ck and (cycle_num in (3, 5)):
+                if airport_conditions in self.wx_frrain_ck and (cycle_num in [3, 5]):
                     ledcolor = utils_colors.wx_frzrain(self._app_conf, 1)
                 if airport_conditions in self.wx_frrain_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_frzrain(self._app_conf, 2)
@@ -907,7 +906,7 @@ class UpdateLEDs:
             if self._app_confcache["lights_dustsandashshow"]:
                 # Check for Dust, Sand or Ash
                 if airport_conditions in self.wx_dustsandash_ck and (
-                    cycle_num in (3, 5)
+                    cycle_num in [3, 5]
                 ):
                     ledcolor = utils_colors.wx_dust_sand_ash(self._app_conf, 1)
                 if airport_conditions in self.wx_dustsandash_ck and cycle_num == 4:
@@ -915,7 +914,7 @@ class UpdateLEDs:
 
             if self._app_confcache["lights_fogshow"]:
                 # Check for Fog
-                if airport_conditions in self.wx_fog_ck and (cycle_num in (3, 5)):
+                if airport_conditions in self.wx_fog_ck and (cycle_num in [3, 5]):
                     ledcolor = utils_colors.wx_fog(self._app_conf, 1)
                 if airport_conditions in self.wx_fog_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_fog(self._app_conf, 2)
@@ -924,7 +923,7 @@ class UpdateLEDs:
             # so that every other time through, the color will display the proper weather, then homeport color(s).
             self.homeport_toggle = not self.homeport_toggle
             if (
-                airportled == self._app_confcache["lights_homeportpin"]
+                airport_led == self._app_confcache["lights_homeportpin"]
                 and self._app_confcache["lights_homeport"]
                 and self.homeport_toggle
             ):
@@ -958,9 +957,9 @@ class UpdateLEDs:
 
             if (clocktick % 150) == 0:
                 debugging.info(
-                    f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airportled}:{ledcolor}"
+                    f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airport_led}:{ledcolor}"
                 )
-            led_updated_dict[airportled] = ledcolor
+            led_updated_dict[airport_led] = ledcolor
         # Add cycle delay to this loop
         time.sleep(self._cycle_wait[cycle_num])
         return led_updated_dict
@@ -1394,13 +1393,11 @@ class UpdateLEDs:
     def morse(self, color1, color2, msg, delay):
         """Display Morse message."""
         # define timing of morse display
-        dot_leng = self._wait * 1
-        dash_leng = self._wait * 3
-        bet_symb_leng = self._wait * 1
-        bet_let_leng = self._wait * 3
-        bet_word_leng = (
-            self._wait * 4
-        )  # logic will add bet_let_leng + bet_word_leng = 7
+        dot_len = self._wait * 1
+        dash_len = self._wait * 3
+        bet_symb_len = self._wait * 1
+        bet_let_len = self._wait * 3
+        bet_word_len = self._wait * 4  # logic will add bet_let_len + bet_word_len = 7
 
         for char in self._app_conf("rotaryswitch", "morse_msg"):
             letter = []
@@ -1410,9 +1407,9 @@ class UpdateLEDs:
 
                 for val in letter:  # display individual dot/dash with proper timing
                     if val == ".":
-                        morse_signal = dot_leng
+                        morse_signal = dot_len
                     else:
-                        morse_signal = dash_leng
+                        morse_signal = dash_len
 
                     for led_index in range(self.num_pixels()):  # turn LED's on
                         if (
@@ -1432,12 +1429,12 @@ class UpdateLEDs:
                         else:
                             self.set_led_color(led_index, color2)
                     self.show()
-                    time.sleep(bet_symb_leng)  # timing between symbols
-                time.sleep(bet_let_leng)  # timing between letters
+                    time.sleep(bet_symb_len)  # timing between symbols
+                time.sleep(bet_let_len)  # timing between letters
 
             else:  # if character in morse_msg is not part of the Morse Code Alphabet, substitute a '/'
                 if char == " ":
-                    time.sleep(bet_word_leng)
+                    time.sleep(bet_word_len)
 
                 else:
                     char = "/"
@@ -1445,9 +1442,9 @@ class UpdateLEDs:
 
                     for val in letter:  # display individual dot/dash with proper timing
                         if val == ".":
-                            morse_signal = dot_leng
+                            morse_signal = dot_len
                         else:
-                            morse_signal = dash_leng
+                            morse_signal = dash_len
 
                         for led_index in range(self.num_pixels()):  # turn LED's on
                             if (
@@ -1467,9 +1464,8 @@ class UpdateLEDs:
                             else:
                                 self.set_led_color(led_index, color2)
                         self.show()
-                        time.sleep(bet_symb_leng)  # timing between symbols
-
-                    time.sleep(bet_let_leng)  # timing between letters
+                        time.sleep(bet_symb_len)  # timing between symbols
+                    time.sleep(bet_let_len)  # timing between letters
 
         time.sleep(delay)
 

@@ -6,11 +6,11 @@ Created on Sat Jun 15 08:01:44 2019.
 """
 
 # This is the collection and aggregation of all functions that manage Airports and airport weather
-# products. It's initially focused on processing METARs, but will end up including all of the functions
+# products. It's initially focused on processing METARs, but will end up including all the functions
 # related to TAFs and MOS data.
 #
 # It comprises an AirportDB class - which provides collections of Airport objects
-# - List of airports associated with LED Strings (airports, null, legend etc)
+# - List of airports associated with LED Strings (airports, null, legend etc.)
 # - List of airports associated with OLED displays
 # - List of airports associated with HDMI displays (future)
 # - List of airports associated with Web Pages (future)
@@ -44,6 +44,7 @@ from lxml import etree
 import debugging
 
 import utils
+import utils_taf
 import airport
 
 
@@ -59,33 +60,27 @@ class AirportDB:
     _runway_serial = -1
     _airport_serial = -1
 
-    airport_master_dict = {}
+    _airport_master_dict = {}
 
     # Subset of airport_json_list that is active for live HTML page
-    airport_web_dict = {}
-
+    _airport_web_dict = {}
     # Subset of airport_json_list that is active for LEDs
-    airport_led_dict = {}
+    _airport_led_dict = {}
 
     # Copy of raw json entries loaded from config
-    airport_master_list = []
+    _airport_master_list = []
 
     # Primary WX Data Sources
     # Live RAW XML Data
-    metar_xml_dict = {}
-    metar_update_time = None
-
-    # Live RAW XML Data
-    taf_xml_dict = {}
-    taf_update_time = None
+    _metar_xml_dict = {}
+    _metar_update_time = None
+    _taf_xml_dict = {}
+    _taf_update_time = None
+    _mos_forecast = None
 
     # Primary Data Sets - Imported from Internet/External Sources
-    # Runway Data
-    runway_data = None
-    # Airport Data
-    airport_data = None
-
-    _mos_forecast = None
+    _runway_data = None
+    _airport_data = None
 
     def __init__(self, conf, dataset_thread):
         """Create a database of Airports to be tracked."""
@@ -108,31 +103,31 @@ class AirportDB:
         # Active Airport Information
         # All lists use lowercase key information to identify airports
         # Full list of interesting Airports loaded from JSON data
-        self.airport_master_dict = {}
+        self._airport_master_dict = {}
 
         # Subset of airport_json_list that is active for live HTML page
-        self.airport_web_dict = {}
+        self._airport_web_dict = {}
 
         # Subset of airport_json_list that is active for LEDs
-        self.airport_led_dict = {}
+        self._airport_led_dict = {}
 
         # Copy of raw json entries loaded from config
-        self.airport_master_list = []
+        self._airport_master_list = []
 
         # Primary WX Data Sources
         # Live RAW XML Data
-        self.metar_xml_dict = {}
-        self.metar_update_time = None
+        self._metar_xml_dict = {}
+        self._metar_update_time = None
 
         # Live RAW XML Data
-        self.taf_xml_dict = {}
-        self.taf_update_time = None
+        self._taf_xml_dict = {}
+        self._taf_update_time = None
 
         # Primary Data Sets - Imported from Internet/External Sources
         # Runway Data
-        self.runway_data = None
+        self._runway_data = None
         # Airport Data
-        self.airport_data = None
+        self._airport_data = None
 
         self.load_airport_db()
 
@@ -149,7 +144,7 @@ class AirportDB:
             debugging.info(f"populate_mos_data failed: MOS data is None")
             return
         debugging.info(f"populate_mos_data :{mos_forecast}:")
-        for airport_icao, airport_obj in self.airport_master_dict.items():
+        for airport_icao, airport_obj in self._airport_master_dict.items():
             debugging.debug(f"Trying to update MOS for {airport_icao}")
             airport_icao = airport_icao.upper()
             if airport_icao in mos_forecast:
@@ -157,8 +152,8 @@ class AirportDB:
                 airport_obj.set_mos_forecast(mos_forecast[airport_icao])
 
     def stats(self):
-        """Return string containing pertinant stats."""
-        return f"Statistics:\n\tairport master dict {len(self.airport_master_dict)} entries\n\tairport_web_dict: {len(self.airport_web_dict)}\n\tairport_led_dict: {len(self.airport_led_dict)}"
+        """Return string containing pertinent stats."""
+        return f"Statistics:\n\tairport master dict {len(self._airport_master_dict)} entries\n\tairport_web_dict: {len(self._airport_web_dict)}\n\tairport_led_dict: {len(self._airport_led_dict)}"
 
     def create_new_airport_record(self, station_id, metar_data):
         """Create new DB record for station_id seeded with metar_data."""
@@ -168,7 +163,7 @@ class AirportDB:
 
     def get_airport(self, airport_icao):
         """Return a single Airport."""
-        return self.airport_master_dict[airport_icao]
+        return self._airport_master_dict[airport_icao]
 
     def get_airport_mos(self, airport_icao):
         """Return a single Airport MOS."""
@@ -181,38 +176,38 @@ class AirportDB:
     def get_airport_taf(self, airport_icao):
         """Return a single Airport TAF."""
         result = None
-        if airport_icao in self.taf_xml_dict:
-            result = self.taf_xml_dict[airport_icao]
+        if airport_icao in self._taf_xml_dict:
+            result = self._taf_xml_dict[airport_icao]
         return result
 
     def get_airportdb(self):
         """Return a single Airport."""
-        return self.airport_master_dict
+        return self._airport_master_dict
 
-    def get_airportxml(self, airport_icao):
+    def get_airport_xml(self, airport_icao):
         """Return a single Airport."""
-        return self.metar_xml_dict[airport_icao]
+        return self._metar_xml_dict[airport_icao]
 
-    def get_airportxmldb(self):
+    def get_airport_xmldb(self):
         """Return a single Airport."""
-        return self.metar_xml_dict
+        return self._metar_xml_dict
 
     def get_airport_dict_led(self):
         """Return Airport LED dict."""
-        return self.airport_led_dict
+        return self._airport_led_dict
 
     def get_metar_update_time(self):
         """Return last update time of metar data."""
-        return self.metar_update_time
+        return self._metar_update_time
 
     def update_airport_wx(self):
         """Update airport WX data for each known Airport."""
-        for icao, airport_obj in self.airport_master_dict.items():
+        for icao, airport_obj in self._airport_master_dict.items():
             debugging.debug(f"Updating WX for :{airport_obj.icaocode()}:")
             if not airport_obj.active():
                 continue
             try:
-                airport_obj.update_wx(self.metar_xml_dict)
+                airport_obj.update_wx(self._metar_xml_dict)
             except Exception as err:
                 debug_string = f"Error: update_airport_wx Exception handling for {airport_obj.icaocode()} ICAO:{icao}:"
                 debugging.error(debug_string)
@@ -221,16 +216,17 @@ class AirportDB:
     def save_data_from_db(self):
         """Create JSON data from Airport datasets."""
         airportdb_list = []
-        for __airport_db_id, airport_obj in self.airport_master_dict.items():
+        for __airport_db_id, airport_obj in self._airport_master_dict.items():
             if not airport_obj.save_in_config():
                 continue
-            airport_save_record = {}
-            airport_save_record["active"] = str(airport_obj.active())
-            airport_save_record["heatmap"] = airport_obj.heatmap_index()
-            airport_save_record["icao"] = airport_obj.icaocode()
-            airport_save_record["led"] = str(airport_obj.get_led_index())
-            airport_save_record["purpose"] = airport_obj.purpose()
-            airport_save_record["wxsrc"] = airport_obj.wxsrc()
+            airport_save_record = {
+                "active": str(airport_obj.active()),
+                "heatmap": airport_obj.heatmap_index(),
+                "icao": airport_obj.icaocode(),
+                "led": str(airport_obj.get_led_index()),
+                "purpose": airport_obj.purpose(),
+                "wxsrc": airport_obj.wxsrc(),
+            }
             airportdb_list.append(airport_save_record)
         return airportdb_list
 
@@ -240,7 +236,7 @@ class AirportDB:
         # TODO: Should also mark those appropriately so they are saved out
 
         for json_airport in airport_jsondb["airports"]:
-            self.airport_master_list.append(json_airport)
+            self._airport_master_list.append(json_airport)
             airport_icao = json_airport["icao"]
             airport_icao = airport_icao.lower()
             debugging.info(f"Parsing Json Airport List : {airport_icao}")
@@ -250,12 +246,12 @@ class AirportDB:
                 ledindex = json_airport["led"]
                 airport_icao = f"{airport_icao}:{ledindex}"
 
-            if airport_icao not in self.airport_master_dict.keys():
+            if airport_icao not in self._airport_master_dict.keys():
                 debugging.info(f"Adding {airport_icao} to airport_master_dict")
                 new_airport_object = self.create_new_airport_record(airport_icao, None)
-                self.airport_master_dict.update({airport_icao: new_airport_object})
+                self._airport_master_dict.update({airport_icao: new_airport_object})
             else:
-                new_airport_object = self.airport_master_dict[airport_icao]
+                new_airport_object = self._airport_master_dict[airport_icao]
 
             new_airport_object.set_wxsrc(json_airport["wxsrc"])
             new_airport_object.set_purpose(json_airport["purpose"])
@@ -270,7 +266,7 @@ class AirportDB:
             else:
                 new_airport_object.set_inactive()
         debugging.info(
-            f"Completed loading dict from json : {len(self.airport_master_dict)} items"
+            f"Completed loading dict from json : {len(self._airport_master_dict)} items"
         )
         return True
 
@@ -279,16 +275,16 @@ class AirportDB:
         # LED List ( purpose: LED / NULL / LGND )
         # WEB List ( purpose: WEB / LGND )
         debugging.info(
-            f"Copying master dict to other lists {len(self.airport_master_dict)} items"
+            f"Copying master dict to other lists {len(self._airport_master_dict)} items"
         )
-        for airport_icao, airport_obj in self.airport_master_dict.items():
+        for airport_icao, airport_obj in self._airport_master_dict.items():
             debugging.info(f"Airport dicts update for : {airport_icao} :")
             airport_purpose = airport_obj.purpose()
             if airport_purpose in ("led", "all", "off"):
-                self.airport_led_dict.update({airport_icao: airport_obj})
+                self._airport_led_dict.update({airport_icao: airport_obj})
                 debugging.info(f"Adding Airport to airport_led_dict : {airport_icao}")
             if airport_purpose in ("web", "all"):
-                self.airport_web_dict.update({airport_icao: airport_obj})
+                self._airport_web_dict.update({airport_icao: airport_obj})
                 debugging.info(f"Adding airport to airport_web_dict : {airport_icao}")
         return True
 
@@ -321,7 +317,6 @@ class AirportDB:
         """Save Airport Data file."""
         debugging.debug("Saving Airport DB")
         json_save_data = {}
-        json_save_data_airport = []
         airport_json_backup = self._app_conf.get_string(
             "filenames", "airports_json_backup"
         )
@@ -375,13 +370,13 @@ class AirportDB:
             if display_counter % 200 == 0:
                 msg = f"xml parsing: entry:{str(display_counter)}  station_id:{station_id}"
                 debugging.debug(msg)
-            if station_id not in self.airport_master_dict:
+            if station_id not in self._airport_master_dict:
                 new_airport_object = self.create_new_airport_record(
                     station_id, metar_raw
                 )
-                self.airport_master_dict[station_id] = new_airport_object
-            self.airport_master_dict[station_id].set_metar(metar_raw)
-            self.airport_master_dict[station_id].update_airport_xml(
+                self._airport_master_dict[station_id] = new_airport_object
+            self._airport_master_dict[station_id].set_metar(metar_raw)
+            self._airport_master_dict[station_id].update_airport_xml(
                 station_id, metar_data
             )
 
@@ -390,10 +385,133 @@ class AirportDB:
                     f"***\nAIRPORT OF INTEREST\n\t{station_id}\t{metar_raw}\n\n"
                 )
 
-        self.metar_xml_dict = metar_data
-        self.metar_update_time = datetime.now(pytz.utc)
+        self._metar_xml_dict = metar_data
+        self._metar_update_time = datetime.now(pytz.utc)
         debugging.debug("Updating Airports: METAR from XML Complete")
         return True
+
+    def process_taf_forecast(self, forecast):
+        """Process contents of TAF forecast."""
+
+        taf_forecast = []
+        fcast = {
+            "start": forecast.find("fcst_time_from").text,
+            "end": forecast.find("fcst_time_to").text,
+        }
+
+        if forecast.find("wx_string") is not None:
+            fcast["wx_string"] = forecast.find("wx_string").text
+
+        if forecast.find("change_indicator") is not None:
+            fcast["change_indicator"] = forecast.find("change_indicator").text
+
+        if forecast.find("wind_dir_degrees") is not None:
+            fcast["wind_dir_degrees"] = forecast.find("wind_dir_degrees").text
+
+        if forecast.find("wind_speed_kt") is not None:
+            fcast["wind_speed_kt"] = forecast.find("wind_speed_kt").text
+
+        if forecast.find("visibility_statute_mi") is not None:
+            fcast["visibility_statute_mi"] = forecast.find("visibility_statute_mi").text
+
+        if forecast.find("wind_gust_kt") is not None:
+            fcast["wind_gust_kt"] = forecast.find("wind_gust_kt").text
+
+        # There can be multiple layers of clouds in each taf, but they are always listed lowest AGL first.
+        # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set $
+        # This algorithm basically sets the flight category based on the lowest OVC, BKN or OVX layer.
+        # for each sky_condition from the XML
+        flightcategory = "VFR"
+        for sky_condition in forecast.findall("sky_condition"):
+            # get the sky cover (BKN, OVC, SCT, etc.)
+            sky_cvr = sky_condition.attrib["sky_cover"]
+            debugging.debug(sky_cvr)  # debug
+
+            # If the layer is OVC, BKN or OVX, set Flight category based on height AGL
+            if sky_cvr in ("OVC", "BKN", "OVX"):
+                try:
+                    # get cloud base AGL from XML
+                    cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
+                    # debugging.debug(cld_base_ft_agl)  # debug
+                except Exception as err:
+                    # get cloud base AGL from XML
+                    # debugging.error(err)
+                    debugging.debug(err)
+                    cld_base_ft_agl = forecast.find("vert_vis_ft")
+                    if cld_base_ft_agl is not None:
+                        cld_base_ft_agl = cld_base_ft_agl.text
+                    else:
+                        # Default to low clouds
+                        cld_base_ft_agl = "60000"
+
+                cld_base_ft_agl = int(cld_base_ft_agl)
+                if cld_base_ft_agl < 500:
+                    flightcategory = "LIFR"
+                    break
+                if 500 <= cld_base_ft_agl < 1000:
+                    flightcategory = "IFR"
+                    break
+                if 1000 <= cld_base_ft_agl <= 3000:
+                    flightcategory = "MVFR"
+                    break
+                if cld_base_ft_agl > 3000:
+                    flightcategory = "VFR"
+                    break
+
+            next_val = 0
+            # Visibility can also set flight category. If the clouds haven't set the flightcategory to LIFR, see if the value of visibility will change the flight category
+            # if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.
+            if flightcategory != "LIFR":
+                # check XML if visibility value exists
+                if forecast.find("visibility_statute_mi") is not None:
+                    visibility_statute_mi = forecast.find(
+                        "visibility_statute_mi"
+                    ).text  # get visibility number
+                    try:
+                        next_val = float(visibility_statute_mi)
+                    except (TypeError, ValueError):
+                        next_val_float = False
+                    else:
+                        next_val_float = True
+                    if next_val_float:
+                        visibility_statute_mi = next_val
+                    else:
+                        # FIXME: Hack for METAR parsing of complex values
+                        if visibility_statute_mi == "6+":
+                            visibility_statute_mi = 6
+                        else:
+                            debugging.info(
+                                f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}"
+                            )
+                            visibility_statute_mi = 10
+                    debugging.debug(visibility_statute_mi)
+
+                    if visibility_statute_mi < 1.0:
+                        flightcategory = "LIFR"
+                    elif 1.0 <= visibility_statute_mi < 3.0:
+                        flightcategory = "IFR"
+                    # if Flight Category was already set to IFR $
+                    elif (
+                        3.0 <= visibility_statute_mi <= 5.0 and flightcategory != "IFR"
+                    ):
+                        flightcategory = "MVFR"
+
+            # debugging.debug("Airport - " + station_id)
+            # debugging.debug("Flight Category - " + flightcategory)
+            if "wind_speed_kt" in fcast:
+                debugging.debug("Wind Speed - " + fcast["wind_speed_kt"])
+            if "wx_string" in fcast:
+                debugging.debug("WX String - " + fcast["wx_string"])
+            if "change_indicator" in fcast:
+                debugging.debug("Change Indicator - " + fcast["change_indicator"])
+            if "wind_dir_degrees" in fcast:
+                debugging.debug("Wind Director Degrees - " + fcast["wind_dir_degrees"])
+            if "wind_gust_kt" in fcast:
+                debugging.debug("Wind Gust - " + fcast["wind_gust_kt"])
+
+        fcast["flightcategory"] = flightcategory
+        taf_forecast.append(fcast)
+        return taf_forecast
 
     def update_airport_taf_xml(self):
         """Update Airport TAF DICT from XML."""
@@ -409,9 +527,7 @@ class AirportDB:
         # should return the expected conditions at that time
         #
         debugging.debug("Updating Airport TAF DICT")
-
         taf_dict = {}
-
         taf_file = self._app_conf.get_string("filenames", "tafs_xml_data")
 
         if not utils.file_exists(taf_file):
@@ -440,132 +556,11 @@ class AirportDB:
 
             debugging.debug(f"TAF: {station_id} - {issue_time}")
             fcast_index = 0
-            next_val = 0
             taf_forecast = []
 
             for forecast in taf.findall("forecast"):
-                fcast = {}
-                fcast["start"] = forecast.find("fcst_time_from").text
-                fcast["end"] = forecast.find("fcst_time_to").text
-
-                if forecast.find("wx_string") is not None:
-                    fcast["wx_string"] = forecast.find("wx_string").text
-
-                if forecast.find("change_indicator") is not None:
-                    fcast["change_indicator"] = forecast.find("change_indicator").text
-
-                if forecast.find("wind_dir_degrees") is not None:
-                    fcast["wind_dir_degrees"] = forecast.find("wind_dir_degrees").text
-
-                if forecast.find("wind_speed_kt") is not None:
-                    fcast["wind_speed_kt"] = forecast.find("wind_speed_kt").text
-
-                if forecast.find("visibility_statute_mi") is not None:
-                    fcast["visibility_statute_mi"] = forecast.find(
-                        "visibility_statute_mi"
-                    ).text
-
-                if forecast.find("wind_gust_kt") is not None:
-                    fcast["wind_gust_kt"] = forecast.find("wind_gust_kt").text
-
-                # There can be multiple layers of clouds in each taf, but they are always listed lowest AGL first.
-                # Check the lowest (first) layer and see if it's overcast, broken, or obscured. If it is, then compare to cloud base height to set $
-                # This algorithm basically sets the flight category based on the lowest OVC, BKN or OVX layer.
-                # for each sky_condition from the XML
-                flightcategory = "VFR"
-                for sky_condition in forecast.findall("sky_condition"):
-                    # get the sky cover (BKN, OVC, SCT, etc)
-                    sky_cvr = sky_condition.attrib["sky_cover"]
-                    debugging.debug(sky_cvr)  # debug
-
-                    # If the layer is OVC, BKN or OVX, set Flight category based on height AGL
-                    if sky_cvr in ("OVC", "BKN", "OVX"):
-                        try:
-                            # get cloud base AGL from XML
-                            cld_base_ft_agl = sky_condition.attrib["cloud_base_ft_agl"]
-                            # debugging.debug(cld_base_ft_agl)  # debug
-                        except Exception as err:
-                            # get cloud base AGL from XML
-                            # debugging.error(err)
-                            debugging.debug(err)
-                            cld_base_ft_agl = forecast.find("vert_vis_ft")
-                            if cld_base_ft_agl is not None:
-                                cld_base_ft_agl = cld_base_ft_agl.text
-                            else:
-                                # Default to low clouds
-                                cld_base_ft_agl = "60000"
-
-                        cld_base_ft_agl = int(cld_base_ft_agl)
-                        if cld_base_ft_agl < 500:
-                            flightcategory = "LIFR"
-                            break
-                        if 500 <= cld_base_ft_agl < 1000:
-                            flightcategory = "IFR"
-                            break
-                        if 1000 <= cld_base_ft_agl <= 3000:
-                            flightcategory = "MVFR"
-                            break
-                        if cld_base_ft_agl > 3000:
-                            flightcategory = "VFR"
-                            break
-
-                    # visibilty can also set flight category. If the clouds haven't set the fltcat to LIFR. See if visibility will
-                    # if it's LIFR due to cloud layer, no reason to check any other things that can set flight category.
-                    if flightcategory != "LIFR":
-                        # check XML if visibility value exists
-                        if forecast.find("visibility_statute_mi") is not None:
-                            visibility_statute_mi = forecast.find(
-                                "visibility_statute_mi"
-                            ).text  # get visibility number
-                            try:
-                                next_val = float(visibility_statute_mi)
-                            except (TypeError, ValueError):
-                                next_val_float = False
-                            else:
-                                next_val_float = True
-                            if next_val_float:
-                                visibility_statute_mi = next_val
-                            else:
-                                # FIXME: Hack for METAR parsing of complex valus
-                                if visibility_statute_mi == "6+":
-                                    visibility_statute_mi = 6
-                                else:
-                                    debugging.info(
-                                        f"GRR: visibility_statute_ml parse mismatch - setting to ten (10) actual:{visibility_statute_mi}"
-                                    )
-                                    visibility_statute_mi = 10
-                            debugging.debug(visibility_statute_mi)
-
-                            if visibility_statute_mi < 1.0:
-                                flightcategory = "LIFR"
-                            elif 1.0 <= visibility_statute_mi < 3.0:
-                                flightcategory = "IFR"
-                            # if Flight Category was already set to IFR $
-                            elif (
-                                3.0 <= visibility_statute_mi <= 5.0
-                                and flightcategory != "IFR"
-                            ):
-                                flightcategory = "MVFR"
-
-                    debugging.debug("Airport - " + station_id)
-                    debugging.debug("Flight Category - " + flightcategory)
-                    if "wind_speed_kt" in fcast:
-                        debugging.debug("Wind Speed - " + fcast["wind_speed_kt"])
-                    if "wx_string" in fcast:
-                        debugging.debug("WX String - " + fcast["wx_string"])
-                    if "change_indicator" in fcast:
-                        debugging.debug(
-                            "Change Indicator - " + fcast["change_indicator"]
-                        )
-                    if "wind_dir_degrees" in fcast:
-                        debugging.debug(
-                            "Wind Director Degrees - " + fcast["wind_dir_degrees"]
-                        )
-                    if "wind_gust_kt" in fcast:
-                        debugging.debug("Wind Gust - " + fcast["wind_gust_kt"])
-
-                fcast["flightcategory"] = flightcategory
-                taf_forecast.append(fcast)
+                # debugging.info(f"Processing TAF Forecast {station_id}:{forecast}")
+                taf_forecast.append(self.process_taf_forecast(forecast))
                 fcast_index = fcast_index + 1
 
             taf_data["forecast"] = taf_forecast
@@ -573,8 +568,8 @@ class AirportDB:
 
             debugging.debug(f"TAF: {station_id} - {issue_time} - {fcast_index - 1}")
 
-        self.taf_xml_dict = taf_dict
-        self.taf_update_time = datetime.now(pytz.utc)
+        self._taf_xml_dict = taf_dict
+        self._taf_update_time = datetime.now(pytz.utc)
         debugging.info("Updating Airport TAF from XML")
         return True
 
@@ -585,7 +580,7 @@ class AirportDB:
             debugging.info(f"Airport TAF {airport_id} not found")
             return None
         debugging.info(f"airport_taf_future:{airport_id}:+{hour_increment}hr")
-        time_taf = utils.future_taf_time(self._app_conf, hour_increment)
+        time_taf = utils_taf.future_taf_time(self._app_conf, hour_increment)
         debugging.info(f"airport_taf time_taf:{airport_id}:{time_taf}")
         future_taf = None
         for forecast in airport_taf["forecast"]:
@@ -604,10 +599,10 @@ class AirportDB:
     def airport_runway_data(self, airport_id):
         """Find Airport data in Runway DICT."""
         runway_set = []
-        if self.runway_data is None:
+        if self._runway_data is None:
             return runway_set
         airport_id = airport_id.upper()
-        for runway_info in self.runway_data:
+        for runway_info in self._runway_data:
             if runway_info["airport_ident"] == airport_id:
                 debugging.debug(f"Airport Runway Data Found: {runway_info}")
                 runway_set.append(runway_info)
@@ -621,13 +616,12 @@ class AirportDB:
         if not utils.file_exists(runways_master_data):
             debugging.debug(f"Runways file does not exist: {runways_master_data}")
             return False
-        runway_data = None
         index_counter = 0
         with open(runways_master_data, "r", encoding="utf-8") as rway_file:
             runway_data = list(csv.DictReader(rway_file))
             index_counter += 1
         debugging.debug(f"CSV Load found {index_counter} rows")
-        self.runway_data = runway_data
+        self._runway_data = runway_data
         return True
 
     def import_airport_geo_data(self):
@@ -641,18 +635,17 @@ class AirportDB:
             )
             return False
 
-        airport_data = None
         index_counter = 0
         with open(airport_master_metadata_set, "r", encoding="utf-8") as aprt_file:
             airport_data = list(csv.DictReader(aprt_file))
             index_counter += 1
         debugging.debug(f"CSV Load found {index_counter} rows")
-        self.airport_data = airport_data
+        self._airport_data = airport_data
         return True
 
     def update_airport_runways(self):
         """Update airport RUNWAY data for each known Airport."""
-        for icao, airport_obj in self.airport_master_dict.items():
+        for icao, airport_obj in self._airport_master_dict.items():
             debugging.debug(f"Updating Runway for {airport_obj.icaocode()}")
             if not airport_obj.active():
                 continue
@@ -709,7 +702,7 @@ class AirportDB:
                 self._airport_serial = self._dataset.airport_serial()
                 self.import_airport_geo_data()
                 # self.update_airport_lat_lon()
-                # Need to use the data in airports.csv to provide lat/lon data for any airports..
+                # Need to use the data in airports.csv to provide lat/lon data for any airports.
 
             if self._mos_serial < self._dataset.mos_serial():
                 debugging.debug("Processing updated MOS data")
@@ -723,5 +716,3 @@ class AirportDB:
             kbfi_runway = self.airport_runway_data("kbfi")
             debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")
             time.sleep(aviation_weather_adds_timer * 60)
-
-        debugging.error("Hit the exit of the airport update loop")

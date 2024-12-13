@@ -181,10 +181,8 @@ class DataSets:
         etag_airports = None
 
         # Initial load of MOS data set
-        self._mos_forecast_updated, self._mos_forecast = (
-            utils_mos.mos_analyze_datafile(
-                self._app_conf,
-            )
+        self._mos_forecast_updated, self._mos_forecast = utils_mos.mos_analyze_datafile(
+            self._app_conf,
         )
 
         while True:

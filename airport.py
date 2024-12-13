@@ -7,11 +7,11 @@ Created on Sat Jun 15 08:01:44 2019
 """
 
 # This is the collection and aggregation of all functions that manage Airports and airport weather
-# products. It's initially focused on processing METARs, but will end up including all of the functions
+# products. It's initially focused on processing METARs, but will end up including all the functions
 # related to TAFs and MOS data.
 #
 # This file is the management of the Airport object
-# The airport object stores all of the interesting data for an airport
+# The airport object stores all the interesting data for an airport
 # - Airport ICAO code
 # - Weather Source ( adds , metar URL, future options)
 # - Airport Code to use for WX data (future - for airports without active ASOS/AWOSporting)
@@ -23,15 +23,8 @@ from datetime import timedelta
 
 # from distutils import util
 from enum import Enum, auto
-from lxml import etree
-
-# XML Handling
-# import json
-# import xml.etree.ElementTree as ET
-# from metar import Metar
 
 import debugging
-
 import utils
 import utils_wx
 import utils_mos
@@ -179,7 +172,9 @@ class Airport:
     def get_mos_forecast(self, app_conf, hour_offset):
         """Get MOS data for future time."""
         flightcategory = "UNKN"
-        flightcategory = utils_mos.get_mos_weather(self._mos_forecast, app_conf, hour_offset)
+        flightcategory = utils_mos.get_mos_weather(
+            self._mos_forecast, app_conf, hour_offset
+        )
         return flightcategory
 
     def get_raw_metar(self):
@@ -195,7 +190,7 @@ class Airport:
         return self.__wx_conditions
 
     def get_ca_metar(self):
-        """Try get Fresh METAR data for Canadian Airports."""
+        """Try to get Fresh METAR data for Canadian Airports."""
         # TODO:
         # The ADDS data source appears to have all the data for all the locations.
         # May be able to delete this entirely
@@ -299,9 +294,9 @@ class Airport:
         return self.__wind_speed_kt
 
     def get_adds_metar(self, metar_dict):
-        """Try get Fresh METAR data from local Aviation Digital Data Service (ADDS) download."""
+        """Try to get Fresh METAR data from local Aviation Digital Data Service (ADDS) download."""
         debugging.info("get_adds_metar WX from adds for " + self.__icao)
-        if self.__icao in ("ksea", "kbfi"):
+        if self.__icao in ["ksea", "kbfi"]:
             debugging.info(f"{self.__icao}\n****\n{metar_dict}\n****\n")
         if self.__icao not in metar_dict:
             # TODO: If METAR data is missing from the ADDS dataset, then it hasn't been updated
@@ -516,4 +511,4 @@ class Airport:
                 # get_*_metar() returned true, so weather is still fresh
                 return
             utils_wx.calculate_wx_from_metar(self)
-        return
+        return freshness

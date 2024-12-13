@@ -5,6 +5,7 @@
 # from enum import Enum, auto
 import random
 import debugging
+from PIL import ImageColor
 
 colordict = {
     "OFF": "#000000",  # OLED Off
@@ -79,7 +80,8 @@ def rgb2hex(rgb):
 
 def rgb_color(value):
     """Return RGB values from HEX string."""
-    return hex2rgb(value)
+    # Switching to PIL.ImageColor for performance improvements
+    return ImageColor.getcolor(value, "RGB")
 
 
 def cat_vfr(confdata):

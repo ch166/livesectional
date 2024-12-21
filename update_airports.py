@@ -83,7 +83,7 @@ class AirportDB:
     runway_data2 = None
     _airport_data = None
 
-    def __init__(self, conf, dataset_thread):
+    def __init__(self, app_conf, dataset_thread):
         """Create a database of Airports to be tracked."""
         # TODO: A lot of the class local variables are extras,
         # left over from the restructuring of the code.
@@ -92,7 +92,7 @@ class AirportDB:
         # config file directly as needed
 
         # Reference to Global Configuration Data
-        self._app_conf = conf
+        self._app_conf = app_conf
         self._dataset = dataset_thread
 
         self._metar_serial = -1
@@ -658,7 +658,7 @@ class AirportDB:
                 debugging.error(debug_string)
                 debugging.crash(err)
 
-    def update_loop(self, conf):
+    def update_loop(self, app_conf):
         """Master loop for keeping the airport data set current.
 
         Infinite Loop
@@ -670,7 +670,7 @@ class AirportDB:
 
         Triggered Update
         """
-        aviation_weather_adds_timer = conf.get_int("metar", "wx_update_interval")
+        aviation_weather_adds_timer = app_conf.get_int("metar", "wx_update_interval")
 
         # TODO: Should these files be updated in a separate thread
         # should this update loop focus on creating and managing complete database records for only the

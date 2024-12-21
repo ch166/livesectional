@@ -103,6 +103,7 @@ class UpdateLEDs:
 
     PI = 3.141592653
     BIGNUM = 10000000
+    DELAYZERO = 0
     DELAYSHORT = 0.1
     DELAYMEDIUM = 0.4
     DELAYLONG = 0.6
@@ -110,7 +111,7 @@ class UpdateLEDs:
 
     _app_conf = {}
     _airport_database = {}
-    _app_confcache = {}
+    _app_conf_cache = {}
 
     # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
     _toggle_sw = -1
@@ -399,45 +400,45 @@ class UpdateLEDs:
         """Update class local variables to cache conf data."""
         # This is a performance improvement cache of conf data
         # TODO: Need to make sure we update this when the config changes
-        self._app_confcache["vfr_color"] = utils_colors.cat_vfr(self._app_conf)
-        self._app_confcache["mvfr_color"] = utils_colors.cat_mvfr(self._app_conf)
-        self._app_confcache["ifr_color"] = utils_colors.cat_ifr(self._app_conf)
-        self._app_confcache["lifr_color"] = utils_colors.cat_lifr(self._app_conf)
-        self._app_confcache["unkn_color"] = utils_colors.wx_noweather(self._app_conf)
-        self._app_confcache["lights_highwindblink"] = self._app_conf.get_bool(
-            "lights", "hiwindblink"
+        self._app_conf_cache["vfr_color"] = utils_colors.cat_vfr(self._app_conf)
+        self._app_conf_cache["mvfr_color"] = utils_colors.cat_mvfr(self._app_conf)
+        self._app_conf_cache["ifr_color"] = utils_colors.cat_ifr(self._app_conf)
+        self._app_conf_cache["lifr_color"] = utils_colors.cat_lifr(self._app_conf)
+        self._app_conf_cache["unkn_color"] = utils_colors.wx_noweather(self._app_conf)
+        self._app_conf_cache["lights_highwindblink"] = self._app_conf.get_bool(
+            "activelights", "high_wind_blink"
         )
-        self._app_confcache["metar_maxwindspeed"] = self._app_conf.get_int(
-            "metar", "max_wind_speed"
+        self._app_conf_cache["metar_maxwindspeed"] = self._app_conf.get_int(
+            "activelights", "high_wind_limit"
         )
-        self._app_confcache["lights_lghtnflash"] = self._app_conf.get_bool(
+        self._app_conf_cache["lights_lghtnflash"] = self._app_conf.get_bool(
             "lights", "lghtnflash"
         )
-        self._app_confcache["lights_snowshow"] = self._app_conf.get_bool(
+        self._app_conf_cache["lights_snowshow"] = self._app_conf.get_bool(
             "lights", "snowshow"
         )
-        self._app_confcache["lights_rainshow"] = self._app_conf.get_bool(
+        self._app_conf_cache["lights_rainshow"] = self._app_conf.get_bool(
             "lights", "rainshow"
         )
-        self._app_confcache["lights_frrainshow"] = self._app_conf.get_bool(
+        self._app_conf_cache["lights_frrainshow"] = self._app_conf.get_bool(
             "lights", "frrainshow"
         )
-        self._app_confcache["lights_dustsandashshow"] = self._app_conf.get_bool(
+        self._app_conf_cache["lights_dustsandashshow"] = self._app_conf.get_bool(
             "lights", "dustsandashshow"
         )
-        self._app_confcache["lights_fogshow"] = self._app_conf.get_bool(
+        self._app_conf_cache["lights_fogshow"] = self._app_conf.get_bool(
             "lights", "fogshow"
         )
-        self._app_confcache["lights_homeportpin"] = self._app_conf.get_int(
+        self._app_conf_cache["lights_homeportpin"] = self._app_conf.get_int(
             "lights", "homeport_pin"
         )
-        self._app_confcache["lights_homeport"] = self._app_conf.get_int(
+        self._app_conf_cache["lights_homeport"] = self._app_conf.get_int(
             "lights", "homeport"
         )
-        self._app_confcache["lights_homeport_display"] = self._app_conf.get_int(
+        self._app_conf_cache["lights_homeport_display"] = self._app_conf.get_int(
             "lights", "homeport_display"
         )
-        self._app_confcache["rev_rgb_grb"] = self._app_conf.get_string(
+        self._app_conf_cache["rev_rgb_grb"] = self._app_conf.get_string(
             "lights", "rev_rgb_grb"
         )
 
@@ -557,7 +558,7 @@ class UpdateLEDs:
         # If necessary, populate the list rev_rgb_grb with pins of LED's that use the opposite color scheme.
         # list of pins that need to use the reverse of the normal order setting.
         # This accommodates the use of both models of LED strings on one map.
-        if str(pin) in self._app_confcache["rev_rgb_grb"]:
+        if str(pin) in self._app_conf_cache["rev_rgb_grb"]:
             order = not order
             debugging.info(f"Reversing rgb2grb Routine Output for PIN {pin}")
         red = data[0]
@@ -812,60 +813,60 @@ class UpdateLEDs:
         """Work out the color for the legend LEDs."""
         ledcolor = utils_colors.off()
         if airport_wxsrc == "vfr":
-            ledcolor = self._app_confcache["vfr_color"]
+            ledcolor = self._app_conf_cache["vfr_color"]
         if airport_wxsrc == "mvfr":
-            ledcolor = self._app_confcache["mvfr_color"]
+            ledcolor = self._app_conf_cache["mvfr_color"]
         if airport_wxsrc == "ifr":
-            ledcolor = self._app_confcache["ifr_color"]
+            ledcolor = self._app_conf_cache["ifr_color"]
         if airport_wxsrc == "lifr":
-            ledcolor = self._app_confcache["lifr_color"]
+            ledcolor = self._app_conf_cache["lifr_color"]
         if airport_wxsrc == "unkn":
-            ledcolor = self._app_confcache["unkn_color"]
+            ledcolor = self._app_conf_cache["unkn_color"]
         if airport_wxsrc == "hiwind":
             if cycle_num in [3, 4, 5]:
                 ledcolor = utils_colors.off()
             else:
-                ledcolor = self._app_confcache["ifr_color"]
+                ledcolor = self._app_conf_cache["ifr_color"]
         if airport_wxsrc == "lghtn":
             if cycle_num in [2, 4]:
                 ledcolor = utils_colors.wx_lightning(self._app_conf)
             else:
-                ledcolor = self._app_confcache["mvfr_color"]
+                ledcolor = self._app_conf_cache["mvfr_color"]
         if airport_wxsrc == "snow":
             if cycle_num in [3, 5]:  # Check for Snow
                 ledcolor = utils_colors.wx_snow(self._app_conf, 1)
             elif cycle_num == 4:
                 ledcolor = utils_colors.wx_snow(self._app_conf, 2)
             else:
-                ledcolor = self._app_confcache["lifr_color"]
+                ledcolor = self._app_conf_cache["lifr_color"]
         if airport_wxsrc == "rain":
             if cycle_num in [3, 5]:  # Check for Rain
                 ledcolor = utils_colors.wx_rain(self._app_conf, 1)
             elif cycle_num == 4:
                 ledcolor = utils_colors.wx_rain(self._app_conf, 2)
             else:
-                ledcolor = self._app_confcache["vfr_color"]
+                ledcolor = self._app_conf_cache["vfr_color"]
         if airport_wxsrc == "frrain":
             if cycle_num in [3, 5]:  # Check for Freezing Rain
                 ledcolor = utils_colors.wx_frzrain(self._app_conf, 1)
             elif cycle_num == 4:
                 ledcolor = utils_colors.wx_frzrain(self._app_conf, 2)
             else:
-                ledcolor = self._app_confcache["mvfr_color"]
+                ledcolor = self._app_conf_cache["mvfr_color"]
         if airport_wxsrc == "dust":
             if cycle_num in [3, 5]:  # Check for Dust, Sand or Ash
                 ledcolor = utils_colors.wx_dust_sand_ash(self._app_conf, 1)
             elif cycle_num == 4:
                 ledcolor = utils_colors.wx_dust_sand_ash(self._app_conf, 2)
             else:
-                ledcolor = self._app_confcache["vfr_color"]
+                ledcolor = self._app_conf_cache["vfr_color"]
         if airport_wxsrc == "fog":
             if cycle_num in [3, 5]:  # Check for Fog
                 ledcolor = utils_colors.wx_fog(self._app_conf, 1)
             elif cycle_num == 4:
                 ledcolor = utils_colors.wx_fog(self._app_conf, 2)
             elif cycle_num in [0, 1, 2]:
-                ledcolor = self._app_confcache["ifr_color"]
+                ledcolor = self._app_conf_cache["ifr_color"]
         return ledcolor
 
     def ledmode_metar(self, clock_tick):
@@ -909,52 +910,52 @@ class UpdateLEDs:
             # Start of weather display code for each airport in the "airports" file
             # Check flight category and set the appropriate color to display
             if flightcategory == "VFR":  # Visual Flight Rules
-                ledcolor = self._app_confcache["vfr_color"]
+                ledcolor = self._app_conf_cache["vfr_color"]
             elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
-                ledcolor = self._app_confcache["mvfr_color"]
+                ledcolor = self._app_conf_cache["mvfr_color"]
             elif flightcategory == "IFR":  # Instrument Flight Rules
-                ledcolor = self._app_confcache["ifr_color"]
+                ledcolor = self._app_conf_cache["ifr_color"]
             elif flightcategory == "LIFR":  # Low Instrument Flight Rules
-                ledcolor = self._app_confcache["lifr_color"]
+                ledcolor = self._app_conf_cache["lifr_color"]
             elif flightcategory == "UNKN":
-                ledcolor = self._app_confcache["unkn_color"]
+                ledcolor = self._app_conf_cache["unkn_color"]
 
             # Check winds and set the 2nd half of cycles to black to create blink effect
-            if self._app_confcache["lights_highwindblink"]:
+            if self._app_conf_cache["lights_highwindblink"]:
                 # bypass if "hiwindblink" is set to 0
-                if int(airportwinds) >= self._app_confcache["metar_maxwindspeed"] and (
+                if int(airportwinds) >= self._app_conf_cache["metar_maxwindspeed"] and (
                     cycle_num in [3, 4, 5]
                 ):
                     ledcolor = utils_colors.off()
                     debugging.debug(f"HIGH WINDS {airportcode} : {airportwinds} kts")
 
-            if self._app_confcache["lights_lghtnflash"]:
+            if self._app_conf_cache["lights_lghtnflash"]:
                 # Check for Thunderstorms
                 if airport_conditions in self.wx_lghtn_ck and (cycle_num in [2, 4]):
                     ledcolor = utils_colors.wx_lightning(self._app_conf)
 
-            if self._app_confcache["lights_snowshow"]:
+            if self._app_conf_cache["lights_snowshow"]:
                 # Check for Snow
                 if airport_conditions in self.wx_snow_ck and (cycle_num in [3, 5]):
                     ledcolor = utils_colors.wx_snow(self._app_conf, 1)
                 if airport_conditions in self.wx_snow_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_snow(self._app_conf, 2)
 
-            if self._app_confcache["lights_rainshow"]:
+            if self._app_conf_cache["lights_rainshow"]:
                 # Check for Rain
                 if airport_conditions in self.wx_rain_ck and (cycle_num in [3, 4]):
                     ledcolor = utils_colors.wx_rain(self._app_conf, 1)
                 if airport_conditions in self.wx_rain_ck and cycle_num == 5:
                     ledcolor = utils_colors.wx_rain(self._app_conf, 2)
 
-            if self._app_confcache["lights_frrainshow"]:
+            if self._app_conf_cache["lights_frrainshow"]:
                 # Check for Freezing Rain
                 if airport_conditions in self.wx_frrain_ck and (cycle_num in [3, 5]):
                     ledcolor = utils_colors.wx_frzrain(self._app_conf, 1)
                 if airport_conditions in self.wx_frrain_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_frzrain(self._app_conf, 2)
 
-            if self._app_confcache["lights_dustsandashshow"]:
+            if self._app_conf_cache["lights_dustsandashshow"]:
                 # Check for Dust, Sand or Ash
                 if airport_conditions in self.wx_dustsandash_ck and (
                     cycle_num in [3, 5]
@@ -963,7 +964,7 @@ class UpdateLEDs:
                 if airport_conditions in self.wx_dustsandash_ck and cycle_num == 4:
                     ledcolor = utils_colors.wx_dust_sand_ash(self._app_conf, 2)
 
-            if self._app_confcache["lights_fogshow"]:
+            if self._app_conf_cache["lights_fogshow"]:
                 # Check for Fog
                 if airport_conditions in self.wx_fog_ck and (cycle_num in [3, 5]):
                     ledcolor = utils_colors.wx_fog(self._app_conf, 1)
@@ -974,11 +975,11 @@ class UpdateLEDs:
             # so that every other time through, the color will display the proper weather, then homeport color(s).
             self.homeport_toggle = not self.homeport_toggle
             if (
-                airport_led == self._app_confcache["lights_homeportpin"]
-                and self._app_confcache["lights_homeport"]
+                airport_led == self._app_conf_cache["lights_homeportpin"]
+                and self._app_conf_cache["lights_homeport"]
                 and self.homeport_toggle
             ):
-                if self._app_confcache["lights_homeport_display"] == 1:
+                if self._app_conf_cache["lights_homeport_display"] == 1:
                     # FIXME: ast.literal_eval converts a string to a list of tuples..
                     # Should move these colors to be managed with other colors.
                     homeport_colors = ast.literal_eval(
@@ -987,7 +988,7 @@ class UpdateLEDs:
                     # The length of this array needs to metch the cycle_num length or we'll get errors.
                     # FIXME: Fragile
                     ledcolor = homeport_colors[cycle_num]
-                elif self._app_confcache["lights_homeport_display"] == 2:
+                elif self._app_conf_cache["lights_homeport_display"] == 2:
                     # Homeport set based on METAR data
                     pass
                 else:
@@ -995,7 +996,7 @@ class UpdateLEDs:
                     ledcolor = self._app_conf.get_color("colors", "color_homeport")
 
             # FIXME: Need to fix the way this next section picks colors
-            # if airportled == self._app_confcache["lights_homeportpin"] and self._app_conf.get_bool("lights", "homeport"):
+            # if airportled == self._app_conf_cache["lights_homeportpin"] and self._app_conf.get_bool("lights", "homeport"):
             #    pass
             # elif self._app_conf.get_bool("lights", "homeport"):
             #     # FIXME: This doesn't work
@@ -1041,7 +1042,7 @@ class UpdateLEDs:
                 led_index = self._active_led_dict[led_key]
                 rainbow_index = (clock_tick + led_index) % len(self._rgb_rainbow)
                 rainbow_color = utils_colors.hex_tuple(self._rgb_rainbow[rainbow_index])
-                # print(f"Rainbow loop {led_index} / {rainbow_index} / {rainbow_color} ")
+                # print(f"Rainbow loop {_led_index} / {rainbow_index} / {rainbow_color} ")
                 led_updated_dict[led_index] = rainbow_color
         return led_updated_dict
 
@@ -1100,15 +1101,15 @@ class UpdateLEDs:
             # Start of weather display code for each airport in the "airports" file
             # Check flight category and set the appropriate color to display
             if flightcategory == "VFR":  # Visual Flight Rules
-                ledcolor = self._app_confcache["vfr_color"]
+                ledcolor = self._app_conf_cache["vfr_color"]
             elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
-                ledcolor = self._app_confcache["mvfr_color"]
+                ledcolor = self._app_conf_cache["mvfr_color"]
             elif flightcategory == "IFR":  # Instrument Flight Rules
-                ledcolor = self._app_confcache["ifr_color"]
+                ledcolor = self._app_conf_cache["ifr_color"]
             elif flightcategory == "LIFR":  # Low Instrument Flight Rules
-                ledcolor = self._app_confcache["lifr_color"]
+                ledcolor = self._app_conf_cache["lifr_color"]
             elif flightcategory == "UNKN":
-                ledcolor = self._app_confcache["unkn_color"]
+                ledcolor = self._app_conf_cache["unkn_color"]
 
             if (clock_tick % 150) == 0:
                 debugging.debug(
@@ -1150,15 +1151,15 @@ class UpdateLEDs:
             # Start of weather display code for each airport in the "airports" file
             # Check flight category and set the appropriate color to display
             if flightcategory == "VFR":  # Visual Flight Rules
-                ledcolor = self._app_confcache["vfr_color"]
+                ledcolor = self._app_conf_cache["vfr_color"]
             elif flightcategory == "MVFR":  # Marginal Visual Flight Rules
-                ledcolor = self._app_confcache["mvfr_color"]
+                ledcolor = self._app_conf_cache["mvfr_color"]
             elif flightcategory == "IFR":  # Instrument Flight Rules
-                ledcolor = self._app_confcache["ifr_color"]
+                ledcolor = self._app_conf_cache["ifr_color"]
             elif flightcategory == "LIFR":  # Low Instrument Flight Rules
-                ledcolor = self._app_confcache["lifr_color"]
+                ledcolor = self._app_conf_cache["lifr_color"]
             elif flightcategory == "UNKN":
-                ledcolor = self._app_confcache["unkn_color"]
+                ledcolor = self._app_conf_cache["unkn_color"]
 
             if (clock_tick % 150) == 0:
                 debugging.info(
@@ -1595,7 +1596,7 @@ class UpdateLEDs:
         for led_key in self._active_led_dict.keys():
             if self._active_led_dict[led_key] is not None:
                 led_index = self._active_led_dict[led_key]
-                # debugging.info(f"posn:{rabbit_pos}/index:{led_index}")
+                # debugging.info(f"posn:{rabbit_pos}/index:{_led_index}")
                 led_updated_dict[led_index] = utils_colors.off()
                 if led_index == rabbit_pos - 2:
                     led_updated_dict[led_index] = rabbit_color_1

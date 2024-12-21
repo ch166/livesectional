@@ -186,37 +186,37 @@ def calculate_wx_from_metar(airport_data):
         return False
 
     if airport_data_observation.wind_gust:
-        airport_data.wx_windgust = airport_data_observation.wind_gust.value()
+        airport_data._wx_windgust = airport_data_observation.wind_gust.value()
     else:
-        airport_data.wx_windgust = 0
+        airport_data._wx_windgust = 0
     if airport_data.observation.wind_speed:
         airport_data.wx_windspeed = airport_data_observation.wind_speed.value()
     else:
         airport_data.wx_windspeed = 0
     if airport_data.observation.vis:
-        airport_data.wx_visibility = airport_data_observation.vis.value()
+        airport_data._wx_visibility = airport_data_observation.vis.value()
     else:
         # Set visiblity to -1 to flag as unknown
-        airport_data.wx_visibility = -1
+        airport_data._wx_visibility = -1
     try:
-        airport_data.wx_ceiling = cloud_height(airport_data.metar)
+        airport_data._wx_ceiling = cloud_height(airport_data.metar)
     except Exception as err:
         msg = "airport_data.cloud_height() failed for " + airport_data.icao
         debugging.error(msg)
         debugging.error(err)
 
     # Calculate Flight Category
-    if airport_data.wx_ceiling == -1 or airport_data.wx_visibility == -1:
+    if airport_data._wx_ceiling == -1 or airport_data._wx_visibility == -1:
         airport_data.wx_category_str = "UNKN"
-    elif airport_data.wx_visibility < 1 or airport_data.wx_ceiling < 500:
+    elif airport_data._wx_visibility < 1 or airport_data._wx_ceiling < 500:
         airport_data.wx_category_str = "LIFR"
-    elif 1 <= airport_data.wx_visibility < 3 or 500 <= airport_data.wx_ceiling < 1000:
+    elif 1 <= airport_data._wx_visibility < 3 or 500 <= airport_data._wx_ceiling < 1000:
         airport_data.wx_category_str = "IFR"
     elif (
-        3 <= airport_data.wx_visibility <= 5 or 1000 <= airport_data.wx_ceiling <= 3000
+            3 <= airport_data._wx_visibility <= 5 or 1000 <= airport_data._wx_ceiling <= 3000
     ):
         airport_data.wx_category_str = "MVFR"
-    elif airport_data.wx_visibility > 5 and airport_data.wx_ceiling > 3000:
+    elif airport_data._wx_visibility > 5 and airport_data._wx_ceiling > 3000:
         airport_data.wx_category_str = "VFR"
     else:
         airport_data.wx_category_str = "UNKN"
@@ -224,7 +224,7 @@ def calculate_wx_from_metar(airport_data):
     airport_data.set_wx_category(airport_data.wx_category_str)
 
     debugging.debug(
-        f"Airport: Ceiling {airport_data.wx_ceiling} + Visibility : {airport_data.wx_visibility}"
+        f"Airport: Ceiling {airport_data._wx_ceiling} + Visibility : {airport_data._wx_visibility}"
     )
     debugging.debug(f"Airport {airport_data.icao} - {airport_data.wx_category_str}")
     return True

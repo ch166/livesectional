@@ -99,7 +99,7 @@ class Conf:
             "autorun": self.get_string("default", "autorun"),
             "LED_COUNT": self.get_string("default", "led_count"),
             "legend": self.get_string("default", "legend"),
-            "max_wind_speed": self.get_string("metar", "max_wind_speed"),
+            "max_wind_speed": self.get_string("activelights", "high_wind_limit"),
             "wx_update_interval": self.get_string("metar", "wx_update_interval"),
             "metar_age": self.get_string("metar", "metar_age"),
             "usetimer": self.get_bool("schedule", "usetimer"),
@@ -114,7 +114,7 @@ class Conf:
             "lcddisplay": self.get_string("oled", "lcddisplay"),
             "numofdisplays": self.get_string("oled", "numofdisplays"),
             "bright_value": self.get_string("lights", "bright_value"),
-            "hiwindblink": self.get_string("lights", "hiwindblink"),
+            "hiwindblink": self.get_string("activelights", "high_wind_blink"),
             "lghtnflash": self.get_string("lights", "lghtnflash"),
             "rainshow": self.get_string("lights", "rainshow"),
             "frrainshow": self.get_string("lights", "frrainshow"),
@@ -236,7 +236,7 @@ class Conf:
         #
         legend_flag = utils.str2bool(form_data["legend"])
         self.set_string("default", "legend", legend_flag)
-        self.set_string("metar", "max_wind_speed", form_data["max_wind_speed"])
+        self.set_string("activelights", "high_wind_limit", form_data["max_wind_speed"])
         self.set_string("metar", "wx_update_interval", form_data["wx_update_interval"])
         self.set_string("metar", "metar_age", form_data["metar_age"])
         #
@@ -255,7 +255,7 @@ class Conf:
         self.set_string("oled", "numofdisplays", form_data["numofdisplays"])
         #
         self.set_string("lights", "bright_value", form_data["bright_value"])
-        self.set_string("lights", "hiwindblink", form_data["hiwindblink"])
+        self.set_string("activelights", "high_wind_blink", form_data["hiwindblink"])
         self.set_string("lights", "lghtnflash", form_data["lghtnflash"])
         self.set_string("lights", "rainshow", form_data["rainshow"])
         self.set_string("lights", "frrainshow", form_data["frrainshow"])

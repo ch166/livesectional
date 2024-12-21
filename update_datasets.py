@@ -100,7 +100,7 @@ class DataSets:
         return self._runway_serial_num
 
     def airport_update_time(self):
-        """Get last time airport geo location data was updated."""
+        """Get last time airport geolocation data was updated."""
         return self._airport_update_time
 
     def airport_serial(self):

@@ -135,11 +135,11 @@ class Airport:
 
     def latitude(self):
         """Return Airport Latitude."""
-        return self.__latitude
+        return float(self.__latitude)
 
     def longitude(self):
         """Return Airport longitude."""
-        return self.__longitude
+        return float(self.__longitude)
 
     def valid_coordinates(self):
         """Are lat/lon coordinates set to something other than Missing."""

@@ -95,141 +95,136 @@ class Conf:
 
     def gen_settings_dict(self):
         """Generate settings template to pass to flask."""
-        settings = {}
-        # FIXME - Change to boolean here and in HTML Templates
-        settings["autorun"] = self.get_string("default", "autorun")
-        settings["LED_COUNT"] = self.get_string("default", "led_count")
-        # FIXME - Change to boolean here and in HTML Templates
-        settings["legend"] = self.get_string("default", "legend")
-        settings["max_wind_speed"] = self.get_string("metar", "max_wind_speed")
-        settings["wx_update_interval"] = self.get_string("metar", "wx_update_interval")
-        settings["metar_age"] = self.get_string("metar", "metar_age")
-        settings["usetimer"] = self.get_bool("schedule", "usetimer")
-        settings["offhour"] = self.get_string("schedule", "offhour")
-        settings["offminutes"] = self.get_string("schedule", "offminutes")
-        settings["onhour"] = self.get_string("schedule", "onhour")
-        settings["onminutes"] = self.get_string("schedule", "onminutes")
-        settings["tempsleepon"] = self.get_string("schedule", "tempsleepon")
-        settings["sleepmsg"] = self.get_string("schedule", "sleepmsg")
-        settings["displayused"] = self.get_string("oled", "displayused")
-        settings["oledused"] = self.get_string("oled", "oledused")
-        settings["lcddisplay"] = self.get_string("oled", "lcddisplay")
-        settings["numofdisplays"] = self.get_string("oled", "numofdisplays")
-        settings["bright_value"] = self.get_string("lights", "bright_value")
-        settings["hiwindblink"] = self.get_string("lights", "hiwindblink")
-        settings["lghtnflash"] = self.get_string("lights", "lghtnflash")
-        settings["rainshow"] = self.get_string("lights", "rainshow")
-        settings["frrainshow"] = self.get_string("lights", "frrainshow")
-        settings["snowshow"] = self.get_string("lights", "snowshow")
-        settings["dustsandashshow"] = self.get_string("lights", "dustsandashshow")
-        settings["fogshow"] = self.get_string("lights", "fogshow")
-        settings["homeport"] = self.get_string("lights", "homeport")
-        settings["homeport_pin"] = self.get_string("lights", "homeport_pin")
-        settings["homeport_display"] = self.get_string("lights", "homeport_display")
-        settings["dim_value"] = self.get_string("lights", "dim_value")
-        settings["rgb_grb"] = self.get_string("lights", "rgb_grb")
-        settings["rev_rgb_grb"] = self.get_string("lights", "rev_rgb_grb")
-        settings["dimmed_value"] = self.get_string("lights", "dimmed_value")
-        settings["legend_hiwinds"] = self.get_string("lights", "legend_hiwinds")
-        settings["legend_lghtn"] = self.get_string("lights", "legend_lghtn")
-        settings["legend_snow"] = self.get_string("lights", "legend_snow")
-        settings["legend_rain"] = self.get_string("lights", "legend_rain")
-        settings["legend_frrain"] = self.get_string("lights", "legend_frrain")
-        settings["legend_dustsandash"] = self.get_string("lights", "legend_dustsandash")
-        settings["legend_fog"] = self.get_string("lights", "legend_fog")
-        settings["leg_pin_vfr"] = self.get_string("lights", "leg_pin_vfr")
-        settings["leg_pin_mvfr"] = self.get_string("lights", "leg_pin_mvfr")
-        settings["leg_pin_ifr"] = self.get_string("lights", "leg_pin_ifr")
-        settings["leg_pin_lifr"] = self.get_string("lights", "leg_pin_lifr")
-        settings["leg_pin_nowx"] = self.get_string("lights", "leg_pin_nowx")
-        settings["leg_pin_hiwinds"] = self.get_string("lights", "leg_pin_hiwinds")
-        settings["leg_pin_lghtn"] = self.get_string("lights", "leg_pin_lghtn")
-        settings["leg_pin_snow"] = self.get_string("lights", "leg_pin_snow")
-        settings["leg_pin_rain"] = self.get_string("lights", "leg_pin_rain")
-        settings["leg_pin_frrain"] = self.get_string("lights", "leg_pin_frrain")
-        settings["leg_pin_dustsandash"] = self.get_string(
-            "lights", "leg_pin_dustsandash"
-        )
-        settings["leg_pin_fog"] = self.get_string("lights", "leg_pin_fog")
-        settings["num2display"] = self.get_string("lights", "num2display")
-        settings["exclusive_flag"] = self.get_string("lights", "exclusive_flag")
-        settings["exclusive_list"] = self.get_string("lights", "exclusive_list")
-        settings["abovekts"] = self.get_string("lights", "abovekts")
-        settings["lcdpause"] = self.get_string("lights", "lcdpause")
-        settings["rotyesno"] = self.get_string("oled", "rotyesno")
-        settings["oledposorder"] = self.get_string("oled", "oledposorder")
-        settings["oledpause"] = self.get_string("oled", "oledpause")
-        settings["fontsize"] = self.get_string("oled", "fontsize")
-        settings["offset"] = self.get_string("oled", "offset")
-        settings["wind_numorarrow"] = self.get_string("oled", "wind_numorarrow")
-        settings["boldhiap"] = self.get_string("oled", "boldhiap")
-        settings["blankscr"] = self.get_string("oled", "blankscr")
-        settings["border"] = self.get_string("oled", "border")
-        settings["dimswitch"] = self.get_string("oled", "dimswitch")
-        settings["dimmin"] = self.get_string("oled", "dimmin")
-        settings["dimmax"] = self.get_string("oled", "dimmax")
-        settings["invert"] = self.get_string("oled", "invert")
-        settings["toginv"] = self.get_string("oled", "toginv")
-        settings["scrolldis"] = self.get_string("oled", "scrolldis")
-        settings["usewelcome"] = self.get_string("default", "usewelcome")
-        settings["welcome"] = self.get_string("default", "welcome")
-        settings["displaytime"] = self.get_string("oled", "displaytime")
-        settings["displayip"] = self.get_string("oled", "displayip")
-        settings["data_sw0"] = self.get_string("rotaryswitch", "data_sw0")
-        settings["time_sw0"] = self.get_string("rotaryswitch", "time_sw0")
-        settings["data_sw1"] = self.get_string("rotaryswitch", "data_sw1")
-        settings["time_sw1"] = self.get_string("rotaryswitch", "time_sw1")
-        settings["data_sw2"] = self.get_string("rotaryswitch", "data_sw2")
-        settings["time_sw2"] = self.get_string("rotaryswitch", "time_sw2")
-        settings["data_sw3"] = self.get_string("rotaryswitch", "data_sw3")
-        settings["time_sw3"] = self.get_string("rotaryswitch", "time_sw3")
-        settings["data_sw4"] = self.get_string("rotaryswitch", "data_sw4")
-        settings["time_sw4"] = self.get_string("rotaryswitch", "time_sw4")
-        settings["data_sw5"] = self.get_string("rotaryswitch", "data_sw5")
-        settings["time_sw5"] = self.get_string("rotaryswitch", "time_sw5")
-        settings["data_sw6"] = self.get_string("rotaryswitch", "data_sw6")
-        settings["time_sw6"] = self.get_string("rotaryswitch", "time_sw6")
-        settings["data_sw7"] = self.get_string("rotaryswitch", "data_sw7")
-        settings["time_sw7"] = self.get_string("rotaryswitch", "time_sw7")
+        settings = {
+            "autorun": self.get_string("default", "autorun"),
+            "LED_COUNT": self.get_string("default", "led_count"),
+            "legend": self.get_string("default", "legend"),
+            "max_wind_speed": self.get_string("metar", "max_wind_speed"),
+            "wx_update_interval": self.get_string("metar", "wx_update_interval"),
+            "metar_age": self.get_string("metar", "metar_age"),
+            "usetimer": self.get_bool("schedule", "usetimer"),
+            "offhour": self.get_string("schedule", "offhour"),
+            "offminutes": self.get_string("schedule", "offminutes"),
+            "onhour": self.get_string("schedule", "onhour"),
+            "onminutes": self.get_string("schedule", "onminutes"),
+            "tempsleepon": self.get_string("schedule", "tempsleepon"),
+            "sleepmsg": self.get_string("schedule", "sleepmsg"),
+            "displayused": self.get_string("oled", "displayused"),
+            "oledused": self.get_string("oled", "oledused"),
+            "lcddisplay": self.get_string("oled", "lcddisplay"),
+            "numofdisplays": self.get_string("oled", "numofdisplays"),
+            "bright_value": self.get_string("lights", "bright_value"),
+            "hiwindblink": self.get_string("lights", "hiwindblink"),
+            "lghtnflash": self.get_string("lights", "lghtnflash"),
+            "rainshow": self.get_string("lights", "rainshow"),
+            "frrainshow": self.get_string("lights", "frrainshow"),
+            "snowshow": self.get_string("lights", "snowshow"),
+            "dustsandashshow": self.get_string("lights", "dustsandashshow"),
+            "fogshow": self.get_string("lights", "fogshow"),
+            "homeport": self.get_string("lights", "homeport"),
+            "homeport_pin": self.get_string("lights", "homeport_pin"),
+            "homeport_display": self.get_string("lights", "homeport_display"),
+            "dim_value": self.get_string("lights", "dim_value"),
+            "rgb_grb": self.get_string("lights", "rgb_grb"),
+            "rev_rgb_grb": self.get_string("lights", "rev_rgb_grb"),
+            "dimmed_value": self.get_string("lights", "dimmed_value"),
+            "legend_hiwinds": self.get_string("lights", "legend_hiwinds"),
+            "legend_lghtn": self.get_string("lights", "legend_lghtn"),
+            "legend_snow": self.get_string("lights", "legend_snow"),
+            "legend_rain": self.get_string("lights", "legend_rain"),
+            "legend_frrain": self.get_string("lights", "legend_frrain"),
+            "legend_dustsandash": self.get_string("lights", "legend_dustsandash"),
+            "legend_fog": self.get_string("lights", "legend_fog"),
+            "leg_pin_vfr": self.get_string("lights", "leg_pin_vfr"),
+            "leg_pin_mvfr": self.get_string("lights", "leg_pin_mvfr"),
+            "leg_pin_ifr": self.get_string("lights", "leg_pin_ifr"),
+            "leg_pin_lifr": self.get_string("lights", "leg_pin_lifr"),
+            "leg_pin_nowx": self.get_string("lights", "leg_pin_nowx"),
+            "leg_pin_hiwinds": self.get_string("lights", "leg_pin_hiwinds"),
+            "leg_pin_lghtn": self.get_string("lights", "leg_pin_lghtn"),
+            "leg_pin_snow": self.get_string("lights", "leg_pin_snow"),
+            "leg_pin_rain": self.get_string("lights", "leg_pin_rain"),
+            "leg_pin_frrain": self.get_string("lights", "leg_pin_frrain"),
+            "leg_pin_dustsandash": self.get_string("lights", "leg_pin_dustsandash"),
+            "leg_pin_fog": self.get_string("lights", "leg_pin_fog"),
+            "num2display": self.get_string("lights", "num2display"),
+            "exclusive_flag": self.get_string("lights", "exclusive_flag"),
+            "exclusive_list": self.get_string("lights", "exclusive_list"),
+            "abovekts": self.get_string("lights", "abovekts"),
+            "lcdpause": self.get_string("lights", "lcdpause"),
+            "rotyesno": self.get_string("oled", "rotyesno"),
+            "oledposorder": self.get_string("oled", "oledposorder"),
+            "oledpause": self.get_string("oled", "oledpause"),
+            "fontsize": self.get_string("oled", "fontsize"),
+            "offset": self.get_string("oled", "offset"),
+            "wind_numorarrow": self.get_string("oled", "wind_numorarrow"),
+            "boldhiap": self.get_string("oled", "boldhiap"),
+            "blankscr": self.get_string("oled", "blankscr"),
+            "border": self.get_string("oled", "border"),
+            "dimswitch": self.get_string("oled", "dimswitch"),
+            "dimmin": self.get_string("oled", "dimmin"),
+            "dimmax": self.get_string("oled", "dimmax"),
+            "invert": self.get_string("oled", "invert"),
+            "toginv": self.get_string("oled", "toginv"),
+            "scrolldis": self.get_string("oled", "scrolldis"),
+            "usewelcome": self.get_string("default", "usewelcome"),
+            "welcome": self.get_string("default", "welcome"),
+            "displaytime": self.get_string("oled", "displaytime"),
+            "displayip": self.get_string("oled", "displayip"),
+            "data_sw0": self.get_string("rotaryswitch", "data_sw0"),
+            "time_sw0": self.get_string("rotaryswitch", "time_sw0"),
+            "data_sw1": self.get_string("rotaryswitch", "data_sw1"),
+            "time_sw1": self.get_string("rotaryswitch", "time_sw1"),
+            "data_sw2": self.get_string("rotaryswitch", "data_sw2"),
+            "time_sw2": self.get_string("rotaryswitch", "time_sw2"),
+            "data_sw3": self.get_string("rotaryswitch", "data_sw3"),
+            "time_sw3": self.get_string("rotaryswitch", "time_sw3"),
+            "data_sw4": self.get_string("rotaryswitch", "data_sw4"),
+            "time_sw4": self.get_string("rotaryswitch", "time_sw4"),
+            "data_sw5": self.get_string("rotaryswitch", "data_sw5"),
+            "time_sw5": self.get_string("rotaryswitch", "time_sw5"),
+            "data_sw6": self.get_string("rotaryswitch", "data_sw6"),
+            "time_sw6": self.get_string("rotaryswitch", "time_sw6"),
+            "data_sw7": self.get_string("rotaryswitch", "data_sw7"),
+            "time_sw7": self.get_string("rotaryswitch", "time_sw7"),
+            "color_vfr": self.get_string("colors", "color_vfr"),
+            "color_mvfr": self.get_string("colors", "color_mvfr"),
+            "color_ifr": self.get_string("colors", "color_ifr"),
+            "color_lifr": self.get_string("colors", "color_lifr"),
+            "color_nowx": self.get_string("colors", "color_nowx"),
+            "color_black": self.get_string("colors", "color_black"),
+            "color_lghtn": self.get_string("colors", "color_lghtn"),
+            "color_snow1": self.get_string("colors", "color_snow1"),
+            "color_snow2": self.get_string("colors", "color_snow2"),
+            "color_rain1": self.get_string("colors", "color_rain1"),
+            "color_rain2": self.get_string("colors", "color_rain2"),
+            "color_frrain1": self.get_string("colors", "color_frrain1"),
+            "color_frrain2": self.get_string("colors", "color_frrain2"),
+            "color_dustsandash1": self.get_string("colors", "color_dustsandash1"),
+            "color_dustsandash2": self.get_string("colors", "color_dustsandash2"),
+            "color_fog1": self.get_string("colors", "color_fog1"),
+            "color_fog2": self.get_string("colors", "color_fog2"),
+            "color_homeport": self.get_string("colors", "color_homeport"),
+            "homeport_colors": self.get_string("colors", "homeport_colors"),
+            "fade_color1": self.get_string("colors", "fade_color1"),
+            "allsame_color1": self.get_string("colors", "allsame_color1"),
+            "allsame_color2": self.get_string("colors", "allsame_color2"),
+            "shuffle_color1": self.get_string("colors", "shuffle_color1"),
+            "shuffle_color2": self.get_string("colors", "shuffle_color2"),
+            "radar_color1": self.get_string("colors", "radar_color1"),
+            "radar_color2": self.get_string("colors", "radar_color2"),
+            "circle_color1": self.get_string("colors", "circle_color1"),
+            "circle_color2": self.get_string("colors", "circle_color2"),
+            "square_color1": self.get_string("colors", "square_color1"),
+            "square_color2": self.get_string("colors", "square_color2"),
+            "updn_color1": self.get_string("colors", "updn_color1"),
+            "updn_color2": self.get_string("colors", "updn_color2"),
+            "rabbit_color1": self.get_string("colors", "rabbit_color1"),
+            "rabbit_color2": self.get_string("colors", "rabbit_color2"),
+            "checker_color1": self.get_string("colors", "checker_color1"),
+            "checker_color2": self.get_string("colors", "checker_color2"),
+        }
 
-        settings["color_vfr"] = self.get_string("colors", "color_vfr")
-        settings["color_mvfr"] = self.get_string("colors", "color_mvfr")
-        settings["color_ifr"] = self.get_string("colors", "color_ifr")
-        settings["color_lifr"] = self.get_string("colors", "color_lifr")
-        settings["color_nowx"] = self.get_string("colors", "color_nowx")
-        settings["color_black"] = self.get_string("colors", "color_black")
-        settings["color_lghtn"] = self.get_string("colors", "color_lghtn")
-        settings["color_snow1"] = self.get_string("colors", "color_snow1")
-        settings["color_snow2"] = self.get_string("colors", "color_snow2")
-        settings["color_rain1"] = self.get_string("colors", "color_rain1")
-        settings["color_rain2"] = self.get_string("colors", "color_rain2")
-        settings["color_frrain1"] = self.get_string("colors", "color_frrain1")
-        settings["color_frrain2"] = self.get_string("colors", "color_frrain2")
-        settings["color_dustsandash1"] = self.get_string("colors", "color_dustsandash1")
-        settings["color_dustsandash2"] = self.get_string("colors", "color_dustsandash2")
-        settings["color_fog1"] = self.get_string("colors", "color_fog1")
-        settings["color_fog2"] = self.get_string("colors", "color_fog2")
-        settings["color_homeport"] = self.get_string("colors", "color_homeport")
-        settings["homeport_colors"] = self.get_string("colors", "homeport_colors")
-        settings["fade_color1"] = self.get_string("colors", "fade_color1")
-        settings["allsame_color1"] = self.get_string("colors", "allsame_color1")
-        settings["allsame_color2"] = self.get_string("colors", "allsame_color2")
-        settings["shuffle_color1"] = self.get_string("colors", "shuffle_color1")
-        settings["shuffle_color2"] = self.get_string("colors", "shuffle_color2")
-        settings["radar_color1"] = self.get_string("colors", "radar_color1")
-        settings["radar_color2"] = self.get_string("colors", "radar_color2")
-        settings["circle_color1"] = self.get_string("colors", "circle_color1")
-        settings["circle_color2"] = self.get_string("colors", "circle_color2")
-        settings["square_color1"] = self.get_string("colors", "square_color1")
-        settings["square_color2"] = self.get_string("colors", "square_color2")
-        settings["updn_color1"] = self.get_string("colors", "updn_color1")
-        settings["updn_color2"] = self.get_string("colors", "updn_color2")
-        settings["morse_color1"] = self.get_string("colors", "morse_color1")
-        settings["morse_color2"] = self.get_string("colors", "morse_color2")
-        settings["rabbit_color1"] = self.get_string("colors", "rabbit_color1")
-        settings["rabbit_color2"] = self.get_string("colors", "rabbit_color2")
-        settings["checker_color1"] = self.get_string("colors", "checker_color1")
-        settings["checker_color2"] = self.get_string("colors", "checker_color2")
         return settings
 
     def parse_config_input(self, form_data):
@@ -368,8 +363,6 @@ class Conf:
         self.set_string("colors", "square_color2", form_data["square_color2"])
         self.set_string("colors", "updn_color1", form_data["updn_color1"])
         self.set_string("colors", "updn_color2", form_data["updn_color2"])
-        self.set_string("colors", "morse_color1", form_data["morse_color1"])
-        self.set_string("colors", "morse_color2", form_data["morse_color2"])
         self.set_string("colors", "rabbit_color1", form_data["rabbit_color1"])
         self.set_string("colors", "rabbit_color2", form_data["rabbit_color2"])
         self.set_string("colors", "checker_color1", form_data["checker_color1"])

@@ -29,6 +29,7 @@ from flask import (
 import qrcode
 
 import utils
+import utils_coord
 import utils_mos
 
 # import conf
@@ -59,6 +60,8 @@ class WebViews:
         "Rabbit",
         "Shuffle",
         "Rainbow",
+        "Morse",
+        "Radar",
         "TAF 1",
         "TAF 2",
         "TAF 3",
@@ -273,6 +276,8 @@ class WebViews:
                 self._led_strip.set_ledmode(LedMode.SHUFFLE)
             if newledmode_upper == "RAINBOW":
                 self._led_strip.set_ledmode(LedMode.RAINBOW)
+            if newledmode_upper == "RADAR":
+                self._led_strip.set_ledmode(LedMode.RADARWIPE)
             if newledmode_upper == "TAF 1":
                 self._led_strip.set_ledmode(LedMode.TAF_1)
             if newledmode_upper == "TAF 2":
@@ -281,6 +286,8 @@ class WebViews:
                 self._led_strip.set_ledmode(LedMode.TAF_3)
             if newledmode_upper == "TAF 4":
                 self._led_strip.set_ledmode(LedMode.TAF_4)
+            if newledmode_upper == "MORSE":
+                self._led_strip.set_ledmode(LedMode.MORSE)
             if newledmode_upper == "MOS 1":
                 self._led_strip.set_ledmode(LedMode.MOS_1)
             if newledmode_upper == "MOS 2":
@@ -376,46 +383,14 @@ class WebViews:
 
         return self.app.response_class(generate(), mimetype="text/plain")
 
-    def airport_boundary_calc(self):
-        """Scan airport lat/lon data and work out Airport Map boundaries."""
-        # TODO: Handle boot-up scenario where airport list isn't loaded yet
-        lat_list = []
-        lon_list = []
-        airports = self._airport_database.get_airport_dict_led()
-        debugging.debug("Boundary Calc")
-        for icao, airport_obj in airports.items():
-            if not airport_obj.active():
-                continue
-            if not airport_obj.valid_coordinates():
-                continue
-            lat = float(airport_obj.latitude())
-            lat_list.append(lat)
-            lon = float(airport_obj.longitude())
-            lon_list.append(lon)
-            debugging.dprint(f"boundary:{icao}:{lat}:{lon}:")
-        if len(lat_list) >= 1:
-            self.max_lat = max(lat_list)
-        else:
-            self.max_lat = 0
-        if len(lat_list) >= 1:
-            self.min_lat = min(lat_list)
-        else:
-            self.max_lat = 0
-        if len(lat_list) >= 1:
-            self.max_lon = max(lon_list)
-        else:
-            self.max_lat = 0
-        if len(lat_list) >= 1:
-            self.min_lon = min(lon_list)
-        else:
-            self.max_lat = 0
-
     # Route to display map's airports on a digital map.
     # @app.route('/led_map', methods=["GET", "POST"])
     def led_map(self):
         """Flask Route: /led_map - Display LED Map with existing airports."""
         # Update Airport Boundary data based on set of airports
-        self.airport_boundary_calc()
+        self.max_lat, self.min_lat, self.max_lon, self.min_lon = (
+            utils_coord.airport_boundary_calc(self._airport_database)
+        )
 
         points = []
         title_coords = (self.max_lat, (float(self.max_lon) + float(self.min_lon)) / 2)
@@ -554,7 +529,9 @@ class WebViews:
     def heat_map(self):
         """Flask Route: /heat_map - Display HEAT Map with existing airports."""
         # Update Airport Boundary data based on set of airports
-        self.airport_boundary_calc()
+        self.max_lat, self.min_lat, self.max_lon, self.min_lon = (
+            utils_coord.airport_boundary_calc(self._airport_database)
+        )
 
         points = []
         title_coords = (self.max_lat, (float(self.max_lon) + float(self.min_lon)) / 2)
@@ -710,9 +687,9 @@ class WebViews:
         qrcode_url = self._app_conf.get_string("filenames", "qrcode_url")
 
         qr_img = qrcode.QRCode(
-            version=1,
+            version=5,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
+            box_size=20,
             border=4,
         )
         qr_img.add_data(qraddress)
@@ -1159,12 +1136,8 @@ class WebViews:
         )
         template_data["updn_color1_hex"] = self._app_conf.color("colors", "updn_color1")
         template_data["updn_color2_hex"] = self._app_conf.color("colors", "updn_color2")
-        template_data["morse_color1_hex"] = self._app_conf.color(
-            "colors", "morse_color1"
-        )
-        template_data["morse_color2_hex"] = self._app_conf.color(
-            "colors", "morse_color2"
-        )
+        # template_data["morse_color1_hex"] = self._app_conf.color( "colors", "morse_color1")
+        # template_data["morse_color2_hex"] = self._app_conf.color( "colors", "morse_color2")
         template_data["rabbit_color1_hex"] = self._app_conf.color(
             "colors", "rabbit_color1"
         )
@@ -1290,12 +1263,8 @@ class WebViews:
         )
         template_data["updn_color1_hex"] = self._app_conf.color("colors", "updn_color1")
         template_data["updn_color2_hex"] = self._app_conf.color("colors", "updn_color2")
-        template_data["morse_color1_hex"] = self._app_conf.color(
-            "colors", "morse_color1"
-        )
-        template_data["morse_color2_hex"] = self._app_conf.color(
-            "colors", "morse_color2"
-        )
+        # template_data["morse_color1_hex"] = self._app_conf.color( "colors", "morse_color1")
+        # template_data["morse_color2_hex"] = self._app_conf.color( "colors", "morse_color2")
         template_data["rabbit_color1_hex"] = self._app_conf.color(
             "colors", "rabbit_color1"
         )

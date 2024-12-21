@@ -73,7 +73,7 @@ def triangle_area(x_1, y_1, x_2, y_2, x_3, y_3):
 
 
 def is_inside_triangle(point, pt1, pt2, pt3):
-    """Alternative Algorithm ... """
+    """Alternative Algorithm ..."""
     (xp, yp) = point
     (x1, y1) = pt1
     (x2, y2) = pt2
@@ -154,10 +154,14 @@ def airport_boundary_calc(airport_database):
             continue
         lon = airport_obj.longitude()
         lat = airport_obj.latitude()
-        if max_lon is None: max_lon = lon
-        if min_lon is None: min_lon = lon
-        if max_lat is None: max_lat = lat
-        if min_lat is None: min_lat = lat
+        if max_lon is None:
+            max_lon = lon
+        if min_lon is None:
+            min_lon = lon
+        if max_lat is None:
+            max_lat = lat
+        if min_lat is None:
+            min_lat = lat
         max_lon = max(max_lon, lon)
         min_lon = min(min_lon, lon)
         max_lat = max(max_lat, lat)

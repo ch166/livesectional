@@ -1278,8 +1278,15 @@ class UpdateLEDs:
             self._airport_database
         )
 
-        debugging.info(f"RADAR: max_lon: {max_lon}, min_lon: {min_lon}, max_lat: {max_lat}, min_lat: {min_lat}, ")
-        if (max_lat is None) or (min_lat is None) or (max_lon is None) or (min_lon is None):
+        debugging.info(
+            f"RADAR: max_lon: {max_lon}, min_lon: {min_lon}, max_lat: {max_lat}, min_lat: {min_lat}, "
+        )
+        if (
+            (max_lat is None)
+            or (min_lat is None)
+            or (max_lon is None)
+            or (min_lon is None)
+        ):
             debugging.info("RADAR: Setup incomplete ; no lon/lat data")
             return
         width = abs(max_lon - min_lon)
@@ -1289,7 +1296,9 @@ class UpdateLEDs:
         self.radar_beam_radius = (
             max(height, width) * 1.1
         )  # Radius of 110% of the biggest boundary size surrounding the airports
-        debugging.info(f"RADAR: center_lon: {center_lon}, center_lat: {center_lat}, self.radar_beam_radius: {self.radar_beam_radius}")
+        debugging.info(
+            f"RADAR: center_lon: {center_lon}, center_lat: {center_lat}, self.radar_beam_radius: {self.radar_beam_radius}"
+        )
         area_triangles = utils_coord.circle_triangles(
             self.radar_beam_radius, self.radar_beam_width, center_lon, center_lat
         )
@@ -1304,11 +1313,16 @@ class UpdateLEDs:
                     airport_lat = airport_obj.latitude()
                     airport_lon = airport_obj.longitude()
                     if utils_coord.is_inside_triangle(
-                        (airport_lon, airport_lat), triangle[1], triangle[2], triangle[3]
+                        (airport_lon, airport_lat),
+                        triangle[1],
+                        triangle[2],
+                        triangle[3],
                     ):
                         deg_pos_start = triangle[0][0]
                         deg_pos_end = triangle[0][1]
-                        debugging.info(f"RADAR: Match airport {airport_key}:  inside {deg_pos_start}/{deg_pos_end}: led {airport_led}")
+                        debugging.info(
+                            f"RADAR: Match airport {airport_key}:  inside {deg_pos_start}/{deg_pos_end}: led {airport_led}"
+                        )
                         for deg_pos in range(deg_pos_start, deg_pos_end):
                             if deg_pos in radar_map:
                                 radar_map[deg_pos] = radar_map[deg_pos] + (airport_led,)

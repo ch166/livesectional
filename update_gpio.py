@@ -220,7 +220,7 @@ class UpdateGPIO:
             self.oled_count = 8
 
     def old_original__init__(self, conf, airport_database):
-        """Deleting this.."""
+        """Deleting this."""
         # ****************************************************************************
         # * User defined items to be set below - Make changes to config.py, not here *
         # ****************************************************************************

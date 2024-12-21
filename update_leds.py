@@ -2,7 +2,7 @@
 
 """ update_leds.py.
 
-# Moved all of the airport specific data / metar analysis functions to update_airport.py
+# Moved all the airport specific data / metar analysis functions to update_airport.py
 # This module creates a class updateLEDs that is specifically focused around
 # managing a string of LEDs.
 """
@@ -62,6 +62,7 @@ import utils
 import utils_colors
 import utils_gfx
 import utils_mos
+import utils_coord
 
 
 class LedMode(Enum):
@@ -80,6 +81,7 @@ class LedMode(Enum):
     SQUAREWIPE = auto()
     WHEELWIPE = auto()
     CIRCLEWIPE = auto()
+    MORSE = auto()
 
     # TODO: how should this work ?
     # Should we have a different mode for each possible hour offset ?
@@ -244,6 +246,11 @@ class UpdateLEDs:
         ")": "-.--.-",
     }
 
+    radar_beam_color = "#00FF00"
+    radar_beam_width = 10
+    radar_beam_radius = 50
+    _radar_map = {}
+
     # FIXME: Needs to tie to the list of disabled LEDs
     _nullpins = []
     _wait = 1
@@ -266,6 +273,34 @@ class UpdateLEDs:
     _led_invert = False
     _led_channel = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
     _led_strip = ws.WS2811_STRIP_GRB  # Strip type and color ordering
+
+    # Time Delay
+    time_base_delay = 0.2
+
+    # Morse Code Timing
+    # Dit: 1 unit
+    # Dah: 3 units
+    # Intra-character space (the gap between dits and dahs within a character): 1 unit
+    # Inter-character space (the gap between the characters of a word): 3 units
+    # Word space (the gap between two words): 7 units
+
+    # Two clock_ticks = 1 Morse Code Unit
+
+    morse_dot_symbol = "."
+    morse_dot_encoded = ".."  # 1 unit / 2 clock_ticks
+    morse_dash_symbol = "-"
+    morse_dash_encoded = "------"  # 3 units / 6 clock_ticks
+    morse_interval = "*"
+    morse_interval_encoded = "**"  # 1 Unit / 2 clock_ticks
+    # Letter interval is 3 units ; but will come after a symbol interval ; so adding two more units
+    morse_letter_interval_encoded = "****"  # +2 incremental units / 4 clock_ticks
+    # Word interval is 7 units; but will come after a symbol and word interval ; adding 4 more units
+    morse_word_interval_encoded = "********"  # +4 units / 8 clock_ticks
+
+    morse_signal_encoded = "...... ------------------ ......"
+
+    morse_color_dot = "#007000"
+    morse_color_dash = "#000070"
 
     def __init__(self, conf, airport_database):
         """Initialize LED Strip."""
@@ -338,6 +373,11 @@ class UpdateLEDs:
         self.strip.begin()
         self.turnoff()
         self.init_rainbow()
+
+        self.morse_color_dot = self._app_conf.get_string("morse", "color_dot")
+        self.morse_color_dash = self._app_conf.get_string("morse", "color_dash")
+
+        self.encode_morse_string()
         debugging.info("LED Strip INIT complete")
 
     # Functions
@@ -431,7 +471,7 @@ class UpdateLEDs:
         active_led_dict = {}
         for index in range(self._led_count):
             active_led_dict[index] = None
-        posn = 0
+        pos = 0
         airports = self._airport_database.get_airport_dict_led()
         if airports is None:
             return
@@ -440,8 +480,8 @@ class UpdateLEDs:
                 debugging.debug(f"Airport Not Active {icao} : Not updating LED list")
                 continue
             led_index = airport_obj.get_led_index()
-            active_led_dict[posn] = led_index
-            posn = posn + 1
+            active_led_dict[pos] = led_index
+            pos = pos + 1
         self._active_led_dict = active_led_dict
 
     def show(self):
@@ -514,7 +554,7 @@ class UpdateLEDs:
         # Change color code to work with various led self.strips. For instance, WS2812 model
         # self.strip uses RGB where WS2811 model uses GRB
         # Set the "rgb_grb" user setting above. 1 for RGB LED self.strip, and 0 for GRB self.strip.
-        # If necessary, populate the list rev_rgb_grb with pin numbers of LED's that use the opposite color scheme.
+        # If necessary, populate the list rev_rgb_grb with pins of LED's that use the opposite color scheme.
         # list of pins that need to use the reverse of the normal order setting.
         # This accommodates the use of both models of LED strings on one map.
         if str(pin) in self._app_confcache["rev_rgb_grb"]:
@@ -565,8 +605,8 @@ class UpdateLEDs:
             color = utils_colors.black()
         return color
 
-    def check_for_sleep_time(self, clocktick, sleeping, default_led_mode):
-        debugging.info(f"Checking if it's time for sleep mode: {clocktick}")
+    def check_for_sleep_time(self, clock_tick, sleeping, default_led_mode):
+        debugging.info(f"Checking if it's time for sleep mode: {clock_tick}")
         datetime_now = utils.current_time(self._app_conf)
         time_now = datetime_now.time()
         if utils.time_in_range(self._offtime, self._ontime, time_now):
@@ -576,9 +616,9 @@ class UpdateLEDs:
                 sleeping = True
             else:
                 # It's night time; we're already sleeping. Take a break.
-                debugging.info(f"Sleeping .. {clocktick}")
+                debugging.info(f"Sleeping .. {clock_tick}")
         elif sleeping:
-            debugging.info(f"Disabling sleeping mode... {clocktick} ")
+            debugging.info(f"Disabling sleeping mode... {clock_tick} ")
             self._led_mode = default_led_mode
             sleeping = False
         return sleeping
@@ -592,22 +632,25 @@ class UpdateLEDs:
         # Tick values are used to provide a ticking clock interval that can be used by functions that want to have
         # time or interval based sequences without blocking to complete the entire sequence in one go
         rainbowtick = 0
-        clocktick = 0
+        clock_tick = 0
+
+        self.ledmode_radar_setup()
+
         while True:
             # Going to use an index counter as a pseudo clock tick for
             # each LED module. It's going to continually increase through
             # each pass - and it's max value is a limiter on the number of LEDs
             # If each pass through this loop touches one LED ; then we need enough
             # clock cycles to cover every LED.
-            clocktick = (clocktick + 1) % self.BIGNUM
+            clock_tick = (clock_tick + 1) % self.BIGNUM
 
-            if (clocktick % 1000) == 0:
+            if (clock_tick % 1000) == 0:
                 # Execute things that need to be done occasionally
                 # Make sure the active LED list is updated
                 self.update_active_led_list()
                 if self.nightsleep:
                     sleeping = self.check_for_sleep_time(
-                        clocktick, sleeping, default_led_mode
+                        clock_tick, sleeping, default_led_mode
                     )
 
             if self._led_mode in (LedMode.OFF, LedMode.SLEEP):
@@ -615,14 +658,14 @@ class UpdateLEDs:
                 time.sleep(self.PAUSESHORT)
                 continue
             if self._led_mode == LedMode.METAR:
-                led_color_dict = self.ledmode_metar(clocktick)
-                if (clocktick % 100) == 0:
+                led_color_dict = self.ledmode_metar(clock_tick)
+                if (clock_tick % 100) == 0:
                     debugging.info(f"ledmode_metar: {led_color_dict}")
                 self.update_ledstring(led_color_dict)
                 continue
             if self._led_mode == LedMode.TEST:
-                # self.ledmode_test(clocktick)
-                led_color_dict = self.colorwipe(clocktick)
+                # self.ledmode_test(clock_tick)
+                led_color_dict = self.colorwipe(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
@@ -633,57 +676,62 @@ class UpdateLEDs:
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.FADE:
-                led_color_dict = self.ledmode_fade(clocktick)
+                led_color_dict = self.ledmode_fade(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYSHORT)
                 continue
             if self._led_mode == LedMode.RABBIT:
-                led_color_dict = self.ledmode_rabbit(clocktick)
+                led_color_dict = self.ledmode_rabbit(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYSHORT)
                 continue
             if self._led_mode == LedMode.SHUFFLE:
-                led_color_dict = self.ledmode_shuffle(clocktick)
+                led_color_dict = self.ledmode_shuffle(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
+            if self._led_mode == LedMode.MORSE:
+                led_color_dict = self.ledmode_morse(clock_tick)
+                self.update_ledstring(led_color_dict)
+                time.sleep(self.DELAYSHORT)
+                continue
             if self._led_mode == LedMode.TAF_1:
-                led_color_dict = self.ledmode_taf(clocktick, 1)
+                led_color_dict = self.ledmode_taf(clock_tick, 1)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.TAF_2:
-                led_color_dict = self.ledmode_taf(clocktick, 2)
+                led_color_dict = self.ledmode_taf(clock_tick, 2)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.TAF_3:
-                led_color_dict = self.ledmode_taf(clocktick, 3)
+                led_color_dict = self.ledmode_taf(clock_tick, 3)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.TAF_4:
-                led_color_dict = self.ledmode_taf(clocktick, 4)
+                led_color_dict = self.ledmode_taf(clock_tick, 4)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.MOS_1:
-                led_color_dict = self.ledmode_mos(clocktick, 1)
+                led_color_dict = self.ledmode_mos(clock_tick, 1)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.MOS_2:
-                led_color_dict = self.ledmode_mos(clocktick, 2)
+                led_color_dict = self.ledmode_mos(clock_tick, 2)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.MOS_3:
-                led_color_dict = self.ledmode_mos(clocktick, 3)
+                led_color_dict = self.ledmode_mos(clock_tick, 3)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.MOS_4:
-                led_color_dict = self.ledmode_mos(clocktick, 4)
+                led_color_dict = self.ledmode_mos(clock_tick, 4)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
@@ -691,27 +739,27 @@ class UpdateLEDs:
             # Rewrite complete as far as here
             #
             if self._led_mode == LedMode.RADARWIPE:
-                led_color_dict = self.ledmode_rabbit(clocktick)
+                led_color_dict = self.ledmode_radar(clock_tick)
                 self.update_ledstring(led_color_dict)
-                time.sleep(self.DELAYMEDIUM)
+                time.sleep(self.DELAYSHORT)
                 continue
             if self._led_mode == LedMode.SQUAREWIPE:
-                led_color_dict = self.ledmode_rabbit(clocktick)
+                led_color_dict = self.ledmode_rabbit(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.WHEELWIPE:
-                led_color_dict = self.ledmode_rabbit(clocktick)
+                led_color_dict = self.ledmode_rabbit(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.CIRCLEWIPE:
-                led_color_dict = self.ledmode_rabbit(clocktick)
+                led_color_dict = self.ledmode_rabbit(clock_tick)
                 self.update_ledstring(led_color_dict)
                 time.sleep(self.DELAYMEDIUM)
                 continue
             if self._led_mode == LedMode.HEATMAP:
-                led_color_dict = self.ledmode_heatmap(clocktick)
+                led_color_dict = self.ledmode_heatmap(clock_tick)
                 self.update_ledstring(led_color_dict)
                 continue
 
@@ -753,9 +801,12 @@ class UpdateLEDs:
         # debugging.info(f"{airport}:forecast:{airport_mos_future}")
         return airport_mos_future
 
-    def ledmode_test(self, clocktick):
+    def ledmode_test(self, clock_tick):
         """Run self test sequences."""
-        return self.colorwipe(clocktick)
+        return self.colorwipe(clock_tick)
+
+    def ledmode_circlewipe(self, clock_tick):
+        """Wipe circle around the geographically center most airport"""
 
     def legend_color(self, airport_wxsrc, cycle_num):
         """Work out the color for the legend LEDs."""
@@ -817,14 +868,14 @@ class UpdateLEDs:
                 ledcolor = self._app_confcache["ifr_color"]
         return ledcolor
 
-    def ledmode_metar(self, clocktick):
+    def ledmode_metar(self, clock_tick):
         """Generate LED Color set for Airports."""
         airport_list = self._airport_database.get_airport_dict_led()
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
 
-        cycle_num = clocktick % len(self._cycle_wait)
+        cycle_num = clock_tick % len(self._cycle_wait)
 
         for airport_key, airport_obj in airport_list.items():
             airportcode = airport_obj.icaocode()
@@ -955,7 +1006,7 @@ class UpdateLEDs:
             #    norm_color = ledcolor
             #    # ledcolor = utils_colors.hexcode(norm_color[0], norm_color[1], norm_color[2])
 
-            if (clocktick % 150) == 0:
+            if (clock_tick % 150) == 0:
                 debugging.info(
                     f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airport_led}:{ledcolor}"
                 )
@@ -964,10 +1015,10 @@ class UpdateLEDs:
         time.sleep(self._cycle_wait[cycle_num])
         return led_updated_dict
 
-    def colorwipe(self, clocktick):
+    def colorwipe(self, clock_tick):
         """Run a color wipe test."""
         new_color = utils_colors.colordict["BLACK"]
-        wipe_steps = clocktick % 5
+        wipe_steps = clock_tick % 5
         if wipe_steps == 0:
             new_color = utils_colors.colordict["RED"]
         if wipe_steps == 1:
@@ -980,7 +1031,7 @@ class UpdateLEDs:
             new_color = utils_colors.colordict["YELLOW"]
         return self.fill(new_color)
 
-    def ledmode_rainbow(self, clocktick):
+    def ledmode_rainbow(self, clock_tick):
         """Update LEDs with rainbow pattern."""
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
@@ -988,20 +1039,42 @@ class UpdateLEDs:
         for led_key in self._active_led_dict.keys():
             if self._active_led_dict[led_key] is not None:
                 led_index = self._active_led_dict[led_key]
-                rainbow_index = (clocktick + led_index) % len(self._rgb_rainbow)
+                rainbow_index = (clock_tick + led_index) % len(self._rgb_rainbow)
                 rainbow_color = utils_colors.hex_tuple(self._rgb_rainbow[rainbow_index])
                 # print(f"Rainbow loop {led_index} / {rainbow_index} / {rainbow_color} ")
                 led_updated_dict[led_index] = rainbow_color
         return led_updated_dict
 
-    def ledmode_taf(self, clocktick, hr_offset):
+    def ledmode_morse(self, clock_tick):
+        """Update LEDs with morse pattern."""
+        led_updated_dict = {}
+        morse_pos = clock_tick % len(self.morse_signal_encoded)
+        led_color = utils_colors.black()
+        for led_index in range(self.num_pixels()):
+            led_updated_dict[led_index] = utils_colors.off()
+        if self.morse_signal_encoded[morse_pos] == self.morse_dot_symbol:
+            led_color = self.morse_color_dot
+        elif self.morse_signal_encoded[morse_pos] == self.morse_dash_symbol:
+            led_color = self.morse_color_dash
+        elif self.morse_signal_encoded[morse_pos] == self.morse_interval:
+            led_color = utils_colors.black()
+
+        debugging.info(f"morse:{led_color}")
+
+        for led_key in self._active_led_dict.keys():
+            if self._active_led_dict[led_key] is not None:
+                led_index = self._active_led_dict[led_key]
+                led_updated_dict[led_index] = led_color
+        return led_updated_dict
+
+    def ledmode_taf(self, clock_tick, hr_offset):
         """Update LEDs based on TAF data."""
         airport_list = self._airport_database.get_airport_dict_led()
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
 
-        cycle_num = clocktick % len(self._cycle_wait)
+        cycle_num = clock_tick % len(self._cycle_wait)
 
         for airport_key, airport_obj in airport_list.items():
             airportcode = airport_obj.icaocode()
@@ -1037,21 +1110,21 @@ class UpdateLEDs:
             elif flightcategory == "UNKN":
                 ledcolor = self._app_confcache["unkn_color"]
 
-            if (clocktick % 150) == 0:
+            if (clock_tick % 150) == 0:
                 debugging.debug(
                     f"ledmode_taf: {airportcode}:{flightcategory}:{airportled}:{ledcolor}"
                 )
             led_updated_dict[airportled] = ledcolor
         return led_updated_dict
 
-    def ledmode_mos(self, clocktick, hr_offset):
+    def ledmode_mos(self, clock_tick, hr_offset):
         """Update LEDs based on MOS data."""
         airport_list = self._airport_database.get_airport_dict_led()
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
             led_updated_dict[led_index] = utils_colors.off()
 
-        cycle_num = clocktick % len(self._cycle_wait)
+        cycle_num = clock_tick % len(self._cycle_wait)
 
         for airport_key, airport_obj in airport_list.items():
             airportcode = airport_obj.icaocode()
@@ -1087,7 +1160,7 @@ class UpdateLEDs:
             elif flightcategory == "UNKN":
                 ledcolor = self._app_confcache["unkn_color"]
 
-            if (clocktick % 150) == 0:
+            if (clock_tick % 150) == 0:
                 debugging.info(
                     f"ledmode_mos: {airportcode}:{flightcategory}:{airportled}:{ledcolor}"
                 )
@@ -1096,9 +1169,8 @@ class UpdateLEDs:
 
     # Wipe routines based on Lat/Lons of airports on map.
     # Need to pass name of dictionary with coordinates, either latdict or londict
-    # Also need to pass starting value and ending values to led_indexate through. These are floats for Lat/Lon. ie. 36.23
-    # Pass Step value to led_indexate through the values provided in start and end. Typically needs to be .01
-    # pass the start color and ending color. Pass a wait time or delay, ie. .01
+    # Also need to pass starting value and ending values to led_indexate through. These are floats for Lat/Lon. i.e. 36.23
+
     def wipe(self, dict_name, start, end, step, color1, color2, wait_mult):
         """Wipe based on location."""
         # Need to find duplicate values (lat/lons) from dictionary using flip technique
@@ -1123,15 +1195,15 @@ class UpdateLEDs:
                     key_id = flipped[key][j]
                     led_index = self.ap_id.index(
                         key_id
-                    )  # Assign the pin number to the led to turn on/off
+                    )  # Assign the pin to the led to turn on/off
 
                     self.set_led_color(led_index, color1)
                     self.show()
-                    time.sleep(self._wait * wait_mult)
+                    time.sleep(self.time_base_delay * wait_mult)
 
                     self.set_led_color(led_index, color2)
                     self.show()
-                    time.sleep(self._wait * wait_mult)
+                    time.sleep(self.time_base_delay * wait_mult)
 
     # Circle wipe
     def circlewipe(self, minlon, minlat, maxlon, maxlat, color1, color2):
@@ -1157,12 +1229,12 @@ class UpdateLEDs:
             for dummy_key, airport_obj in airports.items():
                 if not airport_obj.active():
                     continue
-                x_posn = float(airport_obj.longitude())
-                y_posn = float(airport_obj.latitude())
+                x_pos = float(airport_obj.longitude())
+                y_pos = float(airport_obj.latitude())
                 led_index = int(airport_obj.get_led_index())
 
-                if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (
-                    y_posn - circle_y
+                if (x_pos - circle_x) * (x_pos - circle_x) + (y_pos - circle_y) * (
+                    y_pos - circle_y
                 ) <= rad * rad:
                     #               print("Inside")
                     color = color1
@@ -1171,19 +1243,19 @@ class UpdateLEDs:
                     color = color2
                 self.set_led_color(led_index, color)
                 self.show()
-                time.sleep(self._wait)
+                time.sleep(self.time_base_delay)
             rad = rad + rad_inc
 
         for dummy_j in range(led_index):
             rad = rad - rad_inc
             airports = self._airport_database.get_airport_dict_led()
             for dummy_key, airport_obj in airports.items():
-                x_posn = float(airport_obj.longitude())
-                y_posn = float(airport_obj.latitude())
+                x_pos = float(airport_obj.longitude())
+                y_pos = float(airport_obj.latitude())
                 led_index = int(airport_obj.get_led_index())
 
-                if (x_posn - circle_x) * (x_posn - circle_x) + (y_posn - circle_y) * (
-                    y_posn - circle_y
+                if (x_pos - circle_x) * (x_pos - circle_x) + (y_pos - circle_y) * (
+                    y_pos - circle_y
                 ) <= rad * rad:
                     #               print("Inside")
                     color = color1
@@ -1193,7 +1265,80 @@ class UpdateLEDs:
 
                 self.set_led_color(led_index, color)
                 self.show()
-                time.sleep(self._wait)
+                time.sleep(self.time_base_delay)
+
+    def ledmode_radar_setup(self):
+        """Set up data structures for ledmode_radar"""
+        # For all these calculations ; longitude is X ; latitude is Y
+        self.radar_beam_color = "#00FF00"
+        self.radar_beam_width = 5
+
+        radar_map = {}
+        max_lon, min_lon, max_lat, min_lat = utils_coord.airport_boundary_calc(
+            self._airport_database
+        )
+
+        debugging.info(f"RADAR: max_lon: {max_lon}, min_lon: {min_lon}, max_lat: {max_lat}, min_lat: {min_lat}, ")
+        if (max_lat is None) or (min_lat is None) or (max_lon is None) or (min_lon is None):
+            debugging.info("RADAR: Setup incomplete ; no lon/lat data")
+            return
+        width = abs(max_lon - min_lon)
+        height = abs(max_lat - min_lat)
+        center_lon = (max_lon + min_lon) / 2
+        center_lat = (max_lat + min_lat) / 2
+        self.radar_beam_radius = (
+            max(height, width) * 1.1
+        )  # Radius of 110% of the biggest boundary size surrounding the airports
+        debugging.info(f"RADAR: center_lon: {center_lon}, center_lat: {center_lat}, self.radar_beam_radius: {self.radar_beam_radius}")
+        area_triangles = utils_coord.circle_triangles(
+            self.radar_beam_radius, self.radar_beam_width, center_lon, center_lat
+        )
+        debugging.info(f"RADAR: {area_triangles}")
+        for triangle in area_triangles:
+            for (
+                airport_key,
+                airport_obj,
+            ) in self._airport_database.get_airport_dict_led().items():
+                if airport_obj.valid_coordinates():
+                    airport_led = airport_obj.get_led_index()
+                    airport_lat = airport_obj.latitude()
+                    airport_lon = airport_obj.longitude()
+                    if utils_coord.is_inside_triangle(
+                        (airport_lon, airport_lat), triangle[1], triangle[2], triangle[3]
+                    ):
+                        deg_pos_start = triangle[0][0]
+                        deg_pos_end = triangle[0][1]
+                        debugging.info(f"RADAR: Match airport {airport_key}:  inside {deg_pos_start}/{deg_pos_end}: led {airport_led}")
+                        for deg_pos in range(deg_pos_start, deg_pos_end):
+                            if deg_pos in radar_map:
+                                radar_map[deg_pos] = radar_map[deg_pos] + (airport_led,)
+                            else:
+                                radar_map[deg_pos] = (airport_led,)
+
+        debugging.info(f"RADAR: radar_map: {radar_map}")
+        self._radar_map = radar_map
+
+    def ledmode_radar(self, clock_tick):
+        """Provide anticlockwise radar sweep style LED updates."""
+        # There are 360 degrees in the sweep; going to use clock_tick as the seed for the active angle
+
+        if len(self._radar_map) == 0:
+            self.ledmode_radar_setup()
+
+        led_updated_dict = {}
+        led_color = utils_colors.black()
+
+        angle_seed = 360 - (clock_tick % 360)
+
+        for led_index in range(self.num_pixels()):
+            led_updated_dict[led_index] = utils_colors.off()
+
+        if angle_seed in self._radar_map:
+            radar_leds = self._radar_map[angle_seed]
+            for led_index in radar_leds:
+                led_updated_dict[led_index] = self.radar_beam_color
+
+        return led_updated_dict
 
     def radarwipe(
         self,
@@ -1222,17 +1367,16 @@ class UpdateLEDs:
                 px_1 = float(airport_obj.longitude())  # Lon
                 py_1 = float(airport_obj.latitude())  # Lat
                 led_index = int(airport_obj.get_led_index())  # LED Pin Num
-                #           print (centerlon, centerlat, x_1, y_1, x_2, y_2, px_1, py_1, pin) #debug
 
-                if utils_gfx.is_inside(
-                    centerlon, centerlat, x_1, y_1, x_2, y_2, px_1, py_1
+                if utils_coord.point_inside_triangle(
+                    (px_1, py_1), (centerlon, centerlat), (x_1, y_1), (x_2, y_2)
                 ):
                     #               print('Inside')
                     self.set_led_color(led_index, color1)
                 else:
                     self.set_led_color(led_index, color2)
             self.show()
-            time.sleep(self._wait)
+            time.sleep(self.time_base_delay)
 
             # Increase the angle by angleinc radians
             angle = angle + angleinc
@@ -1288,7 +1432,7 @@ class UpdateLEDs:
                 declat = round(declat + step, 2)
 
                 self.show()
-                time.sleep(self._wait * wait_mult)
+                time.sleep(self.time_base_delay * wait_mult)
 
             for inclon in self.frange(centlon, maxlon, step):
                 # declon, declat = Upper Left of box.
@@ -1316,7 +1460,7 @@ class UpdateLEDs:
                 declat = round(declat - step, 2)
 
                 self.show()
-                time.sleep(self._wait * wait_mult)
+                time.sleep(self.time_base_delay * wait_mult)
 
     def checkerwipe(
         self,
@@ -1368,7 +1512,7 @@ class UpdateLEDs:
 
                     self.set_led_color(led_index, color)
                 self.show()
-                time.sleep(self._wait * wait_mult)
+                time.sleep(self.time_base_delay * wait_mult)
 
     # Dim LED's
     def old_dimwipe(self, data, value):
@@ -1390,89 +1534,44 @@ class UpdateLEDs:
     #   The space between symbols (dots and dashes) of the same letter is 1 time unit.
     #   The space between letters is 3 time units.
     #   The space between words is 7 time units.
-    def morse(self, color1, color2, msg, delay):
+    # Each character gets encoded into multiple clock_tick entries
+    def encode_morse_string(self):
         """Display Morse message."""
         # define timing of morse display
-        dot_len = self._wait * 1
-        dash_len = self._wait * 3
-        bet_symb_len = self._wait * 1
-        bet_let_len = self._wait * 3
-        bet_word_len = self._wait * 4  # logic will add bet_let_len + bet_word_len = 7
+        morse_signal = []
+        morse_raw_message = self._app_conf.get_string("morse", "message")
+        debugging.debug(f"morse_raw_message :{morse_raw_message }")
 
-        for char in self._app_conf("rotaryswitch", "morse_msg"):
-            letter = []
-            if char.upper() in self.morse_code:
-                letter = list(self.morse_code[char.upper()])
-                debugging.debug(letter)  # debug
-
-                for val in letter:  # display individual dot/dash with proper timing
-                    if val == ".":
-                        morse_signal = dot_len
+        for morse_char in morse_raw_message:
+            debugging.debug(f"morse: {morse_char}")
+            morse_letter = []
+            if morse_char.upper() in self.morse_code:
+                morse_letter = list(self.morse_code[morse_char.upper()])
+                for morse_symbol in morse_letter:
+                    if morse_symbol == ".":
+                        debugging.debug(f"morse: dot_encoded")
+                        morse_signal.append(self.morse_dot_encoded)
                     else:
-                        morse_signal = dash_len
+                        debugging.debug(f"morse: dash_encoded")
+                        morse_signal.append(self.morse_dash_encoded)
+                debugging.debug(f"morse: morse_interval_encoded")
+                morse_signal.append(self.morse_interval_encoded)
+            elif morse_char == " ":
+                debugging.debug(f"morse: morse_word_interval_encoded")
+                morse_signal.append(self.morse_word_interval_encoded)
+            else:
+                debugging.debug(f"morse encode huh?? :{morse_char}:")
+            morse_signal.append(self.morse_letter_interval_encoded)
 
-                    for led_index in range(self.num_pixels()):  # turn LED's on
-                        if (
-                            str(led_index) in self._nullpins
-                        ):  # exclude NULL and LGND pins from wipe
-                            self.set_led_color(led_index, utils_colors.off())
-                        else:
-                            self.set_led_color(led_index, color1)
-                    self.show()
-                    time.sleep(morse_signal)  # time on depending on dot or dash
+        morse_string_encoded = "".join(morse_signal)
+        self.morse_signal_encoded = list(morse_string_encoded)
+        debugging.info(f"morse_message :{self.morse_signal_encoded}")
+        return
 
-                    for led_index in range(self.num_pixels()):  # turn LED's off
-                        if (
-                            str(led_index) in self._nullpins
-                        ):  # exclude NULL and LGND pins from wipe
-                            self.set_led_color(led_index, utils_colors.off())
-                        else:
-                            self.set_led_color(led_index, color2)
-                    self.show()
-                    time.sleep(bet_symb_len)  # timing between symbols
-                time.sleep(bet_let_len)  # timing between letters
-
-            else:  # if character in morse_msg is not part of the Morse Code Alphabet, substitute a '/'
-                if char == " ":
-                    time.sleep(bet_word_len)
-
-                else:
-                    char = "/"
-                    letter = list(self.morse_code[char.upper()])
-
-                    for val in letter:  # display individual dot/dash with proper timing
-                        if val == ".":
-                            morse_signal = dot_len
-                        else:
-                            morse_signal = dash_len
-
-                        for led_index in range(self.num_pixels()):  # turn LED's on
-                            if (
-                                str(led_index) in self._nullpins
-                            ):  # exclude NULL and LGND pins from wipe
-                                self.set_led_color(led_index, utils_colors.off())
-                            else:
-                                self.set_led_color(led_index, color1)
-                        self.show()
-                        time.sleep(morse_signal)  # time on depending on dot or dash
-
-                        for led_index in range(self.num_pixels()):  # turn LED's off
-                            if (
-                                str(led_index) in self._nullpins
-                            ):  # exclude NULL and LGND pins from wipe
-                                self.set_led_color(led_index, utils_colors.off())
-                            else:
-                                self.set_led_color(led_index, color2)
-                        self.show()
-                        time.sleep(bet_symb_len)  # timing between symbols
-                    time.sleep(bet_let_len)  # timing between letters
-
-        time.sleep(delay)
-
-    def ledmode_rabbit(self, clocktick):
+    def ledmode_rabbit(self, clock_tick):
         """Rabbit running through the map."""
         led_updated_dict = {}
-        rabbit_posn = clocktick % (len(self._active_led_dict) + 1)
+        rabbit_pos = clock_tick % (len(self._active_led_dict) + 1)
         rabbit_color_1 = utils_colors.colordict["RED"]
         rabbit_color_2 = utils_colors.colordict["BLUE"]
         rabbit_color_3 = utils_colors.colordict["ORANGE"]
@@ -1482,17 +1581,17 @@ class UpdateLEDs:
         for led_key in self._active_led_dict.keys():
             if self._active_led_dict[led_key] is not None:
                 led_index = self._active_led_dict[led_key]
-                # debugging.info(f"posn:{rabbit_posn}/index:{led_index}")
+                # debugging.info(f"posn:{rabbit_pos}/index:{led_index}")
                 led_updated_dict[led_index] = utils_colors.off()
-                if led_index == rabbit_posn - 2:
+                if led_index == rabbit_pos - 2:
                     led_updated_dict[led_index] = rabbit_color_1
-                if led_index == rabbit_posn - 1:
+                if led_index == rabbit_pos - 1:
                     led_updated_dict[led_index] = rabbit_color_2
-                if led_index == rabbit_posn:
+                if led_index == rabbit_pos:
                     led_updated_dict[led_index] = rabbit_color_3
         return led_updated_dict
 
-    def ledmode_shuffle(self, clocktick):
+    def ledmode_shuffle(self, clock_tick):
         """Random LED colors."""
         led_updated_dict = {}
         for led_index in range(self.num_pixels()):
@@ -1503,17 +1602,17 @@ class UpdateLEDs:
                 led_updated_dict[led_index] = utils_colors.randomcolor()
         return led_updated_dict
 
-    def ledmode_fade(self, clocktick):
+    def ledmode_fade(self, clock_tick):
         """Fade out and in colors."""
         led_updated_dict = {}
-        fade_val = clocktick % 255
+        fade_val = clock_tick % 255
         fade_col = utils_colors.hexcode(fade_val, 255 - fade_val, fade_val)
         for led_index in range(self.num_pixels()):
             if self._active_led_dict[led_index] is not None:
                 led_updated_dict[led_index] = fade_col
         return led_updated_dict
 
-    def ledmode_heatmap(self, clocktick):
+    def ledmode_heatmap(self, clock_tick):
         """Set airport color based on number of visits."""
         airport_list = self._airport_database.get_airport_dict_led()
         led_updated_dict = {}

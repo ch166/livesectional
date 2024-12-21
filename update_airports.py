@@ -80,6 +80,7 @@ class AirportDB:
 
     # Primary Data Sets - Imported from Internet/External Sources
     _runway_data = None
+    runway_data2 = None
     _airport_data = None
 
     def __init__(self, conf, dataset_thread):
@@ -143,7 +144,7 @@ class AirportDB:
         if mos_forecast is None:
             debugging.info(f"populate_mos_data failed: MOS data is None")
             return
-        debugging.info(f"populate_mos_data :{mos_forecast}:")
+        debugging.debug(f"populate_mos_data dataset len:{len(mos_forecast)}:")
         for airport_icao, airport_obj in self._airport_master_dict.items():
             debugging.debug(f"Trying to update MOS for {airport_icao}")
             airport_icao = airport_icao.upper()
@@ -181,7 +182,7 @@ class AirportDB:
         return result
 
     def get_airportdb(self):
-        """Return a single Airport."""
+        """Return the airports."""
         return self._airport_master_dict
 
     def get_airport_xml(self, airport_icao):

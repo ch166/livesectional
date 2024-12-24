@@ -19,7 +19,7 @@ class AppInfo:
         self.available_version = "3.0"
         self.refresh()
 
-    def current_version(self):
+    def current_version(self) -> str:
         """Return Current Version."""
         return self.cur_version_info
 
@@ -27,11 +27,12 @@ class AppInfo:
         """Update AppInfo data."""
         self.check_for_update()
 
-    def update_available(self):
+    def update_available(self) -> bool:
         """Return True if update is available."""
         if self.available_version > self.cur_version_info:
             return True
         return False
 
-    def check_for_update(self):
+    def check_for_update(self) -> bool:
         """Query for new versions."""
+        return False

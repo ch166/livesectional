@@ -26,7 +26,7 @@ class SystemData:
         self.ipaddr = ipaddr
         self._internet_active = online_status
 
-    def system_uptime(self):
+    def system_uptime(self) -> datetime.timedelta:
         """Update system uptime, in (days, hh:mm:ss) format."""
         uptime = datetime.timedelta(seconds=(time.time() - psutil.boot_time()))
         return datetime.timedelta(days=uptime.days, seconds=uptime.seconds)
@@ -39,13 +39,13 @@ class SystemData:
         """Internet Connected Status."""
         return self._internet_active
 
-    def update_local_ip(self):
+    def update_local_ip(self) -> str:
         """Create Socket to the Internet, Query Local IP."""
         (online_status, ipaddr) = utils.is_connected()
         self.ipaddr = ipaddr
         return ipaddr
 
-    def local_ip(self):
+    def local_ip(self) -> str:
         """Return IP addr."""
         return self.ipaddr
 
@@ -58,7 +58,7 @@ class SystemData:
         self._internet_active = online_status
         self.ipaddr = ipaddr
 
-    def get_size(self, bytes_size, suffix="B"):
+    def get_size(self, bytes_size, suffix="B") -> str:
         """Scale bytes to its proper format."""
         # e.g:
         # 1253656 => '1.20MB'
@@ -157,7 +157,7 @@ class SystemData:
         )
         self.sysinfo = sysinfo_text
 
-    def query_system_information(self):
+    def query_system_information(self) -> str:
         """Run query."""
         if self.sysinfo == "":
             self.poll_system_information()

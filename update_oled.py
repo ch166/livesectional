@@ -459,6 +459,7 @@ class UpdateOLEDs:
                 debugging.info(f"OLED: Updating info OLED loopcount:{count}")
             for oled_id in range(0, self._device_count):
                 # TODO: This is hardcoded
+                # Move to configuration ..
                 if oled_id == 0:
                     self.update_oled_status(oled_id, count)
                 if (oled_id == 1) and update_oled_flag:

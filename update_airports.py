@@ -185,7 +185,7 @@ class AirportDB:
         """Return the airports."""
         return self._airport_master_dict
 
-    def get_airport_xml(self, airport_icao):
+    def get_airport_metar_xml(self, airport_icao):
         """Return a single Airport."""
         return self._metar_xml_dict[airport_icao]
 
@@ -204,13 +204,13 @@ class AirportDB:
     def update_airport_wx(self):
         """Update airport WX data for each known Airport."""
         for icao, airport_obj in self._airport_master_dict.items():
-            debugging.debug(f"Updating WX for :{airport_obj.icaocode()}:")
+            debugging.debug(f"Updating WX for :{airport_obj.icao_code()}:")
             if not airport_obj.active():
                 continue
             try:
-                airport_obj.update_wx(self._metar_xml_dict)
+                airport_obj.update_wx(self._airport_master_dict)
             except Exception as err:
-                debug_string = f"Error: update_airport_wx Exception handling for {airport_obj.icaocode()} ICAO:{icao}:"
+                debug_string = f"Error: update_airport_wx Exception handling for {airport_obj.icao_code()} ICAO:{icao}:"
                 debugging.error(debug_string)
                 debugging.crash(err)
 
@@ -223,7 +223,7 @@ class AirportDB:
             airport_save_record = {
                 "active": str(airport_obj.active()),
                 "heatmap": airport_obj.heatmap_index(),
-                "icao": airport_obj.icaocode(),
+                "icao": airport_obj.icao_code(),
                 "led": str(airport_obj.get_led_index()),
                 "purpose": airport_obj.purpose(),
                 "wxsrc": airport_obj.wxsrc(),
@@ -376,8 +376,8 @@ class AirportDB:
                     station_id, metar_raw
                 )
                 self._airport_master_dict[station_id] = new_airport_object
-            self._airport_master_dict[station_id].set_metar(metar_raw)
-            self._airport_master_dict[station_id].update_airport_xml(
+            self._airport_master_dict[station_id].update_metar(metar_raw)
+            self._airport_master_dict[station_id].update_from_adds_xml(
                 station_id, metar_data
             )
 
@@ -393,6 +393,7 @@ class AirportDB:
 
     def process_taf_forecast(self, forecast):
         """Process contents of TAF forecast."""
+        # TODO: Consider moving to airport object
 
         taf_forecast = []
         fcast = {
@@ -597,7 +598,7 @@ class AirportDB:
                 debugging.info(f"{airport_id}:.:{forecast}")
         return future_taf
 
-    def airport_runway_data(self, airport_id):
+    def parse_airport_runway_data(self, airport_id):
         """Find Airport data in Runway DICT."""
         runway_set = []
         if self._runway_data is None:
@@ -615,7 +616,7 @@ class AirportDB:
             "filenames", "runways_master_data"
         )
         if not utils.file_exists(runways_master_data):
-            debugging.debug(f"Runways file does not exist: {runways_master_data}")
+            debugging.info(f"Runways file does not exist: {runways_master_data}")
             return False
         index_counter = 0
         with open(runways_master_data, "r", encoding="utf-8") as rway_file:
@@ -647,14 +648,14 @@ class AirportDB:
     def update_airport_runways(self):
         """Update airport RUNWAY data for each known Airport."""
         for icao, airport_obj in self._airport_master_dict.items():
-            debugging.debug(f"Updating Runway for {airport_obj.icaocode()}")
+            debugging.debug(f"Updating Runway for {airport_obj.icao_code()}")
             if not airport_obj.active():
                 continue
             try:
-                runway_dataset = self.airport_runway_data(icao)
+                runway_dataset = self.parse_airport_runway_data(icao)
                 airport_obj.set_runway_data(runway_dataset)
             except Exception as err:
-                debug_string = f"Error: update_airport_runways Exception handling for {airport_obj.icaocode()}"
+                debug_string = f"Error: update_airport_runways Exception handling for {airport_obj.icao_code()}"
                 debugging.error(debug_string)
                 debugging.crash(err)
 
@@ -685,6 +686,7 @@ class AirportDB:
                 debugging.debug("Processing updated METAR data")
                 self._metar_serial = self._dataset.metar_serial()
                 self.update_airportdb_metar_xml()
+                self.update_airport_wx()
 
             if self._taf_serial < self._dataset.taf_serial():
                 debugging.debug("Processing updated TAF data")
@@ -714,6 +716,6 @@ class AirportDB:
             # Remove eventually
             kbfi_taf = self.get_airport_taf("kbfi")
             debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
-            kbfi_runway = self.airport_runway_data("kbfi")
+            kbfi_runway = self.parse_airport_runway_data("kbfi")
             debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")
             time.sleep(aviation_weather_adds_timer * 60)

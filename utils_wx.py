@@ -46,7 +46,7 @@ def get_usa_metar(airport_data):
     if airport_data.metar_date > expiredtime:
         # Metar Data still fresh
         debugging.debug(
-            f"METAR is fresh  : {airport_data.icao} - {airport_data.wx_category_str}"
+            f"METAR is fresh  : {airport_data.icao} - {airport_data.flight_category}"
         )
         return True
     # TODO: Move this to config
@@ -143,14 +143,14 @@ def update_wx(airport_data, metar_xml_dict):
     if airport_data.wxsrc == "adds":
         try:
             debugging.debug("Update USA Metar: ADDS " + airport_data.icao)
-            freshness = airport_data.get_adds_metar(metar_xml_dict)
+            freshness = airport_data.get_adds_metar(metar_xml_dict[airport_data.icao])
             if freshness:
                 return
         except Exception as err:
             debugging.error(err)
     elif airport_data.wxsrc == "usa-metar":
         debugging.debug(
-            f"Update USA Metar: {airport_data.icao} - {airport_data.wx_category_str}"
+            f"Update USA Metar: {airport_data.icao} - {airport_data.flight_category}"
         )
         freshness = get_usa_metar(airport_data)
         if freshness:
@@ -163,8 +163,8 @@ def update_wx(airport_data, metar_xml_dict):
         if freshness:
             # get_*_metar() returned true, so weather is still fresh
             return
-        airport_data.wx_category_str = "UNKN"
-        airport_data.set_wx_category(airport_data.wx_category_str)
+        airport_data.flight_category = "UNKN"
+        airport_data.set_wx_category(airport_data.flight_category)
     return
 
 
@@ -177,8 +177,8 @@ def calculate_wx_from_metar(airport_data):
     except Metar.ParserError as err:
         debugging.debug("Parse Error for METAR code: " + airport_data.metar)
         debugging.error(err)
-        airport_data.wx_category_str = "UNKN"
-        airport_data.set_wx_category(airport_data.wx_category_str)
+        airport_data.flight_category = "UNKN"
+        airport_data.set_wx_category(airport_data.flight_category)
         return False
 
     if not airport_data_observation:
@@ -207,26 +207,26 @@ def calculate_wx_from_metar(airport_data):
 
     # Calculate Flight Category
     if airport_data._wx_ceiling == -1 or airport_data._wx_visibility == -1:
-        airport_data.wx_category_str = "UNKN"
+        airport_data.flight_category = "UNKN"
     elif airport_data._wx_visibility < 1 or airport_data._wx_ceiling < 500:
-        airport_data.wx_category_str = "LIFR"
+        airport_data.flight_category = "LIFR"
     elif 1 <= airport_data._wx_visibility < 3 or 500 <= airport_data._wx_ceiling < 1000:
-        airport_data.wx_category_str = "IFR"
+        airport_data.flight_category = "IFR"
     elif (
             3 <= airport_data._wx_visibility <= 5 or 1000 <= airport_data._wx_ceiling <= 3000
     ):
-        airport_data.wx_category_str = "MVFR"
+        airport_data.flight_category = "MVFR"
     elif airport_data._wx_visibility > 5 and airport_data._wx_ceiling > 3000:
-        airport_data.wx_category_str = "VFR"
+        airport_data.flight_category = "VFR"
     else:
-        airport_data.wx_category_str = "UNKN"
+        airport_data.flight_category = "UNKN"
 
-    airport_data.set_wx_category(airport_data.wx_category_str)
+    airport_data.set_wx_category(airport_data.flight_category)
 
     debugging.debug(
         f"Airport: Ceiling {airport_data._wx_ceiling} + Visibility : {airport_data._wx_visibility}"
     )
-    debugging.debug(f"Airport {airport_data.icao} - {airport_data.wx_category_str}")
+    debugging.debug(f"Airport {airport_data.icao} - {airport_data.flight_category}")
     return True
 
 

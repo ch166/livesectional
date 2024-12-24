@@ -37,15 +37,15 @@ class Conf:
         self.configfile._interpolation = configparser.ExtendedInterpolation()
         self.configfile.read(self.config_filename)
 
-    def get(self, section, key):
+    def get(self, section, key) -> str:
         """Read Setting."""
         return self.configfile.get(section, key)
 
-    def color(self, section, key):
+    def color(self, section, key) -> str:
         """Pull out color value in hex."""
         return self.configfile.get(section, key)
 
-    def get_color_decimal(self, section, key):
+    def get_color_decimal(self, section, key) -> tuple:
         """Read three tuple string, Return as tuple of integers."""
         color_list = []
         tmp_string = self.configfile.get(section, key)
@@ -65,7 +65,7 @@ class Conf:
 
         return tuple([rgb_r, rgb_g, rgb_b])
 
-    def get_string(self, section, key):
+    def get_string(self, section, key) -> str:
         """Read Setting."""
         return self.configfile.get(section, key)
 
@@ -75,15 +75,15 @@ class Conf:
         str_value = f"{value}"
         self.configfile.set(section, key, str_value)
 
-    def get_bool(self, section, key):
+    def get_bool(self, section, key) -> bool:
         """Read Setting."""
         return self.configfile.getboolean(section, key)
 
-    def get_float(self, section, key):
+    def get_float(self, section, key) -> float:
         """Read Setting."""
         return self.configfile.getfloat(section, key)
 
-    def get_int(self, section, key):
+    def get_int(self, section, key) -> int:
         """Read Setting."""
         return self.configfile.getint(section, key)
 
@@ -93,7 +93,7 @@ class Conf:
         self.configfile.write(cfgfile)
         cfgfile.close()
 
-    def gen_settings_dict(self):
+    def gen_settings_dict(self) -> dict:
         """Generate settings template to pass to flask."""
         settings = {
             "autorun": self.get_string("default", "autorun"),
@@ -224,7 +224,6 @@ class Conf:
             "checker_color1": self.get_string("colors", "checker_color1"),
             "checker_color2": self.get_string("colors", "checker_color2"),
         }
-
         return settings
 
     def parse_config_input(self, form_data):

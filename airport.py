@@ -126,31 +126,31 @@ class Airport:
         """Return Airport Purpose."""
         self._purpose = purpose
 
-    def flightcategory(self):
+    def flightcategory(self) -> str:
         """Return flight category data."""
         return self._flight_category
 
-    def flight_category(self):
+    def flight_category(self) -> str:
         """Return string form of airport weather category."""
         return self._wx_category_str
 
-    def latitude(self):
+    def latitude(self) -> float:
         """Return Airport Latitude."""
         return float(self._latitude)
 
-    def longitude(self):
+    def longitude(self) -> float:
         """Return Airport longitude."""
         return float(self._longitude)
 
-    def valid_coordinates(self):
+    def valid_coordinates(self) -> bool:
         """Are lat/lon coordinates set to something other than Missing."""
         return self._coordinates
 
-    def icao_code(self):
+    def icao_code(self) -> str:
         """Airport ICAO (4 letter) code."""
         return self._icao
 
-    def iata_code(self):
+    def iata_code(self) -> str:
         """Airport IATA (3 letter) Code."""
         return self._iata
 
@@ -177,7 +177,7 @@ class Airport:
         )
         return flightcategory
 
-    def raw_metar(self):
+    def raw_metar(self) -> str:
         """Return raw METAR data."""
         return self._metar
 
@@ -204,11 +204,11 @@ class Airport:
         """Update LED ID."""
         self._led_index = led_index
 
-    def get_led_index(self):
+    def get_led_index(self) -> int:
         """Return LED ID."""
         return self._led_index
 
-    def wxsrc(self):
+    def wxsrc(self) -> str:
         """Get Weather source."""
         return self._wxsrc
 
@@ -216,7 +216,7 @@ class Airport:
         """Set Weather source."""
         self._wxsrc = wxsrc
 
-    def heatmap_index(self):
+    def heatmap_index(self) -> int:
         """Heatmap Count."""
         return self._hm_index
 

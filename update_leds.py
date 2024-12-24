@@ -505,11 +505,11 @@ class UpdateLEDs:
                 led_updated_dict[led_index] = color
         return led_updated_dict
 
-    def num_pixels(self):
+    def num_pixels(self) -> int:
         """Return number of Pixels defined."""
         return self._led_count
 
-    def get_brightness_level(self):
+    def get_brightness_level(self) -> int:
         """Get Light Percentage Level."""
         return round(self._led_brightness / 255 * 100)
 

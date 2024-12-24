@@ -81,7 +81,7 @@ class LightSensor:
         """TSL2591 Device Enable."""
         self.dev_tsl2591 = adafruit_tsl2591.TSL2591(self._i2cbus.i2cdevice())
 
-    def read_tsl2591(self):
+    def read_tsl2591(self) -> int:
         """Read LUX value from tsl2591."""
         lux = 0
         if self._i2cbus.bus_lock("light sensor update loop : tsl2591"):
@@ -101,7 +101,7 @@ class LightSensor:
         lux = min(lux, 255)
         return lux
 
-    def read_veml7700(self):
+    def read_veml7700(self) -> int:
         """Read LUX value from veml7700."""
         lux = 0
         if self._i2cbus.bus_lock("light sensor update loop : veml7700"):

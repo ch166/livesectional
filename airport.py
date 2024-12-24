@@ -63,9 +63,7 @@ class Airport:
         self._wxsrc = None
         self._metar = metar
         self._metar_prev = None
-        self._metar_date = datetime.now() - timedelta(
-            days=1
-        )  # Make initial date "old"
+        self._metar_date = datetime.now() - timedelta(days=1)  # Make initial date "old"
         self._observation = None
         self._observation_time = None
         self._runway_dataset = None
@@ -249,7 +247,7 @@ class Airport:
         for runway in self._runway_dataset:
             # debugging.info(runway)
             runway_closed = runway["closed"]
-            if runway_closed == '1':
+            if runway_closed == "1":
                 continue
             runway_direction_le = int(runway["le_heading_degT"])
             runway_wind_delta_le = abs(runway_direction_le - self._wind_dir_degrees)
@@ -474,7 +472,9 @@ class Airport:
                     f"Update USA Metar(neighbor): ADDS {self._icao} ({alt_aprt})"
                 )
                 if alt_aprt not in airport_master_dict:
-                    debugging.info(f"metar_airport_dict WX for Neighbor Airport {alt_aprt} missing")
+                    debugging.info(
+                        f"metar_airport_dict WX for Neighbor Airport {alt_aprt} missing"
+                    )
                     debugging.info(f"len: {len(airport_master_dict)}")
                     self._wx_category = AirportFlightCategory.UNKN
                     self._wx_category_str = "UNKN"
@@ -489,9 +489,7 @@ class Airport:
             # directly. This is unused for now - we may want to use it if the
             # adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geographies
-            debugging.info(
-                f"Update USA Metar: {self._icao} - {self._wx_category_str}"
-            )
+            debugging.info(f"Update USA Metar: {self._icao} - {self._wx_category_str}")
             freshness = utils_wx.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh

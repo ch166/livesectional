@@ -106,7 +106,9 @@ class WebViews:
         )
         self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
         self.app.add_url_rule("/wx/<airport>", view_func=self.getwx, methods=["GET"])
-        self.app.add_url_rule("/airport/<airport>", view_func=self.getairport, methods=["GET"])
+        self.app.add_url_rule(
+            "/airport/<airport>", view_func=self.getairport, methods=["GET"]
+        )
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/ledmodeset", view_func=self.ledmodeset, methods=["GET", "POST"]

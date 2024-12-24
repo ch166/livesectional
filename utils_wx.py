@@ -213,7 +213,8 @@ def calculate_wx_from_metar(airport_data):
     elif 1 <= airport_data._wx_visibility < 3 or 500 <= airport_data._wx_ceiling < 1000:
         airport_data.flight_category = "IFR"
     elif (
-            3 <= airport_data._wx_visibility <= 5 or 1000 <= airport_data._wx_ceiling <= 3000
+        3 <= airport_data._wx_visibility <= 5
+        or 1000 <= airport_data._wx_ceiling <= 3000
     ):
         airport_data.flight_category = "MVFR"
     elif airport_data._wx_visibility > 5 and airport_data._wx_ceiling > 3000:

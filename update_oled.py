@@ -397,7 +397,7 @@ class UpdateOLEDs:
             debugging.debug(f"Skipping OLED update {airportcode} lookup returns :None:")
             # FIXME: We should not return here - we should update the OLED / Image with some signal that the information is out of date.
             return
-        windspeed = airport_obj.get_wx_windspeed()
+        windspeed = airport_obj.wx_windspeed()
         if windspeed is None:
             windspeed = 0
         winddir = airport_obj.winddir_degrees()

@@ -879,7 +879,7 @@ class UpdateLEDs:
         cycle_num = clock_tick % len(self._cycle_wait)
 
         for airport_key, airport_obj in airport_list.items():
-            airportcode = airport_obj.icaocode()
+            airportcode = airport_obj.icao_code()
             airport_led = airport_obj.get_led_index()
             airport_wxsrc = airport_obj.wxsrc()
             if not airportcode:
@@ -899,7 +899,7 @@ class UpdateLEDs:
             if not flightcategory:
                 flightcategory = "UNKN"
             # Pull the winds from the dictionary.
-            airportwinds = airport_obj.get_wx_windspeed()
+            airportwinds = airport_obj.wx_windspeed()
             if not airportwinds:
                 airportwinds = -1
             airport_conditions = airport_obj.wxconditions()
@@ -1078,7 +1078,7 @@ class UpdateLEDs:
         cycle_num = clock_tick % len(self._cycle_wait)
 
         for airport_key, airport_obj in airport_list.items():
-            airportcode = airport_obj.icaocode()
+            airportcode = airport_obj.icao_code()
             airportled = airport_obj.get_led_index()
             airportwxsrc = airport_obj.wxsrc()
             if not airportcode:
@@ -1128,7 +1128,7 @@ class UpdateLEDs:
         cycle_num = clock_tick % len(self._cycle_wait)
 
         for airport_key, airport_obj in airport_list.items():
-            airportcode = airport_obj.icaocode()
+            airportcode = airport_obj.icao_code()
             airportled = airport_obj.get_led_index()
             airportwxsrc = airport_obj.wxsrc()
             if not airportcode:

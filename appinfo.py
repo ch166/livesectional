@@ -25,13 +25,13 @@ class AppInfo:
 
     def refresh(self):
         """Update AppInfo data."""
-        self.checkForUpdate()
+        self.check_for_update()
 
-    def updateAvailable(self):
+    def update_available(self):
         """Return True if update is available."""
         if self.available_version > self.cur_version_info:
             return True
         return False
 
-    def checkForUpdate(self):
+    def check_for_update(self):
         """Query for new versions."""

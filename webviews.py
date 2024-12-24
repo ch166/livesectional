@@ -106,6 +106,7 @@ class WebViews:
         )
         self.app.add_url_rule("/taf/<airport>", view_func=self.gettaf, methods=["GET"])
         self.app.add_url_rule("/wx/<airport>", view_func=self.getwx, methods=["GET"])
+        self.app.add_url_rule("/airport/<airport>", view_func=self.getairport, methods=["GET"])
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/ledmodeset", view_func=self.ledmodeset, methods=["GET", "POST"]
@@ -192,7 +193,7 @@ class WebViews:
                 "icaocode": airport_icao,
                 "metarsrc": airport_obj.wxsrc(),
                 "ledindex": airport_obj.get_led_index(),
-                "rawmetar": airport_obj.get_raw_metar(),
+                "rawmetar": airport_obj.raw_metar(),
                 "purpose": airport_obj.purpose(),
                 "hmindex": airport_obj.heatmap_index(),
             }
@@ -602,7 +603,7 @@ class WebViews:
         airports = self._airport_database.get_airport_dict_led()
         for icao, airport_obj in airports.items():
             debugging.info(
-                f"Heatmap: {airport_obj.icaocode()} : Active: {airport_obj.active()} :"
+                f"Heatmap: {airport_obj.icao_code()} : Active: {airport_obj.active()} :"
                 f" Coords: {airport_obj.valid_coordinates()}"
             )
             if not airport_obj.active():
@@ -614,7 +615,7 @@ class WebViews:
             # floats otherwise recursion error occurs.
             pin_index = int(airport_obj.get_led_index())
             debugging.info(
-                f"HeatMap: {airport_obj.icaocode()} :{airport_obj.latitude()}:{airport_obj.longitude()}:{pin_index}:"
+                f"HeatMap: {airport_obj.icao_code()} :{airport_obj.latitude()}:{airport_obj.longitude()}:{pin_index}:"
             )
             points.insert(pin_index, [airport_obj.latitude(), airport_obj.longitude()])
 
@@ -716,7 +717,7 @@ class WebViews:
                 airportdb = self._airport_database.get_airportdb()
                 counter = 0
                 for icao, airport_obj in airportdb.items():
-                    airport_metar = airport_obj.get_raw_metar()
+                    airport_metar = airport_obj.raw_metar()
                     flight_category = airport_obj.flightcategory()
                     outfile.write(f"{icao}::{airport_metar}::{flight_category}:\n")
                     counter = counter + 1
@@ -742,13 +743,13 @@ class WebViews:
         try:
             airport_obj = self._airport_database.get_airport(airport)
             airport_taf = self._airport_database.get_airport_taf(airport)
-            wx_data["airport"] = airport_obj.icaocode()
-            wx_data["metar"] = airport_obj.get_raw_metar()
+            wx_data["airport"] = airport_obj.icao_code()
+            wx_data["metar"] = airport_obj.raw_metar()
             wx_data["flightcategory"] = airport_obj.flightcategory()
             wx_data["latitude"] = airport_obj.latitude()
             wx_data["longitude"] = airport_obj.longitude()
             wx_data["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
-            wx_data["get_wx_windspeed"] = airport_obj.get_wx_windspeed()
+            wx_data["get_wx_windspeed"] = airport_obj.wx_windspeed()
             wx_data["taf"] = airport_taf
             wx_data["mos_1hr"] = utils_mos.get_mos_weather(
                 airport_obj.get_full_mos_forecast(), self._app_conf, 1
@@ -760,6 +761,69 @@ class WebViews:
             debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
 
         return json.dumps(wx_data)
+
+    def getairport(self, airport):
+        """Flask Route: /airport - Get WX JSON for Airport."""
+        template_data = self.standardtemplate_data()
+
+        debugging.info(f"getairport: airport = {airport}")
+        airport = airport.lower()
+        template_data["airport"] = airport
+
+        if airport == "debug":
+            # Debug request - dumping DB info
+            with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
+                airportdb = self._airport_database.get_airportdb()
+                counter = 0
+                for icao, airport_obj in airportdb.items():
+                    airport_metar = airport_obj.raw_metar()
+                    flight_category = airport_obj.flightcategory()
+                    outfile.write(f"{icao}::{airport_metar}::{flight_category}:\n")
+                    counter = counter + 1
+                outfile.write(f"stats: {counter}\n")
+            html_response = {
+                "airport": "Debugging Request",
+                "metar": "",
+                "flightcategory": "DB DUMPED",
+            }
+            return json.dumps(html_response)
+        html_response = {
+            "airport": "Default Value",
+            "metar": "",
+            "flightcategory": "UNKN",
+            "latitude": "Not Set",
+            "longitude": "Not Set",
+            "get_wx_dir_degrees": "Not Set",
+            "get_wx_windspeed": "Not Set",
+            "taf": "No TAF Set",
+            "mos_1hr": "No MOS 1hr set",
+            "mos_8hr": "No MOS 8hr set",
+        }
+        try:
+            airport_obj = self._airport_database.get_airport(airport)
+            airport_taf = self._airport_database.get_airport_taf(airport)
+            html_response["airport"] = airport_obj.icao_code()
+            html_response["metar"] = airport_obj.raw_metar()
+            html_response["flightcategory"] = airport_obj.flightcategory()
+            html_response["latitude"] = airport_obj.latitude()
+            html_response["longitude"] = airport_obj.longitude()
+            html_response["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
+            html_response["get_wx_windspeed"] = airport_obj.wx_windspeed()
+            html_response["taf"] = airport_taf
+            html_response["mos_1hr"] = utils_mos.get_mos_weather(
+                airport_obj.get_full_mos_forecast(), self._app_conf, 1
+            )
+            html_response["mos_8hr"] = utils_mos.get_mos_weather(
+                airport_obj.get_full_mos_forecast(), self._app_conf, 8
+            )
+            html_response["wxsrc"] = airport_obj.wxsrc()
+            html_response["heatmap_index"] = airport_obj.heatmap_index()
+            html_response["best_runway"] = airport_obj.best_runway()
+            html_response["runway_dataset"] = airport_obj.runway_data()
+        except Exception as err:
+            debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
+
+        return json.dumps(html_response)
 
     def getmetar(self, airport):
         """Flask Route: /metar - Get METAR for Airport."""
@@ -777,8 +841,8 @@ class WebViews:
                 airportdb = self._airport_database.get_airportdb()
                 counter = 0
                 for icao, airport_obj in airportdb.items():
-                    airport_metar = airport_obj.get_raw_metar()
-                    airport_icao = airport_obj.icaocode()
+                    airport_metar = airport_obj.raw_metar()
+                    airport_icao = airport_obj.icao_code()
                     outfile.write(f"{icao}: {airport_metar} / {airport_icao} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
@@ -786,9 +850,9 @@ class WebViews:
             try:
                 debugging.info("Get Metar 1")
                 airport_obj = self._airport_database.get_airport(airport)
-                debugging.info(f"Get Metar 2: {airport_obj.get_raw_metar()}")
+                debugging.info(f"Get Metar 2: {airport_obj.raw_metar()}")
                 # debugging.info(airport_entry)
-                template_data["metar"] = airport_obj.get_raw_metar()
+                template_data["metar"] = airport_obj.raw_metar()
             except Exception as err:
                 debugging.error(
                     f"Attempt to get metar for failed for :{airport}: ERR:{err}"
@@ -814,7 +878,7 @@ class WebViews:
                 airportdb = self._airport_database.get_airport_xmldb()
                 counter = 0
                 for icao, airport_obj in airportdb.items():
-                    airport_metar = airport_obj.get_raw_metar()
+                    airport_metar = airport_obj.raw_metar()
                     outfile.write(f"{icao}: {airport_metar} :\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")

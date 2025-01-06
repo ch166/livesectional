@@ -51,7 +51,7 @@ function get_badge(ap, loc) {
             flightcategory +
             '&nbsp</span>&nbsp-&nbsp' +
             metar +
-            '</h6></a>'
+            '</h></a>'
         document.getElementById(loc).innerHTML = outp
     }
     xhttp.open('GET', '/wx/' + ap, true)

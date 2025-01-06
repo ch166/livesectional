@@ -29,8 +29,11 @@
               <td style="margin: auto;">
                 <select name="newledmode" id="newledmode">
                   {% for o in ledoptionlist %}
-                  <option value="{{ o }}" {{ "selected" if o==current_ledmode else "" }}>{{ o }}
-                  </option>
+                    {% if o == current_ledmode %}
+                      <option value="{{ o }}" selected>{{ o }}</option>
+                    {% else %}
+                      <option value="{{ o }}">{{ o }}</option>
+                    {% endif %}
                   {% endfor %}
                 </select>
               </td>

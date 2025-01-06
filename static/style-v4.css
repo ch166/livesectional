@@ -2,8 +2,7 @@ body {
   font-family: arial, sans-serif;
   background: white;
   color: #005c99;
-  padding: 0px;
-  padding-top: 0px;
+  padding: 2px;
 }
 
 a {
@@ -60,14 +59,14 @@ td.config {
 
 td.intro {
   background-color: #ffffff;
-  border: 0px solid #dddddd;
+  border: 0 solid #dddddd;
   text-align: center;
   vertical-align: middle;
   padding: 5px;
 }
 
 tr.intro {
-  border: 0px solid #dddddd;
+  border: 0 solid #dddddd;
   text-align: center;
   vertical-align: middle;
   padding: 5px;
@@ -82,6 +81,7 @@ tr.headernote {
 }
 
 tr.config:nth-child(even) {
+  border: 2px solid #1970cc;
   background-color: #dddddd;
 }
 
@@ -120,7 +120,7 @@ tr.config:nth-child(odd) {
   color: white;
   font-weight: bold;
   float: right;
-  margin-left: px;
+  margin-left: 2px;
 }
 
 .active:after {
@@ -187,7 +187,7 @@ li.message {
 }
 
 .flashentry {
-  color: red;
+  color: orange;
   border: 2px solid rgb(75 70 74);
   border-radius: 3em;
   font: 1.2em sans-serif;
@@ -199,9 +199,8 @@ li.message {
 }
 
 div.sticky {
-  position: -webkit-sticky;
   position: sticky;
-  top: 0px;
+  top: 0;
   background-color: #dddddd;
   padding: 5px;
   font-size: 20px;
@@ -211,11 +210,10 @@ div.sticky {
 }
 
 div.stickydn {
-  position: -webkit-sticky;
   position: sticky;
-  bottom: 0px;
+  bottom: 0;
   background-color: #dddddd;
-  padding: 0px;
+  padding: 0;
   font-size: 14px;
   border-style: solid;
   z-index: 9000;
@@ -224,7 +222,7 @@ div.stickydn {
 select {
   outline: none;
   background-color: #ffffff;
-  width: 4;
+  width: max-content;
   padding: 2px 4px;
   margin: 8px 0;
   display: inline-block;
@@ -243,7 +241,7 @@ option {
 input[type=text],
 select {
   outline: none;
-  width: 4;
+  width: max-content;
   padding: 2px 4px;
   margin: 8px 0;
   display: inline-block;
@@ -256,7 +254,19 @@ select {
 input[type=number],
 select {
   outline: none;
-  width: 4;
+  width: max-content;
+  padding: 2px 4px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 2px solid #0099ff;
+  border-radius: 10px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+input, select {
+  outline: none;
+  width: max-content;
   padding: 2px 4px;
   margin: 8px 0;
   display: inline-block;
@@ -306,19 +316,16 @@ select {
   top: 3px;
   left: 3px;
   border-radius: 100%;
-  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
 }
 
 [type="radio"]:not(:checked)+label:after {
   opacity: 0;
-  -webkit-transform: scale(0);
   transform: scale(0);
 }
 
 [type="radio"]:checked+label:after {
   opacity: 1;
-  -webkit-transform: scale(1);
   transform: scale(1);
 }
 
@@ -366,7 +373,6 @@ div.headertxt {
 }
 
 .slider {
-  -webkit-appearance: none;
   width: 100%;
   height: 15px;
   border-radius: 5px;
@@ -378,7 +384,6 @@ div.headertxt {
 }
 
 .slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
   appearance: none;
   width: 25px;
   height: 25px;
@@ -420,7 +425,6 @@ div.headertxt {
   height: 50vh;
   min-height: 350px;
   background: no-repeat center center scroll;
-  -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
@@ -428,14 +432,12 @@ div.headertxt {
 
 .badge-vfr {
   padding: 3px 6px 3px;
-  font-size: 12.025px;
+  font-size: 12px;
   ;
   font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #01b001;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 2px;
   text-decoration: none;
 }
@@ -447,13 +449,11 @@ div.headertxt {
 
 .badge-mvfr {
   padding: 3px 6px 3px;
-  font-size: 12.025px;
+  font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #0000ff;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 2px;
   text-decoration: none;
 }
@@ -465,13 +465,11 @@ div.headertxt {
 
 .badge-ifr {
   padding: 3px 6px 3px;
-  font-size: 12.025px;
+  font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #ff0000;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 2px;
   text-decoration: none;
 }
@@ -483,13 +481,11 @@ div.headertxt {
 
 .badge-lifr {
   padding: 3px 6px 3px;
-  font-size: 12.025px;
+  font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #FF00FF;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 2px;
   text-decoration: none;
 }
@@ -500,13 +496,11 @@ div.headertxt {
 
 .badge-nowx {
   padding: 3px 6px 3px;
-  font-size: 12.025px;
+  font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #777777;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
   border-radius: 2px;
   text-decoration: none;
 }
@@ -517,14 +511,12 @@ div.headertxt {
 
 .badge-undf {
   padding: 3px 6px 3px;
-  font-size: 12.025px;
+  font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
   color: #ffffff;
   background-color: #660066;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 0px;
+  border-radius: 0;
   text-decoration: none;
 }
 

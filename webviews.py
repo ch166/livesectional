@@ -144,7 +144,8 @@ class WebViews:
         self.app.add_url_rule(
             "/confmobile", view_func=self.confmobile, methods=["GET", "POST"]
         )
-        self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET", "POST"])
+        self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET"])
+        self.app.add_url_rule("/appost", view_func=self.handle_appost_request , methods=["POST"])
         self.app.add_url_rule("/hmedit", view_func=self.hmedit, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/hmpost", view_func=self.hmpost_handler, methods=["GET", "POST"]
@@ -191,10 +192,10 @@ class WebViews:
             airport_obj,
         ) in self._airport_database.get_airport_dict_led().items():
             airport_record = {
+                "ledindex": airport_obj.get_led_index(),
                 "active": airport_obj.active(),
                 "icaocode": airport_icao,
                 "metarsrc": airport_obj.wxsrc(),
-                "ledindex": airport_obj.get_led_index(),
                 "rawmetar": airport_obj.raw_metar(),
                 "purpose": airport_obj.purpose(),
                 "hmindex": airport_obj.heatmap_index(),
@@ -1008,16 +1009,26 @@ class WebViews:
         """Flask Route: /appost."""
         debugging.info("Saving Airport File")
 
+        airport_data = {}
+        purpose_data = {}
+        metarsrc_data = {}
+
         if request.method == "POST":
             data = request.form.to_dict()
-            debugging.debug(data)  # debug
+            for field_label, field_data in data.items():
+                field_function, led_id = field_label.split("/")
+                if field_function == "airport":
+                    airport_data[led_id] = field_data
+                if field_function == "purpose":
+                    purpose_data[led_id] = field_data
+                if field_function == "metarsrc":
+                    metarsrc_data[led_id] = field_data
 
-            debugging.debug("FIXME: NEED TO PROCESS handle_appost_request")
-            # self.writeairports(data, self._app_conf.get_string("filenames", "airports_file"))
+            debugging.info(f"Airport Data: {airport_data}")
+            debugging.info(f"Purpose Data: {purpose_data}")
+            debugging.info(f"Metarsrc Data: {metarsrc_data}")
 
-            # self.readairports(self._app_conf.get_string("filenames", "airports_file"))
-
-        # flash("Airports Successfully Saved")
+            self._airport_database.airport_dict_from_webform(airport_data, purpose_data, metarsrc_data)
         return redirect("apedit")
 
     # FIXME: Integrate into Class

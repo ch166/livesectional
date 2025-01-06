@@ -231,6 +231,62 @@ class AirportDB:
             airportdb_list.append(airport_save_record)
         return airportdb_list
 
+    def airport_dict_from_webform(self, airport_data, purpose_data, metarsrc_data):
+        """Update Airport Master List from web form"""
+        # Have list of airport data from user interface - need to replace master lists of data with this set.
+        for led_index, airport_label in airport_data.items():
+            debugging.info(f"airport_update: {airport_label} at {led_index}")
+
+            airport_label = airport_label.lower()
+
+            if ":" in airport_label:
+                airport_icao = airport_label.split(":")[0]
+            else:
+                airport_icao = airport_label
+
+            if airport_icao in ("null","lgnd"):
+                airport_icao = f"{airport_icao}:{led_index}"
+
+            if airport_icao not in self._airport_master_dict.keys():
+                debugging.info(f"airport_webform_update: {airport_icao} not in airport_master_dict")
+
+                # Need to see if led_index exists and is associated with a different airport in _airport_master_dict
+                # If it is; then we need to remove the led_index assignment, and set the purpose to _unused_
+                for __airport_db_id, airport_obj in self._airport_led_dict.items():
+                    target_led = int(led_index)
+                    if airport_obj.get_led_index() == target_led:
+                        airport_obj.set_led_index(None)
+                        airport_obj.set_purpose_unused()
+
+                new_airport_object = self.create_new_airport_record(airport_icao, None)
+                self._airport_master_dict.update({airport_icao: new_airport_object})
+                new_metarsrc_data = metarsrc_data[led_index]
+                if new_metarsrc_data == "":
+                    # TODO: Move the default weather source data to config
+                    new_metarsrc_data = "adds"
+            else:
+                new_airport_object = self._airport_master_dict[airport_icao]
+                new_metarsrc_data = metarsrc_data[led_index]
+                if new_metarsrc_data == "":
+                    new_metarsrc_data = self._airport_master_dict[airport_icao].wxsrc()
+
+
+            new_airport_object.set_wxsrc(new_metarsrc_data)
+            new_airport_object.set_purpose(purpose_data[led_index])
+            new_airport_object.set_led_index(int(led_index))
+
+            new_airport_object.loaded_from_config()
+            new_airport_object.set_active()
+            new_airport_object.update_wx(self._airport_master_dict)
+
+        self.airport_dicts_update()
+
+        debugging.info(
+            f"Completed processing dict from webform"
+        )
+
+        return
+
     def airport_dict_from_json(self, airport_jsondb):
         """Update Airport Master List from json src."""
         # Update self.airport_master_dict with entries from JSON file.
@@ -266,6 +322,9 @@ class AirportDB:
                 new_airport_object.set_active()
             else:
                 new_airport_object.set_inactive()
+                # Update the master dictionary ; overwrite existing keys with new keys
+
+        self.airport_dicts_update()
         debugging.info(
             f"Completed loading dict from json : {len(self._airport_master_dict)} items"
         )
@@ -279,8 +338,11 @@ class AirportDB:
             f"Copying master dict to other lists {len(self._airport_master_dict)} items"
         )
         for airport_icao, airport_obj in self._airport_master_dict.items():
-            debugging.info(f"Airport dicts update for : {airport_icao} :")
+            debugging.debug(f"Airport dicts update for : {airport_icao} :")
             airport_purpose = airport_obj.purpose()
+            if airport_purpose in ("unused"):
+                self._airport_led_dict.pop(airport_icao, None)
+                self._airport_web_dict.pop(airport_icao, None)
             if airport_purpose in ("led", "all", "off"):
                 self._airport_led_dict.update({airport_icao: airport_obj})
                 debugging.info(f"Adding Airport to airport_led_dict : {airport_icao}")
@@ -310,8 +372,6 @@ class AirportDB:
         # - This will need to create all the objects
         # On update ; some records will already exist, but may have updates
         self.airport_dict_from_json(new_airport_json_dict)
-        # Update the master dictionary ; overwrite existing keys with new keys
-        self.airport_dicts_update()
         debugging.debug("Airport Load and Merge complete")
 
     def save_airport_db(self):
@@ -697,7 +757,6 @@ class AirportDB:
                 debugging.debug("Processing updated Runway data")
                 self._runway_serial = self._dataset.runway_serial()
                 self.import_runways()
-                # TODO: Figure out when this should be run - if not every time
                 self.update_airport_runways()
 
             if self._airport_serial < self._dataset.airport_serial():

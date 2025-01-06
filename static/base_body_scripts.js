@@ -47,8 +47,8 @@ function myFunction(selectObject) {
     let field = myArray[2]
     let x = selectObject.value;
 
-    if (x.length !== 4) {
-        window.alert('You Must Enter 4 Char Airport ID, NULL or LGND')
+    if ((x.length <3) || (x.length > 4)) {
+        window.alert('You Must Enter 3 or 4 Char Airport ID, NULL or LGND')
         document.getElementById(icao).focus()
         return
     }
@@ -59,6 +59,11 @@ function myFunction(selectObject) {
     } else if (x === 'LGND') {
         document.getElementById(field).innerHTML =
             'LED will be used as a Legend'
+    } else if (x.startsWith('neigh')) {
+        let neighArray = x.split(':')
+        let neighbor = neighArray[1]
+        document.getElementById(field).innerHTML =
+            'Weather from neighbor ' + neighArray[1]
     } else {
         document.getElementById(field).innerHTML =
             '<a href=https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=' +

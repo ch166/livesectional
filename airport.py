@@ -5,7 +5,6 @@ Created on Sat Jun 15 08:01:44 2019
 @author: Chris Higgins
 
 """
-
 # This is the collection and aggregation of all functions that manage Airports and airport weather
 # products. It's initially focused on processing METARs, but will end up including all the functions
 # related to TAFs and MOS data.
@@ -50,6 +49,9 @@ class Airport:
     - weather information
     """
 
+    UNUSED = "unused"
+
+
     def __init__(self, icao, metar):
         """Initialize object and set initial values for internals."""
         # Airport Identity
@@ -69,8 +71,8 @@ class Airport:
         self._runway_dataset = None
 
         # Application Status for Airport
-        self._enabled = True
-        self._purpose = "off"
+        self._enabled = False
+        self._purpose = self.UNUSED
         self._active_led = None
         self._led_active_state = None
         self._led_index = None
@@ -123,8 +125,12 @@ class Airport:
         return self._purpose
 
     def set_purpose(self, purpose):
-        """Return Airport Purpose."""
+        """Set Airport Purpose."""
         self._purpose = purpose
+
+    def set_purpose_unused(self):
+        """Return Airport Purpose."""
+        self._purpose = self.UNUSED
 
     def flightcategory(self) -> str:
         """Return flight category data."""
@@ -161,6 +167,7 @@ class Airport:
         self._metar = metartext
         self._metar_date = datetime.now()
         self._updated_time = datetime.now()
+        utils_wx.calculate_wx_from_metar(self)
 
     def set_mos_forecast(self, mos_forecast):
         """Update MOS forecast."""
@@ -464,24 +471,24 @@ class Airport:
             return True
         elif self._wxsrc.startswith("neigh"):
             # Get METAR data from alternative Airport
-            strparts = self._wxsrc.split(":")
-            alt_aprt = strparts[1]
-            debugging.info(f"{self._icao} needs metar for {alt_aprt}")
+            str_parts = self._wxsrc.split(":")
+            alt_aprt_name = str_parts[1]
+            debugging.info(f"{self._icao} needs metar for {alt_aprt_name}")
             try:
                 debugging.info(
-                    f"Update USA Metar(neighbor): ADDS {self._icao} ({alt_aprt})"
+                    f"Update USA Metar(neighbor): ADDS {self._icao} ({alt_aprt_name})"
                 )
-                if alt_aprt not in airport_master_dict:
+                if alt_aprt_name not in airport_master_dict:
                     debugging.info(
-                        f"metar_airport_dict WX for Neighbor Airport {alt_aprt} missing"
+                        f"metar_airport_dict WX for Neighbor Airport {alt_aprt_name} missing"
                     )
                     debugging.info(f"len: {len(airport_master_dict)}")
                     self._wx_category = AirportFlightCategory.UNKN
                     self._wx_category_str = "UNKN"
                     self.update_metar(None)
                     return False
-                self.update_metar(airport_master_dict[alt_aprt]["raw_text"])
-                # freshness = True
+                alt_arpt = airport_master_dict[alt_aprt_name]
+                self.update_metar(alt_arpt.raw_metar())
             except Exception as err:
                 debugging.error(err)
         elif self._wxsrc == "usa-metar":

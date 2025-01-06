@@ -173,33 +173,33 @@ def calculate_wx_from_metar(airport_data):
     # Should have Good METAR data in airport_data.metar
     # Need to Figure out Airport State
     try:
-        airport_data_observation = Metar.Metar(airport_data.metar)
+        airport_data_observation = Metar.Metar(airport_data.raw_metar())
     except Metar.ParserError as err:
-        debugging.debug("Parse Error for METAR code: " + airport_data.metar)
+        debugging.debug("Parse Error for METAR code: " + airport_data.raw_metar())
         debugging.error(err)
-        airport_data.flight_category = "UNKN"
-        airport_data.set_wx_category(airport_data.flight_category)
+        airport_data._flight_category = "UNKN"
+        airport_data.set_wx_category(airport_data._flight_category)
         return False
 
     if not airport_data_observation:
-        debugging.warn("Have no observations for " + airport_data.icao)
+        debugging.warn("Have no observations for " + airport_data._icao)
         return False
 
     if airport_data_observation.wind_gust:
         airport_data._wx_windgust = airport_data_observation.wind_gust.value()
     else:
         airport_data._wx_windgust = 0
-    if airport_data.observation.wind_speed:
-        airport_data.wx_windspeed = airport_data_observation.wind_speed.value()
+    if airport_data_observation.wind_speed:
+        airport_data._wx_windspeed_kt = airport_data_observation.wind_speed.value()
     else:
-        airport_data.wx_windspeed = 0
-    if airport_data.observation.vis:
+        airport_data._wx_windspeed_kt = 0
+    if airport_data_observation.vis:
         airport_data._wx_visibility = airport_data_observation.vis.value()
     else:
-        # Set visiblity to -1 to flag as unknown
+        # Set visibility to -1 to flag as unknown
         airport_data._wx_visibility = -1
     try:
-        airport_data._wx_ceiling = cloud_height(airport_data.metar)
+        airport_data._wx_ceiling = cloud_height(airport_data.raw_metar())
     except Exception as err:
         msg = "airport_data.cloud_height() failed for " + airport_data.icao
         debugging.error(msg)
@@ -207,27 +207,27 @@ def calculate_wx_from_metar(airport_data):
 
     # Calculate Flight Category
     if airport_data._wx_ceiling == -1 or airport_data._wx_visibility == -1:
-        airport_data.flight_category = "UNKN"
+        airport_data._flight_category = "UNKN"
     elif airport_data._wx_visibility < 1 or airport_data._wx_ceiling < 500:
-        airport_data.flight_category = "LIFR"
+        airport_data._flight_category = "LIFR"
     elif 1 <= airport_data._wx_visibility < 3 or 500 <= airport_data._wx_ceiling < 1000:
-        airport_data.flight_category = "IFR"
+        airport_data._flight_category = "IFR"
     elif (
         3 <= airport_data._wx_visibility <= 5
         or 1000 <= airport_data._wx_ceiling <= 3000
     ):
-        airport_data.flight_category = "MVFR"
+        airport_data._flight_category = "MVFR"
     elif airport_data._wx_visibility > 5 and airport_data._wx_ceiling > 3000:
-        airport_data.flight_category = "VFR"
+        airport_data._flight_category = "VFR"
     else:
-        airport_data.flight_category = "UNKN"
+        airport_data._flight_category = "UNKN"
 
-    airport_data.set_wx_category(airport_data.flight_category)
+    airport_data.set_wx_category(airport_data._flight_category)
 
     debugging.debug(
         f"Airport: Ceiling {airport_data._wx_ceiling} + Visibility : {airport_data._wx_visibility}"
     )
-    debugging.debug(f"Airport {airport_data.icao} - {airport_data.flight_category}")
+    debugging.debug(f"Airport {airport_data._icao} - {airport_data._flight_category} - {airport_data.raw_metar()}")
     return True
 
 

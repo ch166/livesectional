@@ -68,7 +68,7 @@ class UpdateOLEDs:
     #
     # The initial versions of this code are going to make some simplifying hardware assumptions.
     # More work can happen later to support multiple and mixed configuration options.
-    # Inital data structures are going to assume that each OLED gets its own configuration data
+    # Initial data structures are going to assume that each OLED gets its own configuration data
     # and doesn't rely on all OLEDs being the same size, orientation, color etc.
 
     # Broad option 1 - Single OLED device
@@ -97,12 +97,13 @@ class UpdateOLEDs:
     # prep data
     # do work
     # update data for i2c device
-    #   lock i2c bus
-    #    select i2c device
+    # lock i2c bus
+    #    if necessary select i2c device
     #    push changes
-    #   release i2c bus lock
+    # release i2c bus lock
     #
-    # the time spent inside the critical lock portion should be minimized
+    # the time spent inside the critical lock portion should be minimized, with as much prep work
+    # completed before starting the lock.
     # This is to allow other threads to have as much time as possible to use the i2c bus
 
     # Looking to track data about individual OLED screens ; to allow support for multiple options
@@ -340,9 +341,8 @@ class UpdateOLEDs:
             debugging.info(f"Failed to grab lock for oled:{oled_id}")
         return
 
-    def draw_wind(self, oled_id, airport, rway_angle, winddir, windspeed):
+    def draw_wind(self, oled_id, airport, best_runway, winddir, windspeed):
         """Draw Wind Arrow and Runway."""
-        # TODO: This code assumes a single runway direction only. Need to handle airports with multiple runways
         if oled_id > len(self.oled_list):
             debugging.warn("OLED: Attempt to access index beyond list length {oled_id}")
             return
@@ -356,6 +356,9 @@ class UpdateOLEDs:
         height = oled_dev["size"]["h"]
         device_i2cbus_id = oled_dev["devid"]
 
+        #
+        font=ImageFont.load_default(size=12)
+
         # Runway Dimensions
         rway_width = 6
         rway_x = 5  # 5 pixel border
@@ -363,20 +366,25 @@ class UpdateOLEDs:
         airport_details = f"{airport}\n{winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
         runway_poly = utils_gfx.create_runway(
-            rway_x, rway_y, rway_width, rway_angle, width, height
+            rway_x, rway_y, rway_width, best_runway, width, height
         )
+        runway_details = f"Best Runway {best_runway}"
+
+        (tx_l, tx_t, tx_r, tx_b) = font.getbbox(text=runway_details)
+        runway_details_height = tx_t + tx_b
 
         if self._i2cbus.bus_lock("draw_wind"):
             self.oled_select(device_i2cbus_id)
             with canvas(device) as draw:
                 draw.text(
-                    (5, 1),
+                    (10, 1),
                     airport_details,
                     font=ImageFont.load_default(size=12),
                     fill="white",
                 )
                 draw.polygon(wind_poly, fill="white", outline="white")
                 draw.polygon(runway_poly, fill=None, outline="white")
+                draw.text((1, height-runway_details_height), runway_details, font=ImageFont.load_default(14), fill="white",)
             self._i2cbus.bus_unlock()
         else:
             debugging.info(f"Failed to grab lock for oled:{oled_id}")

@@ -54,6 +54,54 @@ class Airport:
     _best_runway = None
     _best_runway_deg = None
 
+    _icao = None
+    _iata = None
+    _latitude = 0
+    _longitude = 0
+    _coordinates = False
+
+    # Airport Configuration
+    _wxsrc = None
+    _metar = None
+    _metar_prev = None
+    _metar_date = None
+    _observation = None
+    _observation_time = None
+    _runway_dataset = None
+
+    # Application Status for Airport
+    _purpose = UNUSED
+    _active_led = None
+    _led_index = None
+    _updated_time = None
+
+    # XML Data
+    _flight_category = None
+    _sky_condition = None
+
+    # Airport Weather Data
+    _metar_type = None
+    _wx_conditions = ()
+    _wx_visibility = None
+    _visibility_statute_mi = None
+    _wx_ceiling = None
+    _wind_dir_degrees = None
+    _wind_speed_kt = None
+    _wx_wind_gust = None
+    _wind_gust_kt = None
+    _wx_category = None
+    _wx_category_str = "UNSET"
+    _ceiling = None
+
+    _mos_forecast = None
+
+    # HeatMap
+    _hm_index = 0
+    # Airport came from Config file
+    _loaded_from_config = False
+    # Global Data
+    _metar_returncode = ""
+
     def __init__(self, icao, metar):
         """Initialize object and set initial values for internals."""
         # Airport Identity

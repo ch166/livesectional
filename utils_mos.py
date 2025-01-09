@@ -433,6 +433,8 @@ def parse_hr_row(mos_row):
 
 def get_mos_weather(mos_forecast, app_conf, hour_offset):
     """Lookup forecast weather at airport_id, at hour_offset from now."""
+    if mos_forecast is None:
+        return "NO MOS FORECAST"
     mos_time = utils.current_time_utc_plus_hr(app_conf, hour_offset)
     target_month = mos_time.strftime("%b").upper()
     target_day = mos_time.day

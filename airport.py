@@ -51,6 +51,8 @@ class Airport:
 
     UNUSED = "unused"
 
+    _best_runway = None
+    _best_runway_deg = None
 
     def __init__(self, icao, metar):
         """Initialize object and set initial values for internals."""
@@ -71,10 +73,8 @@ class Airport:
         self._runway_dataset = None
 
         # Application Status for Airport
-        self._enabled = False
         self._purpose = self.UNUSED
         self._active_led = None
-        self._led_active_state = None
         self._led_index = None
         self._updated_time = datetime.now()
 
@@ -90,7 +90,7 @@ class Airport:
         self._wx_ceiling = None
         self._wind_dir_degrees = None
         self._wind_speed_kt = None
-        self._wx_windgust = None
+        self._wx_wind_gust = None
         self._wind_gust_kt = None
         self._wx_category = None
         self._wx_category_str = "UNSET"
@@ -118,7 +118,7 @@ class Airport:
     def save_in_config(self):
         """Airport to be saved in config file."""
         # FIXME: What is this trying to do ?
-        self._loaded_from_config
+        return self._loaded_from_config
 
     def purpose(self):
         """Return Airport Purpose."""
@@ -151,6 +151,23 @@ class Airport:
     def valid_coordinates(self) -> bool:
         """Are lat/lon coordinates set to something other than Missing."""
         return self._coordinates
+
+    def update_coordinates(self, lon, lat):
+        """Update Coordinates"""
+        debugging.debug(f"coord update {self._icao} {lon}/{lat}")
+        if not self._coordinates:
+            self._latitude = lat
+            self._longitude = lon
+            self._coordinates = True
+            return
+        if self._coordinates and ((lon != 0) or (lat != 0)):
+            if lon == "Missing" or lat == "Missing":
+                # If we have existing coordinates, we need a new full set to replace them
+                return
+            self._latitude = lat
+            self._longitude = lon
+            self._coordinates = True
+        return
 
     def icao_code(self) -> str:
         """Airport ICAO (4 letter) code."""
@@ -243,32 +260,60 @@ class Airport:
         """Mark Airport as Inactive."""
         self._active_led = False
 
+    def best_runway_deg(self):
+        """Return computed runway degree value for best identified runway"""
+        return self._best_runway_deg
+
     def best_runway(self):
+        return self._best_runway
+
+    def refresh_best_runway(self):
         """Examine the list of known runways to find the best alignment to the wind."""
-        if self._runway_dataset is None:
-            return None
-        best_runway = None
+        best_runway_deg = None
         best_delta = None
+        best_runway_ident = "No Runway Found"
         if self._runway_dataset is None:
-            return best_runway
+            return best_runway_ident
+
+        if self._wind_dir_degrees is None:
+            return best_runway_ident
+
         for runway in self._runway_dataset:
             # debugging.info(runway)
             runway_closed = runway["closed"]
             if runway_closed == "1":
                 continue
-            runway_direction_le = int(runway["le_heading_degT"])
+            runway_direction_le_str = runway["le_heading_degT"]
+            if runway_direction_le_str.isnumeric():
+                runway_direction_le = int(runway_direction_le_str)
+            else:
+                # TODO: Need an escape here when we can't properly parse one of a set of runways
+                runway_direction_le = 0
             runway_wind_delta_le = abs(runway_direction_le - self._wind_dir_degrees)
-            runway_direction_he = int(runway["he_heading_degT"])
+            runway_direction_he_str = runway["he_heading_degT"]
+            if runway_direction_he_str.isnumeric():
+                runway_direction_he = int(runway_direction_he_str)
+            else:
+                runway_direction_he = 0
             runway_wind_delta_he = abs(runway_direction_he - self._wind_dir_degrees)
             better_delta = min(runway_wind_delta_le, runway_wind_delta_he)
+
+            # TODO: Would be nice when an airport has two parallel runways to pick a *better* one.
+            # At this stage we have access to runway length information - so perhaps prioritize longer runways
+            # Would be fantastic at some magical future time to pick runway based on any knowledge about IFR approach details.
+
             if runway_wind_delta_le < runway_direction_he:
                 better_runway = runway_direction_le
+                better_runway_ident = runway["le_ident"]
             else:
                 better_runway = runway_direction_he
-            if (best_runway is None) or (better_delta < best_delta):
-                best_runway = better_runway
+                better_runway_ident = runway["he_ident"]
+            if (best_runway_deg is None) or (better_delta < best_delta):
+                best_runway_deg = better_runway
                 best_delta = better_delta
-        return best_runway
+                best_runway_ident = better_runway_ident
+        self._best_runway = best_runway_ident
+        self._best_runway_deg = best_runway_deg
 
     def set_wx_category(self, wx_category_str):
         """Set WX Category to ENUM based on current wx_category_str."""
@@ -312,15 +357,11 @@ class Airport:
         self._wx_ceiling = metar_airport_dict["ceiling"]
         self._wind_speed_kt = metar_airport_dict["wind_speed_kt"]
         self._wind_dir_degrees = metar_airport_dict["wind_dir_degrees"]
-        self._wx_windgust = metar_airport_dict["wind_gust_kt"]
+        self._wx_wind_gust = metar_airport_dict["wind_gust_kt"]
         self._wx_category_str = metar_airport_dict["flight_category"]
-        self._latitude = float(metar_airport_dict["latitude"])
-        self._longitude = float(metar_airport_dict["longitude"])
-        if self._latitude == "Missing" or self._longitude == "Missing":
-            self._coordinates = False
-            debugging.info(f"Coordinates missing for {self._icao}")
-        else:
-            self._coordinates = True
+        adds_latitude = float(metar_airport_dict["latitude"])
+        adds_longitude = float(metar_airport_dict["longitude"])
+        self.update_coordinates(adds_longitude, adds_latitude)
         self.set_wx_category(self._wx_category_str)
         try:
             utils_wx.calculate_wx_from_metar(self)
@@ -445,31 +486,31 @@ class Airport:
         found_latitude = False
         next_object = metar_data.find("latitude")
         if next_object is not None:
-            self._latitude = next_object.text
+            adds_latitude = next_object.text
             found_latitude = True
         else:
-            self._latitude = "Missing"
+            adds_latitude = "Missing"
 
         found_longitude = False
         next_object = metar_data.find("longitude")
         if next_object is not None:
-            self._longitude = next_object.text
+            adds_longitude = next_object.text
             found_longitude = True
         else:
-            self._longitude = "Missing"
+            adds_longitude = "Missing"
 
         if found_latitude and found_longitude:
-            self._coordinates = True
-        else:
-            self._coordinates = False
+            self.update_coordinates(adds_latitude, adds_longitude)
+        return
 
     def update_wx(self, airport_master_dict):
         """Update Weather Data - Get fresh METAR."""
-        freshness = False
+        if self._wxsrc is None:
+            return False
         if self._wxsrc == "adds":
-            # WX Updated in main loop
+            self.update_metar(self._metar)
             return True
-        elif self._wxsrc.startswith("neigh"):
+        if self._wxsrc.startswith("neigh"):
             # Get METAR data from alternative Airport
             str_parts = self._wxsrc.split(":")
             alt_aprt_name = str_parts[1]
@@ -489,17 +530,17 @@ class Airport:
                     return False
                 alt_arpt = airport_master_dict[alt_aprt_name]
                 self.update_metar(alt_arpt.raw_metar())
+                return True
             except Exception as err:
                 debugging.error(err)
         elif self._wxsrc == "usa-metar":
             # This is the scenario where we want to query an individual METAR record
-            # directly. This is unused for now - we may want to use it if the
-            # adds data is missing.
+            # directly. This is unused for now - we may want to use it if the adds data is missing.
             # If the adds data is missing, then we need to find stable reliable and free sources of metar data for all geographies
             debugging.info(f"Update USA Metar: {self._icao} - {self._wx_category_str}")
             freshness = utils_wx.get_usa_metar(self)
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh
-                return
+                return True
             utils_wx.calculate_wx_from_metar(self)
-        return freshness
+        return False

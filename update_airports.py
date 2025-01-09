@@ -54,6 +54,8 @@ class AirportDB:
     _app_conf = None
     _dataset = None
 
+    _dataset_changed = False
+
     _metar_serial = -1
     _taf_serial = -1
     _mos_serial = -1
@@ -82,6 +84,9 @@ class AirportDB:
     _runway_data = None
     runway_data2 = None
     _airport_data = None
+
+    # Debug
+    _debug_airport_list = ["kbfi", "11s", "w04"]
 
     def __init__(self, app_conf, dataset_thread):
         """Create a database of Airports to be tracked."""
@@ -218,17 +223,26 @@ class AirportDB:
         """Create JSON data from Airport datasets."""
         airportdb_list = []
         for __airport_db_id, airport_obj in self._airport_master_dict.items():
+            debugging.info(
+                f"save data {airport_obj.icao_code()} active as {airport_obj.active()} / {airport_obj.save_in_config()}"
+            )
             if not airport_obj.save_in_config():
                 continue
+            if airport_obj.icao_code().startswith("null:"):
+                icao_label = "null"
+            else:
+                icao_label = airport_obj.icao_code()
             airport_save_record = {
                 "active": str(airport_obj.active()),
                 "heatmap": airport_obj.heatmap_index(),
-                "icao": airport_obj.icao_code(),
+                "icao": icao_label,
                 "led": str(airport_obj.get_led_index()),
                 "purpose": airport_obj.purpose(),
                 "wxsrc": airport_obj.wxsrc(),
             }
             airportdb_list.append(airport_save_record)
+        airportdb_list = sorted(airportdb_list, key=lambda k: k["led"])
+        debugging.info(f"save data {airportdb_list}")
         return airportdb_list
 
     def airport_dict_from_webform(self, airport_data, purpose_data, metarsrc_data):
@@ -244,11 +258,13 @@ class AirportDB:
             else:
                 airport_icao = airport_label
 
-            if airport_icao in ("null","lgnd"):
+            if airport_icao in ("null", "lgnd"):
                 airport_icao = f"{airport_icao}:{led_index}"
 
             if airport_icao not in self._airport_master_dict.keys():
-                debugging.info(f"airport_webform_update: {airport_icao} not in airport_master_dict")
+                debugging.info(
+                    f"airport_webform_update: {airport_icao} not in airport_master_dict, creating new airport"
+                )
 
                 # Need to see if led_index exists and is associated with a different airport in _airport_master_dict
                 # If it is; then we need to remove the led_index assignment, and set the purpose to _unused_
@@ -270,29 +286,29 @@ class AirportDB:
                 if new_metarsrc_data == "":
                     new_metarsrc_data = self._airport_master_dict[airport_icao].wxsrc()
 
-
             new_airport_object.set_wxsrc(new_metarsrc_data)
             new_airport_object.set_purpose(purpose_data[led_index])
             new_airport_object.set_led_index(int(led_index))
 
             new_airport_object.loaded_from_config()
             new_airport_object.set_active()
+            debugging.info(
+                f"airport_webform_update: {airport_icao} triggering update_wx()"
+            )
             new_airport_object.update_wx(self._airport_master_dict)
 
         self.airport_dicts_update()
-
-        debugging.info(
-            f"Completed processing dict from webform"
-        )
+        self.update_airport_runways()
+        debugging.info(f"Completed processing dict from webform")
 
         return
 
     def airport_dict_from_json(self, airport_jsondb):
         """Update Airport Master List from json src."""
         # Update self.airport_master_dict with entries from JSON file.
-        # TODO: Should also mark those appropriately so they are saved out
-
+        counter = 0
         for json_airport in airport_jsondb["airports"]:
+            counter += 1
             self._airport_master_list.append(json_airport)
             airport_icao = json_airport["icao"]
             airport_icao = airport_icao.lower()
@@ -312,7 +328,14 @@ class AirportDB:
 
             new_airport_object.set_wxsrc(json_airport["wxsrc"])
             new_airport_object.set_purpose(json_airport["purpose"])
-            new_airport_object.set_led_index(int(json_airport["led"]))
+
+            led_index = json_airport["led"]
+            if not led_index.isnumeric():
+                # If the json config entry doesn't have a LED value; then create one at +1000
+                led_value = counter + 1000
+            else:
+                led_value = int(led_index)
+            new_airport_object.set_led_index(led_value)
             new_airport_object.set_heatmap_index(json_airport["heatmap"])
 
             new_airport_object.loaded_from_config()
@@ -337,7 +360,7 @@ class AirportDB:
         debugging.info(
             f"Copying master dict to other lists {len(self._airport_master_dict)} items"
         )
-        for airport_icao, airport_obj in self._airport_master_dict.items():
+        for airport_icao, airport_obj in list(self._airport_master_dict.items()):
             debugging.debug(f"Airport dicts update for : {airport_icao} :")
             airport_purpose = airport_obj.purpose()
             if airport_purpose in ("unused"):
@@ -349,6 +372,7 @@ class AirportDB:
             if airport_purpose in ("web", "all"):
                 self._airport_web_dict.update({airport_icao: airport_obj})
                 debugging.info(f"Adding airport to airport_web_dict : {airport_icao}")
+            self._dataset_changed = True
         return True
 
     def load_airport_db(self):
@@ -658,14 +682,17 @@ class AirportDB:
                 debugging.info(f"{airport_id}:.:{forecast}")
         return future_taf
 
-    def parse_airport_runway_data(self, airport_id):
+    def get_airport_runway_data(self, airport_id):
         """Find Airport data in Runway DICT."""
         runway_set = []
         if self._runway_data is None:
             return runway_set
-        airport_id = airport_id.upper()
+        airport_id_upper = airport_id.upper()
+        airport_id_lower = airport_id.lower()
         for runway_info in self._runway_data:
-            if runway_info["airport_ident"] == airport_id:
+            if (runway_info["airport_ident"] == airport_id_upper) or (
+                runway_info["airport_ident"] == airport_id_lower
+            ):
                 debugging.debug(f"Airport Runway Data Found: {runway_info}")
                 runway_set.append(runway_info)
         return runway_set
@@ -705,6 +732,39 @@ class AirportDB:
         self._airport_data = airport_data
         return True
 
+    def get_airport_lon_lat(self, airport_id):
+        """Get Airport Latitude and Longitude."""
+        if self._airport_data is None:
+            debugging.info("get_airport_lat_lon: Airport Data not loaded")
+            return 0, 0, False
+        airport_id_upper = airport_id.upper()
+        airport_id_lower = airport_id.lower()
+        for airport_info in self._airport_data:
+            if (airport_info["ident"] == airport_id_upper) or (
+                airport_info["ident"] == airport_id_lower
+            ):
+                debugging.debug(f"Airport Lat/Lon Found: {airport_info}")
+                new_latitude = airport_info["latitude_deg"]
+                new_longitude = airport_info["longitude_deg"]
+                return new_longitude, new_latitude, True
+        return 0, 0, False
+
+    def update_airport_lon_lat(self):
+        """Update airport lat/lon data"""
+        for icao, airport_obj in self._airport_master_dict.items():
+            debugging.debug(f"Updating LON/LAT for {airport_obj.icao_code()}")
+            if not airport_obj.active():
+                continue
+            try:
+                new_lon, new_lat, data_valid = self.get_airport_lon_lat(icao)
+                if data_valid:
+                    airport_obj.update_coordinates(new_lon, new_lat)
+            except Exception as err:
+                debug_string = f"Error: update_airport_lon_lat Exception handling for {airport_obj.icao_code()}"
+                debugging.error(debug_string)
+                debugging.crash(err)
+        debugging.info(f"Airport Runway Updated")
+
     def update_airport_runways(self):
         """Update airport RUNWAY data for each known Airport."""
         for icao, airport_obj in self._airport_master_dict.items():
@@ -712,12 +772,26 @@ class AirportDB:
             if not airport_obj.active():
                 continue
             try:
-                runway_dataset = self.parse_airport_runway_data(icao)
+                runway_dataset = self.get_airport_runway_data(icao)
                 airport_obj.set_runway_data(runway_dataset)
             except Exception as err:
                 debug_string = f"Error: update_airport_runways Exception handling for {airport_obj.icao_code()}"
                 debugging.error(debug_string)
                 debugging.crash(err)
+        debugging.info(f"Airport Runway Updated")
+
+    def refresh_airport(self, icao_code):
+        """Refresh individual airport"""
+        if icao_code not in self._airport_master_dict:
+            return
+        airport_obj = self._airport_master_dict[icao_code]
+        if not airport_obj.valid_coordinates():
+            new_lon, new_lat, data_valid = self.get_airport_lon_lat(icao_code)
+            if data_valid:
+                airport_obj.update_coordinates(new_lon, new_lat)
+
+        airport_obj.update_wx(self._airport_master_dict)
+        airport_obj.refresh_best_runway()
 
     def update_loop(self, app_conf):
         """Master loop for keeping the airport data set current.
@@ -742,39 +816,51 @@ class AirportDB:
                 f"Updating Airport Data .. every aviation_weather_adds_timer ({aviation_weather_adds_timer})m)"
             )
 
-            if self._metar_serial < self._dataset.metar_serial():
+            if (
+                self._metar_serial < self._dataset.metar_serial()
+            ) or self._dataset_changed:
                 debugging.debug("Processing updated METAR data")
                 self._metar_serial = self._dataset.metar_serial()
                 self.update_airportdb_metar_xml()
                 self.update_airport_wx()
 
-            if self._taf_serial < self._dataset.taf_serial():
+            if (self._taf_serial < self._dataset.taf_serial()) or self._dataset_changed:
                 debugging.debug("Processing updated TAF data")
                 self._taf_serial = self._dataset.taf_serial()
                 self.update_airport_taf_xml()
 
-            if self._runway_serial < self._dataset.runway_serial():
+            if (
+                self._runway_serial < self._dataset.runway_serial()
+            ) or self._dataset_changed:
                 debugging.debug("Processing updated Runway data")
                 self._runway_serial = self._dataset.runway_serial()
                 self.import_runways()
                 self.update_airport_runways()
 
-            if self._airport_serial < self._dataset.airport_serial():
+            if (
+                self._airport_serial < self._dataset.airport_serial()
+            ) or self._dataset_changed:
                 debugging.debug("Processing updated Airport data")
                 self._airport_serial = self._dataset.airport_serial()
                 self.import_airport_geo_data()
-                # self.update_airport_lat_lon()
+                self.update_airport_lon_lat()
                 # Need to use the data in airports.csv to provide lat/lon data for any airports.
 
-            if self._mos_serial < self._dataset.mos_serial():
+            if (self._mos_serial < self._dataset.mos_serial()) or self._dataset_changed:
                 debugging.debug("Processing updated MOS data")
                 self._mos_serial = self._dataset.mos_serial()
                 self.populate_mos_data()
 
-            # FIXME: Key airport data - useful for debugging / health updates
-            # Remove eventually
-            kbfi_taf = self.get_airport_taf("kbfi")
-            debugging.debug(f"TAF Lookup: kbfi {kbfi_taf}")
-            kbfi_runway = self.parse_airport_runway_data("kbfi")
-            debugging.debug(f"Runway data - kbfi :{kbfi_runway}:")
+            if self._dataset_changed:
+                self._dataset_changed = False
+                debugging.info(f"Triggering airport refresh :_dataset_changed: is True")
+                for airport_obj in self._airport_master_dict.values():
+                    self.refresh_airport(airport_obj.icao_code())
+
+            for airport_icao in self._debug_airport_list:
+                debug_taf = self.get_airport_taf(airport_icao)
+                debugging.info(f"Debug TAF : {airport_icao}/{debug_taf}")
+                debug_runway = self.get_airport_runway_data("airport_icao")
+                debugging.info(f"Runway data - {airport_icao}/{debug_runway}:")
+
             time.sleep(aviation_weather_adds_timer * 60)

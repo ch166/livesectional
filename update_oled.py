@@ -280,7 +280,9 @@ class UpdateOLEDs:
 
         img.save(image_filename)
 
-    def generate_image(self, oled_id, airport, rway_angle, winddir, windspeed):
+    def generate_image(
+        self, oled_id, airport, rway_label, rway_angle, winddir, windspeed
+    ):
         """Create and save Web version of OLED display image."""
         # Image Dimensions
         width = 320
@@ -295,7 +297,8 @@ class UpdateOLEDs:
         airport_details = f"{airport} {winddir}@{windspeed}"
         metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
         currtime = utils.time_format_hms(utils.current_time(self._conf))
-        information_timestamp = f"time:{currtime} metar:{metarage}"
+        best_rway = f"Best runway: {rway_label}"
+        information_timestamp = f"time:{currtime} metar:{metarage}\n{best_rway}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
         runway_poly = utils_gfx.create_runway(
             rway_x, rway_y, rway_width, rway_angle, width, height
@@ -305,13 +308,13 @@ class UpdateOLEDs:
 
         oled_canvas = ImageDraw.Draw(img)
         oled_canvas.text((10, 10), airport_details, fill=(255, 255, 0))
-        oled_canvas.text((10, height - 20), information_timestamp, fill=(255, 255, 0))
+        oled_canvas.text((10, height - 40), information_timestamp, fill=(255, 255, 0))
         oled_canvas.polygon(wind_poly, fill="white", outline="white", width=1)
         oled_canvas.polygon(runway_poly, fill=None, outline="white", width=1)
 
         img.save(image_filename)
 
-    def draw_nowx(self, oled_id, airport, rway_angle, winddir, windspeed):
+    def draw_nowx(self, oled_id, airport, rway_label, rway_angle, winddir, windspeed):
         """Draw NOWX message."""
         # TODO: This code assumes a single runway direction only. Need to handle airports with multiple runways
         if oled_id > len(self.oled_list):
@@ -341,7 +344,9 @@ class UpdateOLEDs:
             debugging.info(f"Failed to grab lock for oled:{oled_id}")
         return
 
-    def draw_wind(self, oled_id, airport, best_runway, winddir, windspeed):
+    def draw_wind(
+        self, oled_id, airport, best_runway_label, best_runway_deg, winddir, windspeed
+    ):
         """Draw Wind Arrow and Runway."""
         if oled_id > len(self.oled_list):
             debugging.warn("OLED: Attempt to access index beyond list length {oled_id}")
@@ -357,7 +362,7 @@ class UpdateOLEDs:
         device_i2cbus_id = oled_dev["devid"]
 
         #
-        font=ImageFont.load_default(size=12)
+        font = ImageFont.load_default(size=12)
 
         # Runway Dimensions
         rway_width = 6
@@ -366,9 +371,9 @@ class UpdateOLEDs:
         airport_details = f"{airport}\n{winddir}@{windspeed}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
         runway_poly = utils_gfx.create_runway(
-            rway_x, rway_y, rway_width, best_runway, width, height
+            rway_x, rway_y, rway_width, best_runway_deg, width, height
         )
-        runway_details = f"Best Runway {best_runway}"
+        runway_details = f"Best Runway {best_runway_label}"
 
         (tx_l, tx_t, tx_r, tx_b) = font.getbbox(text=runway_details)
         runway_details_height = tx_t + tx_b
@@ -384,13 +389,20 @@ class UpdateOLEDs:
                 )
                 draw.polygon(wind_poly, fill="white", outline="white")
                 draw.polygon(runway_poly, fill=None, outline="white")
-                draw.text((1, height-runway_details_height), runway_details, font=ImageFont.load_default(14), fill="white",)
+                draw.text(
+                    (1, height - runway_details_height),
+                    runway_details,
+                    font=ImageFont.load_default(14),
+                    fill="white",
+                )
             self._i2cbus.bus_unlock()
         else:
             debugging.info(f"Failed to grab lock for oled:{oled_id}")
         return
 
-    def update_oled_wind(self, oled_id, airportcode, default_rwy):
+    def update_oled_wind(
+        self, oled_id, airportcode, default_rwy_label, default_rwy_deg
+    ):
         """Draw WIND Info on designated OLED."""
         # FIXME: Hardcoded data
         airport_list = self._airport_database.get_airport_dict_led()
@@ -409,20 +421,45 @@ class UpdateOLEDs:
         if windspeed is None:
             windspeed = 0
         winddir = airport_obj.winddir_degrees()
-        best_runway = airport_obj.best_runway()
-        if best_runway is None:
-            best_runway = default_rwy
-        if (winddir is not None) and (best_runway is not None):
+        best_runway_label = airport_obj.best_runway()
+        best_runway_deg = airport_obj.best_runway_deg()
+
+        if best_runway_label is None:
+            best_runway_label = default_rwy_label
+            best_runway_deg = default_rwy_deg
+
+        if (winddir is not None) and (best_runway_label is not None):
             debugging.info(
-                f"Updating OLED Wind: {airportcode} : rwy: {best_runway} : wind {winddir}"
+                f"Updating OLED Wind: {airportcode} : rwy: {best_runway_label} : wind {winddir}"
             )
-            self.draw_wind(oled_id, airportcode, best_runway, winddir, windspeed)
-            self.generate_image(oled_id, airportcode, best_runway, winddir, windspeed)
+            self.draw_wind(
+                oled_id,
+                airportcode,
+                best_runway_label,
+                best_runway_deg,
+                winddir,
+                windspeed,
+            )
+            self.generate_image(
+                oled_id,
+                airportcode,
+                best_runway_label,
+                best_runway_deg,
+                winddir,
+                windspeed,
+            )
         else:
-            self.draw_nowx(oled_id, airportcode, best_runway, winddir, windspeed)
+            self.draw_nowx(
+                oled_id,
+                airportcode,
+                best_runway_label,
+                best_runway_deg,
+                winddir,
+                windspeed,
+            )
             # FIXME: self.generate_nowx_image(oled_id, airportcode, best_runway, winddir, windspeed)
             debugging.info(
-                f"NOT Updating OLED: {airportcode} : rwy: {best_runway} : wind {winddir}"
+                f"NOT Updating OLED: {airportcode} : rwy: {best_runway_label} : wind {winddir}"
             )
         return
 
@@ -471,13 +508,13 @@ class UpdateOLEDs:
                 if oled_id == 0:
                     self.update_oled_status(oled_id, count)
                 if (oled_id == 1) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kbfi", 140)
+                    self.update_oled_wind(oled_id, "kbfi", "14", 140)
                 if (oled_id == 2) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "ksea", 160)
+                    self.update_oled_wind(oled_id, "ksea", "16", 160)
                 if (oled_id == 3) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kpae", 160)
+                    self.update_oled_wind(oled_id, "kpae", "16", 160)
                 if (oled_id == 4) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kpwt", 200)
+                    self.update_oled_wind(oled_id, "kpwt", "20", 200)
                 if (oled_id == 5) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kfhr", 340)
+                    self.update_oled_wind(oled_id, "kfhr", "34", 340)
             time.sleep(oled_loop_interval)

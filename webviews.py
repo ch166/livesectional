@@ -145,7 +145,12 @@ class WebViews:
             "/confmobile", view_func=self.confmobile, methods=["GET", "POST"]
         )
         self.app.add_url_rule("/apedit", view_func=self.apedit, methods=["GET"])
-        self.app.add_url_rule("/appost", view_func=self.handle_appost_request , methods=["POST"])
+        self.app.add_url_rule(
+            "/appost", view_func=self.handle_appost_request, methods=["POST"]
+        )
+        self.app.add_url_rule(
+            "/importap", view_func=self.importap, methods=["GET", "POST"]
+        )
         self.app.add_url_rule("/hmedit", view_func=self.hmedit, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/hmpost", view_func=self.hmpost_handler, methods=["GET", "POST"]
@@ -392,19 +397,23 @@ class WebViews:
     def led_map(self):
         """Flask Route: /led_map - Display LED Map with existing airports."""
         # Update Airport Boundary data based on set of airports
-        self.max_lat, self.min_lat, self.max_lon, self.min_lon = (
+        self.max_lon, self.min_lon, self.max_lat, self.min_lat = (
             utils_coord.airport_boundary_calc(self._airport_database)
+        )
+
+        debugging.debug(
+            f"Coordinates LON:{self.max_lon}/{self.min_lon}/ LAT:{self.max_lat}/{self.min_lat}/"
         )
 
         points = []
         title_coords = (self.max_lat, (float(self.max_lon) + float(self.min_lon)) / 2)
-        start_coords = (
+        start_center_coord = (
             (float(self.max_lat) + float(self.min_lat)) / 2,
             (float(self.max_lon) + float(self.min_lon)) / 2,
         )
         # Initialize Map
         folium_map = folium.Map(
-            location=start_coords,
+            location=start_center_coord,
             zoom_start=8,
             height="100%",
             width="100%",
@@ -429,7 +438,7 @@ class WebViews:
                     f"LED MAP: Skipping rendering {icao} invalid coordinates"
                 )
                 continue
-            debugging.info(f"LED MAP: Rendering {icao}")
+            debugging.debug(f"LED MAP: Rendering {icao}")
             if airport_obj.flightcategory() == "VFR":
                 loc_color = "green"
             elif airport_obj.flightcategory() == "MVFR":
@@ -466,21 +475,21 @@ class WebViews:
                 f"icao {icao} Lat:{airport_obj.latitude()}/Lon:{airport_obj.longitude()}"
             )
             points.insert(pin_index, [airport_obj.latitude(), airport_obj.longitude()])
-            ######
-            ## FIXME: This started generating a recursion depth exceeded error
-            #
-            # folium.PolyLine(
-            #    points, color="grey", weight=2.5, opacity=1, dash_array="10"
-            # ).add_to(folium_map)
+
+        folium.PolyLine(
+            points, color="grey", weight=2.5, opacity=1, dash_array="2"
+        ).add_to(folium_map)
 
         # Add Title to the top of the map
+        map_icon = DivIcon(
+            icon_size=(500, 36),
+            icon_anchor=(150, 64),
+            html='<div style="font-size: 24pt"><b>LiveSectional Map Layout</b></div>',
+        )
+
         folium.map.Marker(
-            title_coords,
-            icon=DivIcon(
-                icon_size=(500, 36),
-                icon_anchor=(150, 64),
-                html='<div style="font-size: 24pt"><b>LiveSectional Map Layout</b></div>',
-            ),
+            location=title_coords,
+            icon=map_icon,
         ).add_to(folium_map)
 
         # Extra features to add if desired
@@ -533,7 +542,7 @@ class WebViews:
     def heat_map(self):
         """Flask Route: /heat_map - Display HEAT Map with existing airports."""
         # Update Airport Boundary data based on set of airports
-        self.max_lat, self.min_lat, self.max_lon, self.min_lon = (
+        self.max_lon, self.min_lon, self.max_lat, self.min_lat = (
             utils_coord.airport_boundary_calc(self._airport_database)
         )
 
@@ -778,10 +787,29 @@ class WebViews:
             with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
                 airportdb = self._airport_database.get_airportdb()
                 counter = 0
+                dbdump = {}
                 for icao, airport_obj in airportdb.items():
-                    airport_metar = airport_obj.raw_metar()
-                    flight_category = airport_obj.flightcategory()
-                    outfile.write(f"{icao}::{airport_metar}::{flight_category}:\n")
+                    if not airport_obj.active():
+                        continue
+                    dbdump["airport"] = airport_obj.icao_code()
+                    dbdump["metar"] = airport_obj.raw_metar()
+                    dbdump["flightcategory"] = airport_obj.flightcategory()
+                    dbdump["latitude"] = airport_obj.latitude()
+                    dbdump["longitude"] = airport_obj.longitude()
+                    dbdump["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
+                    dbdump["get_wx_windspeed"] = airport_obj.wx_windspeed()
+                    # html_response["taf"] = airport_taf
+                    dbdump["mos_1hr"] = utils_mos.get_mos_weather(
+                        airport_obj.get_full_mos_forecast(), self._app_conf, 1
+                    )
+                    dbdump["mos_8hr"] = utils_mos.get_mos_weather(
+                        airport_obj.get_full_mos_forecast(), self._app_conf, 8
+                    )
+                    dbdump["wxsrc"] = airport_obj.wxsrc()
+                    dbdump["heatmap_index"] = airport_obj.heatmap_index()
+                    dbdump["best_runway"] = airport_obj.best_runway()
+                    dbdump["runway_dataset"] = airport_obj.runway_data()
+                    outfile.write(f"{dbdump}\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
             html_response = {
@@ -801,6 +829,9 @@ class WebViews:
             "taf": "No TAF Set",
             "mos_1hr": "No MOS 1hr set",
             "mos_8hr": "No MOS 8hr set",
+            "wxsrc": "wxsrc Not Set",
+            "best_runway": "best runway NotSet",
+            "heatmap_index": "heatmap_index NotSet",
         }
         try:
             airport_obj = self._airport_database.get_airport(airport)
@@ -812,7 +843,7 @@ class WebViews:
             html_response["longitude"] = airport_obj.longitude()
             html_response["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
             html_response["get_wx_windspeed"] = airport_obj.wx_windspeed()
-            html_response["taf"] = airport_taf
+            # html_response["taf"] = airport_taf
             html_response["mos_1hr"] = utils_mos.get_mos_weather(
                 airport_obj.get_full_mos_forecast(), self._app_conf, 1
             )
@@ -1028,7 +1059,11 @@ class WebViews:
             debugging.info(f"Purpose Data: {purpose_data}")
             debugging.info(f"Metarsrc Data: {metarsrc_data}")
 
-            self._airport_database.airport_dict_from_webform(airport_data, purpose_data, metarsrc_data)
+            self._airport_database.airport_dict_from_webform(
+                airport_data, purpose_data, metarsrc_data
+            )
+            self._airport_database.save_airport_db()
+
         return redirect("apedit")
 
     # FIXME: Integrate into Class
@@ -1118,26 +1153,37 @@ class WebViews:
         debugging.info("Importing airports File")
 
         if "file" not in request.files:
-            flash("No File Selected")
+            flash("Import Airports - No File Selected")
             return redirect("./apedit")
 
         file = request.files["file"]
 
         if file.filename == "":
-            flash("No File Selected")
+            flash("Import Airports - No Filename found")
             return redirect("./apedit")
 
         filedata = file.read()
         fdata = bytes.decode(filedata)
-        debugging.dprint(fdata)
-        self.airports = fdata.split("\n")
-        self.airports.pop()
-        debugging.dprint(self.airports)
+        try:
+            new_airports = json.loads(fdata)
+        except json.decoder.JSONDecodeError as err:
+            debugging.error(f"Import Airports JSON decode error - {err}")
+            flash(f"Import Airports - JSON Decode Error {err}")
+
+        debugging.info(f"Airports File: {fdata}")
+
+        # TODO: Would be good to parse the data and do some sanity checking rather than lobbing
+        # it to the json importer without any validation.
+
+        # TODO: if validation tests pass
+        self._airport_database.airport_dict_from_json(fdata)
+        # TODO: else
+        # TODO: create a template for an import error page, and present that instead.
 
         template_data = self.standardtemplate_data()
         template_data["title"] = "Airports Editor"
 
-        flash('Airports Imported - Click "Save self.airports" to save')
+        flash("Airport data imported")
         return render_template("apedit.html", **template_data)
 
     # Routes for Config Editor

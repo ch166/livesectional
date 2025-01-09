@@ -172,6 +172,12 @@ def calculate_wx_from_metar(airport_data):
     """Use METAR data to work out wx conditions."""
     # Should have Good METAR data in airport_data.metar
     # Need to Figure out Airport State
+
+    if airport_data is None:
+        return
+    if airport_data.raw_metar() is None:
+        return
+
     try:
         airport_data_observation = Metar.Metar(airport_data.raw_metar())
     except Metar.ParserError as err:
@@ -182,22 +188,32 @@ def calculate_wx_from_metar(airport_data):
         return False
 
     if not airport_data_observation:
-        debugging.warn("Have no observations for " + airport_data._icao)
+        debugging.info("Have no observations for " + airport_data._icao)
         return False
 
-    if airport_data_observation.wind_gust:
-        airport_data._wx_windgust = airport_data_observation.wind_gust.value()
+    if airport_data_observation.wind_dir:
+        airport_data._wind_dir_degrees = airport_data_observation.wind_dir.value()
     else:
-        airport_data._wx_windgust = 0
+        airport_data._wind_dir_degrees = 0
+
     if airport_data_observation.wind_speed:
-        airport_data._wx_windspeed_kt = airport_data_observation.wind_speed.value()
+        airport_data._wind_speed_kt = airport_data_observation.wind_speed.value()
     else:
-        airport_data._wx_windspeed_kt = 0
+        # Should have wind speed in each update - don't want to override any existing numbers unless we get something new.
+        if airport_data._wind_speed_kt is None:
+            airport_data._wind_speed_kt = 0.0
+
+    if airport_data_observation.wind_gust:
+        airport_data._wx_wind_gust = airport_data_observation.wind_gust.value()
+    else:
+        airport_data._wx_wind_gust = 0
+
     if airport_data_observation.vis:
         airport_data._wx_visibility = airport_data_observation.vis.value()
     else:
         # Set visibility to -1 to flag as unknown
         airport_data._wx_visibility = -1
+
     try:
         airport_data._wx_ceiling = cloud_height(airport_data.raw_metar())
     except Exception as err:
@@ -224,10 +240,17 @@ def calculate_wx_from_metar(airport_data):
 
     airport_data.set_wx_category(airport_data._flight_category)
 
+    if airport_data.icao_code() == "11s":
+        debugging.info(
+            f"calculate wx from metar {airport_data.icao_code()} /_wx_windspeed_kt : {airport_data._wind_speed_kt} / {airport_data.raw_metar()}"
+        )
+
     debugging.debug(
         f"Airport: Ceiling {airport_data._wx_ceiling} + Visibility : {airport_data._wx_visibility}"
     )
-    debugging.debug(f"Airport {airport_data._icao} - {airport_data._flight_category} - {airport_data.raw_metar()}")
+    debugging.debug(
+        f"Airport {airport_data._icao} - {airport_data._flight_category} - {airport_data.raw_metar()}"
+    )
     return True
 
 

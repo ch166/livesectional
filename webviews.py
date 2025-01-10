@@ -534,11 +534,12 @@ class WebViews:
     def heat_map(self):
         """Flask Route: /heat_map - Display HEAT Map with existing airports."""
         # Update Airport Boundary data based on set of airports
+
+        points = []
+
         self.max_lon, self.min_lon, self.max_lat, self.min_lat = (
             utils_coord.airport_boundary_calc(self._airport_database)
         )
-
-        points = []
 
         title_coords = (self.max_lat, (float(self.max_lon) + float(self.min_lon)) / 2)
         start_coords = (
@@ -575,7 +576,7 @@ class WebViews:
                 continue
             loc_color = utils_colors.flightcategory_color(self._app_conf, airport_obj.flightcategory())
 
-            # Get Pin Number to display in popup
+            # Get pin to display in popup
             heatmap_scale = airport_obj.heatmap_index()
             if heatmap_scale == 0:
                 heatmap_radius = 10
@@ -597,7 +598,7 @@ class WebViews:
                 color=loc_color,
                 location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>Size {str(heatmap_radius)}",
+                tooltip=f"{str(icao)}<br>{str(heatmap_radius)}%",
                 weight=4,
             ).add_to(folium_map)
 
@@ -611,14 +612,16 @@ class WebViews:
         # No polyline on HeatMap
         # folium.PolyLine(points, color="grey", weight=2.5, opacity=1, dash_array="10").add_to(folium_map)
 
+        title_icon=DivIcon(
+            icon_size=(500, 36),
+            icon_anchor=(150, 64),
+            html='<div style="font-size: 24pt"><b>LiveSectional HeatMap Layout</b></div>',
+        )
+
         # Add Title to the top of the map
         folium.map.Marker(
             title_coords,
-            icon=DivIcon(
-                icon_size=(500, 36),
-                icon_anchor=(150, 64),
-                html='<div style="font-size: 24pt"><b>LiveSectional HeatMap Layout</b></div>',
-            ),
+            icon=title_icon,
         ).add_to(folium_map)
 
         # Extra features to add if desired
@@ -716,7 +719,19 @@ class WebViews:
                 "flightcategory": "DB DUMPED",
             }
             return json.dumps(wx_data)
-        wx_data = {
+        try:
+            airport_obj = self._airport_database.get_airport(airport)
+            airport_taf = self._airport_database.get_airport_taf(airport)
+            wx_data = self.airport_datadump(airport_obj)
+        except Exception as err:
+            debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
+
+        return json.dumps(wx_data)
+
+
+    def airport_datadump(self, airport_obj):
+        """Generate dict of useful airport data."""
+        dbdump = {
             "airport": "Default Value",
             "metar": "",
             "flightcategory": "UNKN",
@@ -727,31 +742,34 @@ class WebViews:
             "taf": "No TAF Set",
             "mos_1hr": "No MOS 1hr set",
             "mos_8hr": "No MOS 8hr set",
+            "wxsrc": "wxsrc Not Set",
+            "best_runway": "best runway NotSet",
+            "heatmap_index": "heatmap_index NotSet",
         }
-        try:
-            airport_obj = self._airport_database.get_airport(airport)
-            airport_taf = self._airport_database.get_airport_taf(airport)
-            wx_data["airport"] = airport_obj.icao_code()
-            wx_data["metar"] = airport_obj.raw_metar()
-            wx_data["flightcategory"] = airport_obj.flightcategory()
-            wx_data["latitude"] = airport_obj.latitude()
-            wx_data["longitude"] = airport_obj.longitude()
-            wx_data["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
-            wx_data["get_wx_windspeed"] = airport_obj.wx_windspeed()
-            wx_data["taf"] = airport_taf
-            wx_data["mos_1hr"] = utils_mos.get_mos_weather(
-                airport_obj.get_full_mos_forecast(), self._app_conf, 1
-            )
-            wx_data["mos_8hr"] = utils_mos.get_mos_weather(
-                airport_obj.get_full_mos_forecast(), self._app_conf, 8
-            )
-        except Exception as err:
-            debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
+        dbdump["metar"] = airport_obj.raw_metar()
+        dbdump["airport"] = airport_obj.icao_code()
+        dbdump["metar"] = airport_obj.raw_metar()
+        dbdump["flightcategory"] = airport_obj.flightcategory()
+        dbdump["latitude"] = airport_obj.latitude()
+        dbdump["longitude"] = airport_obj.longitude()
+        dbdump["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
+        dbdump["get_wx_windspeed"] = airport_obj.wx_windspeed()
+        # html_response["taf"] = airport_taf
+        dbdump["mos_1hr"] = utils_mos.get_mos_weather(
+            airport_obj.get_full_mos_forecast(), self._app_conf, 1
+        )
+        dbdump["mos_8hr"] = utils_mos.get_mos_weather(
+            airport_obj.get_full_mos_forecast(), self._app_conf, 8
+        )
+        dbdump["wxsrc"] = airport_obj.wxsrc()
+        dbdump["heatmap_index"] = airport_obj.heatmap_index()
+        dbdump["best_runway"] = airport_obj.best_runway()
+        dbdump["runway_dataset"] = airport_obj.runway_data()
+        return dbdump
 
-        return json.dumps(wx_data)
 
     def getairport(self, airport):
-        """Flask Route: /airport - Get WX JSON for Airport."""
+        """Flask Route: /airport - Get WX JSON for Airport - primarily for debugging the details of the what's in the Airport"""
         template_data = self.standardtemplate_data()
 
         debugging.info(f"getairport: airport = {airport}")
@@ -767,24 +785,7 @@ class WebViews:
                 for icao, airport_obj in airportdb.items():
                     if not airport_obj.active():
                         continue
-                    dbdump["airport"] = airport_obj.icao_code()
-                    dbdump["metar"] = airport_obj.raw_metar()
-                    dbdump["flightcategory"] = airport_obj.flightcategory()
-                    dbdump["latitude"] = airport_obj.latitude()
-                    dbdump["longitude"] = airport_obj.longitude()
-                    dbdump["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
-                    dbdump["get_wx_windspeed"] = airport_obj.wx_windspeed()
-                    # html_response["taf"] = airport_taf
-                    dbdump["mos_1hr"] = utils_mos.get_mos_weather(
-                        airport_obj.get_full_mos_forecast(), self._app_conf, 1
-                    )
-                    dbdump["mos_8hr"] = utils_mos.get_mos_weather(
-                        airport_obj.get_full_mos_forecast(), self._app_conf, 8
-                    )
-                    dbdump["wxsrc"] = airport_obj.wxsrc()
-                    dbdump["heatmap_index"] = airport_obj.heatmap_index()
-                    dbdump["best_runway"] = airport_obj.best_runway()
-                    dbdump["runway_dataset"] = airport_obj.runway_data()
+                    dbdump = self.airport_datadump(airport_obj)
                     outfile.write(f"{dbdump}\n")
                     counter = counter + 1
                 outfile.write(f"stats: {counter}\n")
@@ -794,42 +795,10 @@ class WebViews:
                 "flightcategory": "DB DUMPED",
             }
             return json.dumps(html_response)
-        html_response = {
-            "airport": "Default Value",
-            "metar": "",
-            "flightcategory": "UNKN",
-            "latitude": "Not Set",
-            "longitude": "Not Set",
-            "get_wx_dir_degrees": "Not Set",
-            "get_wx_windspeed": "Not Set",
-            "taf": "No TAF Set",
-            "mos_1hr": "No MOS 1hr set",
-            "mos_8hr": "No MOS 8hr set",
-            "wxsrc": "wxsrc Not Set",
-            "best_runway": "best runway NotSet",
-            "heatmap_index": "heatmap_index NotSet",
-        }
         try:
             airport_obj = self._airport_database.get_airport(airport)
             airport_taf = self._airport_database.get_airport_taf(airport)
-            html_response["airport"] = airport_obj.icao_code()
-            html_response["metar"] = airport_obj.raw_metar()
-            html_response["flightcategory"] = airport_obj.flightcategory()
-            html_response["latitude"] = airport_obj.latitude()
-            html_response["longitude"] = airport_obj.longitude()
-            html_response["get_wx_dir_degrees"] = airport_obj.winddir_degrees()
-            html_response["get_wx_windspeed"] = airport_obj.wx_windspeed()
-            # html_response["taf"] = airport_taf
-            html_response["mos_1hr"] = utils_mos.get_mos_weather(
-                airport_obj.get_full_mos_forecast(), self._app_conf, 1
-            )
-            html_response["mos_8hr"] = utils_mos.get_mos_weather(
-                airport_obj.get_full_mos_forecast(), self._app_conf, 8
-            )
-            html_response["wxsrc"] = airport_obj.wxsrc()
-            html_response["heatmap_index"] = airport_obj.heatmap_index()
-            html_response["best_runway"] = airport_obj.best_runway()
-            html_response["runway_dataset"] = airport_obj.runway_data()
+            html_response = self.airport_datadump(airport_obj)
         except Exception as err:
             debugging.error(f"Attempt to get wx for failed for :{airport}: ERR:{err}")
 

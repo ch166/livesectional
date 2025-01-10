@@ -548,7 +548,7 @@ class Airport:
             adds_longitude = "Missing"
 
         if found_latitude and found_longitude:
-            self.update_coordinates(adds_latitude, adds_longitude)
+            self.update_coordinates(adds_longitude, adds_latitude)
         return
 
     def update_wx(self, airport_master_dict):

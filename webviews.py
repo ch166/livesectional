@@ -31,6 +31,7 @@ import qrcode
 import utils
 import utils_coord
 import utils_mos
+import utils_colors
 
 # import conf
 from update_leds import LedMode
@@ -439,16 +440,7 @@ class WebViews:
                 )
                 continue
             debugging.debug(f"LED MAP: Rendering {icao}")
-            if airport_obj.flightcategory() == "VFR":
-                loc_color = "green"
-            elif airport_obj.flightcategory() == "MVFR":
-                loc_color = "blue"
-            elif airport_obj.flightcategory() == "IFR":
-                loc_color = "red"
-            elif airport_obj.flightcategory() == "LIFR":
-                loc_color = "violet"
-            else:
-                loc_color = "black"
+            loc_color = utils_colors.flightcategory_color(self._app_conf, airport_obj.flightcategory())
 
             # FIXME - Move URL to config file
             # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
@@ -526,7 +518,7 @@ class WebViews:
 
         # FIXME: Move filename to config.ini
         folium_map.save("/opt/NeoSectional/static/led_map.html")
-        debugging.info("Opening led_map in separate window")
+        debugging.debug("Opening led_map in separate window")
 
         template_data = self.standardtemplate_data()
         template_data["title"] = "LEDmap"
@@ -547,6 +539,7 @@ class WebViews:
         )
 
         points = []
+
         title_coords = (self.max_lat, (float(self.max_lon) + float(self.min_lon)) / 2)
         start_coords = (
             (float(self.max_lat) + float(self.min_lat)) / 2,
@@ -575,16 +568,12 @@ class WebViews:
         for icao, airport_obj in airports.items():
             if not airport_obj.active():
                 continue
-            if airport_obj.flightcategory() == "VFR":
-                loc_color = "green"
-            elif airport_obj.flightcategory() == "MVFR":
-                loc_color = "blue"
-            elif airport_obj.flightcategory() == "IFR":
-                loc_color = "red"
-            elif airport_obj.flightcategory() == "LIFR":
-                loc_color = "violet"
-            else:
-                loc_color = "black"
+            if not airport_obj.valid_coordinates():
+                debugging.info(
+                    f"LED MAP: Skipping rendering {icao} invalid coordinates"
+                )
+                continue
+            loc_color = utils_colors.flightcategory_color(self._app_conf, airport_obj.flightcategory())
 
             # Get Pin Number to display in popup
             heatmap_scale = airport_obj.heatmap_index()
@@ -612,19 +601,6 @@ class WebViews:
                 weight=4,
             ).add_to(folium_map)
 
-        airports = self._airport_database.get_airport_dict_led()
-        for icao, airport_obj in airports.items():
-            debugging.info(
-                f"Heatmap: {airport_obj.icao_code()} : Active: {airport_obj.active()} :"
-                f" Coords: {airport_obj.valid_coordinates()}"
-            )
-            if not airport_obj.active():
-                # Inactive airports likely don't have valid lat/lon data
-                continue
-            if not airport_obj.valid_coordinates():
-                continue
-            # Add lines between airports. Must make lat/lons
-            # floats otherwise recursion error occurs.
             pin_index = int(airport_obj.get_led_index())
             debugging.info(
                 f"HeatMap: {airport_obj.icao_code()} :{airport_obj.latitude()}:{airport_obj.longitude()}:{pin_index}:"

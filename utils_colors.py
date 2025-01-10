@@ -156,3 +156,17 @@ def randomcolor():
     grn = int(random.randint(0, 255))
     blu = int(random.randint(0, 255))
     return hexcode(red, grn, blu)
+
+def flightcategory_color(confdata, flightcategory):
+    """Convert Flight Category to color"""
+    if flightcategory == "VFR":
+        loc_color = confdata.color("colors", "color_vfr")
+    elif flightcategory == "MVFR":
+        loc_color = confdata.color("colors", "color_mvfr")
+    elif flightcategory == "IFR":
+        loc_color = confdata.color("colors", "color_ifr")
+    elif flightcategory == "LIFR":
+        loc_color = confdata.color("colors", "color_lifr")
+    else:
+        loc_color = confdata.color("colors", "color_nowe")
+    return loc_color

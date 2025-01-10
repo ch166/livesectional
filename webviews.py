@@ -1175,9 +1175,13 @@ class WebViews:
         # TODO: Would be good to parse the data and do some sanity checking rather than lobbing
         # it to the json importer without any validation.
 
+        new_airports = json.loads(fdata)
+
         # TODO: if validation tests pass
-        self._airport_database.airport_dict_from_json(fdata)
-        # TODO: else
+        if "airports" in new_airports:
+            self._airport_database.airport_dict_from_json(new_airports)
+        else:
+            debugging.info(f"Airports File: no airports key")
         # TODO: create a template for an import error page, and present that instead.
 
         template_data = self.standardtemplate_data()

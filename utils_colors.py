@@ -168,5 +168,5 @@ def flightcategory_color(confdata, flightcategory):
     elif flightcategory == "LIFR":
         loc_color = confdata.color("colors", "color_lifr")
     else:
-        loc_color = confdata.color("colors", "color_nowe")
+        loc_color = confdata.color("colors", "color_nowx")
     return loc_color

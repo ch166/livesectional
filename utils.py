@@ -278,11 +278,10 @@ def time_in_range(start_time, end_time, check_time):
 def reboot_if_time(app_conf):
     """Check to see if it's time to reboot."""
     # Check time and reboot machine if time equals
-    # time_reboot and if use_reboot along with autorun are both set to 1
+    # time_reboot and if use_reboot 
     use_reboot = app_conf.get_bool("default", "nightly_reboot")
-    use_autorun = app_conf.get_bool("default", "autorun")
     reboot_time = app_conf.get_string("default", "nightly_reboot_hr")
-    if use_reboot and use_autorun:
+    if use_reboot:
         now = datetime.datetime.now()
         rb_time = now.strftime("%H:%M")
         debugging.debug(

@@ -1,3 +1,7 @@
+Version 4.5.0.1
+Jan 2025
+autorun config options removed ; daemon management in systemctl.
+
 Version 4.4.07.11.24
 07-11-2024
 Lots of stability improvements and performance improvements to the overall code

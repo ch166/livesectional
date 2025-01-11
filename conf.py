@@ -96,7 +96,6 @@ class Conf:
     def gen_settings_dict(self) -> dict:
         """Generate settings template to pass to flask."""
         settings = {
-            "autorun": self.get_string("default", "autorun"),
             "LED_COUNT": self.get_string("default", "led_count"),
             "legend": self.get_string("default", "legend"),
             "max_wind_speed": self.get_string("activelights", "high_wind_limit"),
@@ -229,8 +228,6 @@ class Conf:
     def parse_config_input(self, form_data):
         """Parse settings data input."""
         #
-        autorun_flag = utils.str2bool(form_data["autorun"])
-        self.set_string("default", "autorun", autorun_flag)
         self.set_string("default", "led_count", form_data["LED_COUNT"])
         #
         legend_flag = utils.str2bool(form_data["legend"])

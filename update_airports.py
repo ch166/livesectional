@@ -228,20 +228,20 @@ class AirportDB:
             )
             if not airport_obj.save_in_config():
                 continue
-            if airport_obj.icao_code().startswith("null:"):
+            icao_label = airport_obj.icao_code()
+            if icao_label.startswith("null:"):
                 icao_label = "null"
-            else:
-                icao_label = airport_obj.icao_code()
+            if icao_label.startswith("lgnd:"):
+                icao_label = "lgnd"
             airport_save_record = {
+                "led": str(airport_obj.get_led_index()),
                 "active": str(airport_obj.active()),
                 "heatmap": airport_obj.heatmap_index(),
                 "icao": icao_label,
-                "led": str(airport_obj.get_led_index()),
                 "purpose": airport_obj.purpose(),
                 "wxsrc": airport_obj.wxsrc(),
             }
             airportdb_list.append(airport_save_record)
-        airportdb_list = sorted(airportdb_list, key=lambda k: k["led"])
         debugging.info(f"save data {airportdb_list}")
         return airportdb_list
 
@@ -412,7 +412,7 @@ class AirportDB:
         json_save_data_airport = self.save_data_from_db()
         json_save_data["airports"] = json_save_data_airport
         with open(airport_json_new, "w", encoding="utf8") as json_file:
-            json.dump(json_save_data, json_file, sort_keys=True, indent=4)
+            json.dump(json_save_data, json_file, sort_keys=False, indent=4)
         shutil.move(airport_json_new, airport_json)
 
     def update_airportdb_metar_xml(self):
@@ -860,7 +860,7 @@ class AirportDB:
             for airport_icao in self._debug_airport_list:
                 debug_taf = self.get_airport_taf(airport_icao)
                 debugging.info(f"Debug TAF : {airport_icao}/{debug_taf}")
-                debug_runway = self.get_airport_runway_data("airport_icao")
+                debug_runway = self.get_airport_runway_data(airport_icao)
                 debugging.info(f"Runway data - {airport_icao}/{debug_runway}:")
 
             time.sleep(aviation_weather_adds_timer * 60)

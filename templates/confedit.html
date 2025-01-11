@@ -41,76 +41,38 @@
                 <th class="config">Setting Description</th>
             </tr>
             <tr>
-                <td>
-                    <label for="LED_COUNT"><b>LED Count = </b></label>
-                </td>
-                <td>
-                    <input type="number" id="LED_COUNT" name="LED_COUNT" onchange="checkBlankF(this)" min="0" max="500"
-                        value="{{ settings.LED_COUNT }}" />
-                </td>
-                <td>
-                    Enter the total number of LEDs in the string to build the map. This is not the number of
-                    airports to
-                    display. (Allowable range = 0 to 500)
-                </td>
+                <td><label for="LED_COUNT"><b>LED Count = </b></label></td>
+                <td><input type="number" id="LED_COUNT" name="LED_COUNT" onchange="checkBlankF(this)" min="0" max="500" value="{{ settings.LED_COUNT }}" /></td>
+                <td>Enter the total number of LEDs in the string to build the map. This is not the number of airports to display. (Allowable range = 0 to 500)</td>
             </tr>
             <tr>
-                <td>
-                    <b>Use a Map Legend</b>
-                    <br />
-                </td>
-                <td>
-                    <input type="radio" name="legend" id="legendyes" value="1" {{ 'checked="checked"' if
-                        settings.legend=="1" else "" }} />
+		<!-- FIXME: With Legend being available by default by creating a lgnd: airport entry - do we actually need to have this as an option -->
+                <td><b>Use a Map Legend</b><br /></td>
+                <td><input type="radio" name="legend" id="legendyes" value="1" {{ 'checked="checked"' if settings.legend=="1" else "" }} />
                     <label for="legendyes">Yes</label>
-                    <input type="radio" name="legend" id="legendno" value="0" {{ 'checked="checked"' if
-                        settings.legend=="0" else "" }} />
+                    <input type="radio" name="legend" id="legendno" value="0" {{ 'checked="checked"' if settings.legend=="0" else "" }} />
                     <label for="legendno">No</label>
                 </td>
                 <td>If the map will be using a Legend, then select Yes. Legend can be customized as desired.</td>
             </tr>
             <tr>
-                <td>
-                    <label for="max_wind_speed"><b>Set Wind Speed = </b></label>
-                </td>
-                <td>
-                    <input type="number" name="max_wind_speed" id="max_wind_speed" onchange="checkBlankF(this)" min="0"
-                        max="100" value="{{ settings.max_wind_speed }}" />
-                </td>
-                <td>
-                    Enter the wind speed at which to start blinking airports if speed is at or above. (Allowable
-                    range = 0 to 100).
-                </td>
+                <td><label for="max_wind_speed"><b>Set Wind Speed = </b></label></td>
+                <td><input type="number" name="max_wind_speed" id="max_wind_speed" onchange="checkBlankF(this)" min="0" max="100" value="{{ settings.max_wind_speed }}" /></td>
+                <td>Enter the wind speed at which to start blinking airports if speed is at or above. (Allowable range = 0 to 100).</td>
             </tr>
             <tr>
-                <td>
-                    <label for="wx_update_interval"><b>Update FAA Weather = </b></label>
-                </td>
-                <td>
-                    <input type="number" name="wx_update_interval" id="wx_update_interval" onchange="checkBlankF(this)"
-                        min="1" max="60" value="{{ settings.wx_update_interval }}" />
-                </td>
-                <td>Number of MINUTES between FAA updates - 15 minutes is a good compromise. (Allowable range = 1 to
-                    60)
-                </td>
+                <td><label for="wx_update_interval"><b>Poll for FAA Weather updates = </b></label></td>
+                <td><input type="number" name="wx_update_interval" id="wx_update_interval" onchange="checkBlankF(this)" min="1" max="60" value="{{ settings.wx_update_interval }}" /></td>
+                <td>Number of MINUTES between polls for FAA updates - 15 minutes is a good compromise. (Allowable range = 1 to 60)</td>
             </tr>
             <tr>
-                <td>
-                    <label for="metar_age"><b>Age of Metar = </b></label>
-                </td>
-                <td>
-                    <input type="number" name="metar_age" id="metar_age" onchange="checkBlankF(this)" min="0.5" max="6"
-                        step=".5" value="{{ settings.metar_age }}" />
-                </td>
-                <td>
-                    In HOURS, of the Metar data retrieved from the FAA - 2 to 3 hours is good. (Allowable range = .5
-                    to 6)
-                </td>
+		<!-- FIXME: Is this of any current use ? Would we use it to mark metar data as aged somehow ? -->
+                <td><label for="metar_age"><b>Age of Metar = </b></label></td>
+                <td><input type="number" name="metar_age" id="metar_age" onchange="checkBlankF(this)" min="0.5" max="6" step=".5" value="{{ settings.metar_age }}" /></td>
+                <td>In HOURS, of the Metar data retrieved from the FAA - 2 to 3 hours is good. (Allowable range = .5 to 6)</td>
             </tr>
             <tr>
-                <td>
-                    <b>Default Data to Display</b>
-                    <br />
+                <td><b>Default Data to Display</b><br />
                     <!--        <td>
                         <input type="radio" name="metar_taf_mos" id="mettafmoshmmet" value="1" {{ 'checked="checked"' if settings.metar_taf_mos=="1" else "" }}/>
                         <label for="mettafmoshmmet">METAR</label>
@@ -124,213 +86,108 @@
                 </td>
                 <td>
                     <select name="data_sw0" id="data_sw0">
-                        <option value="1" {{ "selected" if settings.data_sw0=="1" else "" }}>METAR
-                        </option>
-                        <option value="0" {{ "selected" if settings.data_sw0=="0" else "" }}>TAF
-                        </option>
-                        <option value="2" {{ "selected" if settings.data_sw0=="2" else "" }}>MOS
-                        </option>
-                        <option value="3" {{ "selected" if settings.data_sw0=="3" else "" }}>Heat Map
-                        </option>
+			<!-- FIXME: This needs to match up with the same value in the code -->
+                        <option value="1" {{ "selected" if settings.data_sw0=="1" else "" }}>METAR</option>
+                        <option value="0" {{ "selected" if settings.data_sw0=="0" else "" }}>TAF</option>
+                        <option value="2" {{ "selected" if settings.data_sw0=="2" else "" }}>MOS</option>
+                        <option value="3" {{ "selected" if settings.data_sw0=="3" else "" }}>Heat Map</option>
                     </select>
                 </td>
-                <td>
-                    Select the DEFAULT information to display: METARs, TAFs, MOS (US only) or Heat Map.
-                    THIS SETTING IS ALSO USED FOR ROTARY SWITCH POSITION 0 IN ROTARY SWITCH SETTINGS BELOW.
-                </td>
+                <td>Select the DEFAULT information to display: METARs, TAFs, MOS (US only) or Heat Map. THIS SETTING IS ALSO USED FOR ROTARY SWITCH POSITION 0 IN ROTARY SWITCH SETTINGS BELOW.</td>
             </tr>
             <tr>
-                <td>
-                    <label for="time_sw0"><b>Default Data Hours Ahead to Display:</b></label>
-                </td>
-                <td>
-                    <input type="number" name="time_sw0" id="time_sw0" onchange="checkBlankF(this)" min="1" max="24"
-                        value="{{ settings.time_sw0 }}" />
-                </td>
-                <td>
-                    Hours ahead in relation to current time of the TAF/MOS data to display. Range is 1 to 24.
-                    Ignored if METAR or Heat Map is chosen.
-                    THIS SETTING IS ALSO USED FOR ROTARY SWITCH POSITION 0 IN ROTARY SWITCH SETTINGS BELOW.
-                </td>
+                <td><label for="time_sw0"><b>Default Data Hours Ahead to Display:</b></label></td>
+                <td><input type="number" name="time_sw0" id="time_sw0" onchange="checkBlankF(this)" min="1" max="24" value="{{ settings.time_sw0 }}" /></td>
+                <td>Hours ahead in relation to current time of the TAF/MOS data to display. Range is 1 to 24. Ignored if METAR or Heat Map is chosen. THIS SETTING IS ALSO USED FOR ROTARY SWITCH POSITION 0 IN ROTARY SWITCH SETTINGS BELOW.</td>
             </tr>
             <tr>
-                <td>
-                    <b>Use On/Off Timer</b>
-                    <br />
-                </td>
-                <td>
-                    <input type="radio" name="usetimer" id="usetimeryes" value="1" {{ 'checked="checked"' if
-                        settings.usetimer else "" }} />
+                <td><b>Use On/Off Timer</b><br /></td>
+                <td><input type="radio" name="usetimer" id="usetimeryes" value="1" {{ 'checked="checked"' if settings.usetimer else "" }} />
                     <label for="usetimeryes">Yes</label>
-                    <input type="radio" name="usetimer" id="usetimerno" value="0" {{ 'checked="checked"' if not
-                        settings.usetimer else "" }} />
+                    <input type="radio" name="usetimer" id="usetimerno" value="0" {{ 'checked="checked"' if not settings.usetimer else "" }} />
                     <label for="usetimerno">No</label>
                 </td>
-                <td>
-                    Timer is available to turn off the map at night if desired. Enter 'Time Off' and 'Time On'
-                    values in settings below.
-                    Verify RPI's time is set correctly for your timezone. RPI time is listed in the header.
-                </td>
+                <td>Timer is available to turn off the map at night if desired. Enter 'Time Off' and 'Time On' values in settings below. Verify RPI's time is set correctly for your timezone. RPI time is listed in the header.</td>
             </tr>
             <tr>
+                <td><label for="timeoff"><b>Time Off</b></label></td>
                 <td>
-                    <label for="timeoff"><b>Time Off</b></label>
+                    <input type="text" name="offhour" id="timeoff" onchange="checkBlankF(this)" maxlength="2" size="2" value="{{ settings.offhour }}" /> :
+                    <input type="text" name="offminutes" id="timeoff" onchange="checkBlankF(this)" maxlength="2" size="2" value="{{ settings.offminutes }}" />
                 </td>
-                <td>
-                    <input type="text" name="offhour" id="timeoff" onchange="checkBlankF(this)" maxlength="2" size="2"
-                        value="{{ settings.offhour }}" /> :
-                    <input type="text" name="offminutes" id="timeoff" onchange="checkBlankF(this)" maxlength="2"
-                        size="2" value="{{ settings.offminutes }}" />
-                </td>
-                <td>Enter the desired time to turn map off in 24-hour format. i.e. '9 pm' would be entered
-                    '21:00'.
-                </td>
+                <td>Enter the desired time to turn map off in 24-hour format. i.e. '9 pm' would be entered '21:00'.</td>
             </tr>
             <tr>
+                <td><label for="timeon"><b>Time On</b></label></td>
                 <td>
-                    <label for="timeon"><b>Time On</b></label>
+                    <input type="text" name="onhour" id="timeon" onchange="checkBlankF(this)" maxlength="2" size="2" value="{{ settings.onhour }}" /> :
+                    <input type="text" name="onminutes" id="timeon" onchange="checkBlankF(this)" maxlength="2" size="2" value="{{ settings.onminutes }}" />
                 </td>
-                <td>
-                    <input type="text" name="onhour" id="timeon" onchange="checkBlankF(this)" maxlength="2" size="2"
-                        value="{{ settings.onhour }}" /> :
-                    <input type="text" name="onminutes" id="timeon" onchange="checkBlankF(this)" maxlength="2" size="2"
-                        value="{{ settings.onminutes }}" />
-                </td>
-                <td>Enter the desired time to turn map on in 24 hour format. i.e. '8:30 am' would be entered
-                    '8:30'.
-                </td>
+                <td>Enter the desired time to turn map on in 24 hour format. i.e. '8:30 am' would be entered '8:30'.</td>
             </tr>
             <tr>
-                <td>
-                    <label for="sleep_interrupt"><b>Sleep Interrupt Time</b></label>
-                </td>
-                <td>
-                    <input type="number" name="tempsleepon" id="sleep_interrupt" onchange="checkBlankF(this)" min="0"
-                        max="120" value="{{ settings.tempsleepon }}" />
-                </td>
-                <td>
-                    Length of time in minutes to temporarily turn on map during sleep mode when button is pushed.
-                    (Allowable range = 0 to 120 minutes).
-                </td>
+                <td><label for="sleep_interrupt"><b>Sleep Interrupt Time</b></label></td>
+                <td><input type="number" name="tempsleepon" id="sleep_interrupt" onchange="checkBlankF(this)" min="0" max="120" value="{{ settings.tempsleepon }}" /></td>
+                <td> Length of time in minutes to temporarily turn on map during sleep mode when button is pushed. (Allowable range = 0 to 120 minutes).</td>
             </tr>
             <tr>
+                <td><b>Display 'Sleeping' Message</b><br /></td>
                 <td>
-                    <b>Display 'Sleeping' Message</b>
-                    <br />
-                </td>
-                <td>
-                    <input type="radio" name="sleepmsg" id="sleepmsgyes" value="1" {{ 'checked="checked"' if
-                        settings.sleepmsg=="1" else "" }} />
+                    <input type="radio" name="sleepmsg" id="sleepmsgyes" value="1" {{ 'checked="checked"' if settings.sleepmsg=="1" else "" }} />
                     <label for="sleepmsgyes">Yes</label>
-                    <input type="radio" name="sleepmsg" id="sleepmsgno" value="0" {{ 'checked="checked"' if
-                        settings.sleepmsg=="0" else "" }} />
+                    <input type="radio" name="sleepmsg" id="sleepmsgno" value="0" {{ 'checked="checked"' if settings.sleepmsg=="0" else "" }} />
                     <label for="sleepmsgno">No</label>
                 </td>
                 <td>Display 'Sleeping' message on LCD/OLED display when map is in sleep mode.</td>
             </tr>
             <tr>
+                <td><b>Display Used</b><br /></td>
                 <td>
-                    <b>Display Used</b>
-                    <br />
-                </td>
-                <td>
-                    <input type="radio" name="displayused" id="displayusedyes" value="1" {{ 'checked="checked"' if
-                        settings.displayused=="1" else "" }} />
+                    <input type="radio" name="displayused" id="displayusedyes" value="1" {{ 'checked="checked"' if settings.displayused=="1" else "" }} />
                     <label for="displayusedyes">Yes</label>
-                    <input type="radio" name="displayused" id="displayusedno" value="0" {{ 'checked="checked"' if
-                        settings.displayused=="0" else "" }} />
+                    <input type="radio" name="displayused" id="displayusedno" value="0" {{ 'checked="checked"' if settings.displayused=="0" else "" }} />
                     <label for="displayusedno">No</label>
                 </td>
                 <td>If an LCD or OLED display will be used, select Yes.</td>
             </tr>
             <tr>
+                <td><b>OLED Displays Used</b><br /></td>
                 <td>
-                    <b>OLED Displays Used</b>
-                    <br />
-                </td>
-                <td>
-                    <input type="radio" name="oledused" id="oledusedyes" value="1" {{ 'checked="checked"' if
-                        settings.oledused=="1" else "" }} />
+                    <input type="radio" name="oledused" id="oledusedyes" value="1" {{ 'checked="checked"' if settings.oledused=="1" else "" }} />
                     <label for="oledusedyes">Yes</label>
-                    <input type="radio" name="oledused" id="oledusedno" value="0" {{ 'checked="checked"' if
-                        settings.oledused=="0" else "" }} />
-                    <label for="oledusedno">
-                        No
-                    </label>
+                    <input type="radio" name="oledused" id="oledusedno" value="0" {{ 'checked="checked"' if settings.oledused=="0" else "" }} />
+                    <label for="oledusedno">No</label>
                 </td>
-                <td>
-                    If an OLED display will be used, select Yes. This is used to shutoff the OLED display on
-                    reboot/Power off.
-                </td>
+                <td>If an OLED display will be used, select Yes. This is used to shutoff the OLED display on reboot/Power off.</td>
             </tr>
             <tr>
+                <td><b>LCD Display Used</b><br /></td>
                 <td>
-                    <b>LCD Display Used</b>
-                    <br />
+                    <input type="radio" name="lcddisplay" id="lcddisplayyes" value="1" {{ 'checked="checked"' if settings.lcddisplay=="1" else "" }} />
+                    <label for="lcddisplayyes">Yes</label>
+                    <input type="radio" name="lcddisplay" id="lcddisplayno" value="0" {{ 'checked="checked"' if settings.lcddisplay=="0" else "" }} />
+                    <label for="lcddisplayno">No</label>
                 </td>
-                <td>
-                    <input type="radio" name="lcddisplay" id="lcddisplayyes" value="1" {{ 'checked="checked"' if
-                        settings.lcddisplay=="1" else "" }} />
-                    <label for="lcddisplayyes">
-                        Yes
-                    </label>
-                    <input type="radio" name="lcddisplay" id="lcddisplayno" value="0" {{ 'checked="checked"' if
-                        settings.lcddisplay=="0" else "" }} />
-                    <label for="lcddisplayno">
-                        No
-                    </label>
-                </td>
-                <td>
-                    If an LCD will be used, select Yes. This is used to shutoff the LCD display on reboot/Power
-                    off.
-                </td>
+                <td>If an LCD will be used, select Yes. This is used to shutoff the LCD display on reboot/Power off.</td>
             </tr>
             <tr>
-                <td>
-                    <label for="numofdisplays"><b>Number of OLED Displays =</b></label>
-                </td>
-                <td>
-                    <input type="number" name="numofdisplays" id="numofdisplays" onchange="checkBlankF(this)" min="0"
-                        max="8" value="{{ settings.numofdisplays }}" />
-                </td>
-                <td>
-                    Enter the number of OLEDs to be used. If 'Display Used' above is 'No', this is ignored.
-                    (Allowable
-                    range = 0 to 8)
-                </td>
+                <td><label for="numofdisplays"><b>Number of OLED Displays =</b></label></td>
+                <td><input type="number" name="numofdisplays" id="numofdisplays" onchange="checkBlankF(this)" min="0"max="8" value="{{ settings.numofdisplays }}" /></td>
+                <td>Enter the number of OLEDs to be used. If 'Display Used' above is 'No', this is ignored. (Allowable range = 0 to 8)</td>
             </tr>
             <tr>
+                <td><b>Logging Level</b><br /></td>
                 <td>
-                    <b>Logging Level</b>
-                    <br />
+                    <input type="radio" name="loglevel" id="loglevel_debug" value="0" {{ 'checked="checked"' if settings.loglevel=="0" else "" }} />
+                    <label for="loglevel_debug">Debug</label>
+                    <input type="radio" name="loglevel" id="loglevel_info" value="1" {{ 'checked="checked"' if settings.loglevel=="1" else "" }} />
+                    <label for="loglevel_info">Info</label>
+                    <input type="radio" name="loglevel" id="loglevel_warning" value="2" {{ 'checked="checked"' if settings.loglevel=="2" else "" }} />
+                    <label for="loglevel_warning">Warn</label>
+                    <input type="radio" name="loglevel" id="loglevel_error" value="3" {{ 'checked="checked"' if settings.loglevel=="3" else "" }} />
+                    <label for="loglevel_error">Error</label>
                 </td>
-                <td>
-                    <input type="radio" name="loglevel" id="loglevel_debug" value="0" {{ 'checked="checked"' if
-                        settings.loglevel=="0" else "" }} />
-                    <label for="loglevel_debug">
-                        Debug
-                    </label>
-                    <input type="radio" name="loglevel" id="loglevel_info" value="1" {{ 'checked="checked"' if
-                        settings.loglevel=="1" else "" }} />
-                    <label for="loglevel_info">
-                        Info
-                    </label>
-                    <input type="radio" name="loglevel" id="loglevel_warning" value="2" {{ 'checked="checked"' if
-                        settings.loglevel=="2" else "" }} />
-                    <label for="loglevel_warning">
-                        Warn
-                    </label>
-                    <input type="radio" name="loglevel" id="loglevel_error" value="3" {{ 'checked="checked"' if
-                        settings.loglevel=="3" else "" }} />
-                    <label for="loglevel_error">
-                        Error
-                    </label>
-                </td>
-                <td>
-                    Choose the level of detail to save to the logfile. Typically, <b>Info</b> is sufficient.
-                    <b>Debug</b> will net more info logged.
-                    <b>Warning</b> will net much fewer messages and <b>Error</b> will only log caught errors.
-                </td>
+                <td>Choose the level of detail to save to the logfile. Typically, <b>Info</b> is sufficient. <b>Debug</b> will net more info logged. <b>Warning</b> will net much fewer messages and <b>Error</b> will only log caught errors.  </td>
             </tr>
         </table>
     </div>

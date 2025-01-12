@@ -440,7 +440,9 @@ class WebViews:
                 )
                 continue
             debugging.debug(f"LED MAP: Rendering {icao}")
-            loc_color = utils_colors.flightcategory_color(self._app_conf, airport_obj.flightcategory())
+            loc_color = utils_colors.flightcategory_color(
+                self._app_conf, airport_obj.flightcategory()
+            )
 
             # FIXME - Move URL to config file
             # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
@@ -574,7 +576,9 @@ class WebViews:
                     f"LED MAP: Skipping rendering {icao} invalid coordinates"
                 )
                 continue
-            loc_color = utils_colors.flightcategory_color(self._app_conf, airport_obj.flightcategory())
+            loc_color = utils_colors.flightcategory_color(
+                self._app_conf, airport_obj.flightcategory()
+            )
 
             # Get pin to display in popup
             heatmap_scale = airport_obj.heatmap_index()
@@ -612,7 +616,7 @@ class WebViews:
         # No polyline on HeatMap
         # folium.PolyLine(points, color="grey", weight=2.5, opacity=1, dash_array="10").add_to(folium_map)
 
-        title_icon=DivIcon(
+        title_icon = DivIcon(
             icon_size=(500, 36),
             icon_anchor=(150, 64),
             html='<div style="font-size: 24pt"><b>LiveSectional HeatMap Layout</b></div>',
@@ -728,7 +732,6 @@ class WebViews:
 
         return json.dumps(wx_data)
 
-
     def airport_datadump(self, airport_obj):
         """Generate dict of useful airport data."""
         dbdump = {
@@ -766,7 +769,6 @@ class WebViews:
         dbdump["best_runway"] = airport_obj.best_runway()
         dbdump["runway_dataset"] = airport_obj.runway_data()
         return dbdump
-
 
     def getairport(self, airport):
         """Flask Route: /airport - Get WX JSON for Airport - primarily for debugging the details of the what's in the Airport"""

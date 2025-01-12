@@ -8,6 +8,7 @@ Created on Oct 28 - 2021.
 import re
 import configparser
 import utils
+import utils_colors
 
 # This configuration parser provides access to the key/value data stored in
 # the config.ini file. It currently uses configparser as the backend for managing ini files.
@@ -19,8 +20,9 @@ import utils
 #
 # What would be really useful ;
 #   - a config file format that supports persistance of comments across load - parse - save cycles.
-#   - a config file format that allows file imports
-#
+#   - a config file format that allows importing other config files, as this would allow separation of
+#       the configuration data into system / hardware config and separate user / color config
+
 # There are snippets of the configuration that are site hardware implementation specific, and
 # snippets of the configuration that are 'end user' airport / settings specific. It would be useful
 # to be able to swap out / reset the 'end user' pieces of the configuration without losing the
@@ -30,12 +32,17 @@ import utils
 class Conf:
     """Configuration Class."""
 
+    cache = {}
+    config_filename = None
+    configfile = None
+
     def __init__(self):
         """Initialize and load configuration."""
         self.config_filename = "config.ini"
         self.configfile = configparser.ConfigParser()
         self.configfile._interpolation = configparser.ExtendedInterpolation()
         self.configfile.read(self.config_filename)
+        self.update_confcache()
 
     def get(self, section, key) -> str:
         """Read Setting."""
@@ -92,6 +99,37 @@ class Conf:
         cfgfile = open(self.config_filename, "w", encoding="utf8")
         self.configfile.write(cfgfile)
         cfgfile.close()
+
+    def update_confcache(self):
+        """Update class local variables to cache conf data."""
+        # This is a performance improvement cache of conf data
+        # TODO: Move in the rest of the data that gets accessed regularly
+        # Would be useful to have usage stats for the conf data to prioritize new additions
+        self.cache["color_vfr"] = utils_colors.cat_vfr(self)
+        self.cache["color_mvfr"] = utils_colors.cat_mvfr(self)
+        self.cache["color_ifr"] = utils_colors.cat_ifr(self)
+        self.cache["color_lifr"] = utils_colors.cat_lifr(self)
+        self.cache["color_nowx"] = utils_colors.wx_noweather(self)
+        self.cache["lights_highwindblink"] = self.get_bool(
+            "activelights", "high_wind_blink"
+        )
+        self.cache["metar_maxwindspeed"] = self.get_int(
+            "activelights", "high_wind_limit"
+        )
+        self.cache["lights_lghtnflash"] = self.get_bool("lights", "lghtnflash")
+        self.cache["lights_snowshow"] = self.get_bool("lights", "snowshow")
+        self.cache["lights_rainshow"] = self.get_bool("lights", "rainshow")
+        self.cache["lights_frrainshow"] = self.get_bool("lights", "frrainshow")
+        self.cache["lights_dustsandashshow"] = self.get_bool(
+            "lights", "dustsandashshow"
+        )
+        self.cache["lights_fogshow"] = self.get_bool("lights", "fogshow")
+        self.cache["lights_homeportpin"] = self.get_int("lights", "homeport_pin")
+        self.cache["lights_homeport"] = self.get_int("lights", "homeport")
+        self.cache["lights_homeport_display"] = self.get_int(
+            "lights", "homeport_display"
+        )
+        self.cache["rev_rgb_grb"] = self.get_string("lights", "rev_rgb_grb")
 
     def gen_settings_dict(self) -> dict:
         """Generate settings template to pass to flask."""

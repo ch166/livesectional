@@ -86,67 +86,67 @@ def rgb_color(value):
 
 def cat_vfr(confdata):
     """Get VFR Color code from config."""
-    return confdata.color("colors", "color_vfr")
+    return confdata.color("color_vfr")
 
 
 def cat_mvfr(confdata):
     """Get MVFR Color code from config."""
-    return confdata.color("colors", "color_mvfr")
+    return confdata.color("color_mvfr")
 
 
 def cat_ifr(confdata):
     """Get IFR Color code from config."""
-    return confdata.color("colors", "color_ifr")
+    return confdata.color("color_ifr")
 
 
 def cat_lifr(confdata):
     """Get LIFR Color code from config."""
-    return confdata.color("colors", "color_lifr")
+    return confdata.color("color_lifr")
 
 
 def wx_lightning(confdata):
     """Get Lightning Color code from config."""
-    return confdata.color("colors", "color_lghtn")
+    return confdata.color("color_lghtn")
 
 
 def wx_snow(confdata, value):
     """Get SNOW Color code from config."""
     if value == 1:
-        return confdata.color("colors", "color_snow1")
-    return confdata.color("colors", "color_snow2")
+        return confdata.color("color_snow1")
+    return confdata.color("color_snow2")
 
 
 def wx_frzrain(confdata, value):
     """Get Freezing Rain Color code from config."""
     if value == 1:
-        return confdata.color("colors", "color_frrain1")
-    return confdata.color("colors", "color_frrain2")
+        return confdata.color("color_frrain1")
+    return confdata.color("color_frrain2")
 
 
 def wx_dust_sand_ash(confdata, value):
     """Get Dust Sand Ash Color (1) code from config."""
     if value == 1:
-        return confdata.color("colors", "color_dustsandash1")
-    return confdata.color("colors", "color_dustsandash2")
+        return confdata.color("color_dustsandash1")
+    return confdata.color("color_dustsandash2")
 
 
 def wx_fog(confdata, value):
     """Get FOG Color code from config."""
     if value == 1:
-        return confdata.color("colors", "color_fog1")
-    return confdata.color("colors", "color_fog2")
+        return confdata.color("color_fog1")
+    return confdata.color("color_fog2")
 
 
 def wx_rain(confdata, value):
     """Get RAIN Color code from config."""
     if value == 1:
-        return confdata.color("colors", "color_rain1")
-    return confdata.color("colors", "color_rain2")
+        return confdata.color("color_rain1")
+    return confdata.color("color_rain2")
 
 
 def wx_noweather(confdata):
     """Get NOWX Color code from config."""
-    return confdata.color("colors", "color_nowx")
+    return confdata.color("color_nowx")
 
 
 # Generate random RGB color
@@ -160,6 +160,7 @@ def randomcolor():
 
 def flightcategory_color(confdata, flightcategory):
     """Convert Flight Category to color"""
+    flightcategory = flightcategory.upper()
     if flightcategory == "VFR":
         loc_color = confdata.cache["color_vfr"]
     elif flightcategory == "MVFR":

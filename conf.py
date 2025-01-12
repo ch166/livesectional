@@ -48,9 +48,9 @@ class Conf:
         """Read Setting."""
         return self.configfile.get(section, key)
 
-    def color(self, section, key) -> str:
+    def color(self, key) -> str:
         """Pull out color value in hex."""
-        return self.configfile.get(section, key)
+        return self.configfile.get("colors", key)
 
     def get_color_decimal(self, section, key) -> tuple:
         """Read three tuple string, Return as tuple of integers."""

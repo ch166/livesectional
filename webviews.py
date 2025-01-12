@@ -447,9 +447,9 @@ class WebViews:
             # FIXME - Move URL to config file
             # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao} target="_blank">'
-            popup = f"""{pop_url}{icao}</a><br>[{airport_obj.latitude()},{airport_obj.longitude()}]
+            popup = f"""{pop_url}{icao}</a><br>[Lat:{airport_obj.latitude()},Lon:{airport_obj.longitude()}]
 <br>LED=&nbsp;{airport_obj.get_led_index()}
-<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}/{loc_color}</font></b>"""
+<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}</font></b>"""
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -1148,82 +1148,48 @@ class WebViews:
         template_data["title"] = "Settings Editor"
 
         # FIXME: Needs a better way
-        template_data["color_vfr_hex"] = self._app_conf.color("colors", "color_vfr")
-        template_data["color_mvfr_hex"] = self._app_conf.color("colors", "color_mvfr")
-        template_data["color_ifr_hex"] = self._app_conf.color("colors", "color_ifr")
-        template_data["color_lifr_hex"] = self._app_conf.color("colors", "color_lifr")
-        template_data["color_nowx_hex"] = self._app_conf.color("colors", "color_nowx")
-        template_data["color_black_hex"] = self._app_conf.color("colors", "color_black")
-        template_data["color_lghtn_hex"] = self._app_conf.color("colors", "color_lghtn")
-        template_data["color_snow1_hex"] = self._app_conf.color("colors", "color_snow1")
-        template_data["color_snow2_hex"] = self._app_conf.color("colors", "color_snow2")
-        template_data["color_rain1_hex"] = self._app_conf.color("colors", "color_rain1")
-        template_data["color_rain2_hex"] = self._app_conf.color("colors", "color_rain2")
-        template_data["color_frrain1_hex"] = self._app_conf.color(
-            "colors", "color_frrain1"
-        )
-        template_data["color_frrain2_hex"] = self._app_conf.color(
-            "colors", "color_frrain2"
-        )
+        template_data["color_vfr_hex"] = self._app_conf.color("color_vfr")
+        template_data["color_mvfr_hex"] = self._app_conf.color("color_mvfr")
+        template_data["color_ifr_hex"] = self._app_conf.color("color_ifr")
+        template_data["color_lifr_hex"] = self._app_conf.color("color_lifr")
+        template_data["color_nowx_hex"] = self._app_conf.color("color_nowx")
+        template_data["color_black_hex"] = self._app_conf.color("color_black")
+        template_data["color_lghtn_hex"] = self._app_conf.color("color_lghtn")
+        template_data["color_snow1_hex"] = self._app_conf.color("color_snow1")
+        template_data["color_snow2_hex"] = self._app_conf.color("color_snow2")
+        template_data["color_rain1_hex"] = self._app_conf.color("color_rain1")
+        template_data["color_rain2_hex"] = self._app_conf.color("color_rain2")
+        template_data["color_frrain1_hex"] = self._app_conf.color("color_frrain1")
+        template_data["color_frrain2_hex"] = self._app_conf.color("color_frrain2")
         template_data["color_dustsandash1_hex"] = self._app_conf.color(
-            "colors", "color_dustsandash1"
+            "color_dustsandash1"
         )
         template_data["color_dustsandash2_hex"] = self._app_conf.color(
-            "colors", "color_dustsandash2"
+            "color_dustsandash2"
         )
-        template_data["color_fog1_hex"] = self._app_conf.color("colors", "color_fog1")
-        template_data["color_fog2_hex"] = self._app_conf.color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self._app_conf.color(
-            "colors", "color_homeport"
-        )
+        template_data["color_fog1_hex"] = self._app_conf.color("color_fog1")
+        template_data["color_fog2_hex"] = self._app_conf.color("color_fog2")
+        template_data["color_homeport_hex"] = self._app_conf.color("color_homeport")
 
-        template_data["fade_color1_hex"] = self._app_conf.color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self._app_conf.color(
-            "colors", "allsame_color1"
-        )
-        template_data["allsame_color2_hex"] = self._app_conf.color(
-            "colors", "allsame_color2"
-        )
-        template_data["shuffle_color1_hex"] = self._app_conf.color(
-            "colors", "shuffle_color1"
-        )
-        template_data["shuffle_color2_hex"] = self._app_conf.color(
-            "colors", "shuffle_color2"
-        )
-        template_data["radar_color1_hex"] = self._app_conf.color(
-            "colors", "radar_color1"
-        )
-        template_data["radar_color2_hex"] = self._app_conf.color(
-            "colors", "radar_color2"
-        )
-        template_data["circle_color1_hex"] = self._app_conf.color(
-            "colors", "circle_color1"
-        )
-        template_data["circle_color2_hex"] = self._app_conf.color(
-            "colors", "circle_color2"
-        )
-        template_data["square_color1_hex"] = self._app_conf.color(
-            "colors", "square_color1"
-        )
-        template_data["square_color2_hex"] = self._app_conf.color(
-            "colors", "square_color2"
-        )
-        template_data["updn_color1_hex"] = self._app_conf.color("colors", "updn_color1")
-        template_data["updn_color2_hex"] = self._app_conf.color("colors", "updn_color2")
-        # template_data["morse_color1_hex"] = self._app_conf.color( "colors", "morse_color1")
-        # template_data["morse_color2_hex"] = self._app_conf.color( "colors", "morse_color2")
-        template_data["rabbit_color1_hex"] = self._app_conf.color(
-            "colors", "rabbit_color1"
-        )
-        template_data["rabbit_color2_hex"] = self._app_conf.color(
-            "colors", "rabbit_color2"
-        )
-        template_data["checker_color1_hex"] = self._app_conf.color(
-            "colors", "checker_color1"
-        )
-        template_data["checker_color2_hex"] = self._app_conf.color(
-            "colors", "checker_color2"
-        )
+        template_data["fade_color1_hex"] = self._app_conf.color("fade_color1")
+        template_data["allsame_color1_hex"] = self._app_conf.color("allsame_color1")
+        template_data["allsame_color2_hex"] = self._app_conf.color("allsame_color2")
+        template_data["shuffle_color1_hex"] = self._app_conf.color("shuffle_color1")
+        template_data["shuffle_color2_hex"] = self._app_conf.color("shuffle_color2")
+        template_data["radar_color1_hex"] = self._app_conf.color("radar_color1")
+        template_data["radar_color2_hex"] = self._app_conf.color("radar_color2")
+        template_data["circle_color1_hex"] = self._app_conf.color("circle_color1")
+        template_data["circle_color2_hex"] = self._app_conf.color("circle_color2")
+        template_data["square_color1_hex"] = self._app_conf.color("square_color1")
+        template_data["square_color2_hex"] = self._app_conf.color("square_color2")
+        template_data["updn_color1_hex"] = self._app_conf.color("updn_color1")
+        template_data["updn_color2_hex"] = self._app_conf.color("updn_color2")
+        # template_data["morse_color1_hex"] = self._app_conf.color( "morse_color1")
+        # template_data["morse_color2_hex"] = self._app_conf.color( "morse_color2")
+        template_data["rabbit_color1_hex"] = self._app_conf.color("rabbit_color1")
+        template_data["rabbit_color2_hex"] = self._app_conf.color("rabbit_color2")
+        template_data["checker_color1_hex"] = self._app_conf.color("checker_color1")
+        template_data["checker_color2_hex"] = self._app_conf.color("checker_color2")
         return render_template("confedit.html", **template_data)
 
     # @app.route("/cfpost", methods=["GET", "POST"])
@@ -1275,82 +1241,48 @@ class WebViews:
         # Pass data to html document
         template_data = self.standardtemplate_data()
         template_data["title"] = "Mobile Settings Editor"
-        template_data["color_vfr_hex"] = self._app_conf.color("colors", "color_vfr")
-        template_data["color_mvfr_hex"] = self._app_conf.color("colors", "color_mvfr")
-        template_data["color_ifr_hex"] = self._app_conf.color("colors", "color_ifr")
-        template_data["color_lifr_hex"] = self._app_conf.color("colors", "color_lifr")
-        template_data["color_nowx_hex"] = self._app_conf.color("colors", "color_nowx")
-        template_data["color_black_hex"] = self._app_conf.color("colors", "color_black")
-        template_data["color_lghtn_hex"] = self._app_conf.color("colors", "color_lghtn")
-        template_data["color_snow1_hex"] = self._app_conf.color("colors", "color_snow1")
-        template_data["color_snow2_hex"] = self._app_conf.color("colors", "color_snow2")
-        template_data["color_rain1_hex"] = self._app_conf.color("colors", "color_rain1")
-        template_data["color_rain2_hex"] = self._app_conf.color("colors", "color_rain2")
-        template_data["color_frrain1_hex"] = self._app_conf.color(
-            "colors", "color_frrain1"
-        )
-        template_data["color_frrain2_hex"] = self._app_conf.color(
-            "colors", "color_frrain2"
-        )
+        template_data["color_vfr_hex"] = self._app_conf.color("color_vfr")
+        template_data["color_mvfr_hex"] = self._app_conf.color("color_mvfr")
+        template_data["color_ifr_hex"] = self._app_conf.color("color_ifr")
+        template_data["color_lifr_hex"] = self._app_conf.color("color_lifr")
+        template_data["color_nowx_hex"] = self._app_conf.color("color_nowx")
+        template_data["color_black_hex"] = self._app_conf.color("color_black")
+        template_data["color_lghtn_hex"] = self._app_conf.color("color_lghtn")
+        template_data["color_snow1_hex"] = self._app_conf.color("color_snow1")
+        template_data["color_snow2_hex"] = self._app_conf.color("color_snow2")
+        template_data["color_rain1_hex"] = self._app_conf.color("color_rain1")
+        template_data["color_rain2_hex"] = self._app_conf.color("color_rain2")
+        template_data["color_frrain1_hex"] = self._app_conf.color("color_frrain1")
+        template_data["color_frrain2_hex"] = self._app_conf.color("color_frrain2")
         template_data["color_dustsandash1_hex"] = self._app_conf.color(
-            "colors", "color_dustsandash1"
+            "color_dustsandash1"
         )
         template_data["color_dustsandash2_hex"] = self._app_conf.color(
-            "colors", "color_dustsandash2"
+            "color_dustsandash2"
         )
-        template_data["color_fog1_hex"] = self._app_conf.color("colors", "color_fog1")
-        template_data["color_fog2_hex"] = self._app_conf.color("colors", "color_fog2")
-        template_data["color_homeport_hex"] = self._app_conf.color(
-            "colors", "color_homeport"
-        )
+        template_data["color_fog1_hex"] = self._app_conf.color("color_fog1")
+        template_data["color_fog2_hex"] = self._app_conf.color("color_fog2")
+        template_data["color_homeport_hex"] = self._app_conf.color("color_homeport")
 
-        template_data["fade_color1_hex"] = self._app_conf.color("colors", "fade_color1")
-        template_data["allsame_color1_hex"] = self._app_conf.color(
-            "colors", "allsame_color1"
-        )
-        template_data["allsame_color2_hex"] = self._app_conf.color(
-            "colors", "allsame_color2"
-        )
-        template_data["shuffle_color1_hex"] = self._app_conf.color(
-            "colors", "shuffle_color1"
-        )
-        template_data["shuffle_color2_hex"] = self._app_conf.color(
-            "colors", "shuffle_color2"
-        )
-        template_data["radar_color1_hex"] = self._app_conf.color(
-            "colors", "radar_color1"
-        )
-        template_data["radar_color2_hex"] = self._app_conf.color(
-            "colors", "radar_color2"
-        )
-        template_data["circle_color1_hex"] = self._app_conf.color(
-            "colors", "circle_color1"
-        )
-        template_data["circle_color2_hex"] = self._app_conf.color(
-            "colors", "circle_color2"
-        )
-        template_data["square_color1_hex"] = self._app_conf.color(
-            "colors", "square_color1"
-        )
-        template_data["square_color2_hex"] = self._app_conf.color(
-            "colors", "square_color2"
-        )
-        template_data["updn_color1_hex"] = self._app_conf.color("colors", "updn_color1")
-        template_data["updn_color2_hex"] = self._app_conf.color("colors", "updn_color2")
-        # template_data["morse_color1_hex"] = self._app_conf.color( "colors", "morse_color1")
-        # template_data["morse_color2_hex"] = self._app_conf.color( "colors", "morse_color2")
-        template_data["rabbit_color1_hex"] = self._app_conf.color(
-            "colors", "rabbit_color1"
-        )
-        template_data["rabbit_color2_hex"] = self._app_conf.color(
-            "colors", "rabbit_color2"
-        )
-        template_data["checker_color1_hex"] = self._app_conf.color(
-            "colors", "checker_color1"
-        )
-        template_data["checker_color2_hex"] = self._app_conf.color(
-            "colors", "checker_color2"
-        )
+        template_data["fade_color1_hex"] = self._app_conf.color("fade_color1")
+        template_data["allsame_color1_hex"] = self._app_conf.color("allsame_color1")
+        template_data["allsame_color2_hex"] = self._app_conf.color("allsame_color2")
+        template_data["shuffle_color1_hex"] = self._app_conf.color("shuffle_color1")
+        template_data["shuffle_color2_hex"] = self._app_conf.color("shuffle_color2")
+        template_data["radar_color1_hex"] = self._app_conf.color("radar_color1")
+        template_data["radar_color2_hex"] = self._app_conf.color("radar_color2")
+        template_data["circle_color1_hex"] = self._app_conf.color("circle_color1")
+        template_data["circle_color2_hex"] = self._app_conf.color("circle_color2")
+        template_data["square_color1_hex"] = self._app_conf.color("square_color1")
+        template_data["square_color2_hex"] = self._app_conf.color("square_color2")
+        template_data["updn_color1_hex"] = self._app_conf.color("updn_color1")
+        template_data["updn_color2_hex"] = self._app_conf.color("updn_color2")
+        # template_data["morse_color1_hex"] = self._app_conf.color( "morse_color1")
+        # template_data["morse_color2_hex"] = self._app_conf.color( "morse_color2")
+        template_data["rabbit_color1_hex"] = self._app_conf.color("rabbit_color1")
+        template_data["rabbit_color2_hex"] = self._app_conf.color("rabbit_color2")
+        template_data["checker_color1_hex"] = self._app_conf.color("checker_color1")
+        template_data["checker_color2_hex"] = self._app_conf.color("checker_color2")
         return render_template("lsremote.html", **template_data)
 
     # FIXME: Integrate into Class

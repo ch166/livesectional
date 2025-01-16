@@ -32,16 +32,6 @@
 
 # Import needed libraries
 import time
-from datetime import datetime
-from datetime import timedelta
-from datetime import time as time_
-
-# try:
-#     import RPi.GPIO as GPIO
-# except ImportError:
-#     import fakeRPI.GPIO as GPIO
-
-# Migrating to gpiozero
 import gpiozero
 
 import debugging
@@ -75,6 +65,9 @@ class UpdateGPIO:
     feature5 = None
 
     switch_positions = None
+
+    hour_to_display = 0
+    metar_taf_mos = 0
 
     def __init__(self, conf, airport_database):
         """Init."""
@@ -218,40 +211,6 @@ class UpdateGPIO:
             self.oled_count = 6
         elif oled_flags == 3:
             self.oled_count = 8
-
-    def old_original__init__(self, conf, airport_database):
-        """Deleting this."""
-        # ****************************************************************************
-        # * User defined items to be set below - Make changes to config.py, not here *
-        # ****************************************************************************
-
-        # Specific Variables to default data to display if Rotary Switch is not installed.
-        # hour_to_display # Offset in HOURS to choose which TAF/MOS to display
-        self.hour_to_display = self._app_conf.get_int("rotaryswitch", "time_sw0")
-        # metar_taf_mos
-        # 0 = Display TAF,
-        # 1 = Display METAR,
-        # 2 = Display MOS,
-        # 3 = Heat Map (Heat map not controlled by rotary switch)
-        self.metar_taf_mos = self._app_conf.get_int("rotaryswitch", "data_sw0")
-        # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
-        self.toggle_sw = -1
-        self.onhour = self._app_conf.get_int("schedule", "onhour")
-        self.offhour = self._app_conf.get_int("schedule", "offhour")
-        self.onminutes = self._app_conf.get_int("schedule", "onminutes")
-        self.offminutes = self._app_conf.get_int("schedule", "offminutes")
-
-        # Timer calculations
-        self.lights_out = time_(
-            self._app_conf.get_int("schedule", "offhour"),
-            self._app_conf.get_int("schedule", "offminutes"),
-            0,
-        )
-        self.timeoff = self.lights_out
-        self.lights_on = time_(self.onhour, self.onminutes, 0)
-        self.end_time = self.lights_on
-        # Set flag for next round if sleep timer is interrupted by button push.
-        self.temp_lights_on = 0
 
     def update_gpio_flags(self, time_sw, data_sw):
         """Offset in HRS to select appropriate TAF."""

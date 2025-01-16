@@ -52,6 +52,7 @@ class WebViews:
     airports = []  # type: list[object]
     update_vers = None
     machines = []  # type: list[str]
+    _zeroconf = None
     update_available = None
     led_map_dict = {}  # type: dict
     _ledmodelist = [
@@ -73,11 +74,12 @@ class WebViews:
         "MOS 4",
     ]
 
-    def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt):
+    def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt, zeroconf):
         self._app_conf = config
         self._sysdata = sysdata
         self._airport_database = airport_database
         self._appinfo = appinfo
+        self._zeroconf = zeroconf
         self.app = Flask(__name__)
         # self.app.jinja_env.auto_reload = True
         # This needs to happen really early in the process to take effect
@@ -192,6 +194,8 @@ class WebViews:
         """Generate a standardized template_data."""
         # For performance reasons we should do the minimum of data generation now
         # This gets executed for every page load
+        if self._zeroconf is not None:
+            self.machines = self._zeroconf.get_neighbors()
         airport_dict_data = {}
         for (
             airport_icao,
@@ -309,7 +313,7 @@ class WebViews:
 
             flash(f"LED Mode set to {newledmode}")
             debugging.info(f"LEDMode set to {newledmode}")
-            return redirect("ledmodeset")
+        return redirect("ledmodeset")
 
         current_ledmode = self._led_strip.ledmode()
 
@@ -751,7 +755,6 @@ class WebViews:
         }
         dbdump["metar"] = airport_obj.raw_metar()
         dbdump["airport"] = airport_obj.icao_code()
-        dbdump["metar"] = airport_obj.raw_metar()
         dbdump["flightcategory"] = airport_obj.flightcategory()
         dbdump["latitude"] = airport_obj.latitude()
         dbdump["longitude"] = airport_obj.longitude()
@@ -1128,7 +1131,7 @@ class WebViews:
         if "airports" in new_airports:
             self._airport_database.airport_dict_from_json(new_airports)
         else:
-            debugging.info(f"Airports File: no airports key")
+            debugging.info("Airports File: no airports key")
         # TODO: create a template for an import error page, and present that instead.
 
         template_data = self.standardtemplate_data()

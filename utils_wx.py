@@ -37,6 +37,7 @@ def get_usa_metar(airport_data):
     # There is an opportunity to use it as a fallback path for METAR data missing from the
     # full XML data.
     #
+    transient_err = "Transient Error"
     timenow = datetime.now()
     if not airport_data.enabled:
         return True
@@ -71,8 +72,6 @@ def get_usa_metar(airport_data):
     except urllib.error.HTTPError:
         debugging.debug(f"HTTPError retrieving {airport_data.icao} data")
     except urllib.error.URLError:
-        # import traceback
-        # debugging.debug(traceback.format_exc())
         debugging.debug(f"URLError retrieving {airport_data.icao} data")
         if urlh:
             if urlh.getcode() == 404:
@@ -82,35 +81,31 @@ def get_usa_metar(airport_data):
                 airport_data.enabled = False
                 return True
             else:
-                # airport_data.metar_date = timenow
                 airport_data.metar_prev = airport_data.metar
-                airport_data.metar = "Transient Error"
+                airport_data.metar = transient_err
                 return True
         else:
             debugging.debug("URLError: urlh not set")
-            # airport_data.metar_date = timenow
             airport_data.metar_prev = airport_data.metar
-            airport_data.metar = "Transient Error"
+            airport_data.metar = transient_err
             return True
     except (socket.error, socket.gaierror):
         debugging.debug("Socket Error retrieving " + airport_data.icao)
-        # airport_data.metar_date = timenow
         airport_data.metar_prev = airport_data.metar
-        airport_data.metar = "Transient Error"
+        airport_data.metar = transient_err
         return True
     return False
 
 
 def cloud_height(wx_metar):
     """Calculate Height to Broken Layer. wx_metar - METAR String."""
-    # debugging.debug(wx_data.observation.sky)
     wx_data = Metar.Metar(wx_metar)
     lowest_ceiling = 100000
     for cloudlayer in wx_data.sky:
         key = cloudlayer[0]
         if key == "VV":
             debugging.debug("Metar: VV Found")
-            # Vertical Visibilty Code
+            # Vertical visibilty code
         if key in ("CLR", "SKC", "NSC", "NCD"):
             # python metar codes for clear skies.
             return lowest_ceiling
@@ -165,7 +160,7 @@ def update_wx(airport_data, metar_xml_dict):
             return
         airport_data.flight_category = "UNKN"
         airport_data.set_wx_category(airport_data.flight_category)
-    return
+    return freshness
 
 
 def calculate_wx_from_metar(airport_data):

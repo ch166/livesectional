@@ -215,7 +215,6 @@ class Airport:
             self._latitude = lat
             self._longitude = lon
             self._coordinates = True
-        return
 
     def icao_code(self) -> str:
         """Airport ICAO (4 letter) code."""
@@ -549,7 +548,6 @@ class Airport:
 
         if found_latitude and found_longitude:
             self.update_coordinates(adds_longitude, adds_latitude)
-        return
 
     def update_wx(self, airport_master_dict):
         """Update Weather Data - Get fresh METAR."""

@@ -450,7 +450,7 @@ class UpdateLEDs:
     def set_led_color(self, led_id, hexcolor):
         """Convert color from HEX to RGB or GRB and apply to LED String."""
         if isinstance(led_id, str):
-            debugging.info(f"led_id : Unexpected {led_id} as str")
+            debugging.debug(f"led_id : Unexpected {led_id} as str")
             return
         # Input should be a HEX color; and then we should convert to the appropriate signaling
         # for the individual LED - this should allow us to support LEDs that use RGB as well as GRB color signaling

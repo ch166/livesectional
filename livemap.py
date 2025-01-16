@@ -34,6 +34,7 @@ import update_leds
 import update_gpio
 import update_oled
 import update_lightsensor
+import update_zeroconf
 import appinfo
 import webviews
 
@@ -81,8 +82,14 @@ if __name__ == "__main__":
         app_conf, sysdata, airport_database, i2cbus, LEDmgmt
     )
 
+    # Setup ZeroConf
+    # TODO: Make this entirely config file optional
+    zeroconf = update_zeroconf.NeighListener(app_conf, sysdata, app_info)
+
     # Setup Flask APP
-    web_app = webviews.WebViews(app_conf, sysdata, airport_database, app_info, LEDmgmt)
+    web_app = webviews.WebViews(
+        app_conf, sysdata, airport_database, app_info, LEDmgmt, zeroconf
+    )
 
     # Almost Setup
     debugging.info(f"Livemap Startup - IP: {ipaddr}")
@@ -136,6 +143,12 @@ if __name__ == "__main__":
         target=web_app.run, name="flask web server", args=()
     )
 
+    # ZeroConf Thread
+    debugging.info("Creating ZeroConf Thread")
+    zeroconf_thread = threading.Thread(
+        target=zeroconf.update_loop, name="zeroconf server", args=()
+    )
+
     #
     # Start Executing Threads
     #
@@ -148,16 +161,19 @@ if __name__ == "__main__":
     oled_thread.start()
     flask_thread.start()
     lightsensor_thread.start()
+    zeroconf_thread.start()
 
     MAIN_LOOP_SLEEP = 5
+    loop_counter = 0
 
     while True:
         active_thread_count = threading.active_count()
-        info_msg = f"In Main Loop - Threadcount ({active_thread_count}), Sleep for {MAIN_LOOP_SLEEP}m"
+        info_msg = f"Main Loop - Threadcount ({active_thread_count}), Sleep for {MAIN_LOOP_SLEEP}m"
         debugging.info(info_msg)
 
-        for thread_obj in threading.enumerate():
-            debugging.info(f"ID:{thread_obj.ident}/name:{thread_obj.name}")
+        if (loop_counter % 10) == 0:
+            for thread_obj in threading.enumerate():
+                debugging.info(f"ID:{thread_obj.ident}/name:{thread_obj.name}")
 
         sysdata.refresh()
         # TODO: We should get around to generating and reporting health
@@ -165,6 +181,7 @@ if __name__ == "__main__":
         debugging.info(airport_database.stats())
         debugging.info(i2cbus.stats())
         debugging.info(dataset_sync.stats())
+        debugging.info(zeroconf.stats())
 
         (online_status, ipaddr) = utils.is_connected()
         if online_status:
@@ -172,4 +189,5 @@ if __name__ == "__main__":
         else:
             debugging.debug("Internet NOT Connected")
 
+        loop_counter += 1
         time.sleep(MAIN_LOOP_SLEEP * 60)

@@ -27,7 +27,6 @@ adafruit-circuitpython-tsl2591
 Flask>=2.2.5
 folium>=0.13.0
 gpiozero>=1.6.2
-lgpio
 python-dateutil
 
 ## html5lib>=1.1
@@ -58,6 +57,12 @@ python-dateutil>=2.8.0
 luma.core>=2.4
 luma.oled>=2.4
 webcolors
+
+# Modern GPIO
+lgpio>=0.2.2.0
+
+# Networking
+zeroconf>=0.39.4
 
 ## SNYK
 setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

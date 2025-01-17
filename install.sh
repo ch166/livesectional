@@ -17,34 +17,35 @@ fi
 # Enable errtrace or the error trap handler will not work as expected
 set -o errtrace         # Ensure the error trap handler is inherited
 
-INSTALLDIR=/opt/NeoSectional
-DATADIR=$INSTALLDIR/data
-TEMPLATEDIR=$INSTALLDIR/templates
-STATICDIR=$INSTALLDIR/static
-LOGDIR=$INSTALLDIR/logs
+# Debugging
+# set -x
 
-INSTALL=/usr/bin/install
+# FIXME: Pull these destinations from the config
+INSTALLDEST=/opt/NeoSectional
+DATADEST=$INSTALLDEST/data
+TEMPLATEDEST=$INSTALLDEST/templates
+STATICFILES=$INSTALLDEST/static
+LOGDEST=$INSTALLDEST/logs
 
-# Copy the correct files into /NeoSectional
+INSTALL='/usr/bin/install -p -v -D'
+INSTALLDIR='/usr/bin/install -d'
 
-# Create directories
-mkdir -p $INSTALLDIR
-mkdir -p $DATADIR
-mkdir -p $TEMPLATEDIR
-mkdir -p $STATICDIR
-mkdir -p $LOGDIR
+# Copy the correct files into destination directory
 
-# Install files
-$INSTALL -v -D ./*.py $INSTALLDIR/
-$INSTALL -v -D config.ini $INSTALLDIR/
-$INSTALL -v -D requirements.txt $INSTALLDIR/
-$INSTALL -v -D data/airports.json $DATADIR/
-$INSTALL -v -D templates/*.html $TEMPLATEDIR/
+$INSTALL -t $INSTALLDEST ./*.py
+$INSTALL -t $INSTALLDEST config.ini
+$INSTALL -t $INSTALLDEST requirements.txt
+$INSTALL -t $DATADEST data/airports.json
+$INSTALL -t $TEMPLATEDEST templates/*.html
+$INSTALLDIR $LOGDEST
+$INSTALLDIR $STATICFILES
 
-rsync -rav --relative static/ $INSTALLDIR/
+echo -e "Copying static archive"
+cd static/
+rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 
 cp livemap.service /etc/systemd/system/livemap.service
 systemctl daemon-reload
 #systemctl restart livemap
 
-echo -e "Try\nsystemctl restart livemap ; systemctl status livemap"
+echo -e "Install complete - try\n systemctl restart livemap ; systemctl status livemap"

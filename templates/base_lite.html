@@ -153,14 +153,13 @@
                                         rel target="_blank">Help <i class="fas fa-external-link-alt">&nbsp;</i></a>
                                 </div>
                             </li>
-                            {% if machines|length > 1 %}
+                            {% if machines|length > 0 %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Local Machines</a>
+                                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Machines</a>
                                 <div class="dropdown-menu">
                                     {% for i in range(machines|length) %}
-                                    {% set ip_add = machines[i].split(' ') %}
-                                    <a class="dropdown-item" href="https://{{ ip_add[0] }}:5000" rel target="_blank">{{
-                                        machines[i] }} <i class="fas fa-external-link-alt"></i></a>
+                                    	{% set ip_add = machines[i].split(',') %}
+					<a class="dropdown-item" href="https://{{ ip_add[0] }}:8443" rel target="_blank">{{ ip_add[1] }}<i class="fas fa-external-link-alt"></i></a>
                                     {% endfor %}
                                 </div>
                             </li>

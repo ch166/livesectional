@@ -10,6 +10,13 @@
 # source /livemap-venv/bin/activate
 # pip3 install -r requirements.txt
 
+# pip options
+--prefer-binary
+
+# v25 and later 
+# --compile
+# --upgrade
+
 # Devices
 
 adafruit-circuitpython-busdevice>=5.2.3

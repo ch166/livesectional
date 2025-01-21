@@ -96,7 +96,7 @@ class Conf:
 
     def save_config(self):
         """Save configuration file."""
-        cfgfile = open(self.config_filename, "w", encoding="utf8")
+        cfgfile = open(self.config_filename, "w", encoding="utf-8")
         self.configfile.write(cfgfile)
         cfgfile.close()
 

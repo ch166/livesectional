@@ -24,9 +24,9 @@ class AppInfo:
 
     def refresh(self):
         """Update flags on active version information."""
-        local_version_dir = self._app_conf.string("filenames", "basedir")
-        git_version_dir = self._app_conf.string("filenames", "gitrepo")
-        version_file = self._app_conf.string("filenames", "version_file")
+        local_version_dir = self._app_conf.get_string("filenames", "basedir")
+        git_version_dir = self._app_conf.get_string("filenames", "gitrepo")
+        version_file = self._app_conf.get_string("filenames", "version_file")
 
         local_version_file = f"{local_version_dir}/{version_file}"
         git_version_file = f"{git_version_dir}/{version_file}"

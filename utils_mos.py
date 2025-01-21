@@ -138,7 +138,7 @@ def mos_analyze_datafile(
     mos_filepath = app_conf.get_string("filenames", "mos_filepath")
     # Read current MOS text file
     try:
-        file = open(mos_filepath, "r", encoding="utf8")
+        file = open(mos_filepath, "r", encoding="utf-8")
         lines = file.readlines()
     except IOError as err:
         debugging.error("MOS data file could not be loaded.")

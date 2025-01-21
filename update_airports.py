@@ -385,7 +385,7 @@ class AirportDB:
             debugging.debug(f"Airport json does not exist: {airport_json}")
             return
 
-        json_file = open(airport_json, encoding="utf8")
+        json_file = open(airport_json, encoding="utf-8")
         # returns JSON object as a dictionary
         new_airport_json_dict = json.load(json_file)
         # Closing file
@@ -411,7 +411,7 @@ class AirportDB:
         shutil.move(airport_json, airport_json_backup)
         json_save_data_airport = self.save_data_from_db()
         json_save_data["airports"] = json_save_data_airport
-        with open(airport_json_new, "w", encoding="utf8") as json_file:
+        with open(airport_json_new, "w", encoding="utf-8") as json_file:
             json.dump(json_save_data, json_file, sort_keys=False, indent=4)
         shutil.move(airport_json_new, airport_json)
 

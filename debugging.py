@@ -63,7 +63,7 @@ def crash(args):
     logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logger.debug(args)
 
-    with open("logs/crash.log", "w+", encoding="utf8") as log_file:
+    with open("logs/crash.log", "w+", encoding="utf-8") as log_file:
         log_file.write("***********************************************************")
         log_file.write(appname)
         log_file.write(logtime)

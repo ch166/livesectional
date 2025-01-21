@@ -346,7 +346,7 @@ class WebViews:
         loc_timestr = utils.time_format(utils.current_time(self._app_conf))
         loc_timestr_utc = utils.time_format(utils.current_time_utc(self._app_conf))
         with open(
-            "/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf8"
+            "/opt/NeoSectional/data/console_ip.txt", "r", encoding="utf-8"
         ) as file:
             for line in file.readlines()[-1:]:
                 line = line.rstrip()
@@ -390,7 +390,7 @@ class WebViews:
 
         def generate():
             # FIXME: Move logfile name to config file
-            with open("/opt/NeoSectional/logs/debugging.log", encoding="utf8") as file:
+            with open("/opt/NeoSectional/logs/debugging.log", encoding="utf-8") as file:
                 while True:
                     yield "{}\n".format(file.read())
                     time.sleep(1)

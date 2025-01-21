@@ -4,11 +4,9 @@
     <div class="card border-primary mb-3">
         <section class="py-5">
             <div class="container">
-                <h2 class="display-4">Update Output</h2>
-                {% for line in stdout %}
-                {{ line }}
+                <h2 class="display-4">Output</h2>
+                {{ stdout }}
                 <br>
-                {% endfor %}
             </div>
         </section>
     </div>

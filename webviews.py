@@ -175,6 +175,9 @@ class WebViews:
         self.app.add_url_rule(
             "/perform_update", view_func=self.perform_updates, methods=["GET", "POST"]
         )
+        self.app.add_url_rule(
+            "/perform_restart", view_func=self.perform_restart, methods=["GET", "POST"]
+        )
 
         self._led_strip = led_mgmt
 
@@ -235,6 +238,7 @@ class WebViews:
             "num": self.num,
             "version": self._appinfo.running_version(),
             "update_available": self._appinfo.update_available(),
+            "restart_to_upgrade": self._appinfo.update_ready(),
             "update_vers": self._appinfo.available_version(),
             "current_version": self._appinfo.current_version(),
             "machines": self.machines,
@@ -1380,26 +1384,37 @@ class WebViews:
         returncode, stdout = utils_system.execute_script(
             "/opt/git/livesectional/scripts/update.sh"
         )
+        self.check_updates()
         if returncode == 0:
             flash("Update Completed")
             return redirect("/")
         else:
             debugging.error(stdout)
+            template_data = self.standardtemplate_data()
             template_data = {
                 "title": "Update Issue " + self._appinfo.current_version(),
                 "stdout": stdout,
             }
             return render_template("update_error.html", **template_data)
 
-    def restart_app(self):
+    def perform_restart(self):
         """Execute scripts to restart app."""
-        returncode, stdout = utils_system.execute_script("systemctl restart livemap")
-        # IF this worked; then we're finished and not executing code
+        # Need to put in some checks here to just ignore this call unless the versions are appropriate for updates
+
+        if self._app_info.update_ready() == False:
+            flash("REMOVE: Call to restart ; when no new version available ")
+            return redirect("/")
+        else:
+        
+        returncode, stdout = utils_system.execute_script("/opt/git/livesectional/scripts/restart.sh")
+        self.check_updates()
+        # IF this worked; then the process ended, and shouldn't be executing code
         if returncode == 0:
             flash("Restart says it worked - but HUH ?")
             return redirect("/")
         else:
             debugging.error(stdout)
+            template_data = self.standardtemplate_data()
             template_data = {
                 "title": "Restart Issue " + self._appinfo.current_version(),
                 "stdout": stdout,

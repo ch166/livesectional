@@ -100,6 +100,18 @@ class Conf:
         self.configfile.write(cfgfile)
         cfgfile.close()
 
+    def use_proxies(self):
+        """Check for use of http / https proxies."""
+        return self.get_bool("urls", "use_proxies")
+
+    def http_proxies(self):
+        """Return HTTP(S) proxies from configuration."""
+        proxies = self.get_string("urls", "proxies")
+        if self.use_proxies():
+            return proxies
+        else
+            return {}
+
     def update_confcache(self):
         """Update class local variables to cache conf data."""
         # This is a performance improvement cache of conf data

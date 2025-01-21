@@ -192,6 +192,11 @@ class DataSets:
 
             https_session = requests.Session()
 
+            # FIXME: Finish proxy handling
+            if self._app_conf.use_proxies():
+                proxies = self._app_conf.http_proxies()
+                https_session.proxies.update(proxies)
+
             ret, etag_metar = utils.download_newer_file(
                 https_session,
                 metar_xml_url,

@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # Initialize configuration
     app_conf = conf.Conf()
-    app_info = appinfo.AppInfo()
+    app_info = appinfo.AppInfo(app_conf)
 
     # Setup Logging
     debugging.loginit(app_conf)
@@ -171,11 +171,15 @@ if __name__ == "__main__":
         info_msg = f"Main Loop - Threadcount ({active_thread_count}), Sleep for {MAIN_LOOP_SLEEP}m"
         debugging.info(info_msg)
 
-        if (loop_counter % 10) == 0:
+        if (loop_counter % 12) == 0:
             for thread_obj in threading.enumerate():
                 debugging.info(f"ID:{thread_obj.ident}/name:{thread_obj.name}")
 
-        sysdata.refresh()
+        if (loop_counter % 20) == 0:
+            """Infrequent refresh items"""
+            app_info.refresh()
+            sysdata.refresh()
+
         # TODO: We should get around to generating and reporting health
         # metrics in this loop.
         debugging.info(airport_database.stats())

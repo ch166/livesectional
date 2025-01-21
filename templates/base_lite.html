@@ -156,7 +156,11 @@
                         <b>UTC:</b>{{ timestrutc }}<br />
                         <b>METAR:</b>{{ timemetarage }}<br />
                         <b>MAP:</b>{{ current_ledmode }}<br />
-                        <b>Ver:</b>{{ current_version }}<br />
+			{% if update_available == False %}
+                        <b>VER:</b>{{ current_version }}<br />
+			{% else %}
+			<b>VER:</b>{{ current_version }} <b>UPDATE</b><br />
+			{% endif %}
                     </span>
                 </div>
             </nav>

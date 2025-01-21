@@ -109,7 +109,7 @@ class Conf:
         proxies = self.get_string("urls", "proxies")
         if self.use_proxies():
             return proxies
-        else
+        else:
             return {}
 
     def update_confcache(self):

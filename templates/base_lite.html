@@ -15,7 +15,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <link href="/static/fontawesome/css/all.css" rel="stylesheet" />
-    {% if update_available %}
+    {% if update_available == True %}
     <script>
         $(document).ready(function () {
             $("#myModal").modal('show');
@@ -111,7 +111,7 @@
                                 <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Utilities</a>
                                 <div class="dropdown-menu">
                                     {% if update_available == True  %}
-                                    <a class="dropdown-item" href="/update_page"><b>Update to v{{ update_vers }}</b> <i class="far fa-check-square">&nbsp;</i></a>
+                                    <a class="dropdown-item" href="/perform_update"><b>Update to v{{ update_vers }}</b> <i class="far fa-check-square">&nbsp;</i></a>
                                     <div class="dropdown-divider"></div>
                                     {% endif %}
                                     <a class="dropdown-item" href="/tzset">Set Timezone <i class="far fa-clock">&nbsp;</i></a>
@@ -127,7 +127,7 @@
                                     <a class="dropdown-item" href="/confmobile" target="qrcode">Web Remote App<i class="fab fa-app-store">&nbsp;</i></a>
                                     <a class="dropdown-item" href="/qrcode" target="qrcode">QR Code for Web Remote<i class="fas fa-qrcode">&nbsp;</i></a>
                                     <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item" href="/test_for_update">Check for Update<i class="fa fa-check-circle">&nbsp;</i></a>
+                                    <a class="dropdown-item" href="/check_updates">Check for Update<i class="fa fa-check-circle">&nbsp;</i></a>
                                     <a class="dropdown-item" href="/open_console" target="open_console">Display Console Output<i class="fas fa-tablet-alt">&nbsp;</i></a>
                                     <a class="dropdown-item" href="/stream_log" target="stream_log">Display Log File<i class="fab fa-wpforms">&nbsp;</i></a>
                                     <a class="dropdown-item" href="/sysinfo" target="lssysinfo">System Information<i class="fas fa-code">&nbsp;</i></a>

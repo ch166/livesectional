@@ -6,6 +6,7 @@ import time
 import json
 import secrets
 import pytz
+import subprocess
 
 from rpi_ws281x import (
     Color,
@@ -50,10 +51,8 @@ class WebViews:
 
     _app_conf = None
     airports = []  # type: list[object]
-    update_vers = None
     machines = []  # type: list[str]
     _zeroconf = None
-    # update_available = None
     led_map_dict = {}  # type: dict
     _ledmodelist = [
         "METAR",
@@ -169,6 +168,12 @@ class WebViews:
         )
         self.app.add_url_rule(
             "/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"]
+        )
+        self.app.add_url_rule(
+            "/check_updates", view_func=self.check_updates, methods=["GET", "POST"]
+        )
+        self.app.add_url_rule(
+            "/perform_update", view_func=self.perform_updates, methods=["GET", "POST"]
         )
 
         self._led_strip = led_mgmt
@@ -1363,6 +1368,27 @@ class WebViews:
     #    self.readconf(stored_profile)  # read profile config file
     #    debugging.info("Loading a Profile into Settings Editor")
     #    return redirect("confedit")
+
+    def check_updates(self):
+        """Run check for updates."""
+        self._appinfo.refresh()
+        flash("Updated version data")
+        return redirect("/")
+
+    def perform_updates(self):
+        """Execute scripts to perform updates."""
+        updates = subprocess.run("/opt/git/livesectional/scripts/update.sh", stderr=subprocess.STDOUT)
+        if updates.returncode == 0:
+            flash("Update Completed")
+            return redirect("/")
+        else:
+            debugging.error(updates.stdout)
+            template_data = {
+                "title": "Update Issue " + self._appinfo.current_version(),
+                "stdout": updates.stdout, }
+
+            return render_template("update_error.html", **template_data)
+            
 
     # Route for Reboot of RPI
     def system_reboot(self):

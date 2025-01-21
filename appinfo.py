@@ -15,7 +15,7 @@ class AppInfo:
     # - Update Information
 
     _app_conf = None
-    _running_version = "0.0"
+    _run_version = "0.0"
     _cur_version = "default"
     _git_version = "unknown"
 
@@ -24,7 +24,7 @@ class AppInfo:
         local_version_dir = self._app_conf.get_string("filenames", "basedir")
         version_file = self._app_conf.get_string("filenames", "version_file")
         local_version_file = f"{local_version_dir}/{version_file}"
-        self._running_version = self.read_version(local_version_file)
+        self._run_version = self.read_version(local_version_file)
         self.refresh()
         if self.update_available():
             print("app info init - update available")
@@ -54,7 +54,7 @@ class AppInfo:
 
     def running_version(self) -> str:
         """Return Current Version."""
-        return self._running_version
+        return self._run_version
 
     def current_version(self) -> str:
         """Return Current Version."""
@@ -68,6 +68,19 @@ class AppInfo:
         """Extract major, minor and patch numbers from version info."""
         major, minor, patch = versionstring.split(".")
         return int(major), int(minor), int(patch)
+
+    def update_ready(self) -> bool:
+        """Return True if update is installed and ready to restart."""
+        # debugging.info(f"Version: {self._cur_version} / {self._git_version} : update available check")
+        c_major, c_minor, c_patch = self.semver(self._cur_version)
+        r_major, r_minor, r_patch = self.semver(self._run_version)
+        major_rev = c_major > r_major
+        minor_rev = c_minor > r_minor
+        patch_rev = c_patch > r_patch
+        if major_rev or minor_rev or patch_rev:
+            # debugging.info(f"Version: {self._cur_version} / {self._git_version} : UPDATE AVAILABLE")
+            return True
+        return False
 
     def update_available(self) -> bool:
         """Return True if update is available."""

@@ -93,7 +93,7 @@ class NeighListener(ServiceListener):
         self._app_info = appinfo
 
         # TODO: Look into including useful state information here (LED states /
-        self._announce_description["version"] = self._app_info.current_version()
+        self._announce_description["version"] = self._app_info.running_version()
         self._announce_description["netport"] = self._net_port
         self._announce_description["fqdn"] = socket.gethostname()
         self._announce_server = f"_{socket.gethostname()}.{self._announce_name_svc}"
@@ -112,6 +112,11 @@ class NeighListener(ServiceListener):
 
     def update_node_identity(self):
         """... do stuff ..."""
+        self._announce_description["version"] = self._app_info.running_version()
+        self._announce_description["netport"] = self._net_port
+        self._announce_description["fqdn"] = socket.gethostname()
+        self._announce_server = f"_{socket.gethostname()}.{self._announce_name_svc}"
+        self._announce_name = f"_{socket.gethostname()}.{self._announce_name_svc}"
         self._announce_addresses = [self._sysdata.local_ip()]
         self._announce_info = ServiceInfo(
             type_=self._announce_services,

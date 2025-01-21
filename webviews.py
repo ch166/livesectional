@@ -53,7 +53,7 @@ class WebViews:
     update_vers = None
     machines = []  # type: list[str]
     _zeroconf = None
-    update_available = None
+    # update_available = None
     led_map_dict = {}  # type: dict
     _ledmodelist = [
         "METAR",
@@ -229,8 +229,9 @@ class WebViews:
             "current_ledmode": current_ledmode,
             "num": self.num,
             "version": self._appinfo.current_version(),
-            "update_available": self.update_available,
-            "update_vers": self.update_vers,
+            "update_available": self._appinfo.update_available(),
+            "update_vers": self._appinfo.available_version(),
+            "current_version": self._appinfo.current_version(),
             "machines": self.machines,
             "sysinfo": self._sysdata.query_system_information(),
         }

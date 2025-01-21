@@ -16,11 +16,13 @@ class AppInfo:
 
     _app_conf = None
     _cur_version = "default"
-    available_version = "unknown"
+    _git_version = "unknown"
 
     def __init__(self, app_conf):
         self._app_conf = app_conf
         self.refresh()
+        if self.update_available():
+            print("app info init - update available")
 
     def refresh(self):
         """Update flags on active version information."""
@@ -42,12 +44,16 @@ class AppInfo:
             for line in fp:
                 if line.startswith("version:"):
                     label, version = line.split(" ")
-                    self.git_version_info = version.strip()
+                    self._git_version = version.strip()
                     continue
 
     def current_version(self) -> str:
         """Return Current Version."""
         return self._cur_version
+
+    def available_version(self) -> str:
+        """Report on available version."""
+        return self._git_version
 
     def semver(self, versionstring):
         """Extract major, minor and patch numbers from version info."""
@@ -56,11 +62,13 @@ class AppInfo:
 
     def update_available(self) -> bool:
         """Return True if update is available."""
+        # debugging.info(f"Version: {self._cur_version} / {self._git_version} : update available check")
         c_major, c_minor, c_patch = self.semver(self._cur_version)
-        n_major, n_minor, n_patch = self.semver(self.available_version)
+        n_major, n_minor, n_patch = self.semver(self._git_version)
         major_rev = n_major > c_major
         minor_rev = n_minor > c_minor
         patch_rev = n_patch > c_patch
         if major_rev or minor_rev or patch_rev:
+            # debugging.info(f"Version: {self._cur_version} / {self._git_version} : UPDATE AVAILABLE")
             return True
         return False

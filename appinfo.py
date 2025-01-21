@@ -15,14 +15,30 @@ class AppInfo:
     # - Update Information
 
     _app_conf = None
+    _running_version = "0.0"
     _cur_version = "default"
     _git_version = "unknown"
 
     def __init__(self, app_conf):
         self._app_conf = app_conf
+        local_version_dir = self._app_conf.get_string("filenames", "basedir")
+        version_file = self._app_conf.get_string("filenames", "version_file")
+        local_version_file = f"{local_version_dir}/{version_file}"
+        self._running_version = self.read_version(local_version_file)
         self.refresh()
         if self.update_available():
             print("app info init - update available")
+
+    def read_version(self, filename):
+        """Read version info from file."""
+        file_version = "version not found"
+        with open(filename, "r", encoding="utf-8") as fp:
+            for line in fp:
+                if line.startswith("version:"):
+                    label, version = line.split(" ")
+                    file_version = version.strip()
+                    continue
+        return file_version
 
     def refresh(self):
         """Update flags on active version information."""
@@ -33,19 +49,12 @@ class AppInfo:
         local_version_file = f"{local_version_dir}/{version_file}"
         git_version_file = f"{git_version_dir}/{version_file}"
 
-        with open(local_version_file, "r", encoding="utf-8") as fp:
-            for line in fp:
-                if line.startswith("version:"):
-                    label, version = line.split(" ")
-                    self._cur_version = version.strip()
-                    continue
+        self._cur_version = self.read_version(local_version_file)
+        self._git_version = self.read_version(git_version_file)
 
-        with open(git_version_file, "r", encoding="utf-8") as fp:
-            for line in fp:
-                if line.startswith("version:"):
-                    label, version = line.split(" ")
-                    self._git_version = version.strip()
-                    continue
+    def running_version(self) -> str:
+        """Return Current Version."""
+        return self._running_version
 
     def current_version(self) -> str:
         """Return Current Version."""

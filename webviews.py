@@ -6,7 +6,7 @@ import time
 import json
 import secrets
 import pytz
-import subprocess
+import utils_system
 
 from rpi_ws281x import (
     Color,
@@ -220,7 +220,7 @@ class WebViews:
         current_ledmode = self._led_strip.ledmode()
 
         template_data = {
-            "title": "NOT SET - " + self._appinfo.current_version(),
+            "title": "NOT SET - " + self._appinfo.running_version(),
             "airports": airport_dict_data,
             "settings": self._app_conf.gen_settings_dict(),
             "ipadd": self._sysdata.local_ip(),
@@ -233,7 +233,7 @@ class WebViews:
             "current_timezone": self._app_conf.get_string("default", "timezone"),
             "current_ledmode": current_ledmode,
             "num": self.num,
-            "version": self._appinfo.current_version(),
+            "version": self._appinfo.running_version(),
             "update_available": self._appinfo.update_available(),
             "update_vers": self._appinfo.available_version(),
             "current_version": self._appinfo.current_version(),
@@ -363,7 +363,7 @@ class WebViews:
         return render_template(
             "open_console.html",
             urls=console_ips,
-            title="Display Console Output-" + self._appinfo.current_version(),
+            title="Display Console Output-" + self._appinfo.running_version(),
             num=5,
             machines=self.machines,
             ipadd=ipadd,
@@ -382,7 +382,7 @@ class WebViews:
         debugging.info("Opening stream_log in separate window")
         return render_template(
             "stream_log.html",
-            title="Display Logfile-" + self._appinfo.current_version(),
+            title="Display Logfile-" + self._appinfo.running_version(),
             num=5,
             machines=self.machines,
             ipadd=ipadd,
@@ -1377,18 +1377,34 @@ class WebViews:
 
     def perform_updates(self):
         """Execute scripts to perform updates."""
-        updates = subprocess.run("/opt/git/livesectional/scripts/update.sh", stderr=subprocess.STDOUT)
-        if updates.returncode == 0:
+        returncode, stdout = utils_system.execute_script(
+            "/opt/git/livesectional/scripts/update.sh"
+        )
+        if returncode == 0:
             flash("Update Completed")
             return redirect("/")
         else:
-            debugging.error(updates.stdout)
+            debugging.error(stdout)
             template_data = {
                 "title": "Update Issue " + self._appinfo.current_version(),
-                "stdout": updates.stdout, }
-
+                "stdout": stdout,
+            }
             return render_template("update_error.html", **template_data)
-            
+
+    def restart_app(self):
+        """Execute scripts to restart app."""
+        returncode, stdout = utils_system.execute_script("systemctl restart livemap")
+        # IF this worked; then we're finished and not executing code
+        if returncode == 0:
+            flash("Restart says it worked - but HUH ?")
+            return redirect("/")
+        else:
+            debugging.error(stdout)
+            template_data = {
+                "title": "Restart Issue " + self._appinfo.current_version(),
+                "stdout": stdout,
+            }
+            return render_template("update_error.html", **template_data)
 
     # Route for Reboot of RPI
     def system_reboot(self):

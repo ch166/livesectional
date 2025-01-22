@@ -42,7 +42,7 @@ $INSTALL -t $INSTALLDEST requirements.txt
 $INSTALL -t $DATADEST data/airports.json
 $INSTALL -t $TEMPLATEDEST templates/*.html
 $INSTALL -t $SCRIPTSDEST -m 755 scripts/*.sh
-$INSTALL -t $CRONDAILY -m 755 scripts/update.sh
+$INSTALL -t $CRONDAILY -m 755 scripts/daily.sh livemap
 $INSTALLDIR $LOGDEST
 $INSTALLDIR $STATICFILES
 

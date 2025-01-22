@@ -33,3 +33,6 @@ else
     echo "Install packages in environment"
     $VENVDIR/bin/pip3 install -r $INSTALLDIR/requirements.txt
 fi
+
+# Sync filesystems
+sync

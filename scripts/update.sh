@@ -58,5 +58,5 @@ echo -e "Copying static archive"
 cd static/
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 
-git git submodule update --recursive --remote
+git submodule update --recursive --remote
 

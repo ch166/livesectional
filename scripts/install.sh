@@ -22,6 +22,7 @@ set -o errtrace         # Ensure the error trap handler is inherited
 
 # FIXME: Pull these destinations from a common config
 GITSRC=/opt/git/livesectional/
+FONTAWESOME=/opt/git/fontawesome
 INSTALLDEST=/opt/NeoSectional/
 DATADEST=$INSTALLDEST/data/
 TEMPLATEDEST=$INSTALLDEST/templates/
@@ -54,10 +55,15 @@ echo -e "Copying static archive"
 cd static/
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 
-git submodule update --init --recursive --remote
+echo -e "Getting fontawesome"
+# FIXME: Fragile hardcoded values
+#
+$INSTALLDIR $FONTAWESOME
+cd $FONTAWESOME
+wget https://use.fontawesome.com/releases/v6.7.2/fontawesome-free-6.7.2-web.zip
+unzip fontawesome-free-6.7.2-web.zip
+ln -sf $FONTAWESOME/fontawesome-free-6.7.2-web/ $STATICFILES/fontawesome
 
-
-# cp livemap.service /etc/systemd/system/livemap.service
 systemctl daemon-reload
 #systemctl restart livemap
 

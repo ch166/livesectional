@@ -19,3 +19,4 @@ set -o errtrace         # Ensure the error trap handler is inherited
 
 systemctl restart livemap
 
+echo "Asked systemctl to restart livemap"

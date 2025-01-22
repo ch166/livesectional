@@ -20,12 +20,16 @@ set -o errtrace         # Ensure the error trap handler is inherited
 # Debugging
 # set -x
 
-# FIXME: Pull these destinations from the config
-INSTALLDEST=/opt/NeoSectional
-DATADEST=$INSTALLDEST/data
-TEMPLATEDEST=$INSTALLDEST/templates
-STATICFILES=$INSTALLDEST/static
-LOGDEST=$INSTALLDEST/logs
+# FIXME: Pull these destinations from a common config
+GITSRC=/opt/git/livesectional/
+INSTALLDEST=/opt/NeoSectional/
+DATADEST=$INSTALLDEST/data/
+TEMPLATEDEST=$INSTALLDEST/templates/
+STATICFILES=$INSTALLDEST/static/
+LOGDEST=$INSTALLDEST/logs/
+SCRIPTSDEST=$INSTALLDEST/scripts/
+CRONDAILY=/etc/cron.daily/
+
 
 INSTALL='/usr/bin/install -p -v -D'
 INSTALLDIR='/usr/bin/install -d'
@@ -37,6 +41,8 @@ $INSTALL -t $INSTALLDEST config.ini
 $INSTALL -t $INSTALLDEST requirements.txt
 $INSTALL -t $DATADEST data/airports.json
 $INSTALL -t $TEMPLATEDEST templates/*.html
+$INSTALL -t $SCRIPTSDEST -m 755 scripts/*.sh
+$INSTALL -t $CRONDAILY -m 755 scripts/update.sh
 $INSTALLDIR $LOGDEST
 $INSTALLDIR $STATICFILES
 

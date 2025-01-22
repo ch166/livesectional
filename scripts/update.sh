@@ -47,7 +47,7 @@ $INSTALL -t $INSTALLDEST ./*.py
 $INSTALL -t $INSTALLDEST requirements.txt
 $INSTALL -t $INSTALLDEST VERSION.txt
 $INSTALL -t $TEMPLATEDEST templates/*.html
-$INSTALL -t $SCRIPTSDEST -m 755 scripts/*.sh
+$INSTALL -t $SCRIPTSDEST -m 755 mascripts/*.sh
 $INSTALL -t $CRONDAILY -m 755 scripts/daily.sh
 $INSTALL -t $SYSTEMD livemap.service
 

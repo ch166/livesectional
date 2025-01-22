@@ -1,23 +1,5 @@
-import os
-import os.path
-import time
-import shutil
-import socket
-import json
-import urllib
-import gzip
-import tempfile
-
 import datetime
-from datetime import timedelta
-from dateutil.parser import parse as parsedate
-
-import requests
-
-# import wget
 import pytz
-
-import debugging
 
 
 # Compare current time plus offset to TAF's time period and return difference

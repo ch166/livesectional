@@ -134,10 +134,10 @@ class I2CBus:
         """Return i2c bus device to be used in init of components"""
         return self.i2c_device
 
-    def bus_lock(self, owner):
+    def bus_lock(self, owner) -> bool:
         """Grab bus lock."""
         if self.bus is None:
-            return
+            return False
         if self.lock.locked():
             lock_duration = time.time() - self._average_lock_start
             debugging.warn(
@@ -152,7 +152,6 @@ class I2CBus:
                 self._average_lock_count += 1
                 self._average_lock_start = time.time()
                 return True
-            return False
         return False
 
     def bus_unlock(self):

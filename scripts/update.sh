@@ -27,6 +27,8 @@ STATICFILES=$INSTALLDEST/static/
 LOGDEST=$INSTALLDEST/logs/
 SCRIPTSDEST=$INSTALLDEST/scripts/
 CRONDAILY=/etc/cron.daily/
+SYSTEMD=/etc/systemd/system/
+
 
 INSTALL='/usr/bin/install -p -v -D'
 INSTALLDIR='/usr/bin/install -d'
@@ -47,10 +49,14 @@ $INSTALL -t $INSTALLDEST VERSION.txt
 $INSTALL -t $TEMPLATEDEST templates/*.html
 $INSTALL -t $SCRIPTSDEST -m 755 scripts/*.sh
 $INSTALL -t $CRONDAILY -m 755 scripts/daily.sh livemap
+$INSTALL -t $SYSTEMD livemap.service
+
 $INSTALLDIR $LOGDEST
 $INSTALLDIR $STATICFILES
 
 echo -e "Copying static archive"
 cd static/
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
+
+git git submodule update --recursive --remote
 

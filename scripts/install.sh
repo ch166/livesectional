@@ -23,10 +23,10 @@ set -o errtrace         # Ensure the error trap handler is inherited
 # FIXME: Pull these destinations from a common config
 GITSRC=/opt/git/livesectional/
 FONTAWESOME=/opt/git/fontawesome
-INSTALLDEST=/opt/NeoSectional/
-DATADEST=$INSTALLDEST/data/
+INSTALLDEST=/opt/NeoSectional
+DATADEST=$INSTALLDEST/data
 TEMPLATEDEST=$INSTALLDEST/templates/
-STATICFILES=$INSTALLDEST/static/
+STATICFILES=$INSTALLDEST/static
 LOGDEST=$INSTALLDEST/logs/
 SCRIPTSDEST=$INSTALLDEST/scripts/
 CRONDAILY=/etc/cron.daily/
@@ -60,9 +60,10 @@ echo -e "Getting fontawesome"
 #
 $INSTALLDIR $FONTAWESOME
 cd $FONTAWESOME
-wget https://use.fontawesome.com/releases/v6.7.2/fontawesome-free-6.7.2-web.zip
-unzip fontawesome-free-6.7.2-web.zip
+wget -nc https://use.fontawesome.com/releases/v6.7.2/fontawesome-free-6.7.2-web.zip
+unzip -uo fontawesome-free-6.7.2-web.zip
 ln -sf $FONTAWESOME/fontawesome-free-6.7.2-web/ $STATICFILES/fontawesome
+
 
 systemctl daemon-reload
 #systemctl restart livemap

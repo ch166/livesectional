@@ -37,6 +37,8 @@ import utils_colors
 # import conf
 from update_leds import LedMode
 import debugging
+from utils_colors import wx_fog
+
 
 # import sysinfo
 
@@ -323,7 +325,7 @@ class WebViews:
 
             flash(f"LED Mode set to {newledmode}")
             debugging.info(f"LEDMode set to {newledmode}")
-        return redirect("ledmodeset")
+            return redirect("ledmodeset")
 
         current_ledmode = self._led_strip.ledmode()
 
@@ -716,6 +718,7 @@ class WebViews:
         template_data = self.standardtemplate_data()
 
         # debugging.info(f"getwx: airport = {airport}")
+        wx_data = {}
 
         airport = airport.lower()
         template_data["airport"] = airport
@@ -786,6 +789,8 @@ class WebViews:
     def getairport(self, airport):
         """Flask Route: /airport - Get WX JSON for Airport - primarily for debugging the details of the what's in the Airport"""
         template_data = self.standardtemplate_data()
+
+        html_response = {}
 
         debugging.info(f"getairport: airport = {airport}")
         airport = airport.lower()
@@ -1401,12 +1406,13 @@ class WebViews:
         """Execute scripts to restart app."""
         # Need to put in some checks here to just ignore this call unless the versions are appropriate for updates
 
-        if self._app_info.update_ready() == False:
+        if self._appinfo.update_ready() == False:
             flash("REMOVE: Call to restart ; when no new version available ")
             return redirect("/")
-        else:
-        
-        returncode, stdout = utils_system.execute_script("/opt/git/livesectional/scripts/restart.sh")
+
+        returncode, stdout = utils_system.execute_script(
+            "/opt/git/livesectional/scripts/restart.sh"
+        )
         self.check_updates()
         # IF this worked; then the process ended, and shouldn't be executing code
         if returncode == 0:

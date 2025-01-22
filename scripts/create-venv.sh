@@ -28,7 +28,7 @@ if test -f $VENVDIR/bin/activate; then
     $VENVDIR/bin/pip3 install --upgrade -r $INSTALLDIR/requirements.txt
     echo "Complete."
 else
-    echo "Creating Environment"
+    echo "Creating python Environment"
     python3 -m venv $VENVDIR
     echo "Install packages in environment"
     $VENVDIR/bin/pip3 install -r $INSTALLDIR/requirements.txt

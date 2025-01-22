@@ -26,6 +26,7 @@ TEMPLATEDEST=$INSTALLDEST/templates
 STATICFILES=$INSTALLDEST/static
 LOGDEST=$INSTALLDEST/logs
 SCRIPTSDEST=$INSTALLDEST/scripts
+CRONDAILY=/etc/cron.daily
 
 INSTALL='/usr/bin/install -p -v -D'
 INSTALLDIR='/usr/bin/install -d'
@@ -45,6 +46,7 @@ $INSTALL -t $INSTALLDEST requirements.txt
 $INSTALL -t $INSTALLDEST VERSION.txt
 $INSTALL -t $TEMPLATEDEST templates/*.html
 $INSTALL -t $SCRIPTSDEST scripts/*.sh
+$INSTALL -t $CRONDAILY scripts/update.sh
 $INSTALLDIR $LOGDEST
 $INSTALLDIR $STATICFILES
 

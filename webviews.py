@@ -1396,24 +1396,23 @@ class WebViews:
         else:
             debugging.error(stdout)
             template_data = self.standardtemplate_data()
-            template_data = {
-                "title": "Update Issue " + self._appinfo.current_version(),
-                "stdout": stdout,
-            }
+            template_data["title"] = f"Update Issue {self._appinfo.current_version()}"
+            template_data["stdout"] = stdout
             return render_template("update_error.html", **template_data)
 
     def perform_restart(self):
         """Execute scripts to restart app."""
         # Need to put in some checks here to just ignore this call unless the versions are appropriate for updates
 
-        if self._appinfo.update_ready() == False:
+        self.check_updates()
+
+        if not self._appinfo.update_ready():
             flash("REMOVE: Call to restart ; when no new version available ")
             return redirect("/")
 
         returncode, stdout = utils_system.execute_script(
             "/opt/git/livesectional/scripts/restart.sh"
         )
-        self.check_updates()
         # IF this worked; then the process ended, and shouldn't be executing code
         if returncode == 0:
             flash("Restart says it worked - but HUH ?")
@@ -1421,10 +1420,8 @@ class WebViews:
         else:
             debugging.error(stdout)
             template_data = self.standardtemplate_data()
-            template_data = {
-                "title": "Restart Issue " + self._appinfo.current_version(),
-                "stdout": stdout,
-            }
+            template_data["title"] = f"Restart Issue {self._appinfo.current_version()}"
+            template_data["stdout"] = stdout
             return render_template("update_error.html", **template_data)
 
     # Route for Reboot of RPI

@@ -6,6 +6,13 @@
 class AppInfo:
     """Class to store information and data about the install environment."""
 
+    # We track three different versions
+    # Running Version - the contents of VERSION.txt when the application started. This shouldn't change except by restarting.
+    # Current Version - the contents of VERSION.txt in the application directory
+    #  This should be the same as the running version ; except when we've run the update script to copy new files into place.
+    # Available Version - the contents of VERSION.txt in the git repo directory
+
+
     # Gather information about the currently installed version, and check for new versions.
     # As this gets smarter - we should be able to handle
     # - Hardware Info
@@ -71,6 +78,9 @@ class AppInfo:
 
     def update_ready(self) -> bool:
         """Return True if update is installed and ready to restart."""
+
+        # There is newer code installed in the Application directory, and will be used on restart
+
         # debugging.info(f"Version: {self._cur_version} / {self._git_version} : update available check")
         c_major, c_minor, c_patch = self.semver(self._cur_version)
         r_major, r_minor, r_patch = self.semver(self._run_version)
@@ -84,6 +94,9 @@ class AppInfo:
 
     def update_available(self) -> bool:
         """Return True if update is available."""
+
+        # There is newer code in the git repo that can be copied over using the install script
+
         # debugging.info(f"Version: {self._cur_version} / {self._git_version} : update available check")
         c_major, c_minor, c_patch = self.semver(self._cur_version)
         n_major, n_minor, n_patch = self.semver(self._git_version)

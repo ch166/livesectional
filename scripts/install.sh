@@ -69,3 +69,6 @@ systemctl daemon-reload
 #systemctl restart livemap
 
 echo -e "Install complete - try\n systemctl restart livemap ; systemctl status livemap"
+
+# Sync filesystems
+sync

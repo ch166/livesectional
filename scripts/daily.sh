@@ -31,3 +31,6 @@ grep -A 5 -i error debugging.log* > error.log-${now}
 
 # 
 
+
+# Sync filesystems
+sync

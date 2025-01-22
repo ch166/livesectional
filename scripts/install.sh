@@ -29,6 +29,7 @@ STATICFILES=$INSTALLDEST/static/
 LOGDEST=$INSTALLDEST/logs/
 SCRIPTSDEST=$INSTALLDEST/scripts/
 CRONDAILY=/etc/cron.daily/
+SYSTEMD=/etc/systemd/system/
 
 
 INSTALL='/usr/bin/install -p -v -D'
@@ -36,13 +37,16 @@ INSTALLDIR='/usr/bin/install -d'
 
 # Copy the correct files into destination directory
 
+cd $GITSRC
+
 $INSTALL -t $INSTALLDEST ./*.py
 $INSTALL -t $INSTALLDEST config.ini
 $INSTALL -t $INSTALLDEST requirements.txt
 $INSTALL -t $DATADEST data/airports.json
 $INSTALL -t $TEMPLATEDEST templates/*.html
 $INSTALL -t $SCRIPTSDEST -m 755 scripts/*.sh
-$INSTALL -t $CRONDAILY -m 755 scripts/daily.sh livemap
+$INSTALL -t $CRONDAILY -m 755 scripts/daily.sh
+$INSTALL -t $SYSTEMD livemap.service
 $INSTALLDIR $LOGDEST
 $INSTALLDIR $STATICFILES
 
@@ -50,7 +54,10 @@ echo -e "Copying static archive"
 cd static/
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 
-cp livemap.service /etc/systemd/system/livemap.service
+git submodule update --init --recursive --remote
+
+
+# cp livemap.service /etc/systemd/system/livemap.service
 systemctl daemon-reload
 #systemctl restart livemap
 

@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added documentation / docs
 - Bug fix: Corrected URLs to aviationweather.gov
 - Bug fix: Corrected URLs to airnav.com instead of rocketroute.com
+- Performance: minimize number of times we recalculate Metar data
 - WWW: Heatmap popup shows size rather than pin ID
 
 ### Removed

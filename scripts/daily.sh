@@ -1,6 +1,15 @@
 #! /bin/sh
 
 # livesectional Daily Tasks - to be run under cron
+# Self contained for now
+
+error_check() {
+	[ $1 != 0 ] && {
+		echo "error; exiting"
+		exit 1
+	}
+}
+
 #
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -8,8 +17,10 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 # Assuming HTTPS git URL ; so no need for auth keys
 
 cd /opt/git/livesectional
-git remote update
-git pull
+git remote update 2>&1 | logger -t livemap-daily
+error_check $?
+git pull 2>&1 | logger -t livemap-daily
+error_check $?
 
 # 2. Can we safely run create-venv script to update any new entries in requirements.txt
 #
@@ -17,7 +28,8 @@ git pull
 
 echo "Going to run the create-venv.sh script to update environment"
 
-/opt/git/livesectional/scripts/create-venv.sh
+/opt/git/livesectional/scripts/create-venv.sh 2>&1 | logger -t livemap-daily
+error_check $?
 
 
 # This should allow the code to look at the git repo to check version information ; and then run the 
@@ -28,9 +40,6 @@ now=`date +"%m_%d_%Y"`
 
 cd /opt/NeoSectional/logs
 grep -A 5 -i error debugging.log* > error.log-${now}
-
-# 
-
 
 # Sync filesystems
 sync

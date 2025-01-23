@@ -97,11 +97,12 @@ def get_usa_metar(airport_data):
     return False
 
 
-def cloud_height(wx_metar):
-    """Calculate Height to Broken Layer. wx_metar - METAR String."""
-    wx_data = Metar.Metar(wx_metar)
+def cloud_height(metar_object):
+    """Calculate Height to Broken Layer."""
+    if metar_object is None:
+        return
     lowest_ceiling = 100000
-    for cloudlayer in wx_data.sky:
+    for cloudlayer in metar_object.sky:
         key = cloudlayer[0]
         if key == "VV":
             debugging.debug("Metar: VV Found")
@@ -114,9 +115,6 @@ def cloud_height(wx_metar):
             debugging.debug("Cloud Layer without altitude values " + cloudlayer[0])
             return -1
         layer_altitude = cloudlayer[1].value()
-        debugging.debug(
-            "LOC: " + wx_metar + " Layer: " + key + " Alt: " + str(layer_altitude)
-        )
         if key in ("OVC", "BKN"):
             # Overcast or Broken are considered ceiling
             lowest_ceiling = min(layer_altitude, lowest_ceiling)
@@ -175,6 +173,7 @@ def calculate_wx_from_metar(airport_data):
 
     try:
         airport_data_observation = Metar.Metar(airport_data.raw_metar())
+        airport_data._processed_metar_object = airport_data_observation
     except Metar.ParserError as err:
         debugging.debug("Parse Error for METAR code: " + airport_data.raw_metar())
         debugging.error(err)
@@ -210,7 +209,7 @@ def calculate_wx_from_metar(airport_data):
         airport_data._wx_visibility = -1
 
     try:
-        airport_data._wx_ceiling = cloud_height(airport_data.raw_metar())
+        airport_data._wx_ceiling = cloud_height(airport_data.metar_object())
     except Exception as err:
         msg = "airport_data.cloud_height() failed for " + airport_data.icao
         debugging.error(msg)
@@ -246,7 +245,8 @@ def calculate_wx_from_metar(airport_data):
     debugging.debug(
         f"Airport {airport_data._icao} - {airport_data._flight_category} - {airport_data.raw_metar()}"
     )
-    return True
+    return airport_data_observation
+
 
 
 def calc_wx_conditions(wx_metar):

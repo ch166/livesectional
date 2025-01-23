@@ -68,6 +68,7 @@ class Airport:
     _observation = None
     _observation_time = None
     _runway_dataset = None
+    _processed_metar_object = None
 
     # Application Status for Airport
     _purpose = UNUSED
@@ -228,10 +229,15 @@ class Airport:
         """Get Current METAR."""
         # debugging.info(f"Metar set for {self._icao} to :{metartext}")
         self._metar_prev = self._metar
-        self._metar = metartext
         self._metar_date = datetime.now()
         self._updated_time = datetime.now()
+        if metartext is None or metartext == "Missing":
+            metartext = "Missing"
+            self._processed_metar_object = None
+            return
+        self._metar = metartext
         utils_wx.calculate_wx_from_metar(self)
+        return
 
     def set_mos_forecast(self, mos_forecast):
         """Update MOS forecast."""
@@ -410,29 +416,28 @@ class Airport:
         adds_longitude = float(metar_airport_dict["longitude"])
         self.update_coordinates(adds_longitude, adds_latitude)
         self.set_wx_category(self._wx_category_str)
-        try:
-            utils_wx.calculate_wx_from_metar(self)
-            return True
-        except Exception as err:
-            debug_string = f"Error: get_adds_metar processing {self._icao} metar:{self.raw_metar()}:"
-            debugging.debug(debug_string)
-            debugging.debug(err)
-        return False
+        # try:
+        #     utils_wx.calculate_wx_from_metar(self)
+        #     return True
+        # except Exception as err:
+        #     debug_string = f"Error: get_adds_metar processing {self._icao} metar:{self.raw_metar()}:"
+        #     debugging.debug(debug_string)
+        #    debugging.debug(err)
+        return True
 
-    def update_raw_metar(self, raw_metar_text):
-        """Roll over the metar data."""
-        self._metar_prev = self._metar
-        self._metar_date = datetime.now()
-        self._metar = raw_metar_text
+    def metar_object(self):
+        """Return processed metar object."""
+        return self._processed_metar_object
+
 
     def update_from_adds_xml(self, station_id, metar_data):
         """Update Airport METAR data from XML record."""
 
         next_object = metar_data.find("raw_text")
         if next_object is not None:
-            self.update_raw_metar(next_object.text)
+            self.update_metar(next_object.text)
         else:
-            self.update_raw_metar("Missing")
+            self.update_metar("Missing")
 
         next_object = metar_data.find("observation_time")
         if next_object is not None:
@@ -588,5 +593,5 @@ class Airport:
             if freshness:
                 # get_*_metar() returned true, so weather is still fresh
                 return True
-            utils_wx.calculate_wx_from_metar(self)
+            self.update_metar(self._metar)
         return False

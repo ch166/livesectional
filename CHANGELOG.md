@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug fix: Corrected URLs to airnav.com instead of rocketroute.com
 - Performance: minimize number of times we recalculate Metar data
 - WWW: Heatmap popup shows size rather than pin ID
+- Added support for VEML7700 light sensor
 
 ### Removed
 

@@ -1,5 +1,7 @@
 # Common utilities
 
+
+
 error_check() {
 	[ $1 != 0 ] && {
 		echo "error; exiting"
@@ -26,6 +28,7 @@ set -o errtrace         # Ensure the error trap handler is inherited
 
 export INSTALLDIR=/opt/NeoSectional
 export VENVDIR=/opt/venv/livemap
+export DATADIR=$INSTALLDIR/data
 
 # Sync filesystems
 sync

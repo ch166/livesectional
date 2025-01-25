@@ -37,6 +37,8 @@ import shutil
 
 import csv
 import json
+from email.utils import parsedate_to_datetime
+
 import pytz
 
 from lxml import etree
@@ -159,7 +161,21 @@ class AirportDB:
 
     def stats(self):
         """Return string containing pertinent stats."""
-        return f"Statistics:\n\tairport master dict {len(self._airport_master_dict)} entries\n\tairport_web_dict: {len(self._airport_web_dict)}\n\tairport_led_dict: {len(self._airport_led_dict)}"
+        min_metar_update_interval = 10000
+        max_airport_update_count = 0
+        for airport_icao, airport_obj in self._airport_master_dict.items():
+            aprt_min_update_interval = airport_obj.min_update_interval()
+            aprt_max_update_count = airport_obj.update_count()
+            if aprt_min_update_interval < min_metar_update_interval:
+                min_metar_update_interval = aprt_min_update_interval
+            if aprt_max_update_count > max_airport_update_count:
+                max_airport_update_count = aprt_max_update_count
+
+        return (
+            f"Statistics:\n\tairport master dict {len(self._airport_master_dict)} entries\n\tairport_web_dict: {len(self._airport_web_dict)}"
+            + f"\n\tairport_led_dict: {len(self._airport_led_dict)}\n\tmax_metar_count: {max_airport_update_count}"
+            + f"\n\tmin_update_interval: {min_metar_update_interval}"
+        )
 
     def create_new_airport_record(self, station_id, metar_data):
         """Create new DB record for station_id seeded with metar_data."""
@@ -460,7 +476,6 @@ class AirportDB:
                     station_id, metar_raw
                 )
                 self._airport_master_dict[station_id] = new_airport_object
-            self._airport_master_dict[station_id].update_metar(metar_raw)
             self._airport_master_dict[station_id].update_from_adds_xml(
                 station_id, metar_data
             )

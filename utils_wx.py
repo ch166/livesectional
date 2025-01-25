@@ -64,7 +64,6 @@ def get_usa_metar(airport_data):
             if line.startswith(airport_data.icao.upper()):
                 report = line.strip()
                 airport_data.metar_date = timenow
-                airport_data.metar_prev = airport_data.metar
                 airport_data.metar = report
                 debugging.debug(report)
         if not report:
@@ -76,22 +75,18 @@ def get_usa_metar(airport_data):
         if urlh:
             if urlh.getcode() == 404:
                 airport_data.metar_date = timenow
-                airport_data.metar_prev = airport_data.metar
                 airport_data.metar = "URL 404 Error : Disabling"
                 airport_data.enabled = False
                 return True
             else:
-                airport_data.metar_prev = airport_data.metar
                 airport_data.metar = transient_err
                 return True
         else:
             debugging.debug("URLError: urlh not set")
-            airport_data.metar_prev = airport_data.metar
             airport_data.metar = transient_err
             return True
     except (socket.error, socket.gaierror):
         debugging.debug("Socket Error retrieving " + airport_data.icao)
-        airport_data.metar_prev = airport_data.metar
         airport_data.metar = transient_err
         return True
     return False
@@ -112,7 +107,7 @@ def cloud_height(metar_object):
             return lowest_ceiling
         if not cloudlayer[1]:
             # Not sure why we are here - should have a cloud layer with altitudes
-            debugging.debug("Cloud Layer without altitude values " + cloudlayer[0])
+            debugging.debug(f"Cloud Layer without altitude values {cloudlayer[0]}")
             return -1
         layer_altitude = cloudlayer[1].value()
         if key in ("OVC", "BKN"):
@@ -246,7 +241,6 @@ def calculate_wx_from_metar(airport_data):
         f"Airport {airport_data._icao} - {airport_data._flight_category} - {airport_data.raw_metar()}"
     )
     return airport_data_observation
-
 
 
 def calc_wx_conditions(wx_metar):

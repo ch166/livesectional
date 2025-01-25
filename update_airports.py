@@ -239,9 +239,6 @@ class AirportDB:
         """Create JSON data from Airport datasets."""
         airportdb_list = []
         for __airport_db_id, airport_obj in self._airport_master_dict.items():
-            debugging.info(
-                f"save data {airport_obj.icao_code()} active as {airport_obj.active()} / {airport_obj.save_in_config()}"
-            )
             if not airport_obj.save_in_config():
                 continue
             icao_label = airport_obj.icao_code()
@@ -249,16 +246,19 @@ class AirportDB:
                 icao_label = "null"
             if icao_label.startswith("lgnd:"):
                 icao_label = "lgnd"
-            airport_save_record = {
-                "led": str(airport_obj.get_led_index()),
+            airport_led = airport_obj.get_led_index()
+            airport_save_struct = {
+                "led": airport_led,
                 "active": str(airport_obj.active()),
                 "heatmap": airport_obj.heatmap_index(),
                 "icao": icao_label,
                 "purpose": airport_obj.purpose(),
                 "wxsrc": airport_obj.wxsrc(),
             }
+            airport_save_record = {"led": airport_led, "object": airport_save_struct}
             airportdb_list.append(airport_save_record)
-        debugging.info(f"save data {airportdb_list}")
+        airportdb_list.sort(key=lambda x: x["led"])
+        debugging.info(f"save data request :{airportdb_list}")
         return airportdb_list
 
     def airport_dict_from_webform(self, airport_data, purpose_data, metarsrc_data):
@@ -289,6 +289,7 @@ class AirportDB:
                     if airport_obj.get_led_index() == target_led:
                         airport_obj.set_led_index(None)
                         airport_obj.set_purpose_unused()
+                        airport_obj.loaded_from_config(False)
 
                 new_airport_object = self.create_new_airport_record(airport_icao, None)
                 self._airport_master_dict.update({airport_icao: new_airport_object})
@@ -306,7 +307,7 @@ class AirportDB:
             new_airport_object.set_purpose(purpose_data[led_index])
             new_airport_object.set_led_index(int(led_index))
 
-            new_airport_object.loaded_from_config()
+            new_airport_object.loaded_from_config(True)
             new_airport_object.set_active()
             debugging.info(
                 f"airport_webform_update: {airport_icao} triggering update_wx()"
@@ -354,7 +355,7 @@ class AirportDB:
             new_airport_object.set_led_index(led_value)
             new_airport_object.set_heatmap_index(json_airport["heatmap"])
 
-            new_airport_object.loaded_from_config()
+            new_airport_object.loaded_from_config(True)
 
             if utils.str2bool(json_airport["active"]):
                 debugging.info(f"Loaded and activated airport :{airport_icao}:")
@@ -418,6 +419,7 @@ class AirportDB:
         """Save Airport Data file."""
         debugging.debug("Saving Airport DB")
         json_save_data = {}
+        json_save_data_airport = []
         airport_json_backup = self._app_conf.get_string(
             "filenames", "airports_json_backup"
         )
@@ -425,8 +427,11 @@ class AirportDB:
         airport_json = self._app_conf.get_string("filenames", "airports_json")
 
         shutil.move(airport_json, airport_json_backup)
-        json_save_data_airport = self.save_data_from_db()
+        save_data_airport = self.save_data_from_db()
+        for airport_entry in save_data_airport:
+            json_save_data_airport.append(airport_entry["object"])
         json_save_data["airports"] = json_save_data_airport
+        debugging.info(f"Saving Airport DB : {json_save_data}")
         with open(airport_json_new, "w", encoding="utf-8") as json_file:
             json.dump(json_save_data, json_file, sort_keys=False, indent=4)
         shutil.move(airport_json_new, airport_json)

@@ -168,13 +168,12 @@ class Airport:
     def update_count(self):
         return self._metar_update_count
 
-    def loaded_from_config(self):
+    def loaded_from_config(self, save_flag):
         """Airport was loaded from config file."""
-        self._loaded_from_config = True
+        self._loaded_from_config = save_flag
 
     def save_in_config(self):
         """Airport to be saved in config file."""
-        # FIXME: What is this trying to do ?
         return self._loaded_from_config
 
     def purpose(self):

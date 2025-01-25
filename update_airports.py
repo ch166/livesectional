@@ -347,7 +347,9 @@ class AirportDB:
             new_airport_object.set_purpose(json_airport["purpose"])
 
             led_index = json_airport["led"]
-            if not led_index.isnumeric():
+            if type(led_index) is int:
+                led_value = led_index
+            elif not led_index.isnumeric():
                 # If the json config entry doesn't have a LED value; then create one at +1000
                 led_value = counter + 1000
             else:

@@ -63,7 +63,6 @@ class Airport:
     # Airport Configuration
     _wxsrc = None
     _metar = None
-    _metar_prev = None
     _metar_date = None
     _observation = None
     _observation_time = None
@@ -103,6 +102,10 @@ class Airport:
     # Global Data
     _metar_returncode = ""
 
+    # Stats
+    _metar_update_count = 0
+    _short_update_cycle = 10000
+
     def __init__(self, icao, metar):
         """Initialize object and set initial values for internals."""
         # Airport Identity
@@ -115,7 +118,6 @@ class Airport:
         # Airport Configuration
         self._wxsrc = None
         self._metar = metar
-        self._metar_prev = None
         self._metar_date = datetime.now() - timedelta(days=1)  # Make initial date "old"
         self._observation = None
         self._observation_time = None
@@ -159,6 +161,12 @@ class Airport:
     def last_updated(self):
         """Get last updated time."""
         return self._updated_time
+
+    def min_update_interval(self):
+        return self._short_update_cycle
+
+    def update_count(self):
+        return self._metar_update_count
 
     def loaded_from_config(self):
         """Airport was loaded from config file."""
@@ -228,9 +236,20 @@ class Airport:
     def update_metar(self, metartext):
         """Get Current METAR."""
         # debugging.info(f"Metar set for {self._icao} to :{metartext}")
-        self._metar_prev = self._metar
-        self._metar_date = datetime.now()
-        self._updated_time = datetime.now()
+        # Track shortest update interval
+        self._metar_update_count += 1
+        time_now = datetime.now()
+
+        if self._metar_date is not None:
+            timedelta = time_now - self._metar_date
+            if (timedelta.days == 0) and (timedelta.seconds < 10):
+                debugging.info(f"short update: {self._icao} {timedelta}")
+                return
+            if timedelta.seconds < self._short_update_cycle:
+                self._short_update_cycle = timedelta.seconds
+
+        self._metar_date = time_now
+        self._updated_time = time_now
         if metartext is None or metartext == "Missing":
             metartext = "Missing"
             self._processed_metar_object = None
@@ -428,7 +447,6 @@ class Airport:
     def metar_object(self):
         """Return processed metar object."""
         return self._processed_metar_object
-
 
     def update_from_adds_xml(self, station_id, metar_data):
         """Update Airport METAR data from XML record."""

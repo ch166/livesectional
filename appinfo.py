@@ -12,7 +12,6 @@ class AppInfo:
     #  This should be the same as the running version ; except when we've run the update script to copy new files into place.
     # Available Version - the contents of VERSION.txt in the git repo directory
 
-
     # Gather information about the currently installed version, and check for new versions.
     # As this gets smarter - we should be able to handle
     # - Hardware Info

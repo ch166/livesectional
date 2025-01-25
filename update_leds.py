@@ -391,7 +391,7 @@ class UpdateLEDs:
             (col_r, col_g, col_b) = rgb_col
             rgb_list[i] = (col_r * 255, col_g * 255, col_b * 255)
         self._rgb_rainbow = rgb_list
-        debugging.info(f"Rainbow List - {self._rgb_rainbow}")
+        # debugging.info(f"Rainbow List - {self._rgb_rainbow}")
 
     def moved_to_conf_module_update_confcache(self):
         """Update class local variables to cache conf data."""
@@ -494,7 +494,7 @@ class UpdateLEDs:
 
     def fill(self, color):
         """Return led_updated_dict containing single color only"""
-        debugging.info(f"Fill: In the fill loop for {color}")
+        # debugging.info(f"Fill: In the fill loop for {color}")
         led_updated_dict = {}
         for led_key in self._active_led_dict.keys():
             if self._active_led_dict[led_key] is not None:
@@ -557,7 +557,7 @@ class UpdateLEDs:
         # This accommodates the use of both models of LED strings on one map.
         if str(pin) in self._app_conf.cache["rev_rgb_grb"]:
             order = not order
-            debugging.info(f"Reversing rgb2grb Routine Output for PIN {pin}")
+            # debugging.info(f"Reversing rgb2grb Routine Output for PIN {pin}")
         red = data[0]
         grn = data[1]
         blu = data[2]
@@ -604,7 +604,7 @@ class UpdateLEDs:
         return color
 
     def check_for_sleep_time(self, clock_tick, sleeping, default_led_mode):
-        debugging.info(f"Checking if it's time for sleep mode: {clock_tick}")
+        debugging.debug(f"Checking if it's time for sleep mode: {clock_tick}")
         datetime_now = utils.current_time(self._app_conf)
         time_now = datetime_now.time()
         if utils.time_in_range(self._offtime, self._ontime, time_now):
@@ -657,8 +657,8 @@ class UpdateLEDs:
                 continue
             if self._led_mode == LedMode.METAR:
                 led_color_dict = self.ledmode_metar(clock_tick)
-                if (clock_tick % 100) == 0:
-                    debugging.info(f"ledmode_metar: {led_color_dict}")
+                if (clock_tick % 1000) == 0:
+                    debugging.debug(f"ledmode_metar: {led_color_dict}")
                 self.update_ledstring(led_color_dict)
                 continue
             if self._led_mode == LedMode.TEST:
@@ -773,13 +773,13 @@ class UpdateLEDs:
         airport_taf_dict = self._airport_database.get_airport_taf(airport)
         if airport_taf_dict is None:
             return None
-        debugging.info(f"{airport}:taf:{airport_taf_dict}")
+        debugging.debug(f"{airport}:taf:{airport_taf_dict}")
         airport_taf_future = self._airport_database.airport_taf_future(
             airport, hr_offset
         )
         if airport_taf_future is None:
             return None
-        debugging.info(f"{airport}:forecast:{airport_taf_future}")
+        debugging.debug(f"{airport}:forecast:{airport_taf_future}")
         return airport_taf_future["flightcategory"]
 
     def airport_mos_flightcategory(self, airport, hr_offset):
@@ -997,7 +997,7 @@ class UpdateLEDs:
             #    norm_color = led_color
             #    # led_color = utils_colors.hexcode(norm_color[0], norm_color[1], norm_color[2])
 
-            if (clock_tick % 150) == 0:
+            if (clock_tick % 1000) == 0:
                 debugging.info(
                     f"ledmode_metar: {airportcode}:{flightcategory}:{airportwinds}:{airport_led}:{led_color}"
                 )
@@ -1050,7 +1050,7 @@ class UpdateLEDs:
         elif self.morse_signal_encoded[morse_pos] == self.morse_interval:
             led_color = utils_colors.black()
 
-        debugging.info(f"morse:{led_color}")
+        # debugging.info(f"morse:{led_color}")
 
         for led_key in self._active_led_dict.keys():
             if self._active_led_dict[led_key] is not None:
@@ -1137,7 +1137,7 @@ class UpdateLEDs:
                 self._app_conf, flightcategory
             )
 
-            if (clock_tick % 150) == 0:
+            if (clock_tick % 1000) == 0:
                 debugging.info(
                     f"ledmode_mos: {airportcode}:{flightcategory}:{airportled}:{led_color}"
                 )
@@ -1255,7 +1255,7 @@ class UpdateLEDs:
             self._airport_database
         )
 
-        debugging.info(
+        debugging.debug(
             f"RADAR: max_lon: {max_lon}, min_lon: {min_lon}, max_lat: {max_lat}, min_lat: {min_lat}, "
         )
         if (
@@ -1264,7 +1264,7 @@ class UpdateLEDs:
             or (max_lon is None)
             or (min_lon is None)
         ):
-            debugging.info("RADAR: Setup incomplete ; no lon/lat data")
+            debugging.debug("RADAR: Setup incomplete ; no lon/lat data")
             return
         width = abs(max_lon - min_lon)
         height = abs(max_lat - min_lat)
@@ -1273,13 +1273,13 @@ class UpdateLEDs:
         self.radar_beam_radius = (
             max(height, width) * 1.1
         )  # Radius of 110% of the biggest boundary size surrounding the airports
-        debugging.info(
-            f"RADAR: center_lon: {center_lon}, center_lat: {center_lat}, self.radar_beam_radius: {self.radar_beam_radius}"
-        )
+        # debugging.debug(
+        #     f"RADAR: center_lon: {center_lon}, center_lat: {center_lat}, self.radar_beam_radius: {self.radar_beam_radius}"
+        # )
         area_triangles = utils_coord.circle_triangles(
             self.radar_beam_radius, self.radar_beam_width, center_lon, center_lat
         )
-        debugging.info(f"RADAR: {area_triangles}")
+        # debugging.debug(f"RADAR: {area_triangles}")
         for triangle in area_triangles:
             for (
                 airport_key,
@@ -1297,16 +1297,16 @@ class UpdateLEDs:
                     ):
                         deg_pos_start = triangle[0][0]
                         deg_pos_end = triangle[0][1]
-                        debugging.info(
-                            f"RADAR: Match airport {airport_key}:  inside {deg_pos_start}/{deg_pos_end}: led {airport_led}"
-                        )
+                        # debugging.info(
+                        #     f"RADAR: Match airport {airport_key}:  inside {deg_pos_start}/{deg_pos_end}: led {airport_led}"
+                        # )
                         for deg_pos in range(deg_pos_start, deg_pos_end):
                             if deg_pos in radar_map:
                                 radar_map[deg_pos] = radar_map[deg_pos] + (airport_led,)
                             else:
                                 radar_map[deg_pos] = (airport_led,)
 
-        debugging.info(f"RADAR: radar_map: {radar_map}")
+        # debugging.info(f"RADAR: radar_map: {radar_map}")
         self._radar_map = radar_map
 
     def ledmode_radar(self, clock_tick):
@@ -1567,7 +1567,7 @@ class UpdateLEDs:
         rabbit_color_2 = utils_colors.colordict["BLUE"]
         rabbit_color_3 = utils_colors.colordict["ORANGE"]
 
-        debugging.info("Rabbit: In the rabbit loop")
+        # debugging.info("Rabbit: In the rabbit loop")
 
         for led_key in self._active_led_dict.keys():
             if self._active_led_dict[led_key] is not None:

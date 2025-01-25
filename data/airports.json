@@ -19,10 +19,10 @@
         { "active": "True", "heatmap": 100, "icao": "kbfi", "led": "16", "purpose": "all", "wxsrc": "adds" },
         { "active": "False", "heatmap": 0, "icao": "null", "led": "17", "purpose": "off", "wxsrc": "none" },
         { "active": "True", "heatmap": 100, "icao": "kpwt", "led": "18", "purpose": "all", "wxsrc": "adds" },
-        { "active": "False", "heatmap": 0, "icao": "null", "led": "19", "purpose": "off", "wxsrc": "none" },
+        { "active": "True", "heatmap": 0, "icao": "8w5", "led": "19", "purpose": "all", "wxsrc": "neigh:kpwt" },
         { "active": "True", "heatmap": 0, "icao": "kpae", "led": "20", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 15, "icao": "kawo", "led": "21", "purpose": "all", "wxsrc": "adds" },
-        { "active": "False", "heatmap": 0, "icao": "null", "led": "22", "purpose": "off", "wxsrc": "none" },
+        { "active": "True", "heatmap": 0, "icao": "w10", "led": "22", "purpose": "off", "wxsrc": "neigh:kpae" },
         { "active": "True", "heatmap": 0, "icao": "k0s9", "led": "23", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 0, "icao": "knuw", "led": "24", "purpose": "all", "wxsrc": "adds" },
         { "active": "True", "heatmap": 20, "icao": "kbvs", "led": "25", "purpose": "all", "wxsrc": "adds" },
@@ -39,9 +39,9 @@
         { "active": "False", "heatmap": 0, "icao": "null", "led": "36", "purpose": "off", "wxsrc": "none" },
         { "active": "False", "heatmap": 0, "icao": "null", "led": "37", "purpose": "off", "wxsrc": "none" },
         { "active": "True", "heatmap": 0, "icao": "khqm", "led": "38", "purpose": "all", "wxsrc": "adds" },
-        { "active": "False", "heatmap": 0, "icao": "null", "led": "39", "purpose": "off", "wxsrc": "none" },
-        { "active": "False", "heatmap": 0, "icao": "null", "led": "40", "purpose": "off", "wxsrc": "none" },
-        { "active": "False", "heatmap": 0, "icao": "null", "led": "41", "purpose": "off", "wxsrc": "none" },
+        { "active": "True", "heatmap": 0, "icao": "w04", "led": "39", "purpose": "all", "wxsrc": "neigh:khqm" },
+        { "active": "True", "heatmap": 0, "icao": "s16", "led": "40", "purpose": "all", "wxsrc": "neigh:khqm" },
+        { "active": "True", "heatmap": 0, "icao": "14s", "led": "41", "purpose": "all", "wxsrc": "neigh:khqm" },
         { "active": "False", "heatmap": 0, "icao": "null", "led": "42", "purpose": "off", "wxsrc": "none" },
         { "active": "False", "heatmap": 0, "icao": "null", "led": "43", "purpose": "off", "wxsrc": "none" },
         { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "44", "purpose": "all", "wxsrc": "vfr" },
@@ -50,6 +50,6 @@
         { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "47", "purpose": "all", "wxsrc": "lifr" },
         { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "48", "purpose": "all", "wxsrc": "unkn" },
         { "active": "False", "heatmap": 0, "icao": "lgnd", "led": "49", "purpose": "all", "wxsrc": "home" },
-        { "active": "True", "heatmap": 0, "icao": "k11s", "led": "50", "purpose": "all", "wxsrc": "neigh:cwsp" }
+        { "active": "True", "heatmap": 0, "icao": "11s", "led": "50", "purpose": "all", "wxsrc": "neigh:kclm" }
     ]
 }

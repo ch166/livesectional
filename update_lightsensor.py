@@ -32,10 +32,14 @@ class LightSensor:
 
     _i2cbus = None
 
+    # Stats:
+    _error_count = 0
+    _loop_counter = 0
+
     # Hardware Info
     sensor_device = False
-    hardware_tsl2591 = False
-    hardware_veml7700 = False
+    _hardware_tsl2591 = False
+    _hardware_veml7700 = False
 
     # devices
     dev_tsl2591 = None
@@ -47,6 +51,8 @@ class LightSensor:
         self._i2cbus = i2cbus
         self.led_mgmt = led_mgmt
         self.i2c_scan()
+        self._error_count = 0
+        self._loop_counter = 0
         # self.enable_i2c_device()
 
     def i2c_scan(self):
@@ -60,12 +66,12 @@ class LightSensor:
         if self._i2cbus.i2c_exists(0x29):
             # Looks like TSL2591 device
             debugging.info("lightsensor: i2c scan sees TSL2591 type device")
-            self.hardware_tsl2591 = True
+            self._hardware_tsl2591 = True
             self.sensor_device = True
             self.activate_tsl2591()
         if self._i2cbus.i2c_exists(0x10):
             debugging.info("lightsensor: i2c scan sees VEML7700 type device")
-            self.hardware_veml7700 = True
+            self._hardware_veml7700 = True
             self.sensor_device = True
             self.activate_veml7700()
         return
@@ -89,9 +95,11 @@ class LightSensor:
                 lux = self.dev_tsl2591.lux
             except OSError as err:
                 debugging.info(f"tsl2591 light sensor read failure: {err}")
+                self._error_count += 1
                 self.i2c_scan()
                 lux = 100
             except Exception as e:
+                self._error_count += 1
                 debugging.error(e)
                 debugging.error(traceback.format_exc())
             finally:
@@ -109,9 +117,11 @@ class LightSensor:
                 lux = self.dev_veml7700.lux
             except OSError as err:
                 debugging.info(f"veml7700 light sensor read failure: {err}")
+                self._error_count += 1
                 self.i2c_scan()
                 lux = 100
             except Exception as e:
+                self._error_count += 1
                 debugging.error(e)
                 debugging.error(traceback.format_exc())
             finally:
@@ -126,21 +136,20 @@ class LightSensor:
         self.conf = conf
         outerloop = True  # Set to TRUE for infinite outerloop
         lux = 250
-        loop_counter = 0
         while outerloop:
-            if (self.hardware_tsl2591 is False) and (self.hardware_veml7700 is False):
+            if (self._hardware_tsl2591 is False) and (self._hardware_veml7700 is False):
                 debugging.info(
                     "No light sensor hardware found for tsl2591 and veml7700"
                 )
-                if (loop_counter % 500) == 0:
+                if (self._loop_counter % 500) == 0:
                     self.i2c_scan()
             old_lux = lux
             old_lux_min = int(lux * 0.9)
             old_lux_max = int(lux * 1.1)
-            if self.hardware_tsl2591:
+            if self._hardware_tsl2591:
                 lux = self.read_tsl2591()
                 debugging.debug(f"tsl2591 lux [{lux}]")
-            if self.hardware_veml7700:
+            if self._hardware_veml7700:
                 lux = self.read_veml7700()
                 debugging.debug(f"veml7700 lux [{lux}]")
             lux = round(lux, 0)
@@ -150,4 +159,15 @@ class LightSensor:
             self.led_mgmt.set_brightness(lux)
             sleep_interval = 5 + random.randint(0, 5)
             time.sleep(sleep_interval)
-            loop_counter += 1
+            self._loop_counter += 1
+
+    def stats(self):
+        """Report stats for module"""
+        stats_msg = "lightsensor stats:\n\t"
+        if self._hardware_tsl2591:
+            stats_msg += "tsl2591 active:\n\t"
+        if self._hardware_veml7700:
+            stats_msg += "veml7700 active:\n\t"
+        stats_msg += f"error count: {self._error_count}\n\t"
+        stats_msg += f"iteration count: {self._loop_counter}"
+        return stats_msg

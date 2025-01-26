@@ -167,7 +167,7 @@ def calculate_wx_from_metar(airport_data):
         return
 
     try:
-        airport_data_observation = Metar.Metar(airport_data.raw_metar())
+        airport_data_observation = Metar.Metar(airport_data.raw_metar(), strict=False)
         airport_data._processed_metar_object = airport_data_observation
     except Metar.ParserError as err:
         debugging.debug("Parse Error for METAR code: " + airport_data.raw_metar())
@@ -229,14 +229,6 @@ def calculate_wx_from_metar(airport_data):
 
     airport_data.set_wx_category(airport_data._flight_category)
 
-    if airport_data.icao_code() == "11s":
-        debugging.info(
-            f"calculate wx from metar {airport_data.icao_code()} /_wx_windspeed_kt : {airport_data._wind_speed_kt} / {airport_data.raw_metar()}"
-        )
-
-    debugging.debug(
-        f"Airport: Ceiling {airport_data._wx_ceiling} + Visibility : {airport_data._wx_visibility}"
-    )
     debugging.debug(
         f"Airport {airport_data._icao} - {airport_data._flight_category} - {airport_data.raw_metar()}"
     )

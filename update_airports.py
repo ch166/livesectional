@@ -487,11 +487,6 @@ class AirportDB:
                 station_id, metar_data
             )
 
-            if station_id in ("kbfi", "ksea"):
-                debugging.info(
-                    f"***\nAIRPORT OF INTEREST\n\t{station_id}\t{metar_raw}\n\n"
-                )
-
         self._metar_xml_dict = metar_data
         self._metar_update_time = datetime.now(pytz.utc)
         debugging.debug("Updating Airports: METAR from XML Complete")
@@ -844,7 +839,7 @@ class AirportDB:
                 debugging.debug("Processing updated METAR data")
                 self._metar_serial = self._dataset.metar_serial()
                 self.update_airportdb_metar_xml()
-                self.update_airport_wx()
+                # self.update_airport_wx()
 
             if (self._taf_serial < self._dataset.taf_serial()) or self._dataset_changed:
                 debugging.debug("Processing updated TAF data")

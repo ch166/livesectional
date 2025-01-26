@@ -84,11 +84,11 @@ class AirportDB:
 
     # Primary Data Sets - Imported from Internet/External Sources
     _runway_data = None
-    runway_data2 = None
     _airport_data = None
 
     # Debug
     _debug_airport_list = ["kbfi", "11s", "w04"]
+    _error_count = 0
 
     def __init__(self, app_conf, dataset_thread):
         """Create a database of Airports to be tracked."""
@@ -174,7 +174,7 @@ class AirportDB:
         return (
             f"Statistics:\n\tairport master dict {len(self._airport_master_dict)} entries\n\tairport_web_dict: {len(self._airport_web_dict)}"
             + f"\n\tairport_led_dict: {len(self._airport_led_dict)}\n\tmax_metar_count: {max_airport_update_count}"
-            + f"\n\tmin_update_interval: {min_metar_update_interval}"
+            + f"\n\tmin_update_interval: {min_metar_update_interval}\n\terror_count: {self._error_count}"
         )
 
     def create_new_airport_record(self, station_id, metar_data):
@@ -231,6 +231,7 @@ class AirportDB:
             try:
                 airport_obj.update_wx(self._airport_master_dict)
             except Exception as err:
+                self._error_count += 1
                 debug_string = f"Error: update_airport_wx Exception handling for {airport_obj.icao_code()} ICAO:{icao}:"
                 debugging.error(debug_string)
                 debugging.crash(err)
@@ -539,6 +540,7 @@ class AirportDB:
                 except Exception as err:
                     # get cloud base AGL from XML
                     # debugging.error(err)
+                    self._error_count += 1
                     debugging.debug(err)
                     cld_base_ft_agl = forecast.find("vert_vis_ft")
                     if cld_base_ft_agl is not None:
@@ -777,6 +779,7 @@ class AirportDB:
                 if data_valid:
                     airport_obj.update_coordinates(new_lon, new_lat)
             except Exception as err:
+                self._error_count += 1
                 debug_string = f"Error: update_airport_lon_lat Exception handling for {airport_obj.icao_code()}"
                 debugging.error(debug_string)
                 debugging.crash(err)
@@ -792,6 +795,7 @@ class AirportDB:
                 runway_dataset = self.get_airport_runway_data(icao)
                 airport_obj.set_runway_data(runway_dataset)
             except Exception as err:
+                self._error_count += 1
                 debug_string = f"Error: update_airport_runways Exception handling for {airport_obj.icao_code()}"
                 debugging.error(debug_string)
                 debugging.crash(err)

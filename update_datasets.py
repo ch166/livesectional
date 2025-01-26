@@ -41,6 +41,8 @@ class DataSets:
     _mos_forecast_updated = False
     _mos_forecast = None
 
+    _error_count = 0
+
     def __init__(self, app_conf):
         """Tracking freshness of data sets ; internally using the time stamp of when the updated was pulled
         Clients of this class use a serial number - so that the ability to determine if something was updated is straightforward.
@@ -58,6 +60,7 @@ class DataSets:
         self._runway_serial_num = 0
         self._airport_update_time = None
         self._airport_serial_num = 0
+        self._error_count = 0
 
     def metar_update_time(self):
         """Get last time metar data was updated."""
@@ -109,7 +112,7 @@ class DataSets:
 
     def stats(self):
         """Return string containing pertinant stats."""
-        return f"Statistics:\n\tMetar Refresh {self.metar_serial()}/{self._metar_update_time}\n\tMOS refresh: {self.mos_serial()}/{self._mos_update_time}\n\tTAF Refresh: {self.taf_serial()}/{self._taf_update_time}"
+        return f"Statistics:\n\tMetar Refresh {self.metar_serial()}/{self._metar_update_time}\n\tMOS refresh: {self.mos_serial()}/{self._mos_update_time}\n\tTAF Refresh: {self.taf_serial()}/{self._taf_update_time}\n\terror_count: {self._error_count}"
 
     def mos_refresh(self, https_session, etag_mos, mos_file, mos_xml_url):
         """Refresh MOS Data."""
@@ -129,6 +132,7 @@ class DataSets:
                 )
             )
         except Exception as err:
+            self._error_count += 1
             debugging.error("MOS Refresh")
             debugging.error(err)
 

@@ -426,7 +426,7 @@ class AirportDB:
         airport_json_backup = self._app_conf.get_string(
             "filenames", "airports_json_backup"
         )
-        airport_json_new = self._app_conf.get_string("filenames", "airports_json_new")
+        airport_json_new = self._app_conf.get_string("filenames", "airports_json_tmp")
         airport_json = self._app_conf.get_string("filenames", "airports_json")
 
         shutil.move(airport_json, airport_json_backup)

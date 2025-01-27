@@ -108,7 +108,7 @@ class Conf:
         """Return HTTP(S) proxies from configuration."""
         proxies_conf_http = self.get_string("urls", "http_proxy")
         proxies_conf_https = self.get_string("urls", "https_proxy")
-        proxies = { "http": proxies_conf_http, "https": proxies_conf_https}
+        proxies = {"http": proxies_conf_http, "https": proxies_conf_https}
         if self.use_proxies():
             return proxies
         else:

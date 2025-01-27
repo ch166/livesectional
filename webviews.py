@@ -172,6 +172,9 @@ class WebViews:
             "/mapturnoff", view_func=self.handle_mapturnoff, methods=["GET", "POST"]
         )
         self.app.add_url_rule(
+            "/testled", view_func=self.handle_testled, methods=["GET", "POST"]
+        )
+        self.app.add_url_rule(
             "/check_updates", view_func=self.check_updates, methods=["GET", "POST"]
         )
         self.app.add_url_rule(
@@ -1232,12 +1235,6 @@ class WebViews:
             self._app_conf.save_config()
             flash("Settings Successfully Saved")
 
-            url = request.referrer
-            if url is None:
-                url = "https://" + ipadd + ":5000/"
-                # Use index if called from URL and not page.
-
-            # temp = url.split("/")
             return redirect("/")
             # temp[3] holds name of page that called this route.
         return redirect("/")
@@ -1405,9 +1402,10 @@ class WebViews:
         # Need to put in some checks here to just ignore this call unless the versions are appropriate for updates
 
         self.check_updates()
-
         if not self._appinfo.update_ready():
-            flash("REMOVE: Call to restart ; when no new version available ")
+            flash(
+                "Ignoring restart call as it likely came from previous restart request"
+            )
             return redirect("/")
 
         returncode, stdout = utils_system.execute_script(
@@ -1424,38 +1422,23 @@ class WebViews:
             template_data["stdout"] = stdout
             return render_template("update_error.html", **template_data)
 
-    # Route for Reboot of RPI
     def system_reboot(self):
         """Flask Route: /system_reboot - Request host reboot."""
-        ipadd = self._sysdata.local_ip()
-        url = request.referrer
-        if url is None:
-            url = "https://" + ipadd + ":5000/"
-            # Use index if called from URL and not page.
-
         flash("Rebooting System")
-        debugging.info("Rebooting Map from " + url)
-        os.system("sudo shutdown -r now")
+        debugging.info(f"Rebooting Map from {request.referrer}")
+        utils.system_reboot()
         return redirect("/")
-        # temp[3] holds name of page that called this route.
 
-    # Route to turn off the map and displays
-    # @app.route("/mapturnoff", methods=["GET", "POST"])
     def handle_mapturnoff(self):
         """Flask Route: /mapturnoff - Trigger process shutdown."""
-        url = request.referrer
-        debugging.info(f"Shutoff Map from {url}")
+        debugging.info(f"Shutoff Map from {request.referrer}")
         self._led_strip.set_ledmode(LedMode.OFF)
         flash("Map Turned Off")
         return redirect("/")
-        # temp[3] holds name of page that called this route.
 
-    # Route to turn off the map and displays
-    # @app.route("/mapturnoff", methods=["GET", "POST"])
     def handle_mapturnon(self):
         """Flask Route: /mapturnon - Trigger process shutdown."""
-        url = request.referrer
-        debugging.info(f"Turn Map ON from {url}")
+        debugging.info(f"Turn Map ON from {request.referrer}")
         self._led_strip.set_ledmode(LedMode.METAR)
         flash("Map Turned On")
         return redirect("/")
@@ -1467,37 +1450,19 @@ class WebViews:
         """Flask Route: /shutoffnow1 - Turn Off RPI."""
         url = request.referrer
         ipadd = self._sysdata.local_ip()
-        if url is None:
-            url = "https://" + ipadd + ":5000/"
-            # Use index if called from URL and not page.
-
-        # temp = url.split("/")
-        # flash("RPI is Shutting Down ")
-        debugging.info("Shutdown RPI from " + url)
+        debugging.info(
+            "Disabled - Security Concerns - Investigating Shutdown RPI from " + url
+        )
         # FIXME: Security Fixup
         # os.system('sudo shutdown -h now')
         return redirect("/")
-        # temp[3] holds name of page that called this route.
 
-    # FIXME: Integrate into Class
-    # Route to run LED test
-    # @app.route("/testled", methods=["GET", "POST"])
-    def testled(self):
+    def handle_testled(self):
         """Flask Route: /testled - Run LED Test scripts."""
-        url = request.referrer
-        ipadd = self._sysdata.local_ip()
-
-        if url is None:
-            url = "https://" + ipadd + ":5000/"
-            # Use index if called from URL and not page.
-
-        # temp = url.split("/")
-
-        # flash("Testing LED's")
-        debugging.info("Running testled.py from " + url)
-        # os.system('sudo python3 /opt/NeoSectional/testled.py')
+        debugging.info(f"Running testled.py from {request.referrer}")
+        self._led_strip.set_ledmode(LedMode.TEST)
+        flash("Set LED mode to TEST")
         return redirect("/")
-        # temp[3] holds name of page that called this route.
 
     # FIXME: Integrate into Class
     # Route to run OLED test
@@ -1506,11 +1471,6 @@ class WebViews:
         """Flask Route: /testoled - Run OLED Test sequence."""
         url = request.referrer
         ipadd = self._sysdata.local_ip()
-        if url is None:
-            url = "https://" + ipadd + ":5000/"
-            # Use index if called from URL and not page.
-
-        # temp = url.split("/")
         if (self._app_conf.get_int("oled", "displayused") != 1) or (
             self._app_conf.get_int("oled", "oledused") != 1
         ):

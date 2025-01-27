@@ -20,14 +20,10 @@ OLED Display devices can be used to share
 """
 
 import time
-
-# import math
-# import cmath
-# import random
-
 from enum import Enum, auto
 
-# import datetime
+import json
+import shutil
 
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
@@ -159,11 +155,14 @@ class UpdateOLEDs:
     ]
 
     reentry_check = False
-    _conf = None
+    _app_conf = None
     _airport_database = None
     _i2cbus = None
 
     _device_count = 0
+
+    _oled_device_config = {}
+    _oled_metar_airports = []
 
     oled_list = []
     oled_dict_default = {
@@ -176,29 +175,118 @@ class UpdateOLEDs:
     }
 
     def __init__(self, conf, sysdata, airport_database, i2cbus, led_mgmt):
-        self._conf = conf
+        self._app_conf = conf
         self._led_mgmt = led_mgmt
         self._sysdata = sysdata
         self._airport_database = airport_database
         self._i2cbus = i2cbus
-        self._device_count = self._conf.get_int("oled", "oled_count")
+        device_count = self._app_conf.get_int("oled", "oled_count")
 
         debugging.debug(f"OLED: Config setup for {self._device_count} devices")
 
-        for device_idnum in range(0, self._device_count):
-            debugging.debug(f"OLED: Polling for device: {device_idnum}")
-            self.oled_list.insert(device_idnum, self.oled_device_init(device_idnum))
-            self.oled_text(device_idnum, f"Init {device_idnum}")
+        self._oled_device_config = {}
+        self.load_oled_conf()
 
-        debugging.debug(f"OLED: Init complete : oled_list len {len(self.oled_list)}")
+        oled_dev_found = 0
+        for device_idnum in range(0, device_count):
+            debugging.debug(f"OLED: Polling for device: {device_idnum}")
+            oled_device_discovery = self.oled_device_init(device_idnum)
+            if oled_device_discovery["active"]:
+                oled_dev_found += 1
+                self.oled_list.insert(device_idnum, oled_device_discovery)
+                self.oled_text(device_idnum, f"Init {device_idnum}")
+        self._device_count = oled_dev_found
+
+        # New OLED Conf
+
+        debugging.debug(
+            f"OLED: Init complete : oled_list len {len(self.oled_list)}/ conf {device_count}"
+        )
+
+    def load_oled_conf(self):
+        """Load OLED configuration."""
+        # FIXME: Add file error handling
+        debugging.debug("Loading Airport List")
+        oled_conf_json = self._app_conf.get_string("filenames", "oled_conf_json")
+        # Opening JSON file
+        if not utils.file_exists(oled_conf_json):
+            debugging.debug(f"OLED conf json does not exist: {oled_conf_json}")
+            return
+
+        json_file = open(oled_conf_json, encoding="utf-8")
+        # returns JSON object as a dictionary
+        new_oled_json_dict = json.load(json_file)
+        # Closing file
+        json_file.close()
+
+        self.oled_conf_from_json(new_oled_json_dict)
+        debugging.debug("Airport Load and Merge complete")
+
+    def save_oled_conf(self):
+        """Save Airport Data file."""
+        debugging.debug("Saving Airport DB")
+        json_save_data = {}
+        oled_json_backup = self._app_conf.get_string("filenames", "oled_conf_backup")
+        oled_json_tmp = self._app_conf.get_string("filenames", "oled_conf_json_tmp")
+        oled_json = self._app_conf.get_string("filenames", "oled_conf_json")
+
+        shutil.move(oled_json, oled_json_backup)
+        json_save_data = self.save_data_from_db()
+        debugging.info(f"Saving OLED config : {json_save_data}")
+        with open(oled_json_tmp, "w", encoding="utf-8") as json_file:
+            json.dump(json_save_data, json_file, sort_keys=False, indent=4)
+        shutil.move(oled_json_tmp, oled_json)
+
+    def oled_conf_from_json(self, oled_json_dict):
+        """Generate OLED conf from json data"""
+        if oled_json_dict is None:
+            return
+        for oled_entry in oled_json_dict["oled"]:
+            self._oled_device_config[oled_entry["id"]] = oled_entry
+        self._oled_metar_airports = oled_json_dict["metar"]
+        debugging.info(
+            f"oled conf load: oled:{self._oled_device_config} / metar:{self._oled_metar_airports}"
+        )
+
+    def save_data_from_db(self):
+        """Generate JSON data for saving."""
+        json_save_data = {"oled": [], "metar": []}
+        for oled_entry in self._oled_device_config:
+            json_save_data["oled"].append(oled_entry)
+        for metar_entry in self._oled_metar_airports:
+            json_save_data["metar"].extend(metar_entry)
+        return json_save_data
+
+    def get_oled_model(self, modelstr):
+        """Get OLED model from string"""
+        if modelstr == "sh1106":
+            return OLEDCHIPSET.SH1106
+        elif modelstr == "ssd1306":
+            return OLEDCHIPSET.SSD1306
+        elif modelstr == "ssd1309":
+            return OLEDCHIPSET.SSD1309
+        elif modelstr == "ssd1325":
+            return OLEDCHIPSET.SSD1325
+        elif modelstr == "ssd1331":
+            return OLEDCHIPSET.SSD1331
+        elif modelstr == "ws0010":
+            return OLEDCHIPSET.WS0010
+        else:
+            return None
 
     def oled_device_init(self, device_idnum):
         """Initialize individual OLED devices."""
         # This initial version just assumes all OLED devices are the same.
         # TODO: Get OLED config information from config.ini
         oled_dev = self.oled_dict_default.copy()
+        oled_conf_def = self._oled_device_config[f"{device_idnum}"]
         oled_dev["active"] = False
         oled_dev["devid"] = device_idnum
+        oled_dev["chipset"] = self.get_oled_model(oled_conf_def["model"])
+        oled_dev["rotation"] = oled_conf_def["rotation"]
+        oled_dev["purpose"] = oled_conf_def["purpose"]
+
+        debugging.info(f"oled init {oled_dev}")
         device = None
         self.oled_select(oled_dev["devid"])
         if self._i2cbus.i2c_exists(self.OLEDI2CID):
@@ -263,7 +351,7 @@ class UpdateOLEDs:
         image_filename = f"static/oled_{oled_id}_oled_display.png"
 
         metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
-        currtime = utils.time_format_hms(utils.current_time(self._conf))
+        currtime = utils.time_format_hms(utils.current_time(self._app_conf))
         info_timestamp = f"time:{currtime} metar:{metarage}"
         info_ipaddr = f"ipaddr:{self._sysdata.local_ip()}"
         info_uptime = f"uptime:{self._sysdata.uptime()}"
@@ -296,7 +384,7 @@ class UpdateOLEDs:
         # TODO: Need to be smart about what we display ; use the current data to report important information.
         airport_details = f"{airport} {winddir}@{windspeed}"
         metarage = utils.time_format_hms(self._airport_database.get_metar_update_time())
-        currtime = utils.time_format_hms(utils.current_time(self._conf))
+        currtime = utils.time_format_hms(utils.current_time(self._app_conf))
         best_rway = f"Best runway: {rway_label}"
         information_timestamp = f"time:{currtime} metar:{metarage}\n{best_rway}"
         wind_poly = utils_gfx.create_wind_arrow(winddir, width, height)
@@ -429,7 +517,7 @@ class UpdateOLEDs:
             best_runway_deg = default_rwy_deg
 
         if (winddir is not None) and (best_runway_label is not None):
-            debugging.info(
+            debugging.debug(
                 f"Updating OLED Wind: {airportcode} : rwy: {best_runway_label} : wind {winddir}"
             )
             self.draw_wind(
@@ -466,7 +554,7 @@ class UpdateOLEDs:
     def update_oled_status(self, oled_id, counter):
         """Status Update Display."""
         metarage = utils.time_format_hm(self._airport_database.get_metar_update_time())
-        currtime = utils.time_format_hm(utils.current_time(self._conf))
+        currtime = utils.time_format_hm(utils.current_time(self._app_conf))
         info_timestamp = f"tm:{currtime} metar:{metarage}"
         if self._sysdata.internet_connected():
             info_internet = "Y"
@@ -484,37 +572,62 @@ class UpdateOLEDs:
         # Update saved image
         self.generate_info_image(oled_id)
 
+    def get_next_airport(self, metar_iter):
+        """Get the next airport to be displayed on OLED display in rotation"""
+        max_index = len(self._oled_metar_airports)
+        airport_code = self._oled_metar_airports[metar_iter % max_index]
+        airport_obj = self._airport_database.get_airport(airport_code)
+        return airport_obj
+
     def update_loop(self):
         """Continuous Loop for Thread."""
         debugging.debug("OLED: Entering Update Loop")
         outerloop = True  # Set to TRUE for infinite outerloop
         count = 0
         update_oled_flag = False
-        # FIXME: Move these values to config.ini
+
         oled_update_frequency = 180  # Every 3 minutes
         oled_loop_interval = 5
         oled_loop_per_interval = int(oled_update_frequency / oled_loop_interval)
         #
+        metar_iter = 0
         while outerloop:
             count += 1
             update_oled_flag = (count % oled_loop_per_interval) == 1
             if update_oled_flag:
-                debugging.info(f"OLED: Updating {self._device_count} OLEDs")
-            else:
-                debugging.info(f"OLED: Updating info OLED loopcount:{count}")
+                debugging.info(
+                    f"OLED: Updating {self._device_count} OLEDs (loopcount: {count})"
+                )
+
             for oled_id in range(0, self._device_count):
                 # TODO: This is hardcoded
                 # Move to configuration ..
-                if oled_id == 0:
+                purpose = self._oled_device_config[f"{oled_id}"]["purpose"]
+                if purpose is None:
+                    continue
+                if purpose == "info":
                     self.update_oled_status(oled_id, count)
-                if (oled_id == 1) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kbfi", "14", 140)
-                if (oled_id == 2) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "ksea", "16", 160)
-                if (oled_id == 3) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kpae", "16", 160)
-                if (oled_id == 4) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kpwt", "20", 200)
-                if (oled_id == 5) and update_oled_flag:
-                    self.update_oled_wind(oled_id, "kfhr", "34", 340)
+                if purpose == "metar":
+                    metar_iter += 1
+                    airport_obj = self.get_next_airport(metar_iter)
+                    if airport_obj is None:
+                        continue
+                    self.update_oled_wind(
+                        oled_id,
+                        airport_obj.icao_code(),
+                        airport_obj.best_runway(),
+                        airport_obj.best_runway_deg(),
+                    )
+                # if oled_id == 0:
+                #     self.update_oled_status(oled_id, count)
+                # if (oled_id == 1) and update_oled_flag:
+                #     self.update_oled_wind(oled_id, "kbfi", "14", 140)
+                # if (oled_id == 2) and update_oled_flag:
+                #     self.update_oled_wind(oled_id, "ksea", "16", 160)
+                # if (oled_id == 3) and update_oled_flag:
+                #     self.update_oled_wind(oled_id, "kpae", "16", 160)
+                # if (oled_id == 4) and update_oled_flag:
+                #     self.update_oled_wind(oled_id, "kpwt", "20", 200)
+                # if (oled_id == 5) and update_oled_flag:
+                #     self.update_oled_wind(oled_id, "kfhr", "34", 340)
             time.sleep(oled_loop_interval)

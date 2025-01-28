@@ -16,7 +16,7 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 # 1. cd to git repo ; git remote update ; git pull
 # Assuming HTTPS git URL ; so no need for auth keys
 
-cd /opt/git/livesectional
+cd /opt/git/livesectional || exit
 git remote update 2>&1 | logger -t livemap-daily
 error_check $?
 git pull 2>&1 | logger -t livemap-daily
@@ -40,7 +40,7 @@ error_check $?
 # 3. check log files for errors
 now=`date +"%m_%d_%Y"`
 
-cd /opt/NeoSectional/logs
+cd /opt/NeoSectional/logs || exit
 grep -A 5 -i error debugging.log* > error.log-${now}
 
 # Sync filesystems

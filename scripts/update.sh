@@ -19,7 +19,7 @@ INSTALLDIR='/usr/bin/install -d'
 
 
 # Git update
-cd $GITSRC
+cd $GITSRC || exit 1
 error_check $?
 git remote update
 error_check $?
@@ -49,8 +49,23 @@ error_check $?
 $INSTALLDIR $STATICFILES
 error_check $?
 
+# FIXME: This would be better not hardcoded / only in the update script
+# Need to be able to handle the situation where we add new configuration data files newer versions of the environment
+if [ ! -f $DATADEST/airports.json ]; then
+  $INSTALL -t $DATADEST data/airports.json
+fi
+
+if [ ! -f $DATADEST/oled_conf.json ]; then
+  $INSTALL -t $DATADEST data/oled_conf.json
+fi
+
+
+# FIXME: Updates that include new or changed config.ini lines
+# Need to be able to handle the scenario where we add additional configuration file lines
+
+
 echo -e "Copying static archive"
-cd $STATICFILES
+cd $STATICFILES || exit 1
 error_check $?
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 error_check $?

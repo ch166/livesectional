@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source $(dirname "$0")/utils.sh
+source "$(dirname "$0")"/utils.sh
 
 export VENVDIR=/opt/venv/livemap
 

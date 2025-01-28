@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source $(dirname "$0")/utils.sh
+source "$(dirname "$0")"/utils.sh
 
 # Debugging
 # set -x
@@ -23,15 +23,11 @@ INSTALLDIR='/usr/bin/install -d'
 
 # Copy the correct files into destination directory
 
-cd $GITSRC
+cd $GITSRC || error_exit "cd $GITSRC failed."
 
 $INSTALL -t $INSTALLDEST ./*.py
 error_check $?
-$INSTALL -t $INSTALLDEST config.ini
-error_check $?
 $INSTALL -t $INSTALLDEST requirements.txt
-error_check $?
-$INSTALL -t $DATADEST data/airports.json
 error_check $?
 $INSTALL -t $TEMPLATEDEST templates/*.html
 error_check $?
@@ -41,13 +37,24 @@ $INSTALL -t $CRONDAILY -m 755 scripts/livemap-daily.sh
 error_check $?
 $INSTALL -t $SYSTEMD livemap.service
 error_check $?
+
+# Make required directories
 $INSTALLDIR $LOGDEST
 error_check $?
 $INSTALLDIR $STATICFILES
 error_check $?
 
+# Installing initial configuration files
+$INSTALL -t $INSTALLDEST config.ini
+error_check $?
+$INSTALL -t $DATADEST data/airports.json
+error_check $?
+$INSTALL -t $DATADEST data/oled_conf.json
+error_check $?
+
+
 echo -e "Copying static archive"
-cd static/
+cd $STATICFILES || error_exit "cd $STATICFILES failed."
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 error_check $?
 
@@ -55,14 +62,13 @@ echo -e "Getting fontawesome"
 # FIXME: Fragile hardcoded values
 #
 $INSTALLDIR $FONTAWESOME
-cd $FONTAWESOME
+cd $FONTAWESOME || error_exit "cd $FONTAWESOME failed."
 wget -nc https://use.fontawesome.com/releases/v6.7.2/fontawesome-free-6.7.2-web.zip
 unzip -uo fontawesome-free-6.7.2-web.zip
 ln -sf $FONTAWESOME/fontawesome-free-6.7.2-web/ $STATICFILES/fontawesome
 
 
 systemctl daemon-reload
-#systemctl restart livemap
 
 echo -e "Install complete - try\n systemctl restart livemap ; systemctl status livemap"
 

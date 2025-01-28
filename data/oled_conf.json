@@ -1,0 +1,11 @@
+{
+    "oled": [
+        { "active": "True", "model": "ssd1306", "rotation": "False", "id": "0", "purpose": "info"  },
+        { "active": "True", "model": "ssd1306", "rotation": "False", "id": "1", "purpose": "metar" },
+        { "active": "True", "model": "ssd1306", "rotation": "False", "id": "2", "purpose": "metar" },
+        { "active": "True", "model": "ssd1306", "rotation": "False", "id": "3", "purpose": "metar" },
+        { "active": "True", "model": "ssd1306", "rotation": "False", "id": "4", "purpose": "metar" },
+        { "active": "True", "model": "ssd1306", "rotation": "False", "id": "5", "purpose": "metar" }
+    ],
+    "metar": [ "kbfi", "kpae", "ksea", "krnt", "kfhr", "kpwt", "khqm", "kbli" ]
+}

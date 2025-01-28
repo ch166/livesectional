@@ -26,7 +26,7 @@ def execute_script(script_path):
         debugging.error(f"script OSError: {script_path} err: {err}")
         return 1, "None provided"
     if script_result.returncode != 0:
-        debugging.error(f"script: {script_path} returned: {script_result.return_code}")
+        debugging.error(f"script: {script_path} returned: {script_result.returncode}")
     return script_result.returncode, script_result.stdout
 
 
@@ -69,6 +69,51 @@ def rpi_config_hostname(new_hostname):
         ]
     )
     return result
+
+
+def wifi_list_ssid():
+    """Get list of WIFI SSIDs"""
+    # nmcli \
+    #       --colors no
+    #       --escape no
+    #       --fields "SSID, IN-USE"
+    #       --mode tabular
+    #       --terse
+    #       device wifi list
+    #       --rescan auto
+
+    #
+    COMMAND = [
+        "nmcli",
+        "--colors",
+        "no",
+        "--escape",
+        "no",
+        "--fields",
+        "SSID,IN-USE",
+        "--mode",
+        "tabular",
+        "--terse",
+        "device",
+        "wifi",
+        "list",
+        "--rescan",
+        "auto",
+    ]
+    result, output = execute_script(COMMAND)
+    decoded = output.decode("ascii")
+    ssids = {}
+    active_ssid = "default not set"
+    if result == 0:
+        for line in decoded.splitlines():
+            ssid, active = line.split(":")
+            if ssid == "":
+                # Hidden SSID
+                continue
+            ssids[ssid] = True
+            if active == "*":
+                active_ssid = ssid
+    return active_ssid, ssids
 
 
 def system_reboot():

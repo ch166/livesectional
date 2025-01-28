@@ -7,9 +7,16 @@ Created on Jan 21st 2025
 @author: chris
 """
 
+import os
+import sys
+from datetime import datetime, timedelta
+import pytz
 import math
+from pathlib import Path
+
 import debugging
 import subprocess
+import utils
 import conf
 
 
@@ -122,3 +129,13 @@ def system_reboot():
     result, output = execute_script("sync")
     result, output = execute_script("/sbin/reboot")
     return result
+
+def fresh_daily(app_conf):
+    """Check to see if the timestamp on the daily update flag file is less than 24hrs old"""
+    fn = app_conf.get_string("filenames", "daily_update")
+    try:
+        daily_data = Path(app_conf.get_string("filenames", "daily_update")).read_text(encoding="utf-8")
+    except FileNotFoundError as err:
+        daily_data = "File Not Found"
+    return daily_data
+

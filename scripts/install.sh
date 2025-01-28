@@ -37,7 +37,7 @@ $INSTALL -t $TEMPLATEDEST templates/*.html
 error_check $?
 $INSTALL -t $SCRIPTSDEST -m 755 scripts/*.sh
 error_check $?
-$INSTALL -t $CRONDAILY -m 755 scripts/daily.sh
+$INSTALL -t $CRONDAILY -m 755 scripts/livemap-daily.sh
 error_check $?
 $INSTALL -t $SYSTEMD livemap.service
 error_check $?

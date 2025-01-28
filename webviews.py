@@ -211,6 +211,7 @@ class WebViews:
         if self._zeroconf is not None:
             self.machines = self._zeroconf.get_neighbors()
         airport_dict_data = {}
+
         for (
             airport_icao,
             airport_obj,
@@ -227,6 +228,7 @@ class WebViews:
             airport_dict_data[airport_icao] = airport_record
 
         current_ledmode = self._led_strip.ledmode()
+        fresh_daily = utils_system.fresh_daily(self._app_conf)
 
         template_data = {
             "title": "NOT SET - " + self._appinfo.running_version(),
@@ -249,6 +251,7 @@ class WebViews:
             "current_version": self._appinfo.current_version(),
             "machines": self.machines,
             "sysinfo": self._sysdata.query_system_information(),
+            "fresh_daily": fresh_daily,
         }
         return template_data
 
@@ -288,11 +291,11 @@ class WebViews:
         return render_template("tzset.html", **template_data)
 
     def wificonf(self):
-        """Flask Route: /wifi - Display and Set Wifi Information."""
+        """Flask Route: /wifi - Display and Set WiFi Information."""
         if request.method == "POST":
             req_wifi_ssid = request.form["ssid_selected"]
             req_wifi_pass = request.form["ssid_password"]
-            flash(f"Changing Wifi to {req_wifi_ssid}")
+            flash(f"Changing WiFi to {req_wifi_ssid}")
             utils_system.rpi_config_wifi(req_wifi_ssid, req_wifi_pass)
             return redirect("/wifi")
 
@@ -301,7 +304,7 @@ class WebViews:
         template_data["title"] = "WiFiConf"
         template_data["ssidlist"] = ssidlist
         template_data["current_ssid"] = current_ssid
-        debugging.info("Opening Wifi Conf page")
+        debugging.info("Opening WiFi Conf page")
         return render_template("wifi.html", **template_data)
 
     def ledmodeset(self):

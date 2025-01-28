@@ -26,11 +26,13 @@ error_check $?
 #
 # 
 
-echo "Going to run the create-venv.sh script to update environment"
+echo "Going to run the update.sh and create-venv.sh script to update environment"
+
+/opt/git/livesectional/scripts/update.sh 2>&1 | logger -t livemap-daily
+error_check $?
 
 /opt/git/livesectional/scripts/create-venv.sh 2>&1 | logger -t livemap-daily
 error_check $?
-
 
 # This should allow the code to look at the git repo to check version information ; and then run the 
 # install / upgrade scripts
@@ -43,3 +45,7 @@ grep -A 5 -i error debugging.log* > error.log-${now}
 
 # Sync filesystems
 sync
+
+# 4. Update timestamp on daily-complete.txt
+
+date > /opt/NeoSectional/daily-complete.txt

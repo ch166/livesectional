@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Feature: Announce via zeroconf to find other machines on the same network
+- Feature: Change WiFi network connection via web interface
 - Feature: Support for in-situ software upgrades
 - Feature: Airports without METAR data can be added to use weather from adjacent airports *neigh:_code_*
+- Feature: Calculate best active runway based on weather
 - Script: Daily cron job to update git repos
 - Script: update.sh - safely update installation
 - Added TAF data to /wx/<icao> 
@@ -30,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TAF code rewritten
 - MOS code rewritten
 - Added documentation / docs
+- OLED Configuration being moved to config file
 - Bug fix: Corrected URLs to aviationweather.gov
 - Bug fix: Corrected URLs to airnav.com instead of rocketroute.com
 - Performance: minimize number of times we recalculate Metar data

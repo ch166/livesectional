@@ -114,6 +114,7 @@ class WebViews:
             "/airport/<airport>", view_func=self.getairport, methods=["GET"]
         )
         self.app.add_url_rule("/tzset", view_func=self.tzset, methods=["GET", "POST"])
+        self.app.add_url_rule("/wifi", view_func=self.wificonf, methods=["GET", "POST"])
         self.app.add_url_rule(
             "/ledmodeset", view_func=self.ledmodeset, methods=["GET", "POST"]
         )
@@ -285,6 +286,23 @@ class WebViews:
         template_data["current_timezone"] = current_timezone
         debugging.info("Opening Time Zone Set page")
         return render_template("tzset.html", **template_data)
+
+    def wificonf(self):
+        """Flask Route: /wifi - Display and Set Wifi Information."""
+        if request.method == "POST":
+            req_wifi_ssid = request.form["ssid_selected"]
+            req_wifi_pass = request.form["ssid_password"]
+            flash(f"Changing Wifi to {req_wifi_ssid}")
+            utils_system.rpi_config_wifi(req_wifi_ssid, req_wifi_pass)
+            return redirect("/wifi")
+
+        current_ssid, ssidlist = utils_system.wifi_list_ssid()
+        template_data = self.standardtemplate_data()
+        template_data["title"] = "WiFiConf"
+        template_data["ssidlist"] = ssidlist
+        template_data["current_ssid"] = current_ssid
+        debugging.info("Opening Wifi Conf page")
+        return render_template("wifi.html", **template_data)
 
     def ledmodeset(self):
         """Flask Route: /ledmodeset - Set LED Display Mode."""
@@ -1400,14 +1418,12 @@ class WebViews:
     def perform_restart(self):
         """Execute scripts to restart app."""
         # Need to put in some checks here to just ignore this call unless the versions are appropriate for updates
-
         self.check_updates()
         if not self._appinfo.update_ready():
             flash(
                 "Ignoring restart call as it likely came from previous restart request"
             )
             return redirect("/")
-
         returncode, stdout = utils_system.execute_script(
             "/opt/git/livesectional/scripts/restart.sh"
         )

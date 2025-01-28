@@ -267,6 +267,7 @@ def decompress_file_gz(srcfile, dstfile):
         debugging.error(err)
         return False
 
+
 def read_file(fn):
     """Read a file into a variable"""
     return Path(fn).read_text(encoding="utf-8")

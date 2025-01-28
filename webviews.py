@@ -186,8 +186,9 @@ class WebViews:
         )
 
         self.app.add_url_rule("/changelog", view_func=self.changelog, methods=["GET"])
-        self.app.add_url_rule("/releaseinfo", view_func=self.releaseinfo, methods=["GET"])
-
+        self.app.add_url_rule(
+            "/releaseinfo", view_func=self.releaseinfo, methods=["GET"]
+        )
 
         self._led_strip = led_mgmt
 
@@ -272,13 +273,14 @@ class WebViews:
     def releaseinfo(self):
         """Flask Route: /releaseinfo - Display System Info."""
         self._sysdata.refresh()
-        releasenotes = utils.read_file(self._app_conf.get_string("filenames", "release_notes"))
+        releasenotes = utils.read_file(
+            self._app_conf.get_string("filenames", "release_notes")
+        )
         template_data = self.standardtemplate_data()
         template_data["title"] = "Release Notes"
         template_data["showfile"] = releasenotes
         debugging.info("Opening System Information page")
         return render_template("showfile.html", **template_data)
-
 
     def systeminfo(self):
         """Flask Route: /sysinfo - Display System Info."""

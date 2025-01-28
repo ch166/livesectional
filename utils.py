@@ -15,6 +15,8 @@ import datetime
 from datetime import timedelta
 from dateutil.parser import parse as parsedate
 
+from pathlib import Path
+
 import requests
 
 # import wget
@@ -264,6 +266,10 @@ def decompress_file_gz(srcfile, dstfile):
         debugging.info(f"File gzip decompress error f:{srcfile}:")
         debugging.error(err)
         return False
+
+def read_file(fn):
+    """Read a file into a variable"""
+    return Path(fn).read_text(encoding="utf-8")
 
 
 def time_in_range(start_time, end_time, check_time):

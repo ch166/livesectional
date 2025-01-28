@@ -185,6 +185,10 @@ class WebViews:
             "/perform_restart", view_func=self.perform_restart, methods=["GET", "POST"]
         )
 
+        self.app.add_url_rule("/changelog", view_func=self.changelog, methods=["GET"])
+        self.app.add_url_rule("/releaseinfo", view_func=self.releaseinfo, methods=["GET"])
+
+
         self._led_strip = led_mgmt
 
         self.num = self._app_conf.get_int("default", "led_count")
@@ -254,6 +258,27 @@ class WebViews:
             "fresh_daily": fresh_daily,
         }
         return template_data
+
+    def changelog(self):
+        """Flask Route: /changelog - Display System Info."""
+        self._sysdata.refresh()
+        changelog = utils.read_file(self._app_conf.get_string("filenames", "changelog"))
+        template_data = self.standardtemplate_data()
+        template_data["title"] = "Change Log"
+        template_data["showfile"] = changelog
+        debugging.info("Opening System Information page")
+        return render_template("showfile.html", **template_data)
+
+    def releaseinfo(self):
+        """Flask Route: /releaseinfo - Display System Info."""
+        self._sysdata.refresh()
+        releasenotes = utils.read_file(self._app_conf.get_string("filenames", "release_notes"))
+        template_data = self.standardtemplate_data()
+        template_data["title"] = "Release Notes"
+        template_data["showfile"] = releasenotes
+        debugging.info("Opening System Information page")
+        return render_template("showfile.html", **template_data)
+
 
     def systeminfo(self):
         """Flask Route: /sysinfo - Display System Info."""

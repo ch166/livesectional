@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source $(dirname "$0")/utils.sh
+source "$(dirname "$0")"/utils.sh
 
 # FIXME: Pull these destinations from the config
 GITSRC=/opt/git/livesectional/
@@ -13,10 +13,8 @@ SCRIPTSDEST=$INSTALLDEST/scripts/
 CRONDAILY=/etc/cron.daily/
 SYSTEMD=/etc/systemd/system/
 
-
 INSTALL='/usr/bin/install -p -v -D'
 INSTALLDIR='/usr/bin/install -d'
-
 
 # Git update
 cd $GITSRC || exit 1
@@ -72,4 +70,3 @@ error_check $?
 
 # Sync filesystems
 sync
-

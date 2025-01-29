@@ -147,7 +147,7 @@
                                 <div class="dropdown-menu">
                                     {% for i in range(machines|length) %}
                                     	{% set ip_add = machines[i].split(',') %}
-					<a class="dropdown-item" href="https://{{ ip_add[0] }}:8443" rel target="_blank">{{ ip_add[1] }}<i class="fas fa-external-link-alt"></i></a>
+					<a class="dropdown-item" href="https://{{ ip_add[1] }}:8443" rel target="_blank">{{ ip_add[2] }}<i class="fas fa-external-link-alt"></i></a>
                                     {% endfor %}
                                 </div>
                             </li>

@@ -58,6 +58,12 @@ class ZCListener(ServiceListener):
 class NeighListener(ServiceListener):
     """Class to Discover Multicast Neighbors."""
 
+    # Used for both host_ttl and other_ttl
+    _REFRESH_TIMER = 140
+    # Refresh timer should be longer than the two numbers below multiplied together.
+    _LOOP_DELAY_INTERVAL = 60
+    _LOOP_SKIP_COUNT = 2
+
     led_mgmt = None
     _app_conf = None
     _sysdata = None
@@ -125,6 +131,8 @@ class NeighListener(ServiceListener):
             port=self._net_port,
             properties=self._announce_description,
             server=self._announce_server,
+            host_ttl=self._REFRESH_TIMER,
+            other_ttl=self._REFRESH_TIMER,
         )
         return
 
@@ -151,7 +159,8 @@ class NeighListener(ServiceListener):
                     n_hostname = "missing"
                 n_ip_list = zc_info.parsed_scoped_addresses()
                 n_ip = f"{n_ip_list[0]}"
-                neighbors.append(f"{n_ip},{n_hostname} ({n_version})")
+                label = f"{n_hostname}, ({n_version})"
+                neighbors.append(f"{zc_name},{n_hostname}, {label} )")
         debugging.debug(f"zc get neighbors: {neighbors}")
         return neighbors
 
@@ -167,10 +176,9 @@ class NeighListener(ServiceListener):
         self._zeroconf.register_service(self._announce_info)
         debugging.debug(f"zc register: {self._announce_info}")
         while outerloop:
-            if loop_counter % 5 == 0:
+            if loop_counter % self._LOOP_SKIP_COUNT == 0:
                 debugging.debug("zc update service cycle")
                 self.update_node_identity()
                 self._zeroconf.update_service(self._announce_info)
-            sleep_interval = 60 + random.randint(0, 5)
-            time.sleep(sleep_interval)
+            time.sleep(self._LOOP_DELAY_INTERVAL)
             loop_counter += 1

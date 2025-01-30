@@ -7,6 +7,7 @@ import traceback
 import random
 import debugging
 import socket
+import time
 
 from zeroconf import (
     IPVersion,
@@ -24,35 +25,59 @@ from zeroconf import (
 class ZCListener(ServiceListener):
 
     _livemap_server_list = {}
+    _expiry_age = 140
 
     def add_service(self, zc: Zeroconf, service_type: str, name: str) -> None:
         zc_info = zc.get_service_info(service_type, name)
+        debugging.info(f"zc: Service {name} add")
         self.handle_service(zc_info)
 
     def update_service(self, zc: Zeroconf, service_type: str, name: str) -> None:
         zc_info = zc.get_service_info(service_type, name)
+        debugging.info(f"zc: Service {name} update")
         self.handle_service(zc_info)
 
     def remove_service(self, zc: Zeroconf, service_type: str, name: str) -> None:
         zc_info = zc.get_service_info(service_type, name)
+        debugging.info(f"zc: Service {name} remove")
         self._livemap_server_list.pop(zc_info.server, None)
-        debugging.info(f"zc: Service {name} removed")
 
     def handle_service(self, zc_info) -> None:
         if zc_info is not None:
             if zc_info.properties is not None:
                 for key, value in zc_info.properties.items():
                     if (key == b"function") and (value == b"livemap"):
-                        debugging.info(f"zc : {zc_info.server} / {key!r}: {value!r}")
-                        self._livemap_server_list[zc_info.server] = zc_info
+                        insert_time = time.time()
+                        debugging.info(
+                            f"zc: insert: {zc_info.server} / {key!r}: {value!r} / {insert_time}"
+                        )
+                        self._livemap_server_list[zc_info.server] = (
+                            zc_info,
+                            insert_time,
+                        )
 
     def neighbors(self):
         """Return discovered neighbors"""
-        return self._livemap_server_list
+        server_data = {}
+        for zc_name, server_entry in self._livemap_server_list.items():
+            server_data[zc_name] = server_entry[0]
+        return server_data
 
     def neighbor_count(self):
         """Count of items in neighbor list."""
         return len(self._livemap_server_list)
+
+    def prune_expired(self):
+        """Remove aged entries"""
+        new_server_list = {}
+        time_now = time.time()
+        for zc_name, server_entry in self._livemap_server_list.items():
+            created_seconds = server_entry[1]
+            if time_now < (created_seconds + self._expiry_age):
+                new_server_list[zc_name] = server_entry
+            else:
+                debugging.info(f"zc: expiry: {zc_name}")
+        self._livemap_server_list = new_server_list
 
 
 class NeighListener(ServiceListener):
@@ -61,8 +86,7 @@ class NeighListener(ServiceListener):
     # Used for both host_ttl and other_ttl
     _REFRESH_TIMER = 140
     # Refresh timer should be longer than the two numbers below multiplied together.
-    _LOOP_DELAY_INTERVAL = 60
-    _LOOP_SKIP_COUNT = 2
+    _LOOP_DELAY_INTERVAL = 20
 
     led_mgmt = None
     _app_conf = None
@@ -116,7 +140,7 @@ class NeighListener(ServiceListener):
             self._listener,
         )
 
-    def update_node_identity(self):
+    def refresh_node_info(self):
         """... do stuff ..."""
         self._announce_description["version"] = self._app_info.running_version()
         self._announce_description["netport"] = self._net_port
@@ -140,11 +164,11 @@ class NeighListener(ServiceListener):
         """Array of formatted neighbors"""
         neighbors = []
         if self._listener is not None:
-            debugging.debug(
-                f"zc self._listener.neighbors() : {self._listener.neighbors()}"
+            debugging.info(
+                f"zc: self._listener.neighbors() : {self._listener.neighbors()}"
             )
             for zc_name, zc_info in self._listener.neighbors().items():
-                debugging.debug(f"zc get_neighbors {zc_name}/{zc_info}")
+                debugging.info(f"zc: get_neighbors {zc_name}/{zc_info}")
                 if b"netport" in zc_info.properties:
                     n_port = zc_info.properties[b"netport"].decode("UTF-8")
                 else:
@@ -160,8 +184,8 @@ class NeighListener(ServiceListener):
                 n_ip_list = zc_info.parsed_scoped_addresses()
                 n_ip = f"{n_ip_list[0]}"
                 label = f"{n_hostname}, ({n_version})"
-                neighbors.append(f"{zc_name},{n_hostname}, {label} )")
-        debugging.debug(f"zc get neighbors: {neighbors}")
+                neighbors.append(f"{zc_name},{n_hostname},{label},{n_ip}")
+        debugging.info(f"zc: get neighbors: {neighbors}")
         return neighbors
 
     def stats(self):
@@ -172,13 +196,17 @@ class NeighListener(ServiceListener):
         """Thread Main Loop."""
         outerloop = True  # Set to TRUE for infinite outerloop
         loop_counter = 1
-        self.update_node_identity()
+        self.refresh_node_info()
         self._zeroconf.register_service(self._announce_info)
-        debugging.debug(f"zc register: {self._announce_info}")
+        debugging.debug(f"zc: register: {self._announce_info}")
+        trigger_time = time.time()
         while outerloop:
-            if loop_counter % self._LOOP_SKIP_COUNT == 0:
-                debugging.debug("zc update service cycle")
-                self.update_node_identity()
-                self._zeroconf.update_service(self._announce_info)
+            current_time = time.time()
+            if current_time > (trigger_time + self._REFRESH_TIMER):
+                trigger_time = current_time
+                debugging.info("zc: update service cycle")
+                self.refresh_node_info()
+                # self._listener.prune_expired()
+                # self._zeroconf.update_service(self._announce_info)
             time.sleep(self._LOOP_DELAY_INTERVAL)
             loop_counter += 1

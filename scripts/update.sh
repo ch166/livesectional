@@ -13,7 +13,7 @@ SCRIPTSDEST=$INSTALLDEST/scripts/
 CRONDAILY=/etc/cron.daily/
 SYSTEMD=/etc/systemd/system/
 
-INSTALL='/usr/bin/install -p -v -D'
+INSTALL='/usr/bin/install -C -v -D'
 INSTALLDIR='/usr/bin/install -d'
 
 # Git update

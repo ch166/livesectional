@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OLED Configuration being moved to config file
 - Bug fix: Corrected URLs to aviationweather.gov
 - Bug fix: Corrected URLs to airnav.com instead of rocketroute.com
+- Bug fix: Better handling of airports and runway data sources going missing.
 - Performance: minimize number of times we recalculate Metar data
 - WWW: Heatmap popup shows size rather than pin ID
 - Added support for VEML7700 light sensor

@@ -68,5 +68,8 @@ error_check $?
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 error_check $?
 
+# Let systemctl know something may have changed
+systemctl daemon-reload
+
 # Sync filesystems
 sync

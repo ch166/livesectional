@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Script: update.sh - safely update installation
 - Added TAF data to /wx/<icao> 
 - Added MOS data to /wx/<icao> 
+- Username/Password protection for destructive calls (eg: reboot / change wifi)
+- Initial setup screen on first run
 
 ### Changed
 

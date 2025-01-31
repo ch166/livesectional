@@ -20,6 +20,7 @@ from flask import (
     Flask,
     render_template,
     request,
+    Response,
     flash,
     redirect,
     send_file,
@@ -51,6 +52,13 @@ class WebViews:
     max_lon = 0
     min_lon = 0
 
+    _admin_username = "admin"
+    _admin_password = "notset"
+
+    _initial_setup_complete = False
+
+    _clean_reboot_request = False
+
     _app_conf = None
     airports = []  # type: list[object]
     machines = []  # type: list[str]
@@ -81,6 +89,14 @@ class WebViews:
         self._airport_database = airport_database
         self._appinfo = appinfo
         self._zeroconf = zeroconf
+        self._clean_reboot_request = False
+
+        # FIXME: Hard coded
+        self._admin_username = "admin"
+        self._admin_password = "123456"  # FIXME: Immediately ;-)
+
+        self._initial_setup_complete = False
+
         self.app = Flask(__name__)
         # self.app.jinja_env.auto_reload = True
         # This needs to happen really early in the process to take effect
@@ -185,6 +201,10 @@ class WebViews:
             "/perform_restart", view_func=self.perform_restart, methods=["GET", "POST"]
         )
 
+        self.app.add_url_rule(
+            "/firstsetup", view_func=self.firstsetup_handler, methods=["GET", "POST"]
+        )
+
         self.app.add_url_rule("/changelog", view_func=self.changelog, methods=["GET"])
         self.app.add_url_rule(
             "/releaseinfo", view_func=self.releaseinfo, methods=["GET"]
@@ -193,6 +213,30 @@ class WebViews:
         self._led_strip = led_mgmt
 
         self.num = self._app_conf.get_int("default", "led_count")
+
+    def check_auth(self, username, password):
+        """Check if a username/password combination is valid."""
+        return username == self._admin_username and password == self._admin_password
+
+    def authenticate(self):
+        """Sends a 401 response that enables basic auth."""
+        return Response(
+            "Could not verify your access level for that URL.\n"
+            "You have to login with proper credentials",
+            401,
+            {"WWW-Authenticate": 'Basic realm="Login Required"'},
+        )
+
+    def requires_auth(f):
+        """Decorator to prompt for basic auth credentials."""
+
+        def decorated(self, *args, **kwargs):
+            auth = request.authorization
+            if not auth or not self.check_auth(auth.username, auth.password):
+                return self.authenticate()
+            return f(self, *args, **kwargs)
+
+        return decorated
 
     def run(self):
         """Run Flask Application.
@@ -260,6 +304,30 @@ class WebViews:
         }
         return template_data
 
+    def firstsetup_handler(self):
+        """Flask Route: /firstsetup - Upload HeatMap Data."""
+        debugging.info("Updating airport heatmap data in airport records")
+
+        admin_user = None
+        admin_pass = None
+
+        if (request.method == "POST") and (self._initial_setup_complete == False):
+            form_data = request.form
+            admin_user = form_data['adminuser']
+            admin_pass = form_data['adminpass']
+
+            if admin_user and admin_pass:
+                self._admin_username = admin_user
+                self._admin_password = admin_pass
+
+            self._initial_setup_complete = True
+            flash("First Setup Complete")
+            debugging.info(f"form_data: {form_data}")
+
+            # Need to save these values for next run
+
+        return redirect("/")
+
     def changelog(self):
         """Flask Route: /changelog - Display System Info."""
         self._sysdata.refresh()
@@ -282,6 +350,7 @@ class WebViews:
         debugging.info("Opening System Information page")
         return render_template("showfile.html", **template_data)
 
+    @requires_auth
     def systeminfo(self):
         """Flask Route: /sysinfo - Display System Info."""
         self._sysdata.refresh()
@@ -951,6 +1020,16 @@ class WebViews:
         template_data = self.standardtemplate_data()
         template_data["title"] = "Intro"
 
+        # Check for initial setup state
+        if self._initial_setup_complete == False:
+            return render_template("initial_setup.html", **template_data)
+
+        # System Reboot call will update the flag and redirect to here.
+        # Should leave the end user with a clean URL
+        if self._clean_reboot_request:
+            self._clean_reboot_request = False  # Just in case the reboot request fails
+            utils_system.system_reboot()
+
         # flash(machines) # Debug
         debugging.info("Opening Home Page/Intro")
         return render_template("intro.html", **template_data)
@@ -1472,7 +1551,8 @@ class WebViews:
         """Flask Route: /system_reboot - Request host reboot."""
         flash("Rebooting System")
         debugging.info(f"Rebooting Map from {request.referrer}")
-        utils.system_reboot()
+        self._clean_reboot_request = True
+        # utils.system_reboot() # Executed as part of the return to the self.index rendering.
         return redirect("/")
 
     def handle_mapturnoff(self):

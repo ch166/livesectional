@@ -452,6 +452,10 @@ class UpdateOLEDs:
         #
         font = ImageFont.load_default(size=12)
 
+        # Error Handling
+        if best_runway_deg is None:
+            best_runway_deg = 0
+
         # Runway Dimensions
         rway_width = 6
         rway_x = 5  # 5 pixel border
@@ -512,7 +516,7 @@ class UpdateOLEDs:
         best_runway_label = airport_obj.best_runway()
         best_runway_deg = airport_obj.best_runway_deg()
 
-        if best_runway_label is None:
+        if (best_runway_label is None) or (best_runway_deg is None):
             best_runway_label = default_rwy_label
             best_runway_deg = default_rwy_deg
 

@@ -160,6 +160,10 @@ def randomcolor():
 
 def flightcategory_color(confdata, flightcategory):
     """Convert Flight Category to color"""
+    if flightcategory is None:
+        loc_color = confdata.cache["color_nowx"]
+        return
+
     flightcategory = flightcategory.upper()
     if flightcategory == "VFR":
         loc_color = confdata.cache["color_vfr"]

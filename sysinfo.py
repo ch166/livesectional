@@ -13,14 +13,14 @@ import utils
 class SystemData:
     """Gather useful information about this system."""
 
-    sysinfo = None
+    _sysinfo = None
     ipaddr = None
     _uptime = None
     _internet_active = None
 
     def __init__(self):
         """Start from zero."""
-        self.sysinfo = self.query_system_information()
+        self._sysinfo = self.query_system_information()
         self._uptime = self.system_uptime()
         (online_status, ipaddr) = utils.is_connected()
         self.ipaddr = ipaddr
@@ -52,7 +52,7 @@ class SystemData:
     def refresh(self):
         """Update data."""
         # TODO: Need to refresh this data on a regular basis
-        self.sysinfo = self.query_system_information()
+        self._sysinfo = self.query_system_information()
         self._uptime = self.system_uptime()
         (online_status, ipaddr) = utils.is_connected()
         self._internet_active = online_status
@@ -155,10 +155,10 @@ class SystemData:
         sysinfo_text += (
             f"Total Bytes Received: {self.get_size(net_io.bytes_recv)}" + "<br>\n"
         )
-        self.sysinfo = sysinfo_text
+        self._sysinfo = sysinfo_text
 
     def query_system_information(self) -> str:
         """Run query."""
-        if self.sysinfo == "":
+        if (self._sysinfo == "") or (self._sysinfo is None):
             self.poll_system_information()
-        return self.sysinfo
+        return self._sysinfo

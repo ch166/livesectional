@@ -333,6 +333,8 @@ class Airport:
 
     def best_runway_deg(self):
         """Return computed runway degree value for best identified runway"""
+        if self._best_runway_deg is None:
+            return 0
         return self._best_runway_deg
 
     def best_runway(self):

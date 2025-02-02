@@ -14,6 +14,8 @@ import pytz
 import math
 from pathlib import Path
 
+import bcrypt
+
 import debugging
 import subprocess
 import utils
@@ -141,3 +143,15 @@ def fresh_daily(app_conf):
     except FileNotFoundError as err:
         daily_data = "File Not Found"
     return daily_data
+
+
+def encrypt_password(password):
+    """Use bcrypt to salt a password."""
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+
+def match_password(password, encrypted_password):
+    """Check if password matches encrypted password."""
+    if encrypted_password is None:
+        return False
+    return bcrypt.checkpw(password, encrypted_password)

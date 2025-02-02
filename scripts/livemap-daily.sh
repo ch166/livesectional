@@ -28,10 +28,11 @@ error_check $?
 
 echo "Going to run the update.sh and create-venv.sh script to update environment"
 
-/opt/git/livesectional/scripts/update.sh 2>&1 | logger -t livemap-daily
+# Doing the environment update first - in case new requirements must be installed early
+/opt/git/livesectional/scripts/create-venv.sh 2>&1 | logger -t livemap-daily
 error_check $?
 
-/opt/git/livesectional/scripts/create-venv.sh 2>&1 | logger -t livemap-daily
+/opt/git/livesectional/scripts/update.sh 2>&1 | logger -t livemap-daily
 error_check $?
 
 # This should allow the code to look at the git repo to check version information ; and then run the 

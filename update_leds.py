@@ -63,6 +63,7 @@ import utils_colors
 import utils_gfx
 import utils_mos
 import utils_coord
+from utils_wx import WxConditions
 
 
 class LedMode(Enum):
@@ -899,7 +900,6 @@ class UpdateLEDs:
             airportwinds = airport_obj.wx_windspeed()
             if not airportwinds:
                 airportwinds = -1
-            airport_conditions = airport_obj.wxconditions()
             debugging.debug(
                 f"{airportcode}:{flightcategory}:{airportwinds}:cycle=={cycle_num}"
             )
@@ -909,57 +909,64 @@ class UpdateLEDs:
             led_color = utils_colors.flightcategory_color(
                 self._app_conf, flightcategory
             )
+            if airport_obj.active_wx_conditions():
+                airport_conditions = airport_obj.wxconditions()
+                #debugging.info(f"ledmode_metar: {airport_obj.icao_code()} / wx_conditions {airport_conditions}")
+                # Check winds and set the 2nd half of cycles to black to create blink effect
+                if self._app_conf.cache["lights_highwindblink"]:
+                    # bypass if "hiwindblink" is set to 0
+                    if int(airportwinds) >= self._app_conf.cache[
+                        "metar_maxwindspeed"
+                    ] and (cycle_num in [3, 4, 5]):
+                        led_color = utils_colors.off()
+                        debugging.debug(
+                            f"HIGH WINDS {airportcode} : {airportwinds} kts"
+                        )
 
-            # Check winds and set the 2nd half of cycles to black to create blink effect
-            if self._app_conf.cache["lights_highwindblink"]:
-                # bypass if "hiwindblink" is set to 0
-                if int(airportwinds) >= self._app_conf.cache["metar_maxwindspeed"] and (
-                    cycle_num in [3, 4, 5]
-                ):
-                    led_color = utils_colors.off()
-                    debugging.debug(f"HIGH WINDS {airportcode} : {airportwinds} kts")
+                if self._app_conf.cache["lights_lghtnflash"]:
+                    # Check for Thunderstorms
+                    if WxConditions.LIGHTNING in airport_conditions and (cycle_num in [2, 4]):
+                        led_color = utils_colors.wx_lightning(self._app_conf)
 
-            if self._app_conf.cache["lights_lghtnflash"]:
-                # Check for Thunderstorms
-                if airport_conditions in self.wx_lghtn_ck and (cycle_num in [2, 4]):
-                    led_color = utils_colors.wx_lightning(self._app_conf)
+                if self._app_conf.cache["lights_snowshow"]:
+                    # Check for Snow
+                    if WxConditions.SNOW in airport_conditions:
+                        if (cycle_num in [3, 5]):
+                            led_color = utils_colors.wx_snow(self._app_conf, 1)
+                        elif cycle_num == 4:
+                            led_color = utils_colors.wx_snow(self._app_conf, 2)
 
-            if self._app_conf.cache["lights_snowshow"]:
-                # Check for Snow
-                if airport_conditions in self.wx_snow_ck and (cycle_num in [3, 5]):
-                    led_color = utils_colors.wx_snow(self._app_conf, 1)
-                if airport_conditions in self.wx_snow_ck and cycle_num == 4:
-                    led_color = utils_colors.wx_snow(self._app_conf, 2)
+                if self._app_conf.cache["lights_rainshow"]:
+                    # Check for Rain
+                    if WxConditions.RAIN in airport_conditions:
+                        if (cycle_num in [3, 4]):
+                            led_color = utils_colors.wx_rain(self._app_conf, 1)
+                        elif cycle_num == 5:
+                            led_color = utils_colors.wx_rain(self._app_conf, 2)
 
-            if self._app_conf.cache["lights_rainshow"]:
-                # Check for Rain
-                if airport_conditions in self.wx_rain_ck and (cycle_num in [3, 4]):
-                    led_color = utils_colors.wx_rain(self._app_conf, 1)
-                if airport_conditions in self.wx_rain_ck and cycle_num == 5:
-                    led_color = utils_colors.wx_rain(self._app_conf, 2)
+                if self._app_conf.cache["lights_frrainshow"]:
+                    # Check for Freezing Rain
+                    if WxConditions.FREEZINGFOG in airport_conditions:
+                        if cycle_num in [3, 5]:
+                            led_color = utils_colors.wx_frzrain(self._app_conf, 1)
+                        elif cycle_num == 4:
+                            led_color = utils_colors.wx_frzrain(self._app_conf, 2)
 
-            if self._app_conf.cache["lights_frrainshow"]:
-                # Check for Freezing Rain
-                if airport_conditions in self.wx_frrain_ck and (cycle_num in [3, 5]):
-                    led_color = utils_colors.wx_frzrain(self._app_conf, 1)
-                if airport_conditions in self.wx_frrain_ck and cycle_num == 4:
-                    led_color = utils_colors.wx_frzrain(self._app_conf, 2)
+                if self._app_conf.cache["lights_dustsandashshow"]:
+                    # Check for Dust, Sand or Ash
+                    if WxConditions.DUSTASH in airport_conditions:
+                        if cycle_num in [3, 5]:
+                            led_color = utils_colors.wx_dust_sand_ash(self._app_conf, 1)
+                        elif cycle_num == 4:
+                            led_color = utils_colors.wx_dust_sand_ash(self._app_conf, 2)
 
-            if self._app_conf.cache["lights_dustsandashshow"]:
-                # Check for Dust, Sand or Ash
-                if airport_conditions in self.wx_dustsandash_ck and (
-                    cycle_num in [3, 5]
-                ):
-                    led_color = utils_colors.wx_dust_sand_ash(self._app_conf, 1)
-                if airport_conditions in self.wx_dustsandash_ck and cycle_num == 4:
-                    led_color = utils_colors.wx_dust_sand_ash(self._app_conf, 2)
-
-            if self._app_conf.cache["lights_fogshow"]:
-                # Check for Fog
-                if airport_conditions in self.wx_fog_ck and (cycle_num in [3, 5]):
-                    led_color = utils_colors.wx_fog(self._app_conf, 1)
-                if airport_conditions in self.wx_fog_ck and cycle_num == 4:
-                    led_color = utils_colors.wx_fog(self._app_conf, 2)
+                if self._app_conf.cache["lights_fogshow"]:
+                    # Check for Fog
+                    if WxConditions.FOG in airport_conditions:
+                        if cycle_num in [3, 5]:
+                            led_color = utils_colors.wx_fog(self._app_conf, 1)
+                        elif cycle_num == 4:
+                            led_color = utils_colors.wx_fog(self._app_conf, 2)
 
             # If homeport is set to 1 then turn on the appropriate LED using a specific color, This will toggle
             # so that every other time through, the color will display the proper weather, then homeport color(s).

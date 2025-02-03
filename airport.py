@@ -82,6 +82,7 @@ class Airport:
     # Airport Weather Data
     _metar_type = None
     _wx_conditions = ()
+    _active_wx_conditions = False
     _wx_visibility = None
     _visibility_statute_mi = None
     _wx_ceiling = None
@@ -136,6 +137,7 @@ class Airport:
         # Airport Weather Data
         self._metar_type = None
         self._wx_conditions = ()
+        self._active_wx_conditions = False
         self._wx_visibility = None
         self._visibility_statute_mi = None
         self._wx_ceiling = None
@@ -283,6 +285,16 @@ class Airport:
     def wxconditions(self):
         """Return list of weather conditions at Airport."""
         return self._wx_conditions
+
+    def active_wx_conditions(self) -> bool:
+        return self._active_wx_conditions
+
+    def set_wx_conditions(self, wx_conditions):
+        """Update tuple of weather conditions at Airport."""
+        self._wx_conditions = wx_conditions
+        self._active_wx_conditions = False
+        if len(wx_conditions) > 0:
+            self._active_wx_conditions = True
 
     def get_ca_metar(self):
         """Try to get Fresh METAR data for Canadian Airports."""

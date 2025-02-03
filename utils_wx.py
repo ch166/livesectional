@@ -12,7 +12,7 @@ Created on Mon Sept 5 08:01:44 2022.
 
 from datetime import datetime
 from datetime import timedelta
-from enum import Enum
+from enum import Enum, auto
 from urllib.request import urlopen
 import urllib.error
 import socket
@@ -24,11 +24,14 @@ import debugging
 class WxConditions(Enum):
     """ENUM Identifying Weather Conditions."""
 
-    HIGHWINDS = 1
-    GUSTS = 2
-    SNOW = 3
-    LIGHTNING = 4
-    FOG = 5
+    HIGHWINDS = auto()
+    GUSTS = auto()
+    SNOW = auto()
+    RAIN = auto()
+    LIGHTNING = auto()
+    FOG = auto()
+    FREEZINGFOG = auto()
+    DUSTASH = auto()
 
 
 def get_usa_metar(airport_data):
@@ -227,6 +230,9 @@ def calculate_wx_from_metar(airport_data):
     else:
         airport_data._flight_category = "UNKN"
 
+    airport_data.set_wx_conditions(
+        calc_wx_conditions(airport_data._processed_metar_object)
+    )
     airport_data.set_wx_category(airport_data._flight_category)
 
     debugging.debug(
@@ -235,13 +241,27 @@ def calculate_wx_from_metar(airport_data):
     return airport_data_observation
 
 
-def calc_wx_conditions(wx_metar):
+def calc_wx_conditions(wx_data):
     """Compute Wind Conditions."""
     wx_conditions = ()
-    wx_data = Metar.Metar(wx_metar)
 
-    if wx_data.wind_speed > 20:
-        wx_conditions = wx_conditions + (WxConditions.HIGHWINDS,)
-    if wx_data.wind_gust > 0:
-        wx_conditions = wx_conditions + (WxConditions.GUSTS,)
+    # FIXME: Wind speed here should come from the conf file  "[metar]/max_wind_speed" .. how can we get that data ?
+    if wx_data.wind_speed is not None:
+        if wx_data.wind_speed.value() > 20:
+            wx_conditions += (WxConditions.HIGHWINDS,)
+    if wx_data.wind_gust is not None:
+        wx_conditions += (WxConditions.GUSTS,)
+    if "LGT" in wx_data._unparsed_remarks:
+        wx_conditions += (WxConditions.LIGHTNING,)
+    for weather_entry in wx_data.weather:
+        if "SHFZ" in weather_entry and "RA" in weather_entry:
+            wx_conditions += (WxConditions.FREEZINGRAIN,)
+        elif "RA" in weather_entry:
+            wx_conditions += (WxConditions.RAIN,)
+        if "SN" in weather_entry:
+            wx_conditions += (WxConditions.SNOW,)
+        if "FZ" in weather_entry and "FG" in weather_entry:
+            wx_conditions += (WxConditions.FREEZINGFOG,)
+        elif "FG" in weather_entry:
+            wx_conditions += (WxConditions.FOG,)
     return wx_conditions

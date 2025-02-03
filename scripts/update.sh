@@ -15,6 +15,7 @@ SYSTEMD=/etc/systemd/system/
 
 INSTALL='/usr/bin/install -C -v -D'
 INSTALLDIR='/usr/bin/install -d'
+CRUDINI='crudini --verbose'
 
 # Git update
 cd $GITSRC || exit 1
@@ -58,9 +59,25 @@ if [ ! -f $DATADEST/oled_conf.json ]; then
 fi
 
 
-# FIXME: Updates that include new or changed config.ini lines
-# Need to be able to handle the scenario where we add additional configuration file lines
+# Using crudini ( https://github.com/pixelb/crudini ) to ensure that new .ini entries are created
+#
+# crudini provides a way to merge the existing configuration file into one that arrives via update
+# crudini --merge new-file.ini < original.ini 
+# will allow us to add new .ini file values, while keeping the local original.ini 
+# This should allow us to safely do an ini update while keeping local modifications
 
+# Install repo config.ini to config-update.ini
+$INSTALL config.ini $INSTALLDEST/config-update.ini
+error_check $?
+# Modify freshly installed config-update.ini by merging in local config.ini
+$CRUDINI --verbose --merge $INSTALLDEST/config-update.ini < $INSTALLDEST/config.ini
+error_check $?
+# Replace local config.ini with updated version
+$INSTALL $INSTALLDEST/config-update.ini $INSTALLDEST/config.ini
+error_check $?
+
+# Intentionally change specific .ini file entries
+crudini --set $INSTALLDEST/config.ini default min_update_ver unused
 
 echo -e "Copying static archive"
 cd $STATICFILES || exit 1

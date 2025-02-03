@@ -72,7 +72,7 @@ tr.intro {
   padding: 5px;
 }
 
-tr.headernote {
+.headernote {
   background-color: #82c4f0;
   border: 1px solid #dddddd;
   text-align: center;
@@ -102,10 +102,8 @@ tr.config:nth-child(odd) {
   color: white;
   cursor: pointer;
   padding: 18px;
-  width: 100%;
   border: none;
   text-align: left;
-  outline: none;
   font-size: 15px;
   font-weight: bold;
 }
@@ -176,29 +174,33 @@ tr.config:nth-child(odd) {
   background-color: #808080;
 }
 
-li.message {
+.message {
   display: inline-block; 
   width: auto;
 }
 
 .flash {
+  display:flex;
+  justify-content: center;
   align-items: center;
   justify-content: center;
+  margin: 2px;
 }
 
 .flashentry {
-  color: orange;
-  border: 2px solid rgb(75 70 74);
+  margin: 4px;
+  color: green;
+  border: 2px solid #6e4666;
   border-radius: 3em;
+  padding: 8px;
   font: 1.2em sans-serif;
   font-weight: bold;
-
   height: auto;
   align-items: center;
   justify-content: center;
 }
 
-div.sticky {
+.sticky {
   position: sticky;
   top: 0;
   background-color: #dddddd;
@@ -209,7 +211,7 @@ div.sticky {
   z-index: 10000;
 }
 
-div.stickydn {
+.stickydn {
   position: sticky;
   bottom: 0;
   background-color: #dddddd;
@@ -364,12 +366,12 @@ input, select {
 }
 
 div.headertxt {
-  width: 400px;
+  width: 80%;
   height: 180px;
-  padding: 15px;
+  padding: 10px;
   box-shadow: 10px 10px 10px grey;
-  background: rgba(230, 240, 250, 1);
-  outline: 2px solid grey;
+  background: #e6f0fa;
+  outline: 2px solid pink;
 }
 
 .slider {
@@ -535,11 +537,11 @@ div.headertxt {
 .password-toggle-icon i {
   font-size: 18px;
   line-height: 1;
-  color: #333;
+  color: #303030;
   transition: color 0.3s ease-in-out;
   margin-bottom: 20px;
 }
 
 .password-toggle-icon i:hover {
-  color: #000;
+  color: #000000;
 }

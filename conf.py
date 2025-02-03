@@ -46,16 +46,16 @@ class Conf:
 
     def get(self, section, key) -> str:
         """Read Setting."""
-        return self.configfile.get(section, key, None)
+        return self.configfile.get(section, key, fallback=None)
 
     def color(self, key) -> str:
         """Pull out color value in hex."""
-        return self.configfile.get("colors", key, None)
+        return self.configfile.get("colors", key, fallback=None)
 
     def get_color_decimal(self, section, key) -> tuple:
         """Read three tuple string, Return as tuple of integers."""
         color_list = []
-        tmp_string = self.configfile.get(section, key, None)
+        tmp_string = self.configfile.get(section, key, fallback=None)
         # print("tmp_string:" + tmp_string + ":--")
         # color_list = tmp_string.split(',')
         color_list = re.split(r"[(),\s]\s*", tmp_string)
@@ -74,25 +74,25 @@ class Conf:
 
     def get_string(self, section, key) -> str:
         """Read Setting."""
-        return self.configfile.get(section, key, None)
+        return self.configfile.get(section, key, fallback=None)
 
     def set_string(self, section, key, value):
         """Set String Value."""
         # FIXME: Convert value to a string
         str_value = f"{value}"
-        self.configfile.set(section, key, str_value, None)
+        self.configfile.set(section, key, str_value)
 
     def get_bool(self, section, key) -> bool:
         """Read Setting."""
-        return self.configfile.getboolean(section, key, None)
+        return self.configfile.getboolean(section, key, fallback=None)
 
     def get_float(self, section, key) -> float:
         """Read Setting."""
-        return self.configfile.getfloat(section, key, None)
+        return self.configfile.getfloat(section, key, fallback=None)
 
     def get_int(self, section, key) -> int:
         """Read Setting."""
-        return self.configfile.getint(section, key, None)
+        return self.configfile.getint(section, key, fallback=None)
 
     def save_config(self):
         """Save configuration file."""
@@ -102,12 +102,12 @@ class Conf:
 
     def use_proxies(self):
         """Check for use of http / https proxies."""
-        return self.get_bool("urls", "use_proxies", None)
+        return self.get_bool("urls", "use_proxies")
 
     def http_proxies(self):
         """Return HTTP(S) proxies from configuration."""
-        proxies_conf_http = self.get_string("urls", "http_proxy", None)
-        proxies_conf_https = self.get_string("urls", "https_proxy", None)
+        proxies_conf_http = self.get_string("urls", "http_proxy")
+        proxies_conf_https = self.get_string("urls", "https_proxy")
         proxies = {"http": proxies_conf_http, "https": proxies_conf_https}
         if self.use_proxies():
             return proxies

@@ -898,8 +898,6 @@ class UpdateLEDs:
                 flightcategory = "UNKN"
             # Pull the winds from the dictionary.
             airportwinds = airport_obj.wx_windspeed()
-            if not airportwinds:
-                airportwinds = -1
             debugging.debug(
                 f"{airportcode}:{flightcategory}:{airportwinds}:cycle=={cycle_num}"
             )
@@ -911,7 +909,7 @@ class UpdateLEDs:
             )
             if airport_obj.active_wx_conditions():
                 airport_conditions = airport_obj.wxconditions()
-                #debugging.info(f"ledmode_metar: {airport_obj.icao_code()} / wx_conditions {airport_conditions}")
+                # debugging.info(f"ledmode_metar: {airport_obj.icao_code()} / wx_conditions {airport_conditions}")
                 # Check winds and set the 2nd half of cycles to black to create blink effect
                 if self._app_conf.cache["lights_highwindblink"]:
                     # bypass if "hiwindblink" is set to 0
@@ -925,13 +923,15 @@ class UpdateLEDs:
 
                 if self._app_conf.cache["lights_lghtnflash"]:
                     # Check for Thunderstorms
-                    if WxConditions.LIGHTNING in airport_conditions and (cycle_num in [2, 4]):
+                    if WxConditions.LIGHTNING in airport_conditions and (
+                        cycle_num in [2, 4]
+                    ):
                         led_color = utils_colors.wx_lightning(self._app_conf)
 
                 if self._app_conf.cache["lights_snowshow"]:
                     # Check for Snow
                     if WxConditions.SNOW in airport_conditions:
-                        if (cycle_num in [3, 5]):
+                        if cycle_num in [3, 5]:
                             led_color = utils_colors.wx_snow(self._app_conf, 1)
                         elif cycle_num == 4:
                             led_color = utils_colors.wx_snow(self._app_conf, 2)
@@ -939,7 +939,7 @@ class UpdateLEDs:
                 if self._app_conf.cache["lights_rainshow"]:
                     # Check for Rain
                     if WxConditions.RAIN in airport_conditions:
-                        if (cycle_num in [3, 4]):
+                        if cycle_num in [3, 4]:
                             led_color = utils_colors.wx_rain(self._app_conf, 1)
                         elif cycle_num == 5:
                             led_color = utils_colors.wx_rain(self._app_conf, 2)

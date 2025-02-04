@@ -156,12 +156,17 @@ if __name__ == "__main__":
     debugging.info("Starting threads")
     dataset_thread.start()
     airport_thread.start()
-    led_thread.start()
-    gpio_thread.start()
-    oled_thread.start()
+    if conf.Features.ENABLE_LED in app_conf.active_features():
+        led_thread.start()
+    if conf.Features.ENABLE_GPIO_MOD in app_conf.active_features():
+        gpio_thread.start()
+    if conf.Features.ENABLE_OLED in app_conf.active_features():
+        oled_thread.start()
+    if conf.Features.ENABLE_LIGHTSENSOR in app_conf.active_features():
+        lightsensor_thread.start()
+    if conf.Features.ENABLE_OLED in app_conf.active_features():
+        zeroconf_thread.start()
     flask_thread.start()
-    lightsensor_thread.start()
-    zeroconf_thread.start()
 
     MAIN_LOOP_SLEEP = 5
     loop_counter = 0

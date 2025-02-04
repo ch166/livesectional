@@ -239,22 +239,22 @@ class Airport:
     def update_metar(self, metartext):
         """Get Current METAR."""
         # debugging.info(f"Metar set for {self._icao} to :{metartext}")
-        # Track shortest update interval
+        # Track the shortest update interval
         self._metar_update_count += 1
         time_now = datetime.now()
 
         if self._metar_date is not None:
-            timedelta = time_now - self._metar_date
-            if (timedelta.days == 0) and (timedelta.seconds < 10):
-                debugging.info(f"short update: {self._icao} {timedelta}")
+            update_timedelta = time_now - self._metar_date
+            if (update_timedelta.days == 0) and (update_timedelta.seconds < 10):
+                debugging.info(f"short update: {self._icao} {update_timedelta}")
                 return
-            if timedelta.seconds < self._short_update_cycle:
-                self._short_update_cycle = timedelta.seconds
+            if update_timedelta.seconds < self._short_update_cycle:
+                self._short_update_cycle = update_timedelta.seconds
 
         self._metar_date = time_now
         self._updated_time = time_now
         if metartext is None or metartext == "Missing":
-            metartext = "Missing"
+            self._metar = "Missing"
             self._processed_metar_object = None
             return
         self._metar = metartext
@@ -351,7 +351,9 @@ class Airport:
             return 0
         return self._best_runway_deg
 
-    def best_runway_width(self):
+    def best_runway_width(self) -> int:
+        if self._best_runway_width is None:
+            return 0
         return self._best_runway_width
 
     def best_runway(self):
@@ -361,7 +363,9 @@ class Airport:
         """Examine the list of known runways to find the best alignment to the wind."""
         best_runway_deg = None
         best_delta = None
+        best_runway_width = 0
         best_runway_ident = "No Runway Found"
+        best_runway_length = 0
         if self._runway_dataset is None:
             return best_runway_ident
 
@@ -369,7 +373,6 @@ class Airport:
             return best_runway_ident
 
         for runway in self._runway_dataset:
-            # debugging.info(runway)
             runway_closed = runway["closed"]
             if runway_closed == "1":
                 continue
@@ -390,21 +393,27 @@ class Airport:
 
             # TODO: Would be nice when an airport has two parallel runways to pick a *better* one.
             # At this stage we have access to runway length information - so perhaps prioritize longer runways
-            # Would be fantastic at some magical future time to pick runway based on any knowledge about IFR approach details.
+            # Would be fantastic at some magical future time to pick runway based on any knowledge aboutv published IFR approach details.
 
             if runway_wind_delta_le < runway_direction_he:
                 better_runway = runway_direction_le
                 better_runway_ident = runway["le_ident"]
                 better_runway_width = runway["width_ft"]
+                better_runway_length = runway["length_ft"]
             else:
                 better_runway = runway_direction_he
                 better_runway_ident = runway["he_ident"]
                 better_runway_width = runway["width_ft"]
-            if (best_runway_deg is None) or (better_delta < best_delta):
+                better_runway_length = runway["length_ft"]
+            if (best_runway_deg is None) or (better_delta < best_delta) or ((better_delta <= best_delta) and (better_runway_length > best_runway_length)):
                 best_runway_deg = better_runway
                 best_delta = better_delta
                 best_runway_ident = better_runway_ident
-                best_runway_width = better_runway_width
+                if better_runway_width.isdigit():
+                    best_runway_width = int(better_runway_width)
+                else:
+                    best_runway_width = 0
+                best_runway_length = better_runway_length
         self._best_runway = best_runway_ident
         self._best_runway_deg = best_runway_deg
         self._best_runway_width = best_runway_width
@@ -516,7 +525,7 @@ class Airport:
             else:
                 next_val_int = True
             if next_val_int:
-                self._wind_speed_kt = int(next_object.text)
+                self._wind_speed_kt = next_val
             else:
                 # FIXME: Hack to handle complex wind definitions (eg: VRB)
                 debugging.debug(
@@ -541,7 +550,7 @@ class Airport:
             else:
                 next_val_int = True
             if next_val_int:
-                self._wind_gust_kt = int(next_object.text)
+                self._wind_gust_kt = next_val
             else:
                 # FIXME: Hack to handle complex wind definitions (eg: VRB)
                 debugging.debug(

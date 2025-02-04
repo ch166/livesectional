@@ -351,8 +351,8 @@ class UpdateOLEDs:
             try:
                 self.oled_select(device_i2cbus_id)
                 with canvas(device) as draw:
-                    draw.rectangle(device.bounding_box, outline="white", fill="black")
-                    draw.text((5, 5), txt, font=self._font_default_12, fill="white")
+                    # draw.rectangle(device.bounding_box, outline="white", fill="black")
+                    draw.text((5, 5), txt, font=self._font_default_10, fill="white")
             finally:
                 self._i2cbus.bus_unlock()
         else:
@@ -478,12 +478,17 @@ class UpdateOLEDs:
 
         # Runway Dimensions
         # TODO: Get runway width data from airport ; and draw a better runway ..
-        if best_runway_width <= 50:
+        rway_width = 4
+        if best_runway_width < 60:
             rway_width = 6
-        elif best_runway_width <= 100:
+        elif best_runway_width < 75:
+            rway_width = 8
+        elif best_runway_width < 100:
             rway_width = 10
-        elif best_runway_width > 100:
-            rway_width = 14
+        elif best_runway_width < 150:
+            rway_width = 12
+        elif best_runway_width >= 150:
+            rway_width = 15
         rway_x = 5  # 5 pixel border
         rway_y = int(height / 2 - rway_width / 2)
         airport_details = f"{airport}\n{winddir}@{windspeed}"
@@ -566,6 +571,7 @@ class UpdateOLEDs:
             debugging.debug(
                 f"Updating OLED Wind: {airportcode} : rwy: {best_runway_label} : wind {winddir}"
             )
+            # TODO: counter % 100 is a temporary hack; need a triggered refresh mechanism
             if (counter % 100 == 0) or (airportcode not in self._image_cache):
                 # Don't re-render wind image every time
                 self.render_wind_image(
@@ -577,7 +583,7 @@ class UpdateOLEDs:
                     winddir,
                     windspeed,
                 )
-            self.draw_wind(oled_id)
+            self.draw_wind(oled_id, airportcode)
             # self.generate_image(
             #    oled_id,
             #    airportcode,

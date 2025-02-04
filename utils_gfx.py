@@ -88,12 +88,32 @@ def create_wind_arrow(windangle, width, height):
 def create_runway(r_x, r_y, rwidth, rwangle, width, height):
     """Draw a runway on a canvas."""
     # Runway is centered on X axis, and rwidth high
-    runway = [
-        (r_x, r_y),
-        (r_x + (width - r_x), r_y),
-        (r_x + (width - r_x), (r_y + rwidth)),
-        (r_x, (r_y + rwidth)),
-    ]
+    if rwidth <= 12:
+        poly_len = width - r_x
+        poly_width = rwidth
+        runway = [
+            (r_x, r_y),
+            (r_x + poly_len, r_y),
+            (r_x + poly_len, (r_y + poly_width)),
+            (r_x, (r_y + poly_width)),
+        ]
+    else:
+        poly_len = width - r_x
+        poly_width = int(rwidth / 2)
+        poly_rwidth = 1
+        if rwidth >= 15:
+            poly_rwidth = 2
+
+        runway = [
+            (r_x, r_y),
+            (r_x + poly_len, r_y),
+            (r_x + poly_len, (r_y + poly_width + poly_rwidth)),
+            (r_x, (r_y + poly_width + 2)),
+            (r_x, (r_y + poly_width - 2)),
+            (r_x + poly_len, (r_y + poly_width - poly_rwidth)),
+            (r_x + poly_len, (r_y + 2 * poly_width)),
+            (r_x, (r_y + 2 * poly_width)),
+        ]
     mid_poly = poly_center(runway)
     off_x, off_y = mid_poly
     seq_offset = poly_offset(runway, 0 - off_x, 0 - off_y)

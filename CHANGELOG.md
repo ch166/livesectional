@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added MOS data to /wx/<icao> 
 - Username/Password protection for destructive calls (eg: reboot / change wifi)
 - Initial setup screen on first run
+- Ability to selectively disable individual modules (zeroconf/oled/led etc)
 
 ### Changed
 
@@ -41,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance: minimize number of times we recalculate Metar data
 - WWW: Heatmap popup shows size rather than pin ID
 - Added support for VEML7700 light sensor
+- Added bcrypt library as dependency for password salting
+- Added crudini to allow better management of .ini files during updates
 
 ### Removed
 

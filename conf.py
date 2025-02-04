@@ -9,6 +9,7 @@ import re
 import configparser
 import utils
 import utils_colors
+from enum import Enum, auto
 
 # This configuration parser provides access to the key/value data stored in
 # the config.ini file. It currently uses configparser as the backend for managing ini files.
@@ -29,12 +30,23 @@ import utils_colors
 # configuration state for the hardware (LED , OLED , Switch setup )
 
 
+class Features(Enum):
+    ENABLE_MOS = auto()
+    ENABLE_ZEROCONF = auto()
+    ENABLE_LED = auto()
+    ENABLE_OLED = auto()
+    ENABLE_WEB = auto()
+    ENABLE_LIGHTSENSOR = auto()
+    ENABLE_GPIO_MOD = auto()
+
+
 class Conf:
     """Configuration Class."""
 
     cache = {}
     config_filename = None
     configfile = None
+    _features = ()
 
     def __init__(self):
         """Initialize and load configuration."""
@@ -42,6 +54,7 @@ class Conf:
         self.configfile = configparser.ConfigParser()
         self.configfile._interpolation = configparser.ExtendedInterpolation()
         self.configfile.read(self.config_filename)
+        self.load_features()
         self.update_confcache()
 
     def get(self, section, key) -> str:
@@ -113,6 +126,37 @@ class Conf:
             return proxies
         else:
             return {}
+
+    def load_features(self):
+        module_section = "modules"
+        for key, value in self.configfile.items(module_section):
+            if key == "use_mos" and self.configfile.getboolean(module_section, key):
+                self._features += (Features.ENABLE_MOS,)
+            if key == "use_zeroconf" and self.configfile.getboolean(
+                module_section, key
+            ):
+                self._features += (Features.ENABLE_ZEROCONF,)
+            if key == "use_led_string" and self.configfile.getboolean(
+                module_section, key
+            ):
+                self._features += (Features.ENABLE_LED,)
+            if key == "use_oled_panels" and self.configfile.getboolean(
+                module_section, key
+            ):
+                self._features += (Features.ENABLE_OLED,)
+            if key == "use_web_interface" and self.configfile.getboolean(
+                module_section, key
+            ):
+                self._features += (Features.ENABLE_WEB,)
+            if key == "use_lightsensor" and self.configfile.getboolean(
+                module_section, key
+            ):
+                self._features += (Features.ENABLE_LIGHTSENSOR,)
+            if key == "use_gpio" and self.configfile.getboolean(module_section, key):
+                self._features += (Features.ENABLE_GPIO_MOD,)
+
+    def active_features(self):
+        return self._features
 
     def update_confcache(self):
         """Update class local variables to cache conf data."""

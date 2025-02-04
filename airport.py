@@ -51,9 +51,6 @@ class Airport:
 
     UNUSED = "unused"
 
-    _best_runway = None
-    _best_runway_deg = None
-
     _icao = None
     _iata = None
     _latitude = 0
@@ -95,6 +92,11 @@ class Airport:
     _ceiling = None
 
     _mos_forecast = None
+
+    # Runway data
+    _best_runway = None
+    _best_runway_deg = None
+    _best_runway_width = None
 
     # HeatMap
     _hm_index = 0
@@ -349,6 +351,9 @@ class Airport:
             return 0
         return self._best_runway_deg
 
+    def best_runway_width(self):
+        return self._best_runway_width
+
     def best_runway(self):
         return self._best_runway
 
@@ -390,15 +395,19 @@ class Airport:
             if runway_wind_delta_le < runway_direction_he:
                 better_runway = runway_direction_le
                 better_runway_ident = runway["le_ident"]
+                better_runway_width = runway["width_ft"]
             else:
                 better_runway = runway_direction_he
                 better_runway_ident = runway["he_ident"]
+                better_runway_width = runway["width_ft"]
             if (best_runway_deg is None) or (better_delta < best_delta):
                 best_runway_deg = better_runway
                 best_delta = better_delta
                 best_runway_ident = better_runway_ident
+                best_runway_width = better_runway_width
         self._best_runway = best_runway_ident
         self._best_runway_deg = best_runway_deg
+        self._best_runway_width = best_runway_width
 
     def set_wx_category(self, wx_category_str):
         """Set WX Category to ENUM based on current wx_category_str."""
@@ -428,6 +437,8 @@ class Airport:
 
     def wx_windspeed(self):
         """Return reported windspeed."""
+        if self._wind_speed_kt is None:
+            return -1
         return self._wind_speed_kt
 
     def get_adds_metar(self, metar_airport_dict):

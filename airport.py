@@ -465,10 +465,7 @@ class Airport:
 
     def get_adds_metar(self, metar_airport_dict):
         """Try to get Fresh METAR data from local Aviation Digital Data Service (ADDS) download."""
-        debugging.info("get_adds_metar WX from adds for " + self._icao)
-        if self._icao in ["ksea", "kbfi", "k11s", "cwsp"]:
-            debugging.info(f"{self._icao}\n****\n{metar_airport_dict}\n****\n")
-
+        debugging.debug("get_adds_metar WX from adds for " + self._icao)
         raw_metar = metar_airport_dict["raw_text"]
         self.update_metar(raw_metar)
         self._wx_visibility = metar_airport_dict["visibility"]
@@ -512,12 +509,7 @@ class Airport:
         next_object = metar_data.find("wind_dir_degrees")
         next_val = None
         if next_object is not None:
-            try:
-                next_val = int(next_object.text)
-            except (TypeError, ValueError):
-                next_val_int = False
-            else:
-                next_val_int = True
+            next_val_int, next_val = utils.str2int(next_object.text)
             if next_val_int:
                 self._wind_dir_degrees = next_val
             else:
@@ -531,12 +523,7 @@ class Airport:
 
         next_object = metar_data.find("wind_speed_kt")
         if next_object is not None:
-            try:
-                next_val = int(next_object.text)
-            except (TypeError, ValueError):
-                next_val_int = False
-            else:
-                next_val_int = True
+            next_val_int, next_val = utils.str2int(next_object.text)
             if next_val_int:
                 self._wind_speed_kt = next_val
             else:
@@ -556,12 +543,7 @@ class Airport:
 
         next_object = metar_data.find("wind_gust_kt")
         if next_object is not None:
-            try:
-                next_val = int(next_object.text)
-            except (TypeError, ValueError):
-                next_val_int = False
-            else:
-                next_val_int = True
+            next_val_int, next_val = utils.str2int(next_object.text)
             if next_val_int:
                 self._wind_gust_kt = next_val
             else:
@@ -631,7 +613,7 @@ class Airport:
             alt_aprt_name = str_parts[1]
             debugging.info(f"{self._icao} needs metar for {alt_aprt_name}")
             try:
-                debugging.info(
+                debugging.debug(
                     f"Update USA Metar(neighbor): ADDS {self._icao} ({alt_aprt_name})"
                 )
                 if alt_aprt_name not in airport_master_dict:

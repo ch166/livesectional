@@ -94,7 +94,7 @@ systemctl daemon-reload
 
 # Check to see if we need to create ssl-certificates
 #
-"$(dirname "$0")"/ssl-certificate.sh
+bash "$(dirname "$0")"/ssl-certificate.sh
 error_check $?
 
 # Sync filesystems

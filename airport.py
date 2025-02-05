@@ -26,6 +26,7 @@ from enum import Enum, auto
 import debugging
 import utils_wx
 import utils_mos
+import utils
 
 
 class AirportFlightCategory(Enum):
@@ -366,28 +367,30 @@ class Airport:
         best_runway_width = 0
         best_runway_ident = "No Runway Found"
         best_runway_length = 0
-        if self._runway_dataset is None:
-            return best_runway_ident
-
-        if self._wind_dir_degrees is None:
-            return best_runway_ident
+        if self._runway_dataset is None or self._wind_dir_degrees is None:
+            self._best_runway = best_runway_ident
+            self._best_runway_deg = best_runway_deg
+            self._best_runway_width = best_runway_width
+            return
 
         for runway in self._runway_dataset:
-            runway_closed = runway["closed"]
-            if runway_closed == "1":
+            if runway["closed"] == "1":
                 continue
+
             runway_direction_le_str = runway["le_heading_degT"]
             if runway_direction_le_str.isnumeric():
                 runway_direction_le = int(runway_direction_le_str)
             else:
                 # TODO: Need an escape here when we can't properly parse one of a set of runways
                 runway_direction_le = 0
-            runway_wind_delta_le = abs(runway_direction_le - self._wind_dir_degrees)
+
             runway_direction_he_str = runway["he_heading_degT"]
             if runway_direction_he_str.isnumeric():
                 runway_direction_he = int(runway_direction_he_str)
             else:
                 runway_direction_he = 0
+
+            runway_wind_delta_le = abs(runway_direction_le - self._wind_dir_degrees)
             runway_wind_delta_he = abs(runway_direction_he - self._wind_dir_degrees)
             better_delta = min(runway_wind_delta_le, runway_wind_delta_he)
 
@@ -395,24 +398,27 @@ class Airport:
             # At this stage we have access to runway length information - so perhaps prioritize longer runways
             # Would be fantastic at some magical future time to pick runway based on any knowledge aboutv published IFR approach details.
 
+            if type(runway["length_ft"]) is str:
+                result, better_runway_length = utils.str2int(runway["length_ft"])
+            else:
+                better_runway_length = runway["length_ft"]
+
+            if type(runway["length_ft"]) is str:
+                result, better_runway_width = utils.str2int(runway["length_ft"])
+            else:
+                better_runway_width = runway["length_ft"]
+
             if runway_wind_delta_le < runway_direction_he:
                 better_runway = runway_direction_le
                 better_runway_ident = runway["le_ident"]
-                better_runway_width = runway["width_ft"]
-                better_runway_length = runway["length_ft"]
             else:
                 better_runway = runway_direction_he
                 better_runway_ident = runway["he_ident"]
-                better_runway_width = runway["width_ft"]
-                better_runway_length = runway["length_ft"]
             if (best_runway_deg is None) or (better_delta < best_delta) or ((better_delta <= best_delta) and (better_runway_length > best_runway_length)):
                 best_runway_deg = better_runway
                 best_delta = better_delta
                 best_runway_ident = better_runway_ident
-                if better_runway_width.isdigit():
-                    best_runway_width = int(better_runway_width)
-                else:
-                    best_runway_width = 0
+                best_runway_width = better_runway_width
                 best_runway_length = better_runway_length
         self._best_runway = best_runway_ident
         self._best_runway_deg = best_runway_deg

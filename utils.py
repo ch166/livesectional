@@ -387,3 +387,34 @@ def set_timezone(app_conf, newtimezone):
 def get_timezone(app_conf):
     """Return timezone configuration."""
     return app_conf.get_string("default", "timezone")
+
+
+def semver(versionstring):
+    """Extract major, minor and patch numbers from version info."""
+    major, minor, patch = versionstring.split(".")
+    return int(major), int(minor), int(patch)
+
+
+def version_newer(version_cur, version_new) -> bool:
+    """Return True if update is available."""
+    c_major, c_minor, c_patch = semver(version_cur)
+    n_major, n_minor, n_patch = semver(version_new)
+    major_rev = n_major > c_major
+    minor_rev = n_minor > c_minor
+    patch_rev = n_patch > c_patch
+    if major_rev or minor_rev or patch_rev:
+        # debugging.info(f"Version: {self._cur_version} / {self._git_version} : UPDATE AVAILABLE")
+        return True
+    return False
+
+
+def read_version(filename):
+    """Read version info from file."""
+    file_version = "version not found"
+    with open(filename, "r", encoding="utf-8") as fp:
+        for line in fp:
+            if line.startswith("version:"):
+                label, version = line.split(" ")
+                file_version = version.strip()
+                continue
+    return file_version

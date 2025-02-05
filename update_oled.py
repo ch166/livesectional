@@ -203,7 +203,10 @@ class UpdateOLEDs:
             if oled_device_discovery["active"]:
                 oled_dev_found += 1
                 self.oled_list.insert(device_idnum, oled_device_discovery)
-                self.oled_text(device_idnum, f"Init {device_idnum}")
+                init_txt_msg = f"Init: {device_idnum}"
+                image = self.render_text_image(device_idnum, init_txt_msg)
+                self.write_to_i2c_oled(device_idnum, image, "oled init")
+                # self.oled_text(device_idnum, f"Init {device_idnum}")
         self._device_count = oled_dev_found
 
         # New OLED Conf
@@ -451,14 +454,14 @@ class UpdateOLEDs:
         return
 
     def render_wind_image(
-        self,
-        oled_id,
-        airport,
-        best_runway_label,
-        best_runway_deg,
-        best_runway_width,
-        winddir,
-        windspeed,
+            self,
+            oled_id,
+            airport,
+            best_runway_label,
+            best_runway_deg,
+            best_runway_width,
+            winddir,
+            windspeed,
     ):
         """Draw Wind Arrow and Runway."""
         if oled_id > len(self.oled_list):
@@ -501,7 +504,6 @@ class UpdateOLEDs:
         image = Image.new("1", (width, height))
         draw = ImageDraw.Draw(image)
 
-        runway_details = f"Best Runway {best_runway_label}"
         (tx_l, tx_t, tx_r, tx_b) = self._font_default_10.getbbox(text=airport_details)
         airport_details_height = tx_t + tx_b + 2
         (tx_l, tx_t, tx_r, tx_b) = self._font_default_10.getbbox(text=runway_details)
@@ -525,24 +527,42 @@ class UpdateOLEDs:
         # TODO: This caching mechanism is fragile when it comes to supporting multiple different sized
         # OLED screens ; or different rotations / layouts. There is an implicit assumption that all OLEDs displaying
         # the metar data are the same size.
-        self._image_cache[airport] = image
-        return
+        return image
 
-    def draw_wind(self, oled_id, airport):
+    def render_text_image(
+        self,
+        oled_id,
+        textbox,
+    ):
+        """Draw Wind Arrow and Runway."""
+        if oled_id > len(self.oled_list):
+            debugging.warn(
+                f"OLED: Attempt to access index beyond list length {oled_id}"
+            )
+            return
+        oled_dev = self.oled_list[oled_id]
+        if oled_dev["active"] is False:
+            debugging.warn(f"OLED: Attempting to update disabled OLED : {oled_id}")
+            return
 
+        width = oled_dev["size"]["w"]
+        height = oled_dev["size"]["h"]
+
+        image = Image.new("1", (width, height))
+        draw = ImageDraw.Draw(image)
+        draw.text((5, 5), textbox, font=self._font_default_10, fill="white")
+
+        return image
+
+    def write_to_i2c_oled(self, oled_id, image, callerid):
+        """Write a 1bit image to an OLED device"""
         oled_dev = self.oled_list[oled_id]
         device = oled_dev["device"]
         device_i2cbus_id = oled_dev["devid"]
 
-        if airport not in self._image_cache:
-            debugging.info(
-                f"OLED: Attempting to update OLED : {oled_id} for {airport}; no cached image"
-            )
-            return
-
-        if self._i2cbus.bus_lock("draw_wind"):
+        if self._i2cbus.bus_lock(callerid):
             self.oled_select(device_i2cbus_id)
-            device.display(self._image_cache[airport])
+            device.display(image)
             self._i2cbus.bus_unlock()
         else:
             debugging.info(f"Failed to grab lock for oled:{oled_id}")
@@ -574,7 +594,7 @@ class UpdateOLEDs:
             # TODO: counter % 100 is a temporary hack; need a triggered refresh mechanism
             if (counter % 100 == 0) or (airportcode not in self._image_cache):
                 # Don't re-render wind image every time
-                self.render_wind_image(
+                self._image_cache[airportcode] = self.render_wind_image(
                     oled_id,
                     airportcode,
                     best_runway_label,
@@ -583,7 +603,7 @@ class UpdateOLEDs:
                     winddir,
                     windspeed,
                 )
-            self.draw_wind(oled_id, airportcode)
+            self.write_to_i2c_oled(oled_id, self._image_cache[airportcode], "oled_wind")
             # self.generate_image(
             #    oled_id,
             #    airportcode,
@@ -625,9 +645,11 @@ class UpdateOLEDs:
 
         oled_status_text = f"{info_timestamp}\n{info_ipaddr}\n{info_uptime}\n{activity_char} {info_lightlevel}"
         # Update OLED
-        self.oled_text(oled_id, oled_status_text)
+        image = self.render_text_image(oled_id, oled_status_text)
+        self.write_to_i2c_oled(oled_id, image, "oled_status")
+        # self.oled_text(oled_id, oled_status_text)
         # Update saved image
-        self.generate_info_image(oled_id)
+        # self.generate_info_image(oled_id)
 
     def get_next_airport(self, metar_iter):
         """Get the next airport to be displayed on OLED display in rotation"""

@@ -414,7 +414,14 @@ class Airport:
             else:
                 better_runway = runway_direction_he
                 better_runway_ident = runway["he_ident"]
-            if (best_runway_deg is None) or (better_delta < best_delta) or ((better_delta <= best_delta) and (better_runway_length > best_runway_length)):
+            if (
+                (best_runway_deg is None)
+                or (better_delta < best_delta)
+                or (
+                    (better_delta <= best_delta)
+                    and (better_runway_length > best_runway_length)
+                )
+            ):
                 best_runway_deg = better_runway
                 best_delta = better_delta
                 best_runway_ident = better_runway_ident

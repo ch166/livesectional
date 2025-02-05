@@ -52,6 +52,7 @@ def str2bool(input_str):
     """Simple check for truthiness of string."""
     return input_str.lower() in ["true", "1", "t", "y", "yes"]
 
+
 def str2int(input_str):
     """Try hard to safely convert numeric string to int."""
     if input_str is None:
@@ -64,9 +65,10 @@ def str2int(input_str):
         int_val = int(input_str)
         result = True
     except (ValueError, TypeError):
-        int_val = -1 
+        int_val = -1
         result = False
     return result, int_val
+
 
 def wait_for_internet():
     """Delay until Internet is up (return True) - or (return False)."""

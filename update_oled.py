@@ -454,14 +454,14 @@ class UpdateOLEDs:
         return
 
     def render_wind_image(
-            self,
-            oled_id,
-            airport,
-            best_runway_label,
-            best_runway_deg,
-            best_runway_width,
-            winddir,
-            windspeed,
+        self,
+        oled_id,
+        airport,
+        best_runway_label,
+        best_runway_deg,
+        best_runway_width,
+        winddir,
+        windspeed,
     ):
         """Draw Wind Arrow and Runway."""
         if oled_id > len(self.oled_list):

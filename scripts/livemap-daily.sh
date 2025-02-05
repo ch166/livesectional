@@ -1,10 +1,10 @@
-#! /bin/sh
+#!/usr/bin/env bash
 
 # livesectional Daily Tasks - to be run under cron
 # Self contained for now
 
 error_check() {
-	[ $1 != 0 ] && {
+	[ "$1" != 0 ] && {
 		echo "error; exiting"
 		exit 1
 	}
@@ -39,10 +39,10 @@ error_check $?
 # install / upgrade scripts
 
 # 3. check log files for errors
-now=`date +"%m_%d_%Y"`
+now=$(date +"%m_%d_%Y")
 
 cd /opt/NeoSectional/logs || exit
-grep -A 5 -i error debugging.log* > error.log-${now}
+grep -A 5 -i error debugging.log* > error.log-"${now}"
 
 # Sync filesystems
 sync

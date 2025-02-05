@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Common utilities
 
 function error_exit () {

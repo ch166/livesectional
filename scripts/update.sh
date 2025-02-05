@@ -66,7 +66,7 @@ fi
 # will allow us to add new .ini file values, while keeping the local original.ini 
 # This should allow us to safely do an ini update while keeping local modifications
 # TODO: FIXME: to get access to the crudini installed in the environment
-source /opt/venv/livemap/bin/python
+source /opt/venv/livemap/bin/activate
 
 
 # Install repo config.ini to config-update.ini

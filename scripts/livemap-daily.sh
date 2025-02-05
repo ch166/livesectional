@@ -26,7 +26,7 @@ error_check $?
 #
 # 
 
-echo "Going to run the update.sh and create-venv.sh script to update environment"
+echo "Livemap starting daily script to update environment"
 
 # Doing the environment update first - in case new requirements must be installed early
 /opt/git/livesectional/scripts/create-venv.sh 2>&1 | logger -t livemap-daily
@@ -50,3 +50,6 @@ sync
 # 4. Update timestamp on daily-complete.txt
 
 date > /opt/NeoSectional/daily-complete.txt
+
+echo "livemap update cron daily script complete"
+exit 0

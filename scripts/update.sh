@@ -65,6 +65,9 @@ fi
 # crudini --merge new-file.ini < original.ini 
 # will allow us to add new .ini file values, while keeping the local original.ini 
 # This should allow us to safely do an ini update while keeping local modifications
+# TODO: FIXME: to get access to the crudini installed in the environment
+source /opt/venv/livemap/bin/python
+
 
 # Install repo config.ini to config-update.ini
 $INSTALL config.ini $INSTALLDEST/config-update.ini
@@ -77,8 +80,6 @@ $INSTALL $INSTALLDEST/config-update.ini $INSTALLDEST/config.ini
 error_check $?
 
 # Intentionally change specific .ini file entries
-# TODO: FIXME: 
-source /opt/venv/livemap/bin/python
 $PYTHON crudini --set $INSTALLDEST/config.ini default min_update_ver unused
 
 echo -e "Copying static archive"

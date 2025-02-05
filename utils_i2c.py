@@ -80,6 +80,7 @@ class I2CBus:
     _average_lock_total = 0
     _max_lock_duration = 0
     _max_lock_owner = None
+    _lock_fail_count = 0
 
     def __init__(self, conf):
         """Do setup for i2c bus - look for default hardware."""
@@ -138,20 +139,20 @@ class I2CBus:
         """Grab bus lock."""
         if self.bus is None:
             return False
-        if self.lock.locked():
-            lock_duration = time.time() - self._average_lock_start
-            debugging.warn(
-                f"bus_lock: request by {owner} when lock is held: count:{self.lock_count}: events:{self.__lock_events}: owner:{self.bus_lock_owner} duration:{lock_duration}"
-            )
-            return False
-        else:
-            if self.lock.acquire(blocking=True, timeout=0.5):
+        for counter in range(1,11):
+            acquired = self.lock.acquire(blocking=True, timeout=0.1)
+            if acquired:
                 self.__lock_events += 1
                 self.lock_count += 1
                 self.bus_lock_owner = owner
                 self._average_lock_count += 1
                 self._average_lock_start = time.time()
                 return True
+        lock_duration = time.time() - self._average_lock_start
+        self._lock_fail_count += 1
+        debugging.warn(
+            f"bus_lock: request by {owner} when lock is held: count:{self.lock_count}: events:{self.__lock_events}: owner:{self.bus_lock_owner} duration:{lock_duration}"
+        )
         return False
 
     def bus_unlock(self):
@@ -241,5 +242,6 @@ class I2CBus:
         """Return lock stats"""
         average = round(self._average_lock_duration, 2)
         maxlock = round(self._max_lock_duration, 2)
-        stats_txt = f"i2cbus lock stats\n\tAverage duration:{average}\n\tMax:{maxlock}/Owner:{self._max_lock_owner}"
+        lockfail = self._lock_fail_count
+        stats_txt = f"i2cbus lock stats\n\tAverage duration:{average}\n\tMax:{maxlock}/Owner:{self._max_lock_owner}\n\tLock fail (expired):{lockfail}"
         return stats_txt

@@ -77,7 +77,9 @@ $INSTALL $INSTALLDEST/config-update.ini $INSTALLDEST/config.ini
 error_check $?
 
 # Intentionally change specific .ini file entries
-crudini --set $INSTALLDEST/config.ini default min_update_ver unused
+# TODO: FIXME: 
+source /opt/venv/livemap/bin/python
+$PYTHON crudini --set $INSTALLDEST/config.ini default min_update_ver unused
 
 echo -e "Copying static archive"
 cd $STATICFILES || exit 1

@@ -47,3 +47,5 @@ ln -sf "$FNAME.crt" "$SRVR_CRT"
 error_check $?
 ln -sf "$FNAME.key" "$SRVR_KEY"
 error_check $?
+
+exit 0

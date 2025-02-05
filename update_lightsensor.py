@@ -87,9 +87,9 @@ class LightSensor:
         """TSL2591 Device Enable."""
         self.dev_tsl2591 = adafruit_tsl2591.TSL2591(self._i2cbus.i2cdevice())
 
-    def read_tsl2591(self) -> int:
+    def read_tsl2591(self, old_lux) -> int | None:
         """Read LUX value from tsl2591."""
-        lux = 0
+        lux = old_lux
         if self._i2cbus.bus_lock("light sensor update loop : tsl2591"):
             try:
                 lux = self.dev_tsl2591.lux
@@ -107,11 +107,11 @@ class LightSensor:
         debugging.debug(f"tsl2591:raw {lux} lux")
         lux = max(lux, 10)
         lux = min(lux, 255)
-        return lux
+        return int(lux)
 
-    def read_veml7700(self) -> int:
+    def read_veml7700(self, old_lux) -> int | None:
         """Read LUX value from veml7700."""
-        lux = 0
+        lux = old_lux
         if self._i2cbus.bus_lock("light sensor update loop : veml7700"):
             try:
                 lux = self.dev_veml7700.lux
@@ -129,7 +129,7 @@ class LightSensor:
         debugging.debug(f"veml7700:raw {lux} lux")
         lux = max(lux, 10)
         lux = min(lux, 255)
-        return lux
+        return int(lux)
 
     def update_loop(self, conf):
         """Thread Main Loop."""
@@ -147,10 +147,10 @@ class LightSensor:
             old_lux_min = int(lux * 0.9)
             old_lux_max = int(lux * 1.1)
             if self._hardware_tsl2591:
-                lux = self.read_tsl2591()
+                lux = self.read_tsl2591(old_lux)
                 debugging.debug(f"tsl2591 lux [{lux}]")
             if self._hardware_veml7700:
-                lux = self.read_veml7700()
+                lux = self.read_veml7700(old_lux)
                 debugging.debug(f"veml7700 lux [{lux}]")
             lux = round(lux, 0)
             if (lux < old_lux_min) or (lux > old_lux_max):
@@ -168,6 +168,6 @@ class LightSensor:
             stats_msg += "tsl2591 active:\n\t"
         if self._hardware_veml7700:
             stats_msg += "veml7700 active:\n\t"
-        stats_msg += f"error count: {self._error_count}\n\t"
+        stats_msg += f"i2cbus problem count: {self._error_count}\n\t"
         stats_msg += f"iteration count: {self._loop_counter}"
         return stats_msg

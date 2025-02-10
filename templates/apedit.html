@@ -29,11 +29,11 @@
 <form action="/appost" id="appost" method="post">
     <table style="width:100%; border: 1px solid green;">
         <tr class="headernote">
-            <td colspan="6" style="font-size:small;">
+            <td colspan="6" class="submitbuttons" style="font-size:small;">
                 <b>NOTE:</b> Enter the appropriate airport identifier. <b>TODO: FIXUP</b>If identifier is only 3 characters, precede it with proper country code, i.e. 'K' for US. If the LED position will not be used, enter <span style="color:#0000ff">'NULL'</span>. Enter <span style="color:#00ff00">'LGND'</span> for LED's used as a legend. <span style="color:#ff0000">'Enter' will save airport change. 'Tab' will not. Save each airport change if using LED on/off</span>
             </td>
         </tr>
-        <tr style="border: 1px solid black;"> 
+        <tr class="submitbuttons"> 
             <th class="config">LED #</th>
             <th class="config"><label for = "ap">Airport ID</label></th>
             <th class="config"><label for = "purpose">Purpose</label></th>
@@ -41,7 +41,7 @@
             <th class="config">Description</th>
             <th class="config">Flight Category and Raw METAR</th>
         </tr>
-        <tr style="border: 1px solid black;">
+        <tr class="submitbuttons">
             <th class="config"></th>
             <th class="config" style="font-size:small;">Name / NULL / LGND</th>
             <th class="config" style="font-size:small;">Off or Scope</th>
@@ -51,17 +51,17 @@
         </tr>
         {% for aprt_icao, aprt_data in (airports.items()|sort(attribute='1.ledindex')) %}
         <tr class="config" id="{{ loop.index - 1 }}">
-            <td style="width: 5%; text-align:center;">
+            <td style="width: 5%; text-align:center;" id="td:lexindex:{{ loop.index - 1 }}">
                 <b>{{ aprt_data['ledindex'] }}</b>
             </td>
-            <td style="width: 10%; text-align:center;">
+            <td style="width: 10%; text-align:center;" id="td:icao:{{ loop.index - 1 }}">
                 <input title="{{ aprt_icao }}" onkeydown="upperCaseF(this)" type="text" minlength="3"
                     maxlength="4" onfocus="fillinledonoff(this)" id="ap{{ loop.index - 1 }}"
                     name="airport/{{ loop.index - 1 }}" size="5"
                     onchange="myFunction(this)" value="{{ aprt_icao }}" />
                 <!--onfocus="this.value=''"-->
             </td>
-            <td style="width: 10%; text-align:center">
+            <td style="width: 10%; text-align:center" id="td:purpose:{{ loop.index - 1 }}">
                 <select name="purpose/{{ loop.index - 1 }}" id="purpose:{{ loop.index - 1 }}">
                     {% set purposeList = ["off", "led", "lgnd", "all"] %}
                     {% for purpose in purposeList %}{% if purpose == aprt_data['purpose'] %}<option value="{{ purpose }}" selected>{{ purpose }}</option>
@@ -70,7 +70,7 @@
                     {% endfor %}
                 </select>
             </td>
-            <td style="width: 10%; text-align:center">
+            <td style="width: 10%; text-align:center" id="td:metarsrc-option:{{ loop.index - 1 }}">
                 {% set defaultMetarSrc = aprt_data['metarsrc'] %}
                 {% set metarSrcList = ["adds", "none", "vfr", "ifr", "lifr", "mvfr", "home", defaultMetarSrc ]|unique|list %}
                 <input list="metarsrc-values:{{ loop.index - 1 }}" id="metarsrc-option:{{ loop.index - 1 }}" placeholder="{{ defaultMetarSrc }}" name="metarsrc/{{ loop.index - 1 }}">
@@ -80,12 +80,12 @@
                 </datalist>
             </td>
             {% if aprt_icao.startswith('lgnd') %}
-    <td style="width: 60%;" colspan="2" id="msg{{ loop.index - 1 }}"><span >LED at pin {{ loop.index - 1 }} will be used as a <b>Legend</b> item.</span></td>
+    <td style="width: 60%;" colspan="2" id="td:msg:{{ loop.index - 1 }}"><span >LED at pin {{ loop.index - 1 }} will be used as a <b>Legend</b> item.</span></td>
             {% elif aprt_icao.startswith('null') %}
-    <td style="width: 60%;" colspan="2" id="msg{{ loop.index - 1 }}"><span >LED at pin {{ loop.index - 1 }} will remain <b>OFF</b>.</span></td>
+    <td style="width: 60%;" colspan="2" id="td:msg:{{ loop.index - 1 }}"><span >LED at pin {{ loop.index - 1 }} will remain <b>OFF</b>.</span></td>
             {% else %}
-    <td style="width: 15%;" id="msg{{ loop.index - 1 }}"><!--Display airport name and city, region and link to info page--><a href="http://www.fltplan.com/Airport.cgi?{{ aprt_icao }}" target="_blank"><b>{{ aprt_icao }}</b></a></td>
-    <td style="width: 45%;"><!--Grab Flight Category and raw METAR from api.weather.gov and display badge--><span id="fcloc{{ loop.index - 1 }}"></span><script>get_badge('{{ aprt_icao }}', 'fcloc{{ loop.index - 1 }}');</script></td>
+    <td style="width: 5%;" id="td:msg:{{ loop.index - 1 }}"><!--Display airport name and city, region and link to info page--><a href="https://metar-taf.com/{{ aprt_icao }}" target="_blank"><b>{{ aprt_icao }}</b></a></td>
+    <td style="width: 55%;" id="td:flightcat:{{ loop.index - 1 }}"><!--Grab Flight Category and raw METAR from api.weather.gov and display badge--><span id="fcloc{{ loop.index - 1 }}"></span><script>get_badge('{{ aprt_icao }}', 'fcloc{{ loop.index - 1 }}');</script></td>
             {% endif %}
         </tr>
         {% endfor %}

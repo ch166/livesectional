@@ -81,6 +81,11 @@ error_check $?
 
 # Intentionally change specific .ini file entries
 $PYTHON crudini --set $INSTALLDEST/config.ini default min_update_ver unused
+$PYTHON crudini --set $INSTALLDEST/config.ini schedule offhour unused
+$PYTHON crudini --set $INSTALLDEST/config.ini schedule offminutes unused
+$PYTHON crudini --set $INSTALLDEST/config.ini schedule onhour unused
+$PYTHON crudini --set $INSTALLDEST/config.ini schedule onminutes unused
+
 
 echo -e "Copying static archive"
 cd $STATICFILES || exit 1

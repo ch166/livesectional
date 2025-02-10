@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*- #
 """Flask Module for WEB Interface."""
 
-import os
 import time
 import json
 import secrets
@@ -91,15 +90,13 @@ class WebViews:
         self._zeroconf = zeroconf
         self._clean_reboot_request = False
 
-        # FIXME: Hard coded
         self._admin_username = "admin"
-        self._admin_password = "123456"  # FIXME: Immediately ;-)
-
+        self._admin_password = None
         self._initial_setup_complete = False
 
         self.app = Flask(__name__)
-        # self.app.jinja_env.auto_reload = True
-        # This needs to happen really early in the process to take effect
+        self.app.secret_key = secrets.token_hex(16)
+
         self.app.config["TEMPLATES_AUTO_RELOAD"] = True
 
         self.__http_port = self._app_conf.get_string("default", "http_port")
@@ -109,12 +106,20 @@ class WebViews:
         self.__ssl_port = self.__http_port
 
         if self._app_conf.get_bool("default", "ssl_enabled"):
+            # TODO: Add more error checking here rather than blindly assuming it works.
             self.ssl_enabled = True
             self.__ssl_cert = self._app_conf.get_string("default", "ssl_cert")
             self.__ssl_key = self._app_conf.get_string("default", "ssl_key")
             self.__ssl_port = self._app_conf.get_string("default", "ssl_port")
 
-        self.app.secret_key = secrets.token_hex(16)
+        if self._app_conf.get_bool("default", "initial_setup_complete"):
+            self._admin_username = self._app_conf.get_string(
+                "default", "admin_username"
+            )
+            self._admin_password = self._app_conf.get_string(
+                "default", "admin_password"
+            )
+
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
         self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
         self.app.add_url_rule(
@@ -216,7 +221,9 @@ class WebViews:
 
     def check_auth(self, username, password):
         """Check if a username/password combination is valid."""
-        return username == self._admin_username and password == self._admin_password
+        return username == self._admin_username and utils_system.match_password(
+            password, self._admin_password
+        )
 
     def authenticate(self):
         """Sends a 401 response that enables basic auth."""
@@ -313,18 +320,19 @@ class WebViews:
 
         if (request.method == "POST") and (self._initial_setup_complete == False):
             form_data = request.form
-            admin_user = form_data['adminuser']
-            admin_pass = form_data['adminpass']
+            admin_user = form_data["adminuser"]
+            admin_pass = form_data["adminpass"]
 
             if admin_user and admin_pass:
                 self._admin_username = admin_user
-                self._admin_password = admin_pass
+                self._admin_password = utils_system.encrypt_password(admin_pass)
 
             self._initial_setup_complete = True
             flash("First Setup Complete")
             debugging.info(f"form_data: {form_data}")
 
             # Need to save these values for next run
+            #
 
         return redirect("/")
 
@@ -542,6 +550,8 @@ class WebViews:
             f"Coordinates LON:{self.max_lon}/{self.min_lon}/ LAT:{self.max_lat}/{self.min_lat}/"
         )
 
+        # FIXME: This needs to exit if we don't have proper location data loaded.
+
         points = []
         title_coords = (self.max_lat, (float(self.max_lon) + float(self.min_lon)) / 2)
         start_center_coord = (
@@ -583,9 +593,7 @@ class WebViews:
             # FIXME - Move URL to config file
             # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao} target="_blank">'
-            popup = f"""{pop_url}{icao}</a><br>[Lat:{airport_obj.latitude()},Lon:{airport_obj.longitude()}]
-<br>LED=&nbsp;{airport_obj.get_led_index()}
-<br><b><font size=+2 color={loc_color}>{airport_obj.flightcategory()}</font></b>"""
+            popup = f"<ul><li><font color={loc_color}>{airport_obj.flightcategory()}</font></li><li>Conditions:{airport_obj.wxconditions_str()}</li></ul>"
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(
@@ -594,16 +602,14 @@ class WebViews:
                 color=loc_color,
                 location=[airport_obj.latitude(), airport_obj.longitude()],
                 popup=popup,
-                tooltip=f"{str(icao)}<br>led:{str(airport_obj.get_led_index())}",
+                # tooltip=f"{str(icao)}<br>led:{str(airport_obj.get_led_index())}",
                 weight=6,
             ).add_to(folium_map)
 
             # Add lines between airports. Must make lat/lons
             # floats otherwise recursion error occurs.
             pin_index = int(airport_obj.get_led_index())
-            debugging.info(
-                f"icao {icao} Lat:{airport_obj.latitude()}/Lon:{airport_obj.longitude()}"
-            )
+            # debugging.info(f"icao {icao} Lat:{airport_obj.latitude()}/Lon:{airport_obj.longitude()}")
             points.insert(pin_index, [airport_obj.latitude(), airport_obj.longitude()])
 
         folium.PolyLine(
@@ -813,7 +819,8 @@ class WebViews:
         template_data = self.standardtemplate_data()
 
         ipadd = self._sysdata.local_ip()
-        qraddress = f"https://{ipadd.strip()}:5000/confmobile"
+        # FIXME: Needs to use properly generated http url/port
+        qraddress = f"https://{ipadd.strip()}:8443/confmobile"
         debugging.info("Opening qrcode in separate window")
         qrcode_file = self._app_conf.get_string("filenames", "qrcode")
         qrcode_url = self._app_conf.get_string("filenames", "qrcode_url")
@@ -921,7 +928,6 @@ class WebViews:
             with open("logs/airport_database.txt", "w", encoding="ascii") as outfile:
                 airportdb = self._airport_database.get_airportdb()
                 counter = 0
-                dbdump = {}
                 for icao, airport_obj in airportdb.items():
                     if not airport_obj.active():
                         continue
@@ -1021,7 +1027,7 @@ class WebViews:
         template_data["title"] = "Intro"
 
         # Check for initial setup state
-        if self._initial_setup_complete == False:
+        if not self._initial_setup_complete:
             return render_template("initial_setup.html", **template_data)
 
         # System Reboot call will update the flag and redirect to here.
@@ -1162,85 +1168,6 @@ class WebViews:
         return redirect("apedit")
 
     # FIXME: Integrate into Class
-    # @app.route("/ledonoff", methods=["GET", "POST"])
-    def ledonoff(self):
-        """Flask Route: /ledonoff."""
-        debugging.info("Controlling LED's on/off")
-
-        if request.method == "POST":
-            if "buton" in request.form:
-                num = int(request.form["lednum"])
-                debugging.info("LED " + str(num) + " On")
-                self._led_strip.set_led_color(num, Color(155, 155, 155))
-                self._led_strip.show()
-                flash("LED " + str(num) + " On")
-
-            elif "butoff" in request.form:
-                num = int(request.form["lednum"])
-                debugging.info("LED " + str(num) + " Off")
-                self._led_strip.set_led_color(num, Color(0, 0, 0))
-                self._led_strip.show()
-                flash("LED " + str(num) + " Off")
-
-            elif "butup" in request.form:
-                debugging.info("LED UP")
-                num = int(request.form["lednum"])
-                self._led_strip.set_led_color(num, Color(0, 0, 0))
-                num = num + 1
-
-                # FIXME: self.airports retired
-                if num > len(self.airports):
-                    num = len(self.airports)
-
-                self._led_strip.set_led_color(num, Color(155, 155, 155))
-                self._led_strip.show()
-                flash("LED " + str(num) + " should be On")
-
-            elif "butdown" in request.form:
-                debugging.info("LED DOWN")
-                num = int(request.form["lednum"])
-                self._led_strip.set_led_color(num, Color(0, 0, 0))
-
-                num = num - 1
-                num = max(num, 0)
-
-                self._led_strip.set_led_color(num, Color(155, 155, 155))
-                self._led_strip.show()
-                flash("LED " + str(num) + " should be On")
-
-            elif "butall" in request.form:
-                debugging.info("LED All ON")
-                num = int(request.form["lednum"])
-
-                # FIXME: self.airports retired
-                for num in range(len(self.airports)):
-                    self._led_strip.set_led_color(num, Color(155, 155, 155))
-                self._led_strip.show()
-                flash("All LEDs should be On")
-                num = 0
-
-            elif "butnone" in request.form:
-                debugging.info("LED All OFF")
-                num = int(request.form["lednum"])
-
-                # FIXME: self.airports retired
-                for num in range(len(self.airports)):
-                    self._led_strip.set_led_color(num, Color(0, 0, 0))
-                self._led_strip.show()
-                flash("All LEDs should be Off")
-                num = 0
-
-            else:  # if tab is pressed
-                debugging.info("LED Edited")
-                num = int(request.form["lednum"])
-                flash("LED " + str(num) + " Edited")
-
-        template_data = self.standardtemplate_data()
-        template_data["title"] = "Airports File Editor"
-
-        return render_template("apedit.html", **template_data)
-
-    # FIXME: Integrate into Class
     # Import a file to populate airports. Must Save self.airports to keep
     # @app.route("/importap", methods=["GET", "POST"])
     def importap(self):
@@ -1350,13 +1277,14 @@ class WebViews:
         if request.method == "POST":
             data = request.form.to_dict()
             # check and fix data with leading zeros.
-            for key in data:
-                if data[key] == "0" or data[key] == "00":
-                    data[key] = "0"
-                elif data[key][:1] == "0":
-                    # Check if first character is a 0. i.e. 01, 02 etc.
-                    data[key] = data[key].lstrip("0")
-                    # if so, then self.strip the leading zero before writing to file.
+            # for key in data:
+            #    if data[key] == "0" or data[key] == "00":
+            #        data[key] = "0"
+            #    elif data[key][:1] == "0":
+            #        # Check if first character is a 0. i.e. 01, 02 etc.
+            #        data[key] = data[key].lstrip("0")
+            #        # if so, then self.strip the leading zero before writing to file.
+            debugging.info(f"config form post: {data}")
 
             self._app_conf.parse_config_input(data)
             self._app_conf.save_config()

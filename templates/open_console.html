@@ -7,22 +7,6 @@
                 <b>Display Console Output - Refresh if necessary</b>
 
                 <table>
-                    <tr>
-                        <td colspan="2" style="margin: auto;">
-                            <div class="flashes">
-                                {% with messages = get_flashed_messages() %}
-                                {% if messages %}
-                                <div class=flashes>
-                                    {% for message in messages %}
-                                    <li>{{ message }}</li>
-                                    {% endfor %}
-                                    </ul>
-                                    {% endif %}
-                                    {% endwith %}
-                                </div>
-                        </td>
-                    </tr>
-
                     <tr width="100%">
                         <td width="50%">
                             {% set script0 = urls[0].split(' ') %}

@@ -8,15 +8,6 @@
                 99</b> are a relative number of how often an airport has been landed at. So 10 = a few landings and 90
             would be a lot of landings.
         </td>
-        <td class="submitbuttons" style="width: 40%;">
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <ul class="flashes">
-                {% for message in messages %}{{ message }}{% endfor %}
-            </ul>
-            {% endif %}
-            {% endwith %}
-        </td>
     </tr>
 </table>
 <form action="hmpost" id="hmpost" method="post">

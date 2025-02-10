@@ -265,3 +265,24 @@ def calc_wx_conditions(wx_data):
         elif "FG" in weather_entry:
             wx_conditions += (WxConditions.FOG,)
     return wx_conditions
+
+
+def print_wx_conditions(wx_conditions):
+    """Printable information for WX conditions."""
+    wx_desc = ""
+    for wx_condition in wx_conditions:
+        if wx_condition == WxConditions.HIGHWINDS:
+            wx_desc += "High Wind,"
+        if wx_condition == WxConditions.GUSTS:
+            wx_desc += "Gust,"
+        if wx_condition == WxConditions.LIGHTNING:
+            wx_desc += "Lightning,"
+        if wx_condition == WxConditions.FREEZINGFOG:
+            wx_desc += "Freezing Fog,"
+        if wx_condition == WxConditions.FOG:
+            wx_desc += "Fog,"
+        if wx_condition == WxConditions.RAIN:
+            wx_desc += "Rain,"
+        if wx_condition == WxConditions.SNOW:
+            wx_desc += "Snow,"
+    return wx_desc

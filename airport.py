@@ -289,6 +289,12 @@ class Airport:
         """Return list of weather conditions at Airport."""
         return self._wx_conditions
 
+    def wxconditions_str(self) -> str:
+        """Return list of weather conditions at Airport."""
+        if self._wx_conditions is None:
+            return ""
+        return utils_wx.print_wx_conditions(self._wx_conditions)
+
     def active_wx_conditions(self) -> bool:
         return self._active_wx_conditions
 

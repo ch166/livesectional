@@ -1,18 +1,18 @@
 body {
-  font-family: arial, sans-serif;
+  font-family: 'Roboto', sans-serif; /* Or 'Open Sans', or any other modern font */
   background: white;
-  color: #005c99;
+  color: #36648b;
   padding: 2px;
 }
 
 a {
-  color: #005c99;
+  color: #36648b;
 }
 
 h1 {
   font-family: arial, sans-serif;
   font-weight: bold;
-  color: #005c99;
+  color: #36648b;
 }
 
 h3 {
@@ -32,7 +32,6 @@ th {
   text-align: left;
   vertical-align: middle;
   padding: 2px;
-  color: #ff0000
 }
 
 th.config {
@@ -40,7 +39,7 @@ th.config {
   text-align: center;
   vertical-align: middle;
   padding: 2px;
-  color: #0b22f1
+  color: #36648b
 }
 
 td {
@@ -58,7 +57,7 @@ td.config {
 }
 
 td.intro {
-  background-color: #ffffff;
+  background-color: white;
   border: 0 solid #dddddd;
   text-align: center;
   vertical-align: middle;
@@ -81,12 +80,13 @@ tr.intro {
 }
 
 tr.config:nth-child(even) {
-  border: 2px solid #1970cc;
-  background-color: #dddddd;
+  border: 2px solid #36648b;
+  background-color: #d5dfe8;
 }
 
 tr.config:nth-child(odd) {
-  background-color: #bcd0f5;
+  border: 2px solid #36648b;
+  background-color: #c0cfdc;
 }
 
 .submitbuttons {
@@ -98,7 +98,7 @@ tr.config:nth-child(odd) {
 }
 
 .collapsible {
-  background-color: #0099ff;
+  background-color: #1a2f42;
   color: white;
   cursor: pointer;
   padding: 18px;
@@ -110,7 +110,7 @@ tr.config:nth-child(odd) {
 
 .active,
 .collapsible:hover {
-  background-color: #005c99;
+  background-color: #36648b;
 }
 
 .collapsible:after {
@@ -127,19 +127,19 @@ tr.config:nth-child(odd) {
 
 .active,
 .button:hover {
-  background-color: #808080;
+  background-color: #8c5e36;
 }
 
 .content {
-  padding: 0 18px;
+  padding: 0;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
-  background-color: #f1f1f1;
+  background-color: #f0f0f0;
 }
 
 .button {
-  background-color: #008000;
+  background-color: #648c36;
   border: none;
   color: white;
   padding: 6px 10px;
@@ -150,12 +150,12 @@ tr.config:nth-child(odd) {
   font-weight: bold;
   margin: 4px 2px;
   cursor: pointer;
-  border-radius: 24px;
+  border-radius: 6px;
 }
 
 
 .button1 {
-  background-color: #005c99;
+  background-color: #36648b;
   border: none;
   color: white;
   padding: 6px 10px;
@@ -166,12 +166,12 @@ tr.config:nth-child(odd) {
   font-weight: bold;
   margin: 2px 1px;
   cursor: pointer;
-  border-radius: 14px;
+  border-radius: 6px;
 }
 
 .active,
 .button1:hover {
-  background-color: #808080;
+  background-color: #8c5e36;
 }
 
 .message {
@@ -185,13 +185,14 @@ tr.config:nth-child(odd) {
   align-items: center;
   justify-content: center;
   margin: 2px;
+  padding: 2px;
 }
 
 .flashentry {
   margin: 4px;
   color: green;
   border: 2px solid #6e4666;
-  border-radius: 3em;
+  border-radius: 6px;
   padding: 8px;
   font: 1.2em sans-serif;
   font-weight: bold;
@@ -223,13 +224,13 @@ tr.config:nth-child(odd) {
 
 select {
   outline: none;
-  background-color: #ffffff;
+  background-color: white;
   width: max-content;
   padding: 2px 4px;
   margin: 8px 0;
   display: inline-block;
-  border: 2px solid #0099ff;
-  border-radius: 10px;
+  border: 2px solid #8c3664;
+  border-radius: 6px;
   box-sizing: border-box;
   text-align: left;
   text-align-last: left;
@@ -241,14 +242,29 @@ option {
 }
 
 input[type=text],
+input[type=password],
 select {
   outline: none;
   width: max-content;
   padding: 2px 4px;
-  margin: 8px 0;
+  margin: 6px 0;
   display: inline-block;
-  border: 2px solid #0099ff;
-  border-radius: 10px;
+  border: 2px solid #8c3664;
+  border-radius: 6px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+input[type=color],
+select {
+  outline: none;
+  width: max-content;
+  min-width: 35px;
+  padding: 2px 4px;
+  margin: 6px 0;
+  display: inline-block;
+  border: 2px solid #8c3664;
+  border-radius: 6px;
   box-sizing: border-box;
   text-align: center;
 }
@@ -258,10 +274,10 @@ select {
   outline: none;
   width: max-content;
   padding: 2px 4px;
-  margin: 8px 0;
+  margin: 6px 0;
   display: inline-block;
-  border: 2px solid #0099ff;
-  border-radius: 10px;
+  border: 2px solid #8c3664;
+  border-radius: 6px;
   box-sizing: border-box;
   text-align: center;
 }
@@ -270,10 +286,10 @@ input, select {
   outline: none;
   width: max-content;
   padding: 2px 4px;
-  margin: 8px 0;
+  margin: 6px 0;
   display: inline-block;
-  border: 2px solid #0099ff;
-  border-radius: 10px;
+  border: 2px solid #8c3664;
+  border-radius: 6px;
   box-sizing: border-box;
   text-align: center;
 }
@@ -291,7 +307,7 @@ input, select {
   cursor: pointer;
   line-height: 20px;
   display: inline-block;
-  color: #444;
+  color: #797d81;
 }
 
 [type="radio"]:checked+label:before,
@@ -302,9 +318,9 @@ input, select {
   top: 0;
   width: 18px;
   height: 18px;
-  border: 1px solid #777;
-  border-radius: 100%;
-  background: #fff;
+  border: 1px solid #8c3664;
+  border-radius: 6px;
+  background: white;
 }
 
 [type="radio"]:checked+label:after,
@@ -313,11 +329,11 @@ input, select {
   width: 12px;
   height: 12px;
   line-height: 20px;
-  background: #0099FF;
+  background: #8c3664;
   position: absolute;
   top: 3px;
   left: 3px;
-  border-radius: 100%;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
@@ -348,7 +364,7 @@ input, select {
   visibility: hidden;
   width: 220px;
   background-color: black;
-  color: #fff;
+  color: white;
   text-align: center;
   border-radius: 6px;
   padding: 5px 0;
@@ -377,8 +393,8 @@ div.headertxt {
 .slider {
   width: 100%;
   height: 15px;
-  border-radius: 5px;
-  background: #a6b0f5;
+  border-radius: 6px;
+  background: #57a1e0;
   outline: none;
   opacity: 0.7;
   -webkit-transition: .2s;
@@ -389,16 +405,16 @@ div.headertxt {
   appearance: none;
   width: 25px;
   height: 25px;
-  border-radius: 50%;
-  background: #005c99;
+  border-radius: 6px;
+  background: #36648b;
   cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
   width: 25px;
   height: 25px;
-  border-radius: 50%;
-  background: #005c99;
+  border-radius: 6px;
+  background: #36648b;
   cursor: pointer;
 }
 
@@ -438,9 +454,9 @@ div.headertxt {
   ;
   font-weight: bold;
   white-space: nowrap;
-  color: #ffffff;
+  color: white;
   background-color: #01b001;
-  border-radius: 2px;
+  border-radius: 6px;
   text-decoration: none;
 }
 
@@ -454,9 +470,9 @@ div.headertxt {
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  color: #ffffff;
+  color: white;
   background-color: #0000ff;
-  border-radius: 2px;
+  border-radius: 6px;
   text-decoration: none;
 }
 
@@ -470,9 +486,9 @@ div.headertxt {
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  color: #ffffff;
-  background-color: #ff0000;
-  border-radius: 2px;
+  color: white;
+  background-color: #FF0000;
+  border-radius: 6px;
   text-decoration: none;
 }
 
@@ -486,9 +502,9 @@ div.headertxt {
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  color: #ffffff;
+  color: white;
   background-color: #FF00FF;
-  border-radius: 2px;
+  border-radius: 6px;
   text-decoration: none;
 }
 
@@ -501,9 +517,9 @@ div.headertxt {
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  color: #ffffff;
-  background-color: #777777;
-  border-radius: 2px;
+  color: white;
+  background-color: #797d81;
+  border-radius: 6px;
   text-decoration: none;
 }
 
@@ -516,9 +532,9 @@ div.headertxt {
   font-size: 12px;
   font-weight: bold;
   white-space: nowrap;
-  color: #ffffff;
+  color: white;
   background-color: #660066;
-  border-radius: 0;
+  border-radius: 6px;
   text-decoration: none;
 }
 
@@ -544,4 +560,141 @@ div.headertxt {
 
 .password-toggle-icon i:hover {
   color: #000000;
+}
+
+/* Consistent Spacing */
+.form-row.form-group .form-label {
+  margin-bottom: 16px; /* Consistent bottom margin */
+}
+
+.form-row.form-group .input-group {
+  margin-bottom: 16px; /* Consistent bottom margin */
+}
+
+/* Improved Padding */
+.form-row.form-group {
+  padding: 16px; /* Add padding to the parent */
+}
+
+.form-label {
+  color: #2c3e50; /* Dark blue-gray label */
+}
+
+.input-group-text {
+  background-color: #797d81; /* Light gray background for input group text */
+  border-color: #c0cfdc; /* Light gray border for input group text */
+}
+
+.form-control {
+  border-color: #c0cfdc; /* Light gray border for form controls */
+}
+
+.form-control:focus {
+  border-color: #648c36; /* Blue border on focus */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Blue box shadow on focus */
+}
+
+.container-fluid {
+  justify-content: center; /* Center myInfoBlock */
+  width: auto; /* Remove fixed width */
+}
+
+#myInfoBlock {
+  background-color: #36648b;
+  padding: 8px; /* Add padding */
+  border-radius: 6px; /* Rounded corners */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 250px;
+}
+
+/* Remove the padding from the ul */
+#myInfoBlock ul {
+  padding-left: 0;
+  margin-bottom: 0;
+  width: auto;
+}
+
+#myInfoBlock li {
+  list-style: none; /* Remove bullets */
+}
+
+/* Remove border from the span */
+#myInfoBlock .navbar-text {
+  border: none;
+  margin: 0;
+  padding: 16px;
+}
+
+.custom-checkbox .form-check-input:checked {
+	background-color: #368c89;
+	border-color: #368c89;
+}
+
+input[id^="metarsrc-option"] {
+  width: 80%;
+}
+
+/* The switch - the box around the slider */
+.toggleswitch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 16px;
+}
+
+/* Hide default HTML checkbox */
+.toggleswitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.toggleslider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #8c5e36;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.toggleslider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 16px;
+  left: 4px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .toggleslider {
+  background-color: #368c89;
+}
+
+input:focus + .toggleslider {
+  box-shadow: 0 0 1px #8c5e36;
+}
+
+input:checked + .toggleslider:before {
+  -webkit-transform: translateX(16px);
+  -ms-transform: translateX(16px);
+  transform: translateX(16px);
+}
+
+/* Rounded sliders */
+.toggleslider.round {
+  border-radius: 26px;
+}
+
+.toggleslider.round:before {
+  border-radius: 50%;
 }

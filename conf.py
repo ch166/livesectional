@@ -85,6 +85,18 @@ class Conf:
 
         return tuple([rgb_r, rgb_g, rgb_b])
 
+    def get_web_string(self, section, key, var_type) -> str:
+        var_value = self.configfile.get(section, key, fallback=None)
+        if var_type == "int":
+            return int(var_value)
+        if var_type == "bool":
+            if utils.str2bool(var_value):
+                return "true"
+            else:
+                return "false"
+        if var_type == "string":
+            return var_value
+
     def get_string(self, section, key) -> str:
         """Read Setting."""
         return self.configfile.get(section, key, fallback=None)
@@ -193,23 +205,23 @@ class Conf:
         """Generate settings template to pass to flask."""
         settings = {
             "LED_COUNT": self.get_string("default", "led_count"),
-            "legend": self.get_string("default", "legend"),
+            "legend": self.get_web_string("default", "legend", "bool"),
             "max_wind_speed": self.get_string("activelights", "high_wind_limit"),
             "wx_update_interval": self.get_string("metar", "wx_update_interval"),
             "metar_age": self.get_string("metar", "metar_age"),
-            "usetimer": self.get_bool("schedule", "usetimer"),
-            "offhour": self.get_string("schedule", "offhour"),
-            "offminutes": self.get_string("schedule", "offminutes"),
-            "onhour": self.get_string("schedule", "onhour"),
-            "onminutes": self.get_string("schedule", "onminutes"),
+            "usetimer": self.get_web_string("schedule", "usetimer", "bool"),
+            "offtime": self.get_string("schedule", "offtime"),
+            "ontime": self.get_string("schedule", "ontime"),
             "tempsleepon": self.get_string("schedule", "tempsleepon"),
             "sleepmsg": self.get_string("schedule", "sleepmsg"),
-            "displayused": self.get_string("oled", "displayused"),
-            "oledused": self.get_string("oled", "oledused"),
-            "lcddisplay": self.get_string("oled", "lcddisplay"),
+            "displayused": self.get_web_string("oled", "displayused", "bool"),
+            "oledused": self.get_web_string("oled", "oledused", "bool"),
+            "lcddisplay": self.get_web_string("oled", "lcddisplay", "bool"),
             "numofdisplays": self.get_string("oled", "numofdisplays"),
             "bright_value": self.get_string("lights", "bright_value"),
-            "hiwindblink": self.get_string("activelights", "high_wind_blink"),
+            "highwindblink": self.get_web_string(
+                "activelights", "high_wind_blink", "bool"
+            ),
             "lghtnflash": self.get_string("lights", "lghtnflash"),
             "rainshow": self.get_string("lights", "rainshow"),
             "frrainshow": self.get_string("lights", "frrainshow"),
@@ -326,48 +338,199 @@ class Conf:
         #
         self.set_string("default", "led_count", form_data["LED_COUNT"])
         #
-        legend_flag = utils.str2bool(form_data["legend"])
-        self.set_string("default", "legend", legend_flag)
+
+        # Handle checkboxes - Only if the checkbox is set in the browser, it will appear in the form.
+        if "legend" in form_data:
+            self.set_string("default", "legend", "true")
+        else:
+            self.set_string("default", "legend", "false")
+
+        if "usetimer" in form_data:
+            self.set_string("schedule", "usetimer", "true")
+        else:
+            self.set_string("schedule", "usetimer", "false")
+
+        if "sleepmsg" in form_data:
+            self.set_string("schedule", "sleepmsg", "true")
+        else:
+            self.set_string("schedule", "sleepmsg", "false")
+
+        if "displayused" in form_data:
+            self.set_string("oled", "displayused", "true")
+        else:
+            self.set_string("oled", "displayused", "false")
+
+        if "oledused" in form_data:
+            self.set_string("oled", "oledused", "true")
+        else:
+            self.set_string("oled", "oledused", "false")
+
+        if "lcddisplay" in form_data:
+            self.set_string("oled", "lcddisplay", "true")
+        else:
+            self.set_string("oled", "lcddisplay", "false")
+
+        if "highwindblink" in form_data:
+            self.set_string("activelights", "highwindblink", "true")
+        else:
+            self.set_string("activelights", "highwindblink", "false")
+
+        if "lghtnflash" in form_data:
+            self.set_string("lights", "lghtnflash", "true")
+        else:
+            self.set_string("lights", "lghtnflash", "false")
+
+        if "rainshow" in form_data:
+            self.set_string("lights", "rainshow", "true")
+        else:
+            self.set_string("lights", "rainshow", "false")
+
+        if "frrainshow" in form_data:
+            self.set_string("lights", "frrainshow", "true")
+        else:
+            self.set_string("lights", "frrainshow", "false")
+
+        if "snowshow" in form_data:
+            self.set_string("lights", "snowshow", "true")
+        else:
+            self.set_string("lights", "snowshow", "false")
+
+        if "dustsandashshow" in form_data:
+            self.set_string("lights", "dustsandashshow", "true")
+        else:
+            self.set_string("lights", "dustsandashshow", "false")
+
+        if "fogshow" in form_data:
+            self.set_string("lights", "fogshow", "true")
+        else:
+            self.set_string("lights", "fogshow", "false")
+
+        if "legend_hiwinds" in form_data:
+            self.set_string("lights", "legend_hiwinds", "true")
+        else:
+            self.set_string("lights", "legend_hiwinds", "false")
+
+        if "legend_lghtn" in form_data:
+            self.set_string("lights", "legend_lghtn", "true")
+        else:
+            self.set_string("lights", "legend_lghtn", "false")
+
+        if "legend_snow" in form_data:
+            self.set_string("lights", "legend_snow", "true")
+        else:
+            self.set_string("lights", "legend_snow", "false")
+
+        if "legend_rain" in form_data:
+            self.set_string("lights", "legend_rain", "true")
+        else:
+            self.set_string("lights", "legend_rain", "false")
+
+        if "legend_frrain" in form_data:
+            self.set_string("lights", "legend_frrain", "true")
+        else:
+            self.set_string("lights", "legend_frrain", "false")
+
+        if "legend_dustsandash" in form_data:
+            self.set_string("lights", "legend_dustsandash", "true")
+        else:
+            self.set_string("lights", "legend_dustsandash", "false")
+
+        if "legend_fog" in form_data:
+            self.set_string("lights", "legend_fog", "true")
+        else:
+            self.set_string("lights", "legend_fog", "false")
+
+        if "exclusive_flag" in form_data:
+            self.set_string("lights", "exclusive_flag", "true")
+        else:
+            self.set_string("lights", "exclusive_flag", "false")
+
+        if "abovekts" in form_data:
+            self.set_string("lights", "abovekts", "true")
+        else:
+            self.set_string("lights", "abovekts", "false")
+
+        if "rotyesno" in form_data:
+            self.set_string("lights", "rotyesno", "true")
+        else:
+            self.set_string("lights", "rotyesno", "false")
+
+        if "oledposorder" in form_data:
+            self.set_string("oled", "oledposorder", "true")
+        else:
+            self.set_string("oled", "oledposorder", "false")
+
+        if "wind_numorarrow" in form_data:
+            self.set_string("oled", "wind_numorarrow", "true")
+        else:
+            self.set_string("oled", "wind_numorarrow", "false")
+
+        if "boldhiap" in form_data:
+            self.set_string("oled", "boldhiap", "true")
+        else:
+            self.set_string("oled", "boldhiap", "false")
+
+        if "blankscr" in form_data:
+            self.set_string("oled", "blankscr", "true")
+        else:
+            self.set_string("oled", "blankscr", "false")
+
+        if "border" in form_data:
+            self.set_string("oled", "border", "true")
+        else:
+            self.set_string("oled", "border", "false")
+
+        if "invert" in form_data:
+            self.set_string("oled", "invert", "true")
+        else:
+            self.set_string("oled", "invert", "false")
+
+        if "toginv" in form_data:
+            self.set_string("oled", "toginv", "true")
+        else:
+            self.set_string("oled", "toginv", "false")
+
+        if "scrolldis" in form_data:
+            self.set_string("oled", "scrolldis", "true")
+        else:
+            self.set_string("oled", "scrolldis", "false")
+
+        if "usewelcome" in form_data:
+            self.set_string("oled", "usewelcome", "true")
+        else:
+            self.set_string("oled", "usewelcome", "false")
+
+        if "displaytime" in form_data:
+            self.set_string("oled", "displaytime", "true")
+        else:
+            self.set_string("oled", "displaytime", "false")
+
+        if "displayip" in form_data:
+            self.set_string("oled", "displayip", "true")
+        else:
+            self.set_string("oled", "displayip", "false")
+
+        self.set_string("activelights", "high_wind_limit", form_data["max_wind_speed"])
+
         self.set_string("activelights", "high_wind_limit", form_data["max_wind_speed"])
         self.set_string("metar", "wx_update_interval", form_data["wx_update_interval"])
         self.set_string("metar", "metar_age", form_data["metar_age"])
-        #
-        timer_flag = utils.str2bool(form_data["usetimer"])
-        self.set_string("schedule", "usetimer", timer_flag)
-        self.set_string("schedule", "offhour", form_data["offhour"])
-        self.set_string("schedule", "offminutes", form_data["offminutes"])
-        self.set_string("schedule", "onhour", form_data["onhour"])
-        self.set_string("schedule", "onminutes", form_data["onminutes"])
+
+        self.set_string("schedule", "offtime", form_data["offtime"])
+        self.set_string("schedule", "ontime", form_data["ontime"])
         self.set_string("schedule", "tempsleepon", form_data["tempsleepon"])
         self.set_string("schedule", "sleepmsg", form_data["sleepmsg"])
         #
-        self.set_string("oled", "displayused", form_data["displayused"])
-        self.set_string("oled", "oledused", form_data["oledused"])
-        self.set_string("oled", "lcddisplay", form_data["lcddisplay"])
+
         self.set_string("oled", "numofdisplays", form_data["numofdisplays"])
         #
         self.set_string("lights", "bright_value", form_data["bright_value"])
-        self.set_string("activelights", "high_wind_blink", form_data["hiwindblink"])
-        self.set_string("lights", "lghtnflash", form_data["lghtnflash"])
-        self.set_string("lights", "rainshow", form_data["rainshow"])
-        self.set_string("lights", "frrainshow", form_data["frrainshow"])
-        self.set_string("lights", "snowshow", form_data["snowshow"])
-        self.set_string("lights", "dustsandashshow", form_data["dustsandashshow"])
-        self.set_string("lights", "fogshow", form_data["fogshow"])
-        self.set_string("lights", "homeport", form_data["homeport"])
         self.set_string("lights", "homeport_pin", form_data["homeport_pin"])
         self.set_string("lights", "homeport_display", form_data["homeport_display"])
         self.set_string("lights", "dim_value", form_data["dim_value"])
         self.set_string("lights", "rgb_grb", form_data["rgb_grb"])
         self.set_string("lights", "rev_rgb_grb", form_data["rev_rgb_grb"])
         self.set_string("lights", "dimmed_value", form_data["dimmed_value"])
-        self.set_string("lights", "legend_hiwinds", form_data["legend_hiwinds"])
-        self.set_string("lights", "legend_lghtn", form_data["legend_lghtn"])
-        self.set_string("lights", "legend_snow", form_data["legend_snow"])
-        self.set_string("lights", "legend_rain", form_data["legend_rain"])
-        self.set_string("lights", "legend_frrain", form_data["legend_frrain"])
-        self.set_string("lights", "legend_dustsandash", form_data["legend_dustsandash"])
-        self.set_string("lights", "legend_fog", form_data["legend_fog"])
         self.set_string("lights", "leg_pin_vfr", form_data["leg_pin_vfr"])
         self.set_string("lights", "leg_pin_mvfr", form_data["leg_pin_mvfr"])
         self.set_string("lights", "leg_pin_ifr", form_data["leg_pin_ifr"])
@@ -383,29 +546,15 @@ class Conf:
         )
         self.set_string("lights", "leg_pin_fog", form_data["leg_pin_fog"])
         self.set_string("lights", "num2display", form_data["num2display"])
-        self.set_string("lights", "exclusive_flag", form_data["exclusive_flag"])
         self.set_string("lights", "exclusive_list", form_data["exclusive_list"])
-        self.set_string("lights", "abovekts", form_data["abovekts"])
         self.set_string("lights", "lcdpause", form_data["lcdpause"])
-        self.set_string("oled", "rotyesno", form_data["rotyesno"])
-        self.set_string("oled", "oledposorder", form_data["oledposorder"])
         self.set_string("oled", "oledpause", form_data["oledpause"])
         self.set_string("oled", "fontsize", form_data["fontsize"])
         self.set_string("oled", "offset", form_data["offset"])
-        self.set_string("oled", "wind_numorarrow", form_data["wind_numorarrow"])
-        self.set_string("oled", "boldhiap", form_data["boldhiap"])
-        self.set_string("oled", "blankscr", form_data["blankscr"])
-        self.set_string("oled", "border", form_data["border"])
         self.set_string("oled", "dimswitch", form_data["dimswitch"])
         self.set_string("oled", "dimmin", form_data["dimmin"])
         self.set_string("oled", "dimmax", form_data["dimmax"])
-        self.set_string("oled", "invert", form_data["invert"])
-        self.set_string("oled", "toginv", form_data["toginv"])
-        self.set_string("oled", "scrolldis", form_data["scrolldis"])
-        self.set_string("default", "usewelcome", form_data["usewelcome"])
         self.set_string("default", "welcome", form_data["welcome"])
-        self.set_string("oled", "displaytime", form_data["displaytime"])
-        self.set_string("oled", "displayip", form_data["displayip"])
         self.set_string("rotaryswitch", "data_sw0", form_data["data_sw0"])
         self.set_string("rotaryswitch", "time_sw0", form_data["time_sw0"])
         self.set_string("rotaryswitch", "data_sw1", form_data["data_sw1"])

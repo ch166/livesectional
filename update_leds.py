@@ -316,18 +316,25 @@ class UpdateLEDs:
         # 0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
         self._metar_taf_mos = self._app_conf.get_int("rotaryswitch", "data_sw0")
 
+        # TODO: These need to be changed when updated via the web form.
         self.nightsleep = self._app_conf.get_bool("schedule", "usetimer")
 
+        offtime = self._app_conf.get_string("schedule", "offtime")
+        offtime_split = offtime.split(":")
+
         self._offtime = datetime.time(
-            self._app_conf.get_int("schedule", "offhour"),
-            self._app_conf.get_int("schedule", "offminutes"),
+            int(offtime_split[0]),
+            int(offtime_split[1]),
             0,
             0,
         )
 
+        ontime = self._app_conf.get_string("schedule", "ontime")
+        ontime_split = ontime.split(":")
+
         self._ontime = datetime.time(
-            self._app_conf.get_int("schedule", "onhour"),
-            self._app_conf.get_int("schedule", "onminutes"),
+            int(ontime_split[0]),
+            int(ontime_split[1]),
             0,
             0,
         )
@@ -912,7 +919,7 @@ class UpdateLEDs:
                 # debugging.info(f"ledmode_metar: {airport_obj.icao_code()} / wx_conditions {airport_conditions}")
                 # Check winds and set the 2nd half of cycles to black to create blink effect
                 if self._app_conf.cache["lights_highwindblink"]:
-                    # bypass if "hiwindblink" is set to 0
+                    # bypass if "highwindblink" is set to 0
                     if int(airportwinds) >= self._app_conf.cache[
                         "metar_maxwindspeed"
                     ] and (cycle_num in [3, 4, 5]):

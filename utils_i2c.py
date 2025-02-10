@@ -139,7 +139,7 @@ class I2CBus:
         """Grab bus lock."""
         if self.bus is None:
             return False
-        for counter in range(1,11):
+        for counter in range(1, 11):
             acquired = self.lock.acquire(blocking=True, timeout=0.1)
             if acquired:
                 self.__lock_events += 1

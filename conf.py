@@ -121,6 +121,7 @@ class Conf:
 
     def save_config(self):
         """Save configuration file."""
+        self.update_confcache()
         cfgfile = open(self.config_filename, "w", encoding="utf-8")
         self.configfile.write(cfgfile)
         cfgfile.close()
@@ -200,6 +201,8 @@ class Conf:
             "lights", "homeport_display"
         )
         self.cache["rev_rgb_grb"] = self.get_string("lights", "rev_rgb_grb")
+        self.cache["usetimer"] = self.get_bool("schedule", "usetimer")
+
 
     def gen_settings_dict(self) -> dict:
         """Generate settings template to pass to flask."""
@@ -511,15 +514,12 @@ class Conf:
             self.set_string("oled", "displayip", "false")
 
         self.set_string("activelights", "high_wind_limit", form_data["max_wind_speed"])
-
-        self.set_string("activelights", "high_wind_limit", form_data["max_wind_speed"])
         self.set_string("metar", "wx_update_interval", form_data["wx_update_interval"])
         self.set_string("metar", "metar_age", form_data["metar_age"])
 
         self.set_string("schedule", "offtime", form_data["offtime"])
         self.set_string("schedule", "ontime", form_data["ontime"])
         self.set_string("schedule", "tempsleepon", form_data["tempsleepon"])
-        self.set_string("schedule", "sleepmsg", form_data["sleepmsg"])
         #
 
         self.set_string("oled", "numofdisplays", form_data["numofdisplays"])

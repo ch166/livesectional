@@ -112,94 +112,12 @@ class UpdateLEDs:
 
     _app_conf = {}
     _airport_database = {}
-    _app_conf_cache = {}
 
     # Set toggle_sw to an initial value that forces rotary switch to dictate data displayed
     _toggle_sw = -1
     _led_mode = LedMode.METAR
 
     _active_led_dict = {}
-
-    # List of METAR weather categories to designate weather in area.
-    # Many Metars will report multiple conditions, i.e. '-RA BR'.
-    # The code pulls the first/main weather reported to compare against the lists below.
-    # In this example it uses the '-RA' and ignores the 'BR'.
-    # See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
-
-    # Thunderstorm and lightning
-    wx_lghtn_ck = [
-        "TS",
-        "TSRA",
-        "TSGR",
-        "+TSRA",
-        "TSRG",
-        "FC",
-        "SQ",
-        "VCTS",
-        "VCTSRA",
-        "VCTSDZ",
-        "LTG",
-    ]
-
-    # Snow in various forms
-    wx_snow_ck = [
-        "BLSN",
-        "DRSN",
-        "-RASN",
-        "RASN",
-        "+RASN",
-        "-SN",
-        "SN",
-        "+SN",
-        "SG",
-        "IC",
-        "PE",
-        "PL",
-        "-SHRASN",
-        "SHRASN",
-        "+SHRASN",
-        "-SHSN",
-        "SHSN",
-        "+SHSN",
-    ]
-
-    # Rain in various forms
-    wx_rain_ck = [
-        "-DZ",
-        "DZ",
-        "+DZ",
-        "-DZRA",
-        "DZRA",
-        "-RA",
-        "RA",
-        "+RA",
-        "-SHRA",
-        "SHRA",
-        "+SHRA",
-        "VIRGA",
-        "VCSH",
-    ]
-
-    # Freezing Rain
-    wx_frrain_ck = ["-FZDZ", "FZDZ", "+FZDZ", "-FZRA", "FZRA", "+FZRA"]
-
-    # Dust Sand and/or Ash
-    wx_dustsandash_ck = [
-        "DU",
-        "SA",
-        "HZ",
-        "FU",
-        "VA",
-        "BLDU",
-        "BLSA",
-        "PO",
-        "VCSS",
-        "SS",
-        "+SS",
-    ]
-
-    # Fog
-    wx_fog_ck = ["BR", "MIFG", "VCFG", "BCFG", "PRFG", "FG", "FZFG"]
 
     # Morse Code Dictionary
     morse_code = {
@@ -316,9 +234,6 @@ class UpdateLEDs:
         # 0 = Display TAF, 1 = Display METAR, 2 = Display MOS, 3 = Heat Map (Heat map not controlled by rotary switch)
         self._metar_taf_mos = self._app_conf.get_int("rotaryswitch", "data_sw0")
 
-        # TODO: These need to be changed when updated via the web form.
-        self.nightsleep = self._app_conf.get_bool("schedule", "usetimer")
-
         offtime = self._app_conf.get_string("schedule", "offtime")
         offtime_split = offtime.split(":")
 
@@ -400,52 +315,6 @@ class UpdateLEDs:
             rgb_list[i] = (col_r * 255, col_g * 255, col_b * 255)
         self._rgb_rainbow = rgb_list
         # debugging.info(f"Rainbow List - {self._rgb_rainbow}")
-
-    def moved_to_conf_module_update_confcache(self):
-        """Update class local variables to cache conf data."""
-        # This is a performance improvement cache of conf data
-        # TODO: Need to make sure we update this when the config changes
-        self._app_conf.cache["color_vfr"] = utils_colors.cat_vfr(self._app_conf)
-        self._app_conf.cache["color_mvfr"] = utils_colors.cat_mvfr(self._app_conf)
-        self._app_conf.cache["color_ifr"] = utils_colors.cat_ifr(self._app_conf)
-        self._app_conf.cache["color_lifr"] = utils_colors.cat_lifr(self._app_conf)
-        self._app_conf.cache["color_nowx"] = utils_colors.wx_noweather(self._app_conf)
-        self._app_conf.cache["lights_highwindblink"] = self._app_conf.get_bool(
-            "activelights", "high_wind_blink"
-        )
-        self._app_conf.cache["metar_maxwindspeed"] = self._app_conf.get_int(
-            "activelights", "high_wind_limit"
-        )
-        self._app_conf.cache["lights_lghtnflash"] = self._app_conf.get_bool(
-            "lights", "lghtnflash"
-        )
-        self._app_conf.cache["lights_snowshow"] = self._app_conf.get_bool(
-            "lights", "snowshow"
-        )
-        self._app_conf.cache["lights_rainshow"] = self._app_conf.get_bool(
-            "lights", "rainshow"
-        )
-        self._app_conf.cache["lights_frrainshow"] = self._app_conf.get_bool(
-            "lights", "frrainshow"
-        )
-        self._app_conf.cache["lights_dustsandashshow"] = self._app_conf.get_bool(
-            "lights", "dustsandashshow"
-        )
-        self._app_conf.cache["lights_fogshow"] = self._app_conf.get_bool(
-            "lights", "fogshow"
-        )
-        self._app_conf.cache["lights_homeportpin"] = self._app_conf.get_int(
-            "lights", "homeport_pin"
-        )
-        self._app_conf.cache["lights_homeport"] = self._app_conf.get_int(
-            "lights", "homeport"
-        )
-        self._app_conf.cache["lights_homeport_display"] = self._app_conf.get_int(
-            "lights", "homeport_display"
-        )
-        self._app_conf.cache["rev_rgb_grb"] = self._app_conf.get_string(
-            "lights", "rev_rgb_grb"
-        )
 
     def ledmode(self):
         """Return current LED Mode."""
@@ -648,16 +517,17 @@ class UpdateLEDs:
             # each pass - and it's max value is a limiter on the number of LEDs
             # If each pass through this loop touches one LED ; then we need enough
             # clock cycles to cover every LED.
-            clock_tick = (clock_tick + 1) % self.BIGNUM
 
-            if (clock_tick % 1000) == 0:
+            if (clock_tick % 200) == 0:
                 # Execute things that need to be done occasionally
                 # Make sure the active LED list is updated
                 self.update_active_led_list()
-                if self.nightsleep:
+                if self._app_conf.cache["usetimer"]:
                     sleeping = self.check_for_sleep_time(
                         clock_tick, sleeping, default_led_mode
                     )
+
+            clock_tick = (clock_tick + 1) % self.BIGNUM
 
             if self._led_mode in (LedMode.OFF, LedMode.SLEEP):
                 self.turnoff()
@@ -665,7 +535,7 @@ class UpdateLEDs:
                 continue
             if self._led_mode == LedMode.METAR:
                 led_color_dict = self.ledmode_metar(clock_tick)
-                if (clock_tick % 1000) == 0:
+                if (clock_tick % 200) == 0:
                     debugging.debug(f"ledmode_metar: {led_color_dict}")
                 self.update_ledstring(led_color_dict)
                 continue

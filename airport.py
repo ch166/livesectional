@@ -91,6 +91,7 @@ class Airport:
     _wx_category = None
     _wx_category_str = "UNSET"
     _ceiling = None
+    _wx_string = None
 
     _mos_forecast = None
 
@@ -151,6 +152,7 @@ class Airport:
         self._wx_category = None
         self._wx_category_str = "UNSET"
         self._ceiling = None
+        self._wx_string = None
 
         self._mos_forecast = None
 
@@ -574,6 +576,12 @@ class Airport:
             # This may be legitimately empty; if the metar has incomplete data.
             # No visibility information is a case where flight_category is not set
             self._flight_category = "Missing"
+
+        next_object = metar_data.find("wx_string")
+        if next_object is not None:
+            self._wx_string = next_object.text
+        else:
+            self._wx_string = "Missing"
 
         next_object = metar_data.find("ceiling")
         if next_object is not None:

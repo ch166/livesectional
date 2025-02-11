@@ -272,7 +272,9 @@ select {
 input[type=number],
 select {
   outline: none;
-  width: max-content;
+  flex: 1 1 100px;
+  min-width: 80px;
+  width: 100px !important;
   padding: 2px 4px;
   margin: 6px 0;
   display: inline-block;

@@ -593,7 +593,11 @@ class WebViews:
             # FIXME - Move URL to config file
             # https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId=kpae
             pop_url = f'<a href="https://nfdc.faa.gov/nfdcApps/services/ajv5/airportDisplay.jsp?airportId={icao} target="_blank">'
-            popup = f"<ul><li><font color={loc_color}>{airport_obj.flightcategory()}</font></li><li>Conditions:{airport_obj.wxconditions_str()}</li></ul>"
+            wx_cond = airport_obj.wxconditions_str()
+            wx_cond_str = None
+            if len(wx_cond) > 0:
+                wx_cond_str = f"<li>WX cond:{wx_cond}</li>"
+            popup = f"<ul><li>{icao}</li><li><font color={loc_color}>{airport_obj.flightcategory()}</font></li>{wx_cond_str}</ul>"
 
             # Add airport markers with proper color to denote flight category
             folium.CircleMarker(

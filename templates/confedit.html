@@ -34,7 +34,7 @@
           <tr>
               <td><label class="form-check-label" for="legend">Use a Map Legend</label></td>
               <td><div class="form-check form-switch custom-checkbox">
-                  <input class="form-check-input" type="checkbox" name="legend" id="legend" {{ "checked" if settings.legend == '1' }} ></div>
+                  <input class="form-check-input" type="checkbox" name="legend" id="legend" {{ "checked" if settings.legend == 'true' }} ></div>
               </td>
               <td>This will allow individual LEDs on a string to be flagged as LGND</td>
           </tr>
@@ -75,7 +75,7 @@
           <tr>
               <td><label class="form-check-label" for="usetimer">Use On/Off Timer</label></td>
               <td><div class="form-check form-switch custom-checkbox">
-                  <input class="form-check-input" type="checkbox" name="usetimer" id="usetimer" {{ "checked" if settings.usetimer == '1' }} ></div>
+                  <input class="form-check-input" type="checkbox" name="usetimer" id="usetimer" {{ "checked" if settings.usetimer == 'true' }} ></div>
               </td>
               <td>Enable feature to turn off LEDs on a simple schedule.</td>
           </tr>
@@ -97,28 +97,28 @@
           <tr>
               <td><label for="sleepmsg" class="form-check-label">Sleeping Message</label></td>
               <td><div class="form-check form-switch custom-checkbox">
-                  <input class="form-check-input" type="checkbox" name="sleepmsg" id="sleepmsg" {{ "checked" if settings.sleepmsg == '1' }} ></div>
+                  <input class="form-check-input" type="checkbox" name="sleepmsg" id="sleepmsg" {{ "checked" if settings.sleepmsg == 'true' }} ></div>
               </td>
               <td>Display 'Sleeping' message on LCD/OLED display when map is in sleep mode.</td>
           </tr>
           <tr>
               <td><label class="form-check-label" for="displayused">Display Used</label></td>
               <td><div class="form-check form-switch custom-checkbox">
-                  <input class="form-check-input" type="checkbox" name="displayused" id="displayused" {{ "checked" if settings.displayused == '1' }} ></div>
+                  <input class="form-check-input" type="checkbox" name="displayused" id="displayused" {{ "checked" if settings.displayused == 'true' }} ></div>
               </td>
               <td>Enable LCD/OLED displays.</td>
           </tr>
           <tr>
               <td><label class="form-check-label" for="oledused">OLED Displays Used</label></td>
               <td><div class="form-check form-switch custom-checkbox">
-                  <input class="form-check-input" type="checkbox" name="oledused" id="oledused" {{ "checked" if settings.oledused == '1' }} ></div>
+                  <input class="form-check-input" type="checkbox" name="oledused" id="oledused" {{ "checked" if settings.oledused == 'true' }} ></div>
               </td>
               <td>If an OLED display will be used, select Yes. This is used to turn off the OLED display on reboot/Power off.</td>
           </tr>
           <tr>
               <td><label class="form-check-label" for="lcddisplay">LCD Used</label></td>
               <td><div class="form-check form-switch custom-checkbox">
-                  <input class="form-check-input" type="checkbox" name="lcddisplay" id="lcddisplay" {{ "checked" if settings.lcddisplay == '1' }} ></div>
+                  <input class="form-check-input" type="checkbox" name="lcddisplay" id="lcddisplay" {{ "checked" if settings.lcddisplay == 'true' }} ></div>
               </td>
               <td>If an LCD will be used, select Yes. This is used to shutoff the LCD on reboot/Power off.</td>
           </tr>

@@ -33,6 +33,87 @@ class WxConditions(Enum):
     FREEZINGFOG = auto()
     DUSTASH = auto()
 
+# List of METAR weather categories to designate weather in area.
+# Many Metars will report multiple conditions, i.e. '-RA BR'.
+# The code pulls the first/main weather reported to compare against the lists below.
+# In this example it uses the '-RA' and ignores the 'BR'.
+# See https://www.aviationweather.gov/metar/symbol for descriptions. Add or subtract codes as desired.
+
+# Thunderstorm and lightning
+wx_lghtn_ck = [
+    "TS",
+    "TSRA",
+    "TSGR",
+    "+TSRA",
+    "TSRG",
+    "FC",
+    "SQ",
+    "VCTS",
+    "VCTSRA",
+    "VCTSDZ",
+    "LTG",
+]
+
+# Snow in various forms
+wx_snow_ck = [
+    "BLSN",
+    "DRSN",
+    "-RASN",
+    "RASN",
+    "+RASN",
+    "-SN",
+    "SN",
+    "+SN",
+    "SG",
+    "IC",
+    "PE",
+    "PL",
+    "-SHRASN",
+    "SHRASN",
+    "+SHRASN",
+    "-SHSN",
+    "SHSN",
+    "+SHSN",
+]
+
+# Rain in various forms
+wx_rain_ck = [
+    "-DZ",
+    "DZ",
+    "+DZ",
+    "-DZRA",
+    "DZRA",
+    "-RA",
+    "RA",
+    "+RA",
+    "-SHRA",
+    "SHRA",
+    "+SHRA",
+    "VIRGA",
+    "VCSH",
+]
+
+# Freezing Rain
+wx_frrain_ck = ["-FZDZ", "FZDZ", "+FZDZ", "-FZRA", "FZRA", "+FZRA"]
+
+# Dust Sand and/or Ash
+wx_dustsandash_ck = [
+    "DU",
+    "SA",
+    "HZ",
+    "FU",
+    "VA",
+    "BLDU",
+    "BLSA",
+    "PO",
+    "VCSS",
+    "SS",
+    "+SS",
+]
+
+# Fog
+wx_fog_ck = ["BR", "MIFG", "VCFG", "BCFG", "PRFG", "FG", "FZFG"]
+
 
 def get_usa_metar(airport_data):
     """Try get Fresh METAR Data if current data is more than METAREXPIRY minutes old."""
@@ -231,7 +312,7 @@ def calculate_wx_from_metar(airport_data):
         airport_data._flight_category = "UNKN"
 
     airport_data.set_wx_conditions(
-        calc_wx_conditions(airport_data._processed_metar_object)
+        calc_wx_conditions(airport_data._processed_metar_object, airport_data._wx_string)
     )
     airport_data.set_wx_category(airport_data._flight_category)
 
@@ -241,7 +322,38 @@ def calculate_wx_from_metar(airport_data):
     return airport_data_observation
 
 
-def calc_wx_conditions(wx_data):
+def calc_wx_conditions(wx_data, wx_string):
+    """Compute Weather Conditions from metar.xml wx_string."""
+
+    wx_conditions = ()
+    if wx_string is not None:
+        wx_items = wx_string.split(' ')
+    else:
+        wx_items = []
+    for wx_entry in wx_items:
+        if wx_entry in wx_lghtn_ck:
+            wx_conditions += (WxConditions.LIGHTNING,)
+        if wx_entry in wx_snow_ck:
+            wx_conditions += (WxConditions.SNOW,)
+        if wx_entry in wx_rain_ck:
+            wx_conditions += (WxConditions.RAIN,)
+        if wx_entry in wx_frrain_ck:
+            wx_conditions += (WxConditions.FREEZINGRAIN,)
+        if wx_entry in wx_dustsandash_ck:
+            wx_conditions += (WxConditions.DUSTASH,)
+        if wx_entry in wx_fog_ck:
+            wx_conditions += (WxConditions.FOG,)
+
+    if wx_data.wind_speed is not None:
+        if wx_data.wind_speed.value() > 20:
+            wx_conditions += (WxConditions.HIGHWINDS,)
+    if wx_data.wind_gust is not None:
+        wx_conditions += (WxConditions.GUSTS,)
+
+    return wx_conditions
+
+
+def calc_wx_conditions_old(wx_data):
     """Compute Wind Conditions."""
     wx_conditions = ()
 

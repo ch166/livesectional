@@ -18,8 +18,10 @@ SRVR_KEY=$DATADIR/server_cert.key
 
 if [ -f "$FNAME.crt" ]; then
 	NOT_AFTER=$(openssl x509 -in $SRVR_CRT -text -noout | grep 'Not After'| cut -c 25-)
-	DAYS_LEFT_MATH="( $(date -d "$NOT_AFTER" +%s)  -  $(date -d "now" +%s) )/86400 "
-	DAYS_LEFT="$(echo "$DAYS_LEFT_MATH" | bc)"
+	SECS_LEFT_MATH="$(date -d "$NOT_AFTER" +%s) - $(date -d "now" +%s)"
+	SECS_LEFT="$(expr $SECS_LEFT_MATH)"
+	DAYS_LEFT="$(expr $SECS_LEFT / 86400)"
+	echo "Cert days remaining: $DAYS_LEFT"
 	if (( "$DAYS_LEFT" > 5 )); then
 		# More than 5 days remaining on validity of cert
 		# exiting

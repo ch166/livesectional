@@ -39,6 +39,7 @@ set -o errtrace         # Ensure the error trap handler is inherited
 export INSTALLDIR=/opt/NeoSectional
 export VENVDIR=/opt/venv/livemap
 export DATADIR=$INSTALLDIR/data
+export GITSRC=/opt/git/livesectional/
 
 # Sync filesystems
 sync

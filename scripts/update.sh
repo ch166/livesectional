@@ -86,6 +86,8 @@ $PYTHON crudini --set $INSTALLDEST/config.ini schedule offminutes unused
 $PYTHON crudini --set $INSTALLDEST/config.ini schedule onhour unused
 $PYTHON crudini --set $INSTALLDEST/config.ini schedule onminutes unused
 
+$PYTHON crudini --set $INSTALLDEST/config.ini logging loglevel info
+
 
 echo -e "Copying static archive"
 cd $STATICFILES || exit 1

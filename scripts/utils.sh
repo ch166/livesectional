@@ -14,8 +14,8 @@ function error_exit () {
 
 error_check() {
 	[ "$1" != 0 ] && {
-		echo "error; exiting"
-		exit 1
+		echo "livemap script error; $2" | logger -t livemap-scripts
+ 		exit 1
 	}
 }
 

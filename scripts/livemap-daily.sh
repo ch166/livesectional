@@ -5,7 +5,7 @@
 
 error_check() {
 	[ "$1" != 0 ] && {
-		echo "error; exiting"
+		echo "livemap daily - error: $2 " | logger -t livemap-daily
 		exit 1
 	}
 }
@@ -18,22 +18,22 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 cd /opt/git/livesectional || exit
 git remote update 2>&1 | logger -t livemap-daily
-error_check $?
+error_check $? "git remote update problems"
 git pull 2>&1 | logger -t livemap-daily
-error_check $?
+error_check $? "git pull problems"
 
 # 2. Can we safely run create-venv script to update any new entries in requirements.txt
 #
 # 
 
-echo "Livemap starting daily script to update environment"
+echo "Livemap starting daily script to update environment" | logger -t livemap-daily
 
 # Doing the environment update first - in case new requirements must be installed early
 /opt/git/livesectional/scripts/create-venv.sh 2>&1 | logger -t livemap-daily
-error_check $?
+error_check $? "create-venv.sh problems"
 
 /opt/git/livesectional/scripts/update.sh 2>&1 | logger -t livemap-daily
-error_check $?
+error_check $? "scripts/update.sh problems"
 
 # This should allow the code to look at the git repo to check version information ; and then run the 
 # install / upgrade scripts
@@ -51,5 +51,5 @@ sync
 
 date > /opt/NeoSectional/daily-complete.txt
 
-echo "livemap update cron daily script complete"
+echo "livemap update cron daily script complete" | logger -t livemap-daily
 exit 0

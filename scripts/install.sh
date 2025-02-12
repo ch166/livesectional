@@ -53,12 +53,12 @@ $INSTALL -t $DATADEST data/oled_conf.json
 error_check $?
 
 
-echo -e "Copying static archive"
+echo -e "Copying static archive" | logger -t livemap-install
 cd $STATICFILES || error_exit "cd $STATICFILES failed."
 rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
 error_check $?
 
-echo -e "Getting fontawesome"
+echo -e "Getting fontawesome" | logger -t livemap-install
 # FIXME: Fragile hardcoded values
 #
 $INSTALLDIR $FONTAWESOME
@@ -70,7 +70,7 @@ ln -sf $FONTAWESOME/fontawesome-free-6.7.2-web/ $STATICFILES/fontawesome
 
 systemctl daemon-reload
 
-echo -e "Install complete - try\n systemctl restart livemap ; systemctl status livemap"
+echo -e "Install complete - try\n systemctl restart livemap ; systemctl status livemap" | logger -t livemap-install
 
 # Sync filesystems
 sync

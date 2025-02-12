@@ -21,7 +21,7 @@ if [ -f "$FNAME.crt" ]; then
 	SECS_LEFT_MATH="$(date -d "$NOT_AFTER" +%s) - $(date -d "now" +%s)"
 	SECS_LEFT="$(expr $SECS_LEFT_MATH)"
 	DAYS_LEFT="$(expr $SECS_LEFT / 86400)"
-	echo "Cert days remaining: $DAYS_LEFT"
+	echo "Cert days remaining: $DAYS_LEFT" | logger -t livemap-ssl-check
 	if (( "$DAYS_LEFT" > 5 )); then
 		# More than 5 days remaining on validity of cert
 		# exiting

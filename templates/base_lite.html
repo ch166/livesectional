@@ -6,8 +6,9 @@
     <head>
         <meta http-equiv="Content-Language" content="en" />
         <meta charset="utf-8" />
-        <meta name="description" content="" />
-        <meta name="keywords" content="" />
+	<meta http-equiv="refresh" content="60" />
+        <meta name="description" content="LiveSectional Aviation Weather Map" />
+        <meta name="keywords" content="metar taf airport runway weather aviation" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="shortcut icon" href="/static/tab.ico" />
         <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -201,12 +202,12 @@
                         </td>
                         <td class="submitbuttons">
                             <form action="mapturnoff" id="mapturnoff" method="post">
-                                <input type="submit" class="button" value="Shutoff Map" />
+                                <input type="submit" class="button" value="Turn off LEDs" />
                             </form>
                         </td>
                         <td class="submitbuttons">
                             <form action="mapturnon" id="mapturnon" method="post">
-                                <input type="submit" class="button" value="Startup Map" />
+                                <input type="submit" class="button" value="Turn on LEDs" />
                             </form>
                         </td>
                     </tr>
@@ -220,7 +221,7 @@
                         </td>
                         <td class="submitbuttons">
                             <form action="download_cf" id="download_cf" method="post">
-                                <input type="submit" class="button" value="DL config.py" />
+                                <input type="submit" class="button" value="DL config.ini" />
                             </form>
                         </td>
                         <td class="submitbuttons">

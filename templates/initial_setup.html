@@ -13,7 +13,7 @@
                             <tr>
                                 <td>
                                     <div class="form-floating mb-3">
-                                        <input class="form-control block form-control-sm" name="adminuser" id="adminuser">
+                                        <input class="form-control block form-control-sm" name="adminuser" id="adminuser" value="admin">
                                         <label class="form-label" for="adminuser">Admin Username</label>
                                     </div>
                                 </td>
@@ -29,17 +29,33 @@
                             </tr>
                             <tr>
                                 <td>
-					<div class="form-row form-group"><label class="form-check-label" for="setup_enable_ssl">Enable Website TLS</label></div>
-					<div class="form-check form-switch custom-checkbox"><input class="form-check-input" type="checkbox" name="setup_enable_ssl" id="setup_enable_ssl"></div>
-				</td>
+                                    <div class="form-row form-group"><label class="form-check-label" for="use_proxies">Enable HTTP(S) proxies</label></div>
+                                    <div class="form-check form-switch custom-checkbox"><input class="form-check-input" type="checkbox" name="use_proxies" id="use_proxies" ></div>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <div class="form-row form-group">
-                                        <input class="btn btn-primary" type="submit" value="Submit" />
+                                    <div class="form-floating mb-3">
+                                        <input class="form-control block form-control-sm" name="httpproxy" id="httpproxy" value="http://192.168.0.1:3128">
+                                        <label class="form-label" for="httpproxy">HTTP Proxy</label>
                                     </div>
                                 </td>
                             </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-floating mb-3">
+                                        <input class="form-control block form-control-sm" name="httpsproxy" id="httpsproxy" value="http://192.168.0.1:3128">
+                                        <label class="form-label" for="httpsproxy">HTTPS Proxy</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+					                <div class="form-row form-group"><label class="form-check-label" for="setup_enable_ssl">Enable Website TLS</label></div>
+					                <div class="form-check form-switch custom-checkbox"><input class="form-check-input" type="checkbox" name="setup_enable_ssl" id="setup_enable_ssl"></div>
+				                </td>
+                            </tr>
+                            <tr><td><div class="form-row form-group"><input class="btn btn-primary" type="submit" value="Submit" /></div></td></tr>
                         </table>
                     </form>
                 </div>

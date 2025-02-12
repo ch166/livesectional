@@ -51,11 +51,6 @@ class WebViews:
     max_lon = 0
     min_lon = 0
 
-    _admin_username = "admin"
-    _admin_password = "notset"
-
-    _initial_setup_complete = False
-
     _clean_reboot_request = False
 
     _app_conf = None
@@ -90,10 +85,6 @@ class WebViews:
         self._zeroconf = zeroconf
         self._clean_reboot_request = False
 
-        self._admin_username = "admin"
-        self._admin_password = None
-        self._initial_setup_complete = False
-
         self.app = Flask(__name__)
         self.app.secret_key = secrets.token_hex(16)
 
@@ -111,14 +102,6 @@ class WebViews:
             self.__ssl_cert = self._app_conf.get_string("default", "ssl_cert")
             self.__ssl_key = self._app_conf.get_string("default", "ssl_key")
             self.__ssl_port = self._app_conf.get_string("default", "ssl_port")
-
-        if self._app_conf.get_bool("default", "initial_setup_complete"):
-            self._admin_username = self._app_conf.get_string(
-                "default", "admin_username"
-            )
-            self._admin_password = self._app_conf.get_string(
-                "default", "admin_password"
-            )
 
         self.app.add_url_rule("/", view_func=self.index, methods=["GET"])
         self.app.add_url_rule("/sysinfo", view_func=self.systeminfo, methods=["GET"])
@@ -221,9 +204,14 @@ class WebViews:
 
     def check_auth(self, username, password):
         """Check if a username/password combination is valid."""
-        return username == self._admin_username and utils_system.match_password(
-            password, self._admin_password
-        )
+        adminuser = self._app_conf.cache["adminuser"]
+        adminpass = self._app_conf.cache["adminpass"]
+        if adminuser is not None and adminpass is not None:
+            return username == adminuser and utils_system.match_password(
+                password, adminpass
+            )
+        else:
+            return False
 
     def authenticate(self):
         """Sends a 401 response that enables basic auth."""
@@ -318,21 +306,38 @@ class WebViews:
         admin_user = None
         admin_pass = None
 
-        if (request.method == "POST") and (self._initial_setup_complete == False):
+        if (request.method == "POST") and not (self._app_conf.cache["first_setup_complete"]):
             form_data = request.form
-            admin_user = form_data["adminuser"]
-            admin_pass = form_data["adminpass"]
+            if "adminuser" in form_data:
+                admin_user = form_data["adminuser"]
+            if "adminpass" in form_data:
+                admin_pass = form_data["adminpass"]
 
-            if admin_user and admin_pass:
-                self._admin_username = admin_user
-                self._admin_password = utils_system.encrypt_password(admin_pass)
+            if (admin_user is not None) and (admin_pass is not None):
+                self._app_conf.set_string("default", "adminuser", admin_user)
+                self._app_conf.set_string(
+                    "default", "adminpass", utils_system.encrypt_password(admin_pass)
+                )
 
-            self._initial_setup_complete = True
+            if "use_proxies" in form_data:
+                self._app_conf.set_bool("urls", "use_proxies", True)
+                if "http_proxy" in form_data:
+                    self._app_conf.set_string(
+                        "urls", "http_proxy", form_data["http_proxy"]
+                    )
+                if "https_proxy" in form_data:
+                    self._app_conf.set_string(
+                        "urls", "https_proxy", form_data["https_proxy"]
+                    )
+            else:
+                self._app_conf.set_string("urls", "use_proxies", False)
+                self._app_conf.set_string("urls", "http_proxy", "")
+                self._app_conf.set_string("urls", "htts_proxy", "")
+
+            self._app_conf.set_bool("default", "first_setup_complete", True)
+            self._app_conf.save_config()
+
             flash("First Setup Complete")
-            debugging.info(f"form_data: {form_data}")
-
-            # Need to save these values for next run
-            #
 
         return redirect("/")
 
@@ -1031,7 +1036,7 @@ class WebViews:
         template_data["title"] = "Intro"
 
         # Check for initial setup state
-        if not self._initial_setup_complete:
+        if not self._app_conf.cache["first_setup_complete"]:
             return render_template("initial_setup.html", **template_data)
 
         # System Reboot call will update the flag and redirect to here.

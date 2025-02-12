@@ -51,6 +51,8 @@ def is_connected():
 
 def str2bool(input_str):
     """Simple check for truthiness of string."""
+    if type(input_str) is bool:
+        return input_str
     return input_str.lower() in ["true", "1", "t", "y", "yes"]
 
 

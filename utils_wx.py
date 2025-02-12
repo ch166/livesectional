@@ -31,7 +31,9 @@ class WxConditions(Enum):
     LIGHTNING = auto()
     FOG = auto()
     FREEZINGFOG = auto()
+    FREEZINGRAIN = auto()
     DUSTASH = auto()
+
 
 # List of METAR weather categories to designate weather in area.
 # Many Metars will report multiple conditions, i.e. '-RA BR'.
@@ -312,7 +314,9 @@ def calculate_wx_from_metar(airport_data):
         airport_data._flight_category = "UNKN"
 
     airport_data.set_wx_conditions(
-        calc_wx_conditions(airport_data._processed_metar_object, airport_data._wx_string)
+        calc_wx_conditions(
+            airport_data._processed_metar_object, airport_data._wx_string
+        )
     )
     airport_data.set_wx_category(airport_data._flight_category)
 
@@ -327,7 +331,7 @@ def calc_wx_conditions(wx_data, wx_string):
 
     wx_conditions = ()
     if wx_string is not None:
-        wx_items = wx_string.split(' ')
+        wx_items = wx_string.split(" ")
     else:
         wx_items = []
     for wx_entry in wx_items:

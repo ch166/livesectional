@@ -260,10 +260,6 @@ class UpdateLEDs:
         # Number of LED pixels. Change this value to match the number of LED's being used on map
         self._led_count = self._app_conf.get_int("default", "led_count")
 
-        # 1 = RGB color codes. 0 = GRB color codes.
-        # Populate color codes below with normal RGB codes and script will change if necessary
-        self._rgb_grb = self._app_conf.get_int("lights", "rgb_grb")
-
         self.homeport_toggle = False
         self.homeport_colors = ast.literal_eval(
             self._app_conf.get_string("colors", "homeport_colors")
@@ -336,7 +332,7 @@ class UpdateLEDs:
         else:
             rgb_color = utils_colors.rgb_color(hexcolor)
 
-        color_ord = self.rgb_to_pixel(led_id, rgb_color, self._rgb_grb)
+        color_ord = self.rgb_to_pixel(led_id, rgb_color, self._app_conf.cache["rgb_grb"])
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
 
         self.strip.setPixelColor(led_id, pixel_data)

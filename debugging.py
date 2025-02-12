@@ -8,60 +8,86 @@ import logging
 import logging.handlers
 import pprint
 
-
-# FIXME: Move these flags to configuration
-DEBUG_MSGS = False
-PRINT_MSGS = True
-INFO_MSGS = True
-WARN_MSGS = True
-ERR_MSGS = True
-
-logger = None
+__logger = None
 
 
 def loginit(conf):
     """Init logging data."""
-    global logger
+    global __logger
     # FIXME: Move filename to config
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    __logger = logging.getLogger()
+    __logger.setLevel(logging.CRITICAL)
 
-    logfilename = conf.get_string("filenames", "log_file")
-    # logging.basicConfig(filename="logs/debugging.log", level=logging.DEBUG)
-    logfilehandler = logging.handlers.TimedRotatingFileHandler(
-        logfilename, when="midnight", interval=1, backupCount=5, utc=True
+    logfile_name = conf.get_string("filenames", "log_file")
+    logfile_handler = logging.handlers.TimedRotatingFileHandler(
+        logfile_name, when="midnight", interval=1, backupCount=5, utc=True
     )
-    logfilehandler.setLevel(logging.DEBUG)
-    logger.addHandler(logfilehandler)
+    log_console_handler = logging.StreamHandler(sys.stdout)
 
-    DEBUG_MSGS = conf.get_bool("logging", "debug_msgs")
-    PRINT_MSGS = conf.get_bool("logging", "print_msgs")
-    INFO_MSGS = conf.get_bool("logging", "info_msgs")
-    WARN_MSGS = conf.get_bool("logging", "warn_msgs")
-    ERR_MSGS = conf.get_bool("logging", "err_msgs")
+    logfile_loglevel = str2loglevel(conf.get_string("logging", "loglevel_logfile"))
+    logfile_handler.setLevel(logfile_loglevel)
 
-    logconsolehandler = logging.StreamHandler(sys.stdout)
-    logconsolehandler.setLevel(logging.INFO)
-    logger.addHandler(logconsolehandler)
+    console_loglevel = str2loglevel(conf.get_string("logging", "loglevel_console"))
+
+    log_console_handler.setLevel(console_loglevel)
+
+
+    __logger.addHandler(logfile_handler)
+    __logger.addHandler(log_console_handler)
 
     formatter = logging.Formatter("%(asctime)s livemap: %(message)s", "%b %d %H:%M:%S")
     formatter.converter = time.gmtime
 
-    logfilehandler.setFormatter(formatter)
-    logconsolehandler.setFormatter(formatter)
+    logfile_handler.setFormatter(formatter)
+    log_console_handler.setFormatter(formatter)
 
     # Disable PIL debug logs by default
     # Should eliminate STREAM b'IHDR' and STREAM b'IDAT' unnecessary logs
     logging.getLogger("PIL").setLevel(logging.WARNING)
 
+    listloggers()
+
+def str2loglevel(logstr):
+    """Convert string to log level."""
+    if (logstr is None) or logstr.lower() == "critical":
+        return logging.CRITICAL
+    if logstr.lower() == "debug":
+        return logging.DEBUG
+    if logstr.lower() == "info":
+        return logging.INFO
+    if logstr.lower() == "warning":
+        return logging.WARNING
+    if logstr.lower() == "error":
+        return logging.ERROR
+
+def listloggers():
+    rootlogger = logging.getLogger()
+    print(f"loginit: {rootlogger}")
+    for h in rootlogger.handlers:
+        print('loginit:     %s' % h)
+
+    for nm, lgr in logging.Logger.manager.loggerDict.items():
+        print('loginit: + [%-20s] %s ' % (nm, lgr))
+        if not isinstance(lgr, logging.PlaceHolder):
+            for h in lgr.handlers:
+                print('loginit:     %s' % h)
+
+def setLogLevel(newlevel):
+    """Set debugging loglevel"""
+    # FIXME: Set the correct loglevels for the different log handlers .. rather than brute forcing it
+    dprint(f"LOG Updating - setting log level to {newlevel}")
+    global __logger
+    __logger.setLevel(newlevel)
+    for handler in __logger.handlers:
+        handler.setLevel(newlevel)
 
 def crash(args):
     """Handle Crash Data - Append to crash.log."""
-    global logger
+    global __logger
     # FIXME: Move filename to config
     appname = "LIVEMAP:"
     logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    logger.debug(args)
+    __logger.debug(args)
 
     with open("logs/crash.log", "w+", encoding="utf-8") as log_file:
         log_file.write("***********************************************************")
@@ -73,65 +99,36 @@ def crash(args):
 
 
 def dprint(args):
-    """Passthrough call to print() if DEBUG_MSGS is enabled."""
-    global logger
-    if PRINT_MSGS:
-        logger.info(args)
-        appname = "LIVEMAP:"
-        logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(logtime, appname, "PRINT:", args, flush=True)
-    else:
-        return
+    """Passthrough call to __logger."""
+    global __logger
+    __logger.info(args)
+    appname = "LIVEMAP:"
+    logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(logtime, appname, "PRINT:", args, flush=True)
 
 
 def info(args):
-    """Passthrough call to print() if DEBUG_MSGS is enabled."""
-    global logger
-    if INFO_MSGS:
-        logger.info(args)
-        # appname = "LIVEMAP:"
-        # logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(logtime, appname, "INFO:", args, flush=True)
-    else:
-        return
+    """Passthrough call to __logger."""
+    global __logger
+    __logger.info(args)
 
 
 def warn(args):
-    """Passthrough call to print() if WARN_MSGS is enabled."""
-    global logger
-    if WARN_MSGS:
-        logger.warning(args)
-        # appname = "LIVEMAP:"
-        # logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(logtime, appname, "WARN:", args, flush=True)
-    else:
-        return
+    """Passthrough call to __logger."""
+    global __logger
+    __logger.warning(args)
 
 
 def error(args):
-    """Passthrough call to print() if ERR_MSGS is enabled."""
-    global logger
-    if ERR_MSGS:
-        logger.error(args)
-        # appname = "LIVEMAP:"
-        # logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # logging.error(args)
-        # print(logtime, appname, "ERROR:", args, flush=True)
-    else:
-        return
+    """Passthrough call to __logger."""
+    global __logger
+    __logger.error(args)
 
 
 def debug(args):
-    """Passthrough call to print() if ERR_MSGS is enabled."""
-    global logger
-    if DEBUG_MSGS:
-        logger.debug(args)
-        # appname = "LIVEMAP:"
-        # logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # logging.debug(args)
-        # print(logtime, appname, "DEBUG:", args, flush=True)
-    else:
-        return
+    """Passthrough call to __logger."""
+    global __logger
+    __logger.debug(args)
 
 
 def prettify_dict(args):

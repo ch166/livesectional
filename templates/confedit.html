@@ -130,16 +130,16 @@
           <tr>
               <td><label for="loglevel">Logging Level</label></td>
               <td>
-                  <input type="radio" name="loglevel" id="loglevel_debug" value="0" {{ 'checked="checked"' if settings.loglevel=="0" else "" }} />
-                  <label for="loglevel_debug">Debug</label>
-                  <input type="radio" name="loglevel" id="loglevel_info" value="1" {{ 'checked="checked"' if settings.loglevel=="1" else "" }} />
-                  <label for="loglevel_info">Info</label>
-                  <input type="radio" name="loglevel" id="loglevel_warning" value="2" {{ 'checked="checked"' if settings.loglevel=="2" else "" }} />
-                  <label for="loglevel_warning">Warn</label>
-                  <input type="radio" name="loglevel" id="loglevel_error" value="3" {{ 'checked="checked"' if settings.loglevel=="3" else "" }} />
-                  <label for="loglevel_error">Error</label>
+                  <select name="loglevel" id="loglevel" onchange="checkBlankF(this)">
+                      <!-- FIXME: This needs to match up with the same value in the code -->
+                      <option value="DEBUG" {{ "selected" if settings.loglevel=="DEBUG" else "" }}>DEBUG</option>
+                      <option value="INFO" {{ "selected" if settings.loglevel=="INFO" else "" }}>INFO</option>
+                      <option value="ERROR" {{ "selected" if settings.loglevel=="ERROR" else "" }}>ERROR</option>
+                      <option value="WARNING" {{ "selected" if settings.loglevel=="WARNING" else "" }}>WARNING</option>
+                      <option value="CRITICAL" {{ "selected" if settings.loglevel=="CRITICAL" else "" }}>CRITICAL</option>
+                  </select>
               </td>
-              <td>Choose the level of detail to save to the logfile. Typically,<b>Info</b>is sufficient.<b>Debug</b>will net more info logged.<b>Warning</b>will net much fewer messages and<b>Error</b>will only log caught errors.</td>
+              <td>Choose the level of detail to save to the logfile. In log volume order, from low to high - the options are CRITICAL, ERROR, WARNING, INFO, DEBUG. For normal operations WARNING or INFO should be sufficient. DEBUG is very verbose.</td>
           </tr>
       </table>
   </div>
@@ -233,8 +233,10 @@
               <td>Level of brightness to dim all other airports if home airport is being used. Play with brightness values below for best effect. Range = 0 to 100 percent, where '0' would be no dimming and '100' would be completely dimmed.</td>
           </tr>
           <tr>
-              <td><label for="rgb_grbrgb"><b>RGB or GRB LEDs Used</b></label></td>
-              <td><input type="radio" name="rgb_grb" id="rgb_grbrgb" value="1" {{ 'checked="checked"' if settings.rgb_grb=="1" else "" }} /></td>
+              <td><label class="form-check-label" for="rgb_grb">GRB/RGB LED</label></td>
+              <td><div class="form-check form-switch custom-checkbox">
+                  <input class="form-check-input" type="checkbox" id="rgb_grb" id="rgb_grb" {{ "checked" if settings.rgb_grb == 'true' }} ></div>
+              </td>
               <td>Depending on LED model used colors may need to be in RGB (i.e. WS2812 strip) order or GRB (i.e. WS2811/WS2812 strand).<i>NOTE: If LED Colors seem wrong (typically Red), switch this setting and retry.</i></td>
           </tr>
           <tr>

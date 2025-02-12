@@ -92,7 +92,7 @@ $PYTHON crudini --set $INSTALLDEST/config.ini logging loglevel info
 echo -e "Copying static archive"
 cd $STATICFILES || exit 1
 error_check $? "cd STATICFILES"
-rsync -auhS --partial -B 16384 --info=progress2 --relative . $STATICFILES/
+rsync -v -auhS --partial -B 16384 --info=progress2 $GITSRC/static/ $STATICFILES
 error_check $? "static files rsync"
 
 # Let systemctl know something may have changed

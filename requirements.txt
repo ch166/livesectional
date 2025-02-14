@@ -64,6 +64,9 @@ semver>=3.0.0
 
 bcrypt
 
+# Need a version of cryptography that supports Raspberry PI Zero W ( armv6l )
+cryptography==41.0.7
+
 # Utilities
 crudini>=0.9.5
 

@@ -6,7 +6,9 @@
     <head>
         <meta http-equiv="Content-Language" content="en" />
         <meta charset="utf-8" />
+	{% if not title.startswith('First') -%}
 	<meta http-equiv="refresh" content="60" />
+	{% endif -%}
         <meta name="description" content="LiveSectional Aviation Weather Map" />
         <meta name="keywords" content="metar taf airport runway weather aviation" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -249,6 +251,7 @@
                     </tr>
                     <tr>
                         <td><span class="navbar-text" style="font-size:10px;">System Updated: {{ fresh_daily }}</span></td>
+			<td><span class="navbar-text" style="font-size:10px;">{{ cpu_usage }} / {{ mem_usage }}</span></td>
                     </tr>
                 </table>
             </div>

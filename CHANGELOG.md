@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added MOS data to /wx/<icao> 
 - Username/Password protection for destructive calls (eg: reboot / change wifi)
 - Initial setup screen on first run
+ - Admin user / password
+ - TLS Enable (certificate upload)
 - Ability to selectively disable individual modules (zeroconf/oled/led etc)
 - Auto generate local tls host certificates
 

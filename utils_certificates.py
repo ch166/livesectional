@@ -13,9 +13,9 @@ import re
 # Partial success with
 # pip install cryptography==41.0.5
 
-# from cryptography.hazmat.primitives.serialization import load_pem_private_key
-# from cryptography.x509 import load_pem_x509_certificate
-# from cryptography.exceptions import InvalidKey
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.exceptions import InvalidKey
 from datetime import datetime, timezone
 
 
@@ -26,7 +26,7 @@ def check_private_key(file_path):
             # Check if the file contains private key format
             if re.search(b"-----BEGIN (RSA|EC) PRIVATE KEY-----", data):
                 try:
-                    #                    private_key = load_pem_private_key(data, password=None)
+                    private_key = load_pem_private_key(data, password=None)
                     return "Valid Private Key"
                 except (ValueError, TypeError, InvalidKey):
                     return "Invalid Private Key"
@@ -43,20 +43,13 @@ def check_certificate(file_path):
             # Check if the file contains certificate format
             if b"-----BEGIN CERTIFICATE-----" in data:
                 try:
-                    #                    cert = load_pem_x509_certificate(data)
-                    #                    print(cert.issuer)
-                    #                    print(cert.not_valid_after_utc)
-                    #                    print(cert.subject)
-                    #                    # Check expiration
-                    #                    current_date = datetime.now(timezone.utc)
-                    #                    print("Date Check")
-                    #                    if cert.not_valid_after_utc < current_date:
-                    #                        print("Expired TLS Cert")
-                    #                        return "Expired TLS Certificate"
-                    #                    print("Valid TLS Cert")
+                    cert = load_pem_x509_certificate(data)
+                    # Check expiration
+                    current_date = datetime.now(timezone.utc)
+                    if cert.not_valid_after_utc < current_date:
+                        return "Expired TLS Certificate"
                     return "Valid TLS Certificate"
                 except ValueError as err:
-                    print(f"ValueError: {err}")
                     return "Invalid TLS Certificate"
             else:
                 return "Not a Certificate"

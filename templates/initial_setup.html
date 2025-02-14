@@ -1,72 +1,112 @@
 {% extends "base_lite.html" %}
 {% block content %}
-    <div class="container-fluid">
-        <div>
-            <section class="py-5">
-                <div class="container">
-                    <h2 class="display-4">First time setup</h2>
-                    <form class="form-check-inline"
-                          action="firstsetup"
-                          id="firstsetup"
-                          method="post">
-                        <table>
-                            <tr>
-                                <td>
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control block form-control-sm" name="adminuser" id="adminuser" value="admin">
-                                        <label class="form-label" for="adminuser">Admin Username</label>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="form-floating mb-3">
-                                        <label class="form-label" for="password">Password</label>
-                                            <input class="form-control password" id="password" type="password" name="password" required />
-					    <span class="input-group-text togglePassword" style="position: absolute; top: 50%; transform: translateY(-50%); right: 10px; width: auto; height: auto; padding: 0px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fas fa-eye-slash" id="togglePassword"></i></span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="form-row form-group"><label class="form-check-label" for="use_proxies">Enable HTTP(S) proxies</label></div>
-                                    <div class="form-check form-switch custom-checkbox"><input class="form-check-input" type="checkbox" name="use_proxies" id="use_proxies" ></div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control block form-control-sm" name="httpproxy" id="httpproxy" value="http://192.168.0.1:3128">
-                                        <label class="form-label" for="httpproxy">HTTP Proxy</label>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control block form-control-sm" name="httpsproxy" id="httpsproxy" value="http://192.168.0.1:3128">
-                                        <label class="form-label" for="httpsproxy">HTTPS Proxy</label>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-					                <div class="form-row form-group"><label class="form-check-label" for="setup_enable_ssl">Enable Website TLS</label></div>
-					                <div class="form-check form-switch custom-checkbox"><input class="form-check-input" type="checkbox" name="setup_enable_ssl" id="setup_enable_ssl"></div>
-				                </td>
-                            </tr>
-                            <tr><td><div class="form-row form-group"><input class="btn btn-primary" type="submit" value="Submit" /></div></td></tr>
-                        </table>
-                    </form>
-                </div>
-            </section>
-        </div>
-    </div>
-    <script>
+    <div class = "container-fluid" >
+        <div >
+            <section class = "py-5" >
+                <div class = "container" >
+                    <h2 class = "display-4" >First time setup</h2 >
+                    <form class = "form-check-inline"
+                          action = "firstsetup"
+                          id = "firstsetup"
+                          method = "post"
+                          enctype = "multipart/form-data">
+                        <table >
+                            <tr >
+                                <td >
+                                    <div class = "form-floating mb-3" >
+                                        <input class = "form-control block form-control-sm" name = "adminuser"
+                                               id = "adminuser" value = "admin" >
+                                        <label class = "form-label" for = "adminuser" >Admin Username</label >
+                                    </div >
+                                </td >
+                            </tr >
+                            <tr >
+                                <td >
+                                    <div class = "form-floating mb-3" >
+                                        <label class = "form-label" for = "password" >Password</label >
+                                        <input class = "form-control password" id = "password" type = "password"
+                                               name = "password" required />
+                                        <span class = "input-group-text togglePassword"
+                                              style = "position: absolute; top: 50%; transform: translateY(-50%); right: 10px; width: auto; height: auto; padding: 0px; display: flex; align-items: center; justify-content: center; cursor: pointer;" ><i
+                                                class = "fas fa-eye-slash" id = "togglePassword" ></i ></span >
+                                    </div >
+                                </td >
+                            </tr >
+                            <tr >
+                                <td >
+                                    <div class = "form-row form-group" ><label class = "form-check-label"
+                                                                               for = "use_proxies" >Enable HTTP(S)
+                                                                                                    proxies</label >
+                                    </div >
+                                    <div class = "form-check form-switch custom-checkbox" ><input
+                                            class = "form-check-input" type = "checkbox" name = "use_proxies"
+                                            id = "use_proxies" ></div >
+                                </td >
+                            </tr >
+                            <tr >
+                                <td >
+                                    <div class = "form-floating mb-3" >
+                                        <input class = "form-control block form-control-sm" name = "httpproxy"
+                                               id = "httpproxy" value = "http://192.168.0.1:3128" >
+                                        <label class = "form-label" for = "httpproxy" >HTTP Proxy</label >
+                                    </div >
+                                </td >
+                            </tr >
+                            <tr >
+                                <td >
+                                    <div class = "form-floating mb-3" >
+                                        <input class = "form-control block form-control-sm" name = "httpsproxy"
+                                               id = "httpsproxy" value = "http://192.168.0.1:3128" >
+                                        <label class = "form-label" for = "httpsproxy" >HTTPS Proxy</label >
+                                    </div >
+                                </td >
+                            </tr >
+                            <tr >
+                                <td >
+                                    <div class = "form-row form-group" ><label class = "form-check-label"
+                                                                               for = "setup_enable_ssl" >Enable Website
+                                                                                                         TLS</label >
+                                    </div >
+                                    <div class = "form-check form-switch custom-checkbox" ><input
+                                            class = "form-check-input" type = "checkbox" name = "setup_enable_ssl"
+                                            id = "setup_enable_ssl" ></div >
+                                </td >
+                            </tr >
+			    <tr>
+                                <td >
+                                    <div class = "form-floating mb-3" >
+                                        <input class = "form-control block form-control-sm" type="file" name = "https_cert"
+                                               id = "https_cert">
+                                        <label class = "form-label" for = "https_cert" >HTTPS Cert</label >
+                                    </div >
+                                </td >
+			    </tr>
+			    <tr>
+                                <td >
+                                    <div class = "form-floating mb-3" >
+                                        <input class = "form-control block form-control-sm" type="file" name = "https_key"
+                                               id = "https_key">
+                                        <label class = "form-label" for = "https_key" >HTTPS Key</label >
+                                    </div >
+                                </td >
+			    </tr>
+                            <tr >
+                                <td >
+                                    <div class = "form-row form-group" ><input class = "btn btn-primary" type = "submit"
+                                                                               value = "Submit" /></div >
+                                </td >
+                            </tr >
+                        </table >
+                    </form >
+                </div >
+            </section >
+        </div >
+    </div >
+    <script >
         const togglePassword = document.querySelector("#togglePassword");
         const password = document.querySelector("#password");
 
-       togglePassword.addEventListener("click", function () {
+        togglePassword.addEventListener("click", function () {
 
             // toggle the type attribute
             const type = password.getAttribute("type") === "password" ? "text" : "password";
@@ -75,5 +115,5 @@
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
         });
-    </script>
+    </script >
 {% endblock content %}

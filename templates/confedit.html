@@ -27,6 +27,13 @@
               <th class="config">Setting Description</th>
           </tr>
           <tr>
+              <td><label class="form-check-label" for="first_setup_complete">Initial Setup</label></td>
+              <td><div class="form-check form-switch custom-checkbox">
+                  <input class="form-check-input" type="checkbox" name="first_setup_complete" id="first_setup_complete" {{ "checked" if settings.first_setup_complete == 'true' }} ></div>
+              </td>
+              <td>Resetting this will force the front page to go back to the Initial Setup page</td>
+          </tr>
+          <tr>
               <td><label for="LED_COUNT">LED Count</label></td>
               <td><input type="number" id="LED_COUNT" name="LED_COUNT" onchange="checkBlankF(this)" min="0" max="500" value="{{ settings.LED_COUNT }}" /></td>
               <td>Maximum of LEDs in the string. This is not the number of airports to display.</td>

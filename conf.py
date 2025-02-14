@@ -169,26 +169,32 @@ class Conf:
         for key, value in self.configfile.items(module_section):
             if key == "use_mos" and self.configfile.getboolean(module_section, key):
                 self._features += (Features.ENABLE_MOS,)
+
             if key == "use_zeroconf" and self.configfile.getboolean(
                 module_section, key
             ):
                 self._features += (Features.ENABLE_ZEROCONF,)
+
             if key == "use_led_string" and self.configfile.getboolean(
                 module_section, key
             ):
                 self._features += (Features.ENABLE_LED,)
+
             if key == "use_oled_panels" and self.configfile.getboolean(
                 module_section, key
             ):
                 self._features += (Features.ENABLE_OLED,)
+
             if key == "use_web_interface" and self.configfile.getboolean(
                 module_section, key
             ):
                 self._features += (Features.ENABLE_WEB,)
+
             if key == "use_lightsensor" and self.configfile.getboolean(
                 module_section, key
             ):
                 self._features += (Features.ENABLE_LIGHTSENSOR,)
+
             if key == "use_gpio" and self.configfile.getboolean(module_section, key):
                 self._features += (Features.ENABLE_GPIO_MOD,)
 
@@ -200,7 +206,9 @@ class Conf:
         # This is a performance improvement cache of conf data
         # TODO: Move in the rest of the data that gets accessed regularly
         # Would be useful to have usage stats for the conf data to prioritize new additions
-        self.cache["first_setup_complete"] = self.get_bool("default", "first_setup_complete")
+        self.cache["first_setup_complete"] = self.get_bool(
+            "default", "first_setup_complete"
+        )
         self.cache["adminuser"] = self.get_string("default", "adminuser")
         self.cache["adminpass"] = self.get_string("default", "adminpass")
         self.cache["use_proxies"] = self.get_bool("urls", "use_proxies")
@@ -237,9 +245,13 @@ class Conf:
 
     def gen_settings_dict(self) -> dict:
         """Generate settings template to pass to flask."""
+        # Use get_web_string here rather than get_bool ; to generate a string in a format that is consistent for the HTML templates & jinja2 logic
         settings = {
             "LED_COUNT": self.get_string("default", "led_count"),
             "legend": self.get_web_string("default", "legend", "bool"),
+            "first_setup_complete": self.get_web_string(
+                "default", "first_setup_complete", "bool"
+            ),
             "max_wind_speed": self.get_string("activelights", "high_wind_limit"),
             "wx_update_interval": self.get_string("metar", "wx_update_interval"),
             "metar_age": self.get_string("metar", "metar_age"),
@@ -375,6 +387,11 @@ class Conf:
         #
 
         # Handle checkboxes - Only if the checkbox is set in the browser, it will appear in the form.
+        if "first_setup_complete" in form_data:
+            self.set_bool("default", "first_setup_complete", True)
+        else:
+            self.set_bool("default", "first_setup_complete", False)
+
         if "legend" in form_data:
             self.set_bool("default", "legend", True)
         else:
@@ -550,7 +567,6 @@ class Conf:
         else:
             self.set_bool("lights", "rgb_grb", False)
 
-
         debugging.info("processing input form data ; getting to loglevel")
 
         if "loglevel" in form_data:
@@ -569,10 +585,11 @@ class Conf:
                 debugging.setLogLevel(logging.CRITICAL)
             else:
                 debugging.setLogLevel(logging.ERROR)
-                debugging.info(f"Parsing web input - Trying to set loglevel, defaulting to ERROR couldn't handle {form_data['loglevel']}")
+                debugging.info(
+                    f"Parsing web input - Trying to set loglevel, defaulting to ERROR couldn't handle {form_data['loglevel']}"
+                )
 
         debugging.info("processing input form data ; past loglevel")
-
 
         self.set_string("activelights", "high_wind_limit", form_data["max_wind_speed"])
         self.set_string("metar", "wx_update_interval", form_data["wx_update_interval"])

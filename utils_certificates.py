@@ -1,4 +1,3 @@
-
 # Simple functions to do basic verification of the contents of .pem and .key files.
 #
 
@@ -22,12 +21,12 @@ from datetime import datetime, timezone
 
 def check_private_key(file_path):
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             data = f.read()
             # Check if the file contains private key format
-            if re.search(b'-----BEGIN (RSA|EC) PRIVATE KEY-----', data):
+            if re.search(b"-----BEGIN (RSA|EC) PRIVATE KEY-----", data):
                 try:
-#                    private_key = load_pem_private_key(data, password=None)
+                    #                    private_key = load_pem_private_key(data, password=None)
                     return "Valid Private Key"
                 except (ValueError, TypeError, InvalidKey):
                     return "Invalid Private Key"
@@ -39,22 +38,22 @@ def check_private_key(file_path):
 
 def check_certificate(file_path):
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             data = f.read()
             # Check if the file contains certificate format
-            if b'-----BEGIN CERTIFICATE-----' in data:
+            if b"-----BEGIN CERTIFICATE-----" in data:
                 try:
-#                    cert = load_pem_x509_certificate(data)
-#                    print(cert.issuer)
-#                    print(cert.not_valid_after_utc)
-#                    print(cert.subject)
-#                    # Check expiration
-#                    current_date = datetime.now(timezone.utc)
-#                    print("Date Check")
-#                    if cert.not_valid_after_utc < current_date:
-#                        print("Expired TLS Cert")
-#                        return "Expired TLS Certificate"
-#                    print("Valid TLS Cert")
+                    #                    cert = load_pem_x509_certificate(data)
+                    #                    print(cert.issuer)
+                    #                    print(cert.not_valid_after_utc)
+                    #                    print(cert.subject)
+                    #                    # Check expiration
+                    #                    current_date = datetime.now(timezone.utc)
+                    #                    print("Date Check")
+                    #                    if cert.not_valid_after_utc < current_date:
+                    #                        print("Expired TLS Cert")
+                    #                        return "Expired TLS Certificate"
+                    #                    print("Valid TLS Cert")
                     return "Valid TLS Certificate"
                 except ValueError as err:
                     print(f"ValueError: {err}")

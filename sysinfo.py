@@ -164,9 +164,8 @@ class SystemData:
             self.poll_system_information()
         return self._sysinfo
 
-    def system_load(self)-> (str, str):
+    def system_load(self) -> (str, str):
         """Get System Load"""
         load_avg = f"Loadavg ({round(os.getloadavg()[0],2)},{round(os.getloadavg()[1],2)},{round(os.getloadavg()[2],2)})"
         mem_usage = f"Memory: {psutil.virtual_memory().percent}%, Swap: {psutil.swap_memory().percent}%"
         return load_avg, mem_usage
-

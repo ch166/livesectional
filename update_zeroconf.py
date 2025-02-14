@@ -122,7 +122,7 @@ class NeighListener(ServiceListener):
         self._sysdata = sysdata
         self._app_info = appinfo
 
-        # TODO: Look into including useful state information here (LED mode etc.) 
+        # TODO: Look into including useful state information here (LED mode etc.)
         self._announce_description["version"] = self._app_info.running_version()
         self._announce_description["netport"] = self._net_port
         self._announce_description["fqdn"] = socket.gethostname()

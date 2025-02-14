@@ -11,26 +11,25 @@ import pprint
 __logger = None
 
 
-def loginit(conf):
+def loginit(app_conf):
     """Init logging data."""
     global __logger
     # FIXME: Move filename to config
     __logger = logging.getLogger()
-    __logger.setLevel(logging.CRITICAL)
+    __logger.setLevel(logging.INFO)
 
-    logfile_name = conf.get_string("filenames", "log_file")
+    logfile_name = app_conf.get_string("filenames", "log_file")
     logfile_handler = logging.handlers.TimedRotatingFileHandler(
         logfile_name, when="midnight", interval=1, backupCount=5, utc=True
     )
     log_console_handler = logging.StreamHandler(sys.stdout)
 
-    logfile_loglevel = str2loglevel(conf.get_string("logging", "loglevel_logfile"))
+    logfile_loglevel = str2loglevel(app_conf.get_string("logging", "loglevel_logfile"))
     logfile_handler.setLevel(logfile_loglevel)
 
-    console_loglevel = str2loglevel(conf.get_string("logging", "loglevel_console"))
+    console_loglevel = str2loglevel(app_conf.get_string("logging", "loglevel_console"))
 
     log_console_handler.setLevel(console_loglevel)
-
 
     __logger.addHandler(logfile_handler)
     __logger.addHandler(log_console_handler)
@@ -47,6 +46,7 @@ def loginit(conf):
 
     listloggers()
 
+
 def str2loglevel(logstr):
     """Convert string to log level."""
     if (logstr is None) or logstr.lower() == "critical":
@@ -60,17 +60,21 @@ def str2loglevel(logstr):
     if logstr.lower() == "error":
         return logging.ERROR
 
-def listloggers():
+
+def listloggers() -> str:
     rootlogger = logging.getLogger()
-    print(f"loginit: {rootlogger}")
+
+    logger_data = f"loginit: {rootlogger}\n"
     for h in rootlogger.handlers:
-        print('loginit:     %s' % h)
+        logger_data += f"loginit:\t{h}"
 
     for nm, lgr in logging.Logger.manager.loggerDict.items():
-        print('loginit: + [%-20s] %s ' % (nm, lgr))
+        logger_data += f"loginit: + [%-20s] {nm}  % {lgr}"
         if not isinstance(lgr, logging.PlaceHolder):
             for h in lgr.handlers:
-                print('loginit:     %s' % h)
+                logger_data += f"loginit:\t{h}"
+    return logger_data
+
 
 def setLogLevel(newlevel):
     """Set debugging loglevel"""
@@ -80,6 +84,7 @@ def setLogLevel(newlevel):
     __logger.setLevel(newlevel)
     for handler in __logger.handlers:
         handler.setLevel(newlevel)
+
 
 def crash(args):
     """Handle Crash Data - Append to crash.log."""
@@ -133,3 +138,10 @@ def debug(args):
 
 def prettify_dict(args):
     return pprint.pformat(args, indent=2, compact=True, width=240)
+
+
+def internal_debug() -> str:
+    """Return internal debugging data"""
+    global __logger
+    debug_str = f"DEBUGGING\n{listloggers()}\n"
+    return debug_str

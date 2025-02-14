@@ -153,6 +153,8 @@ if __name__ == "__main__":
     # Start Executing Threads
     #
 
+    debugging.info(f"Enabled Features {app_conf.active_features()}")
+
     debugging.info("Starting threads")
     dataset_thread.start()
     airport_thread.start()
@@ -164,7 +166,7 @@ if __name__ == "__main__":
         oled_thread.start()
     if conf.Features.ENABLE_LIGHTSENSOR in app_conf.active_features():
         lightsensor_thread.start()
-    if conf.Features.ENABLE_OLED in app_conf.active_features():
+    if conf.Features.ENABLE_ZEROCONF in app_conf.active_features():
         zeroconf_thread.start()
     flask_thread.start()
 

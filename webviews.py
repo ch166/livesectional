@@ -5,11 +5,6 @@ import time
 import json
 import secrets
 import pytz
-import utils_system
-
-from rpi_ws281x import (
-    Color,
-)
 
 import folium
 import folium.plugins
@@ -23,7 +18,11 @@ from flask import (
     flash,
     redirect,
     send_file,
+    url_for,
 )
+
+
+from werkzeug.utils import secure_filename
 
 
 # from pyqrcode import QRCode
@@ -33,6 +32,9 @@ import utils
 import utils_coord
 import utils_mos
 import utils_colors
+import utils_certificates
+import utils_system
+
 
 # import conf
 from update_leds import LedMode
@@ -76,6 +78,8 @@ class WebViews:
         "MOS 3",
         "MOS 4",
     ]
+
+    file_allowed_extensions = ["pem", "crt", "key"]
 
     def __init__(self, config, sysdata, airport_database, appinfo, led_mgmt, zeroconf):
         self._app_conf = config
@@ -194,6 +198,8 @@ class WebViews:
         )
 
         self.app.add_url_rule("/changelog", view_func=self.changelog, methods=["GET"])
+        self.app.add_url_rule("/debug", view_func=self.debuginfo, methods=["GET"])
+
         self.app.add_url_rule(
             "/releaseinfo", view_func=self.releaseinfo, methods=["GET"]
         )
@@ -273,10 +279,13 @@ class WebViews:
 
         current_ledmode = self._led_strip.ledmode()
         fresh_daily = utils_system.fresh_daily(self._app_conf)
+        cpu_usage, mem_usage = self._sysdata.system_load()
 
         template_data = {
             "title": "NOT SET - " + self._appinfo.running_version(),
             "airports": airport_dict_data,
+            "cpu_usage": cpu_usage,
+            "mem_usage": mem_usage,
             "settings": self._app_conf.gen_settings_dict(),
             "ipadd": self._sysdata.local_ip(),
             "strip": self._led_strip,
@@ -301,12 +310,14 @@ class WebViews:
 
     def firstsetup_handler(self):
         """Flask Route: /firstsetup - Upload HeatMap Data."""
-        debugging.info("Updating airport heatmap data in airport records")
+        debugging.info("Processing initial data setup")
 
         admin_user = None
         admin_pass = None
 
-        if (request.method == "POST") and not (self._app_conf.cache["first_setup_complete"]):
+        if (request.method == "POST") and not (
+            self._app_conf.cache["first_setup_complete"]
+        ):
             form_data = request.form
             if "adminuser" in form_data:
                 admin_user = form_data["adminuser"]
@@ -333,6 +344,29 @@ class WebViews:
                 self._app_conf.set_string("urls", "use_proxies", False)
                 self._app_conf.set_string("urls", "http_proxy", "")
                 self._app_conf.set_string("urls", "htts_proxy", "")
+
+            if "setup_enable_ssl" in form_data:
+                self._app_conf.set_bool("default", "ssl_enabled", True)
+                debugging.info("Setting SSL to True")
+
+                if "https_cert" in request.files:
+                    cert_file = request.files["https_cert"]
+                    debugging.info(
+                        f"File Upload: {cert_file.name} /type: {cert_file.content_type} /fname: {cert_file.filename} /length: {cert_file.content_length}"
+                    )
+                    cert_file.save("/tmp/https_cert.pem")
+                    if utils_certificates.check_certificate("/tmp/https_cert.pem"):
+                        debugging.info("Cert checks out")
+                if "https_key" in request.files:
+                    https_key = request.files["https_key"]
+                    debugging.info(
+                        f"File Upload: {https_key.name} /type: {https_key.content_type} /fname: {https_key.filename} /length: {https_key.content_length}"
+                    )
+                    https_key.save("/tmp/https_cert.key")
+                    if utils_certificates.check_certificate("/tmp/https_cert.key"):
+                        debugging.info("Key checks out")
+            else:
+                self._app_conf.set_string("urls", "ssl_enabled", False)
 
             self._app_conf.set_bool("default", "first_setup_complete", True)
             self._app_conf.save_config()
@@ -371,6 +405,23 @@ class WebViews:
         template_data["title"] = "SysInfo"
         debugging.info("Opening System Information page")
         return render_template("sysinfo.html", **template_data)
+
+    def debuginfo(self):
+        """Flask Route: /sysinfo - Display System Info."""
+        self._sysdata.refresh()
+        template_data = self.standardtemplate_data()
+
+        debug_output = "Selections of useful internal debug info"
+
+        debug_output += "=-=-=-=-=-=-=-=-=-=-=-=-\n"
+        debug_output += debugging.internal_debug()
+        debug_output = "=-=-=-=-=-=-=-=-=-=-=-=-\n"
+        debug_output += f"{self._app_conf.cache}\n"
+
+        template_data["title"] = "Debugging Data"
+        template_data["showfile"] = debug_output
+        debugging.info("Displaying Debugging Info")
+        return render_template("showfile.html", **template_data)
 
     def oled_display(self):
         """Flask Route: /oleddisplay - Display System Info."""
@@ -1037,6 +1088,7 @@ class WebViews:
 
         # Check for initial setup state
         if not self._app_conf.cache["first_setup_complete"]:
+            template_data["title"] = "First Time Setup"
             return render_template("initial_setup.html", **template_data)
 
         # System Reboot call will update the flag and redirect to here.

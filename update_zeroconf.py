@@ -112,7 +112,7 @@ class NeighListener(ServiceListener):
     }
     _announce_name_svc = "_http._tcp.local."
     _announce_name = None
-    _announce_server = "livemap4.local."
+    _announce_server = "NAME.NOT.SET."
 
     # FIXME: Pull from config
     _net_port = 8443
@@ -122,7 +122,7 @@ class NeighListener(ServiceListener):
         self._sysdata = sysdata
         self._app_info = appinfo
 
-        # TODO: Look into including useful state information here (LED states /
+        # TODO: Look into including useful state information here (LED mode etc.) 
         self._announce_description["version"] = self._app_info.running_version()
         self._announce_description["netport"] = self._net_port
         self._announce_description["fqdn"] = socket.gethostname()
@@ -168,7 +168,7 @@ class NeighListener(ServiceListener):
                 f"zc: self._listener.neighbors() : {self._listener.neighbors()}"
             )
             for zc_name, zc_info in self._listener.neighbors().items():
-                debugging.info(f"zc: get_neighbors {zc_name}/{zc_info}")
+                debugging.debug(f"zc: get_neighbors {zc_name}/{zc_info}")
                 if b"netport" in zc_info.properties:
                     n_port = zc_info.properties[b"netport"].decode("UTF-8")
                 else:
@@ -198,7 +198,7 @@ class NeighListener(ServiceListener):
         loop_counter = 1
         self.refresh_node_info()
         self._zeroconf.register_service(self._announce_info)
-        debugging.debug(f"zc: register: {self._announce_info}")
+        debugging.info(f"zc: register: {self._announce_info}")
         trigger_time = time.time()
         while outerloop:
             current_time = time.time()

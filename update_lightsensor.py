@@ -28,7 +28,7 @@ class LightSensor:
     # users of the bus
 
     led_mgmt = None
-    conf = None
+    _app_conf = None
 
     _i2cbus = None
 
@@ -37,7 +37,7 @@ class LightSensor:
     _loop_counter = 0
 
     # Hardware Info
-    sensor_device = False
+    _sensor_device = False
     _hardware_tsl2591 = False
     _hardware_veml7700 = False
 
@@ -45,9 +45,9 @@ class LightSensor:
     dev_tsl2591 = None
     dev_veml7700 = None
 
-    def __init__(self, conf, i2cbus, led_mgmt):
-        self.conf = conf
-        self.sensor_device = False
+    def __init__(self, app_conf, i2cbus, led_mgmt):
+        self._app_conf = app_conf
+        self._sensor_device = False
         self._i2cbus = i2cbus
         self.led_mgmt = led_mgmt
         self.i2c_scan()
@@ -57,22 +57,22 @@ class LightSensor:
 
     def i2c_scan(self):
         """Scan i2c bus for supported light sensors."""
-        self.sensor_device = False
+        self._sensor_device = False
         # FIXME:
         #  Either remove assumption about device behind i2c mux,
-        #  or add as configurable hardware feature.
-        #  In which case - move hardcoded 7 to config.ini
+        #  or add as app_configurable hardware feature.
+        #  In which case - move hardcoded 7 to app_config.ini
         self._i2cbus.set_always_on(7)  # Enable Channel 7
         if self._i2cbus.i2c_exists(0x29):
             # Looks like TSL2591 device
             debugging.info("lightsensor: i2c scan sees TSL2591 type device")
             self._hardware_tsl2591 = True
-            self.sensor_device = True
+            self._sensor_device = True
             self.activate_tsl2591()
         if self._i2cbus.i2c_exists(0x10):
             debugging.info("lightsensor: i2c scan sees VEML7700 type device")
             self._hardware_veml7700 = True
-            self.sensor_device = True
+            self._sensor_device = True
             self.activate_veml7700()
         return
 
@@ -131,9 +131,9 @@ class LightSensor:
         lux = min(lux, 255)
         return int(lux)
 
-    def update_loop(self, conf):
+    def update_loop(self, app_conf):
         """Thread Main Loop."""
-        self.conf = conf
+        self._app_conf = app_conf
         outerloop = True  # Set to TRUE for infinite outerloop
         lux = 250
         while outerloop:

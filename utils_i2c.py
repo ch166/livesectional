@@ -58,15 +58,16 @@ class I2CBus:
     MUX_DEVICE_ID = 0x70
     mux_active = False
 
-    conf = None
+    _app_conf = None
 
     bus = None
-    i2c_device = None
+    _i2c_device = None
 
     lock = None
-    lock_count = 0
+    _lock_count = 0
+    _lock_events = None
 
-    bus_lock_owner = None
+    _bus_lock_owner = None
     _bus_lock_starttime = None
 
     # Channels that are always on
@@ -74,7 +75,7 @@ class I2CBus:
     current_enabled = 0x0
 
     # Stats
-    _average_lock_count = 0
+    _average__lock_count = 0
     _average_lock_duration = 0
     _average_lock_start = None
     _average_lock_total = 0
@@ -82,9 +83,9 @@ class I2CBus:
     _max_lock_owner = None
     _lock_fail_count = 0
 
-    def __init__(self, conf):
+    def __init__(self, app_conf):
         """Do setup for i2c bus - look for default hardware."""
-        self.conf = conf
+        self._app_conf = app_conf
         self.lock = threading.Lock()
         try:
             self.bus = smbus2.SMBus(self.rpi_bus_number)
@@ -93,14 +94,14 @@ class I2CBus:
             self.bus = None
         if self.bus is None:
             return
-        self.i2c_device = busio.I2C(board.SCL, board.SDA)
+        self._i2c_device = busio.I2C(board.SCL, board.SDA)
         if self.i2c_exists(self.MUX_DEVICE_ID):
             self.mux_active = True
             self.i2c_mux_default()
         if not self.i2c_update():
             debugging.error("OLED: init - error calling i2c_update")
-        self.__lock_events = 0
-        self.lock_count = 0
+        self._lock_events = 0
+        self._lock_count = 0
 
     def select(self, channel_id):
         """Enable MUX."""
@@ -121,7 +122,7 @@ class I2CBus:
             return
         found_device = False
         # with self.lock:
-        active_devices = self.i2c_device.scan()
+        active_devices = self._i2c_device.scan()
         # length = len(active_devices)
         # debugging.debug("i2c: scan device count = " + str(length))
         for dev_id in active_devices:
@@ -133,7 +134,7 @@ class I2CBus:
 
     def i2cdevice(self):
         """Return i2c bus device to be used in init of components"""
-        return self.i2c_device
+        return self._i2c_device
 
     def bus_lock(self, owner) -> bool:
         """Grab bus lock."""
@@ -142,16 +143,16 @@ class I2CBus:
         for counter in range(1, 11):
             acquired = self.lock.acquire(blocking=True, timeout=0.1)
             if acquired:
-                self.__lock_events += 1
-                self.lock_count += 1
-                self.bus_lock_owner = owner
-                self._average_lock_count += 1
+                self._lock_events += 1
+                self._lock_count += 1
+                self._bus_lock_owner = owner
+                self._average__lock_count += 1
                 self._average_lock_start = time.time()
                 return True
         lock_duration = time.time() - self._average_lock_start
         self._lock_fail_count += 1
         debugging.warn(
-            f"bus_lock: request by {owner} when lock is held: count:{self.lock_count}: events:{self.__lock_events}: owner:{self.bus_lock_owner} duration:{lock_duration}"
+            f"bus_lock: request by {owner} when lock is held: count:{self._lock_count}: events:{self._lock_events}: owner:{self._bus_lock_owner} duration:{lock_duration}"
         )
         return False
 
@@ -160,22 +161,22 @@ class I2CBus:
         if self.bus is None:
             return
         if self.lock.locked():
-            self.lock_count -= 1
+            self._lock_count -= 1
             try:
                 self.lock.release()
                 lock_duration = time.time() - self._average_lock_start
                 self._average_lock_total = self._average_lock_total + lock_duration
                 self._average_lock_duration = (
-                    self._average_lock_total / self._average_lock_count
+                    self._average_lock_total / self._average__lock_count
                 )
                 if lock_duration > self._max_lock_duration:
                     self._max_lock_duration = lock_duration
-                    self._max_lock_owner = self.bus_lock_owner
+                    self._max_lock_owner = self._bus_lock_owner
             except Exception as unlock_err:
                 debugging.error(f"bus_unlock release failed :{unlock_err}:")
         else:
             debugging.warn(
-                f"bus_unlock: Request to release lock that wasn't acquired - lock_count :{self.lock_count}:{self.__lock_events}:{self.bus_lock_owner}"
+                f"bus_unlock: Request to release lock that wasn't acquired - lock_count :{self._lock_count}:{self._lock_events}:{self._bus_lock_owner}"
             )
 
     def set_always_on(self, channel_id):

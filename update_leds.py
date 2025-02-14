@@ -332,7 +332,9 @@ class UpdateLEDs:
         else:
             rgb_color = utils_colors.rgb_color(hexcolor)
 
-        color_ord = self.rgb_to_pixel(led_id, rgb_color, self._app_conf.cache["rgb_grb"])
+        color_ord = self.rgb_to_pixel(
+            led_id, rgb_color, self._app_conf.cache["rgb_grb"]
+        )
         pixel_data = Color(color_ord[0], color_ord[1], color_ord[2])
 
         self.strip.setPixelColor(led_id, pixel_data)

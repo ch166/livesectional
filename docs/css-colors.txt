@@ -1,0 +1,40 @@
+Base Color:
+
+#36648b (rgb(54, 100, 139), hsl(208, 44%, 38%)) - This is blue
+Complementary Color:
+
+#8c5e36 (rgb(140, 94, 54), hsl(28, 44%, 38%)) - This is the color directly opposite the blue on the color wheel. Complementary colors create a high-contrast, vibrant look. In this case, it's a warm orange-brown.
+Analogous Colors:
+
+#368c89 (rgb(54, 140, 137), hsl(178, 44%, 38%)) - This is a color adjacent to the blue on the color wheel. Analogous colors create a harmonious and soothing effect. This one is a blue-green.
+#36398c (rgb(54, 57, 140), hsl(238, 44%, 38%)) - This is another color adjacent to the blue on the color wheel. This one is a blue-purple.
+Triadic Colors:
+
+#8c3664 (rgb(140, 54, 100), hsl(328, 44%, 38%)) - This is one of the two colors that are evenly spaced around the color wheel from the blue. Triadic colors create a balanced and vibrant palette. This one is a magenta.
+#648c36 (rgb(100, 140, 54), hsl(88, 44%, 38%)) - This is the second of the two colors that are evenly spaced around the color wheel from the blue. This one is a green.
+
+
+.element {
+  background-color: #36648b;
+  box-shadow: 5px 5px 10px #1a2f42;
+}
+.element {
+  background-color: #8c5e36;
+  box-shadow: 5px 5px 10px #422d1a;
+}
+.element {
+  background-color: #368c89;
+  box-shadow: 5px 5px 10px #1a4241;
+}
+.element {
+  background-color: #36398c;
+  box-shadow: 5px 5px 10px #1a1b42;
+}
+.element {
+  background-color: #8c3664;
+  box-shadow: 5px 5px 10px #421a2f;
+}
+.element {
+  background-color: #648c36;
+  box-shadow: 5px 5px 10px #2f421a;
+}

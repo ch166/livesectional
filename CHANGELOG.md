@@ -10,19 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Feature: Announce via zeroconf to find other machines on the same network
-- Feature: Change WiFi network connection via web interface
+- Feature: Change Wi-Fi network connection via web interface
 - Feature: Support for in-situ software upgrades
 - Feature: Airports without METAR data can be added to use weather from adjacent airports *neigh:_code_*
-- Feature: Calculate best active runway based on weather
+- Feature: Calculate the best active runway based on weather
 - Script: Daily cron job to update git repos
-- Script: update.sh - safely update installation
+- Script: update.sh to safely update existing installation
 - Added TAF data to /wx/<icao> 
 - Added MOS data to /wx/<icao> 
-- Username/Password protection for destructive calls (eg: reboot / change wifi)
+- Username/Password protection for destructive calls (eg: reboot / change Wi-Fi)
 - Initial setup screen on first run
  - Admin user / password
  - TLS Enable (certificate upload)
-- Ability to selectively disable individual modules (zeroconf/oled/led etc)
+- Ability to selectively disable individual modules (zeroconf/oled/led etc.)
 - Auto generate local tls host certificates
 
 ### Changed
@@ -33,16 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code cleanup: standardized lon/lat usage and argument ordering
 - Code cleanup: added type hints
 - Code cleanup: Standardized naming of class variables for consistency
-- Bug fix: Fixed process for identifying best runway
+- Bug fix: Fixed process for identifying the best runway
 - Bug fix: Rewrote ledmode RADAR code
 - TAF code rewritten
 - MOS code rewritten
 - Added documentation / docs
-- OLED Configuration being moved to config file
+- OLED Configuration being moved to the config file
 - Bug fix: Corrected URLs to aviationweather.gov
 - Bug fix: Corrected URLs to airnav.com instead of rocketroute.com
 - Bug fix: Better handling of airports and runway data sources going missing.
-- Performance: minimize number of times we recalculate Metar data
+- Performance: minimize the number of times we recalculate Metar data
 - WWW: Heatmap popup shows size rather than pin ID
 - Added support for VEML7700 light sensor
 - Added bcrypt library as dependency for password salting

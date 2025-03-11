@@ -10,6 +10,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Test data file
+data/*.xml
+data/*.bak*
+data/taf*
+data/metar*
+data/GFS*
+
 # Certificates
 *.pem
 

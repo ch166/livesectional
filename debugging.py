@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Support Debugging Printing """
+"""Support Debugging Printing"""
 
 import time
 import sys

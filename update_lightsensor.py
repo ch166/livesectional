@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Manage i2c Light Sensors. """
+"""Manage i2c Light Sensors."""
 
 # Update i2c attached devices
 import time

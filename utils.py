@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Collection of shared utility functions for all modules ."""
+"""Collection of shared utility functions for all modules ."""
 
 import os
 import os.path

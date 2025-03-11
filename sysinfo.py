@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- #
-""" Use psutil to query system information """
+"""Use psutil to query system information"""
 
 import os
 import sys

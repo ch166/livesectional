@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- "
 
-""" update_leds.py.
+"""update_leds.py.
 
 # Moved all the airport specific data / metar analysis functions to update_airport.py
 # This module creates a class updateLEDs that is specifically focused around

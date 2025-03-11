@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- #
 
-""" Collection of shared color handling functions and constants."""
+"""Collection of shared color handling functions and constants."""
 #
 # from enum import Enum, auto
 import random

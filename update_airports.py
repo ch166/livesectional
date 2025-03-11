@@ -875,8 +875,15 @@ class AirportDB:
             if self._dataset_changed:
                 self._dataset_changed = False
                 debugging.info(f"Triggering airport refresh :_dataset_changed: is True")
+                # This updates the all the airports with Primary WX data first; then does any with neigh: WX sources
                 for airport_obj in self._airport_master_dict.values():
-                    self.refresh_airport(airport_obj.icao_code())
+                    # Update all airports with Direct WX src
+                    if not airport_obj.wxsrc_neighbor():
+                        self.refresh_airport(airport_obj.icao_code())
+                for airport_obj in self._airport_master_dict.values():
+                    # Update all airports using neigh: as a WX src
+                    if airport_obj.wxsrc_neighbor():
+                        self.refresh_airport(airport_obj.icao_code())
 
             for airport_icao in self._debug_airport_list:
                 debug_taf = self.get_airport_taf(airport_icao)

@@ -67,6 +67,8 @@ class Airport:
     _runway_dataset = None
     _processed_metar_object = None
 
+    _uses_neighbor = False
+
     # Application Status for Airport
     _purpose = UNUSED
     _active_led = None
@@ -127,6 +129,8 @@ class Airport:
         self._observation = None
         self._observation_time = None
         self._runway_dataset = None
+
+        self._uses_neighbor = False
 
         # Application Status for Airport
         self._purpose = self.UNUSED
@@ -325,6 +329,10 @@ class Airport:
     def get_led_index(self) -> int:
         """Return LED ID."""
         return self._led_index
+
+    def wxsrc_neighbor(self) -> bool:
+        """Is WX src a neighbor"""
+        return self._uses_neighbor
 
     def wxsrc(self) -> str:
         """Get Weather source."""
@@ -617,12 +625,15 @@ class Airport:
     def update_wx(self, airport_master_dict):
         """Update Weather Data - Get fresh METAR."""
         if self._wxsrc is None:
+            self._uses_neighbor = False
             return False
         if self._wxsrc == "adds":
+            self._uses_neighbor = False
             self.update_metar(self._metar)
             return True
         if self._wxsrc.startswith("neigh"):
             # Get METAR data from alternative Airport
+            self._uses_neighbor = True
             str_parts = self._wxsrc.split(":")
             alt_aprt_name = str_parts[1]
             debugging.info(f"{self._icao} needs metar for {alt_aprt_name}")
